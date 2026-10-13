@@ -1,0 +1,38 @@
+/** Dizayndagi ikonkalar — 24×24 viewBox, chiziqli. Kalitlar DB'dagi Category.icon / Discount.icon bilan mos. */
+export const ICONS = {
+  // kategoriya / chegirma
+  bowl: "M3 11h18a9 9 0 0 1-18 0zM8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4M5 20h14",
+  cup: "M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8zM16 10h2a2 2 0 0 1 0 4h-2M8 2.5v3M12 2.5v3",
+  book: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM4 21a2 2 0 0 1 2-2h13M9 7h6",
+  print: "M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6zM9 17h6",
+  gym: "M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12",
+  cut: "M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.1 7.9L20 20M8.1 16.1L20 4",
+  film: "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10",
+  wrap: "M5 6l14 3-2 11-14-3zM8 10l7 1.5M7.4 13.5l7 1.5",
+  // navigatsiya
+  home: "M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
+  ticket: "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10",
+  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
+  user: "M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c1-4 4-6 8-6s7 2 8 6",
+  scan: "M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16",
+  chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  receipt: "M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6",
+  users: "M9 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM2.5 20c.8-3.5 3.3-5 6.5-5s5.7 1.5 6.5 5M16 4.5a3.5 3.5 0 0 1 0 7M18 15c2 .6 3.2 2.2 3.5 5",
+  store: "M3 9l1.5-5h15L21 9M3 9h18v11H3zM3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0",
+  student: "M2 9l10-5 10 5-10 5zM6 11v5c3 2.5 9 2.5 12 0v-5",
+  // umumiy
+  arrowRight: "M5 12h14M13 6l6 6-6 6",
+  chevronDown: "M6 9l6 6 6-6",
+  check: "M5 12l5 5 9-10",
+  download: "M12 4v12M7 11l5 5 5-5M4 20h16",
+  menu: "M4 7h16M4 12h16M4 17h16",
+  close: "M6 6l12 12M18 6L6 18",
+  plus: "M12 5v14M5 12h14",
+  minus: "M5 12h14",
+} as const;
+
+export type IconName = keyof typeof ICONS;
+
+export function isIconName(value: string): value is IconName {
+  return value in ICONS;
+}

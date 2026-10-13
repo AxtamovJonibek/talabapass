@@ -1,0 +1,601 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────── Foydalanuvchi va kirish ─────────────
+
+enum Role {
+  STUDENT
+  BUSINESS_OWNER
+  CASHIER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  /// E.164: +998XXXXXXXXX
+  phone         String     @unique
+  role          Role
+  firstName     String?
+  lastName      String?
+  locale        String     @default("uz")
+  status        UserStatus @default(ACTIVE)
+  blockedReason String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  sessions          Session[]
+  student           StudentProfile?
+  ownedBusinesses   Business[]         @relation("BusinessOwner")
+  memberships       BusinessMember[]
+  coupons           Coupon[]
+  redemptions       Redemption[]       @relation("RedemptionStudent")
+  cashierSales      Redemption[]       @relation("RedemptionCashier")
+  scanAttempts      ScanAttempt[]      @relation("ScanCashier")
+  savedDiscounts    SavedDiscount[]
+  notifications     UserNotification[]
+  pushSubscriptions PushSubscription[]
+  auditLogs         AuditLog[]
+
+  @@index([role, status])
+}
+
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ───────────── Talaba ─────────────
+
+enum StudentStatus {
+  /// ro'yxatdan o'tgan, guvohnoma hali yuklanmagan
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  /// cardExpiresAt o'tgan — yangi guvohnoma kerak
+  EXPIRED
+  BLOCKED
+}
+
+enum Course {
+  C1
+  C2
+  C3
+  C4
+  MASTER
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model University {
+  id        String @id @default(cuid())
+  name      String @unique
+  /// TATU, O'zMU, TDIU ...
+  shortName String
+  city      String @default("Toshkent")
+
+  students StudentProfile[]
+}
+
+model StudentProfile {
+  userId        String        @id
+  universityId  String
+  faculty       String?
+  course        Course
+  /// TP-2610-0418 — talaba kartasida ko'rinadi
+  publicId      String        @unique
+  status        StudentStatus @default(DRAFT)
+  /// Guvohnoma raqami va muddatini admin tasdiqlash paytida kiritadi
+  cardNumber    String?       @unique
+  cardExpiresAt DateTime?     @db.Date
+  notifyDeals   Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university    University     @relation(fields: [universityId], references: [id])
+  verifications Verification[]
+
+  @@index([status])
+  @@index([universityId])
+  @@index([cardExpiresAt])
+}
+
+/// Har bir guvohnoma yuklash — alohida yozuv (tarix saqlanadi)
+model Verification {
+  id           String             @id @default(cuid())
+  studentId    String
+  /// private bucket kaliti — hech qachon public URL emas
+  fileKey      String
+  fileName     String
+  fileSize     Int
+  mime         String
+  status       VerificationStatus @default(PENDING)
+  rejectReason String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime           @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([studentId])
+}
+
+// ───────────── Biznes ─────────────
+
+enum BusinessStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WARNED
+  BLOCKED
+}
+
+enum BusinessKind {
+  CAFE
+  SHOP
+  SERVICE
+  SPORT
+  BEAUTY
+  EDUCATION
+  ENTERTAINMENT
+}
+
+enum DocKind {
+  REGISTRATION
+  PHOTO
+  OTHER
+}
+
+enum MemberRole {
+  OWNER
+  CASHIER
+}
+
+model District {
+  id   String @id @default(cuid())
+  name String @unique
+  lat  Float
+  lng  Float
+
+  businesses Business[]
+}
+
+model Business {
+  id           String         @id @default(cuid())
+  ownerId      String
+  name         String
+  legalName    String?
+  /// STIR (INN), 9 raqam
+  tin          String?        @unique
+  kind         BusinessKind
+  /// "Choyxona", "Kinoteatr" — kartada ko'rinadigan qisqa tur
+  typeLabel    String?
+  districtId   String?
+  address      String
+  /// Qo'shimcha mo'ljal: "TATU yonida"
+  landmark     String?
+  lat          Float?
+  lng          Float?
+  workingHours String
+  description  String?        @db.VarChar(120)
+  logoKey      String?
+  contactName  String?
+  contactPhone String?
+  status       BusinessStatus @default(PENDING)
+  rejectReason String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  /// Chek raqami hisoblagichi — redeem tranzaksiyasida atom oshiriladi
+  receiptSeq   Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  owner        User             @relation("BusinessOwner", fields: [ownerId], references: [id])
+  district     District?        @relation(fields: [districtId], references: [id])
+  docs         BusinessDoc[]
+  members      BusinessMember[]
+  invites      CashierInvite[]
+  discounts    Discount[]
+  redemptions  Redemption[]
+  scanAttempts ScanAttempt[]
+
+  @@index([status])
+  @@index([ownerId])
+}
+
+model BusinessDoc {
+  id         String   @id @default(cuid())
+  businessId String
+  kind       DocKind
+  fileKey    String
+  fileName   String
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+}
+
+model BusinessMember {
+  id         String     @id @default(cuid())
+  businessId String
+  userId     String
+  role       MemberRole
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, userId])
+  @@index([userId])
+}
+
+model CashierInvite {
+  id           String    @id @default(cuid())
+  businessId   String
+  tokenHash    String    @unique
+  phone        String?
+  expiresAt    DateTime
+  acceptedById String?
+  acceptedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+}
+
+// ───────────── Chegirma ─────────────
+
+enum DiscountType {
+  PERCENT
+  FIXED_PRICE
+  /// 1 + 1
+  BOGO
+}
+
+enum StudentLimit {
+  DAILY
+  WEEKLY
+  UNLIMITED
+}
+
+enum DiscountStatus {
+  DRAFT
+  /// admin tasdig'ini kutmoqda
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  REJECTED
+  ENDED
+}
+
+model Category {
+  id        String @id @default(cuid())
+  /// taom, kofe, kitob, xizmat, sport, gozal, kino
+  slug      String @unique
+  name      String
+  sort      Int    @default(0)
+  tileColor String
+  inkColor  String
+  /// src/components/ui/icons dagi kalit
+  icon      String
+
+  discounts Discount[]
+}
+
+model Discount {
+  id              String         @id @default(cuid())
+  businessId      String
+  categoryId      String
+  title           String
+  description     String?
+  type            DiscountType
+  /// so'm; "chekdan −15%" kabi narxsiz chegirmalarda null
+  originalPrice   Int?
+  percent         Int?
+  newPrice        Int?
+  /// Narx o'rniga ko'rinadigan matn: "Ikkinchi lavash bepul"
+  note            String?
+  /// Kategoriya ikonkasi/rangini almashtirish (ixtiyoriy)
+  icon            String?
+  tileColor       String?
+  inkColor        String?
+  /// 1 = dushanba … 7 = yakshanba (Toshkent vaqti)
+  weekdays        Int[]
+  /// Kun boshidan daqiqalar (Toshkent vaqti): 12:00 = 720
+  fromMinute      Int
+  toMinute        Int
+  dailyLimit      Int
+  perStudentLimit StudentLimit   @default(DAILY)
+  startsOn        DateTime       @db.Date
+  endsOn          DateTime       @db.Date
+  terms           String?
+  status          DiscountStatus @default(DRAFT)
+  rejectReason    String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  business    Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category    Category        @relation(fields: [categoryId], references: [id])
+  images      DiscountImage[]
+  days        DiscountDay[]
+  views       DiscountView[]
+  savedBy     SavedDiscount[]
+  coupons     Coupon[]
+  redemptions Redemption[]
+
+  @@index([status, endsOn])
+  @@index([businessId])
+  @@index([categoryId])
+}
+
+model DiscountImage {
+  id         String @id @default(cuid())
+  discountId String
+  fileKey    String
+  sort       Int    @default(0)
+
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  @@index([discountId])
+}
+
+/// Kunlik hisob. claimed = faol + sotilgan kuponlar; bekor/eskirganda atom kamayadi.
+model DiscountDay {
+  discountId String
+  date       DateTime @db.Date
+  claimed    Int      @default(0)
+  redeemed   Int      @default(0)
+
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  @@id([discountId, date])
+}
+
+model DiscountView {
+  discountId String
+  date       DateTime @db.Date
+  count      Int      @default(0)
+
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  @@id([discountId, date])
+}
+
+model SavedDiscount {
+  studentId  String
+  discountId String
+  createdAt  DateTime @default(now())
+
+  student  User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, discountId])
+}
+
+// ───────────── Kupon va sotuv ─────────────
+
+enum CouponStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentType {
+  CASH
+  CARD
+  QR
+}
+
+enum ScanResult {
+  OK
+  INVALID
+  EXPIRED
+  REPLAYED
+  OUT_OF_HOURS
+  LIMIT
+  WRONG_BUSINESS
+  BLOCKED
+  MANUAL_LOCKED
+}
+
+/// Migratsiyada qo'shimcha: (studentId, discountId) bo'yicha status='ACTIVE' uchun qisman unique indeks.
+model Coupon {
+  id             String       @id @default(cuid())
+  /// TP-7K3Q-92XD
+  code           String       @unique
+  discountId     String
+  studentId      String
+  /// Toshkent sanasi — DiscountDay bilan bog'lanadi
+  date           DateTime     @db.Date
+  status         CouponStatus @default(ACTIVE)
+  /// TOTP siri — server kaliti bilan shifrlangan (AES-GCM)
+  secret         Bytes
+  manualAttempts Int          @default(0)
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  closedAt       DateTime?
+
+  discount     Discount      @relation(fields: [discountId], references: [id])
+  student      User          @relation(fields: [studentId], references: [id])
+  redemption   Redemption?
+  scanAttempts ScanAttempt[]
+
+  @@index([studentId, status])
+  @@index([status, expiresAt])
+  @@index([discountId, date])
+}
+
+model Redemption {
+  id             String      @id @default(cuid())
+  couponId       String      @unique
+  receiptNo      Int
+  businessId     String
+  discountId     String
+  studentId      String
+  cashierId      String
+  /// so'm; narxsiz chegirmalarda kassir kiritadi
+  originalPrice  Int
+  discountAmount Int
+  paidAmount     Int
+  paymentType    PaymentType
+  createdAt      DateTime    @default(now())
+
+  coupon   Coupon   @relation(fields: [couponId], references: [id])
+  business Business @relation(fields: [businessId], references: [id])
+  discount Discount @relation(fields: [discountId], references: [id])
+  student  User     @relation("RedemptionStudent", fields: [studentId], references: [id])
+  cashier  User     @relation("RedemptionCashier", fields: [cashierId], references: [id])
+
+  @@unique([businessId, receiptNo])
+  @@index([businessId, createdAt])
+  @@index([studentId, createdAt])
+  @@index([discountId, createdAt])
+  @@index([createdAt])
+}
+
+model ScanAttempt {
+  id         String     @id @default(cuid())
+  businessId String
+  cashierId  String
+  couponId   String?
+  result     ScanResult
+  manual     Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  cashier  User     @relation("ScanCashier", fields: [cashierId], references: [id])
+  coupon   Coupon?  @relation(fields: [couponId], references: [id])
+
+  @@index([businessId, createdAt])
+  @@index([createdAt])
+  @@index([cashierId, createdAt])
+}
+
+// ───────────── Bildirishnoma va audit ─────────────
+
+enum Audience {
+  ALL_STUDENTS
+  UNIVERSITY
+  DISTRICT
+  BUSINESSES
+}
+
+enum NotificationStatus {
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+}
+
+enum LinkType {
+  HOME
+  CATEGORY
+  DISCOUNT
+}
+
+model Notification {
+  id          String             @id @default(cuid())
+  title       String             @db.VarChar(50)
+  body        String             @db.VarChar(150)
+  audience    Audience
+  /// UNIVERSITY → universitet id'lari, DISTRICT → tuman id'lari
+  audienceIds String[]
+  linkType    LinkType           @default(HOME)
+  linkId      String?
+  scheduledAt DateTime
+  sentAt      DateTime?
+  status      NotificationStatus @default(SCHEDULED)
+  delivered   Int                @default(0)
+  opened      Int                @default(0)
+  createdById String
+  createdAt   DateTime           @default(now())
+
+  recipients UserNotification[]
+
+  @@index([status, scheduledAt])
+}
+
+model UserNotification {
+  id             String    @id @default(cuid())
+  notificationId String
+  userId         String
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, userId])
+  @@index([userId, createdAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}

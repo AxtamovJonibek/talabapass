@@ -1,0 +1,4 @@
+* text=auto eol=lf
+design/** -text
+*.woff2 binary
+*.ico binary

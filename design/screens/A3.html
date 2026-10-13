@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="uz"><head>
+<meta charset="utf-8">
+<title>Admin — bildirishnomalar — talabaPass</title>
+<script src="assets/62143cf3b3.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>/* vietnamese */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdboLnnA.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLnnA.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url("assets/258a93fe93.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1iIq129k.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/9836f315b5.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1iAq129k.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1iEq129k.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/bb87500e32.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl1FgtIU.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwlRFgtIU.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl9FgtIU.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl5FgtIU.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/d32f0e0701.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwl1FgtIU.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwlRFgtIU.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwl9FgtIU.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwl5FgtIU.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/ce9a5ca3a8.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+<style>
+body{margin:0;background:#EEEDE8}
+a{color:#2433D6}a:hover{color:#141414}
+input::placeholder,textarea::placeholder{color:#7A776F}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #EEEDE8; font-family: 'Archivo', system-ui, sans-serif; color: #141414; display: flex; flex-wrap: wrap">
+
+  <aside style="flex: 1 1 220px; max-width: 100%; background: #141414; color: #F3F2EE; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; font-stretch: 125%; font-size: 17px; letter-spacing: -0.02em; padding: 0 8px">talaba<span style="background: #2433D6; color: #FFFFFF; padding: 2px 7px 3px; border-radius: 5px; font-size: 14px">Pass</span><span style="font-size: 11px; font-weight: 700; font-stretch: 100%; color: #141414; background: #F3F2EE; padding: 3px 6px; border-radius: 5px">ADMIN</span></div>
+    <nav aria-label="Admin menyu" style="display: flex; flex-direction: column; gap: 2px">
+      <a href="admin-umumiy.dc.html" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>Umumiy</a>
+      <a href="admin-tekshiruv.dc.html" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M14 10h4M14 13h3M6 16h6"></path></svg>Talabalar tekshiruvi<span style="margin-left: auto; background: #FF5B1F; color: #141414; font-size: 12px; font-weight: 800; padding: 1px 7px; border-radius: 10px">47</span></a>
+      <a href="admin-tekshiruv.dc.html" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9M3 9h18v11H3zM3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"></path></svg>Bizneslar<span style="margin-left: auto; background: #FF5B1F; color: #141414; font-size: 12px; font-weight: 800; padding: 1px 7px; border-radius: 10px">8</span></a>
+      <a href="admin-umumiy.dc.html" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"></path></svg>Tranzaksiyalar</a>
+      <a href="admin-bildirishnoma.dc.html" style="height: 42px; border-radius: 10px; background: #2433D6; color: #FFFFFF; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 700; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"></path></svg>Bildirishnomalar</a>
+    </nav>
+    <div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 0 6px">
+      <div style="width: 34px; height: 34px; border-radius: 17px; background: #F3F2EE; color: #141414; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px">AM</div>
+      <div style="display: flex; flex-direction: column"><span style="font-weight: 700; font-size: 13px">Aziza Mirzayeva</span><span style="font-size: 12px; color: #A9A69E">Bosh moderator</span></div>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px clamp(16px, 3vw, 40px) 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+    <header>
+      <div style="font-size: 13px; color: #5F5D57">Push va ilova ichidagi xabar</div>
+      <h1 style="margin: 4px 0 0; font-size: 36px; font-weight: 900; font-stretch: 112%; letter-spacing: -0.035em; line-height: 1">Bildirishnoma yuborish</h1>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch">
+      <form style="flex: 2 1 520px; min-width: 0; background: #FFFFFF; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+        <fieldset style="border: 0; margin: 0; padding: 0">
+          <legend style="font-size: 13px; font-weight: 700; padding: 0; margin-bottom: 8px">Kimga</legend>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{auds}}" as="a" hint-placeholder-count="4">
+              <button type="button" aria-pressed="{{a.on}}" sc-camel-on-click="{{a.pick}}" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1.5px solid {{a.bd}}; background: {{a.bg}}; color: {{a.fg}}; font-family: inherit; font-size: 14px; font-weight: 700">{{a.label}}</button>
+            </sc-for>
+          </div>
+          <sc-if value="{{showUni}}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: #F3F2EE; border-radius: 12px; padding: 10px">
+              <span style="font-size: 12px; color: #5F5D57; margin-right: 4px">Universitetlar:</span>
+              <span style="height: 30px; padding: 0 10px; border-radius: 15px; background: #2433D6; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center">TATU · 4 812</span>
+              <span style="height: 30px; padding: 0 10px; border-radius: 15px; background: #2433D6; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center">O'zMU · 3 960</span>
+              <button type="button" style="height: 30px; padding: 0 10px; border-radius: 15px; border: 1.5px dashed #8A877F; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: #141414">+ qo'shish</button>
+            </div>
+          </sc-if>
+          <div style="margin-top: 10px; font-size: 13px; color: #5F5D57">Qamrov: <b style="color: #141414; font-family: 'IBM Plex Mono', monospace">{{reach}}</b> {{reachUnit}}</div>
+        </fieldset>
+
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="sar" style="font-size: 13px; font-weight: 700; display: flex; justify-content: space-between">Sarlavha <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 400; color: #5F5D57">{{tLen}}/50</span></label>
+          <input id="sar" type="text" value="{{title}}" sc-camel-on-change="{{onTitle}}" maxlength="50" style="height: 48px; box-sizing: border-box; border: 1.5px solid #141414; border-radius: 12px; padding: 0 14px; font-family: inherit; font-size: 15px; background: #FFFFFF; color: #141414">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="mat" style="font-size: 13px; font-weight: 700; display: flex; justify-content: space-between">Matn <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 400; color: #5F5D57">{{bLen}}/150</span></label>
+          <textarea id="mat" rows="3" maxlength="150" value="{{body}}" sc-camel-on-change="{{onBody}}" style="box-sizing: border-box; border: 1.5px solid #D6D3CA; border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 15px; background: #FFFFFF; color: #141414; resize: vertical; line-height: 1.4"></textarea>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 6px">
+            <label for="hav" style="font-size: 13px; font-weight: 700">Bosilganda ochiladi</label>
+            <sc-raw-select id="hav" style="height: 48px; border-radius: 12px; border: 1.5px solid #D6D3CA; padding: 0 12px; font-family: inherit; font-size: 14px; background: #FFFFFF; color: #141414">
+              <option>Chegirma: Kadr Kinoteatri −44%</option>
+              <option>Kategoriya: Kofe</option>
+              <option>Asosiy sahifa</option>
+            </sc-raw-select>
+          </div>
+          <div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 13px; font-weight: 700">Qachon</span>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: #EEEDE8; border-radius: 12px; padding: 4px; gap: 4px; height: 48px; box-sizing: border-box">
+              <button type="button" sc-camel-on-click="{{now}}" style="border: 0; border-radius: 9px; background: {{nowBg}}; font-family: inherit; font-size: 14px; font-weight: 700; color: #141414">Hozir</button>
+              <button type="button" sc-camel-on-click="{{later}}" style="border: 0; border-radius: 9px; background: {{laterBg}}; font-family: inherit; font-size: 14px; font-weight: 700; color: #141414">Ertaga 08:30</button>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1.5px dashed #DAD7CE; padding-top: 16px; margin-top: auto">
+          <button type="button" sc-camel-on-click="{{send}}" style="height: 52px; padding: 0 24px; border-radius: 14px; border: 0; background: #2433D6; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 10px">
+            <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"></path></svg>{{sendLabel}}</button>
+          <span style="font-size: 13px; color: #5F5D57">{{sentNote}}</span>
+        </div>
+      </form>
+
+      <div style="flex: 1 1 300px; min-width: 0; background: #141414; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 14px">
+        <div style="align-self: stretch; font-size: 12px; font-weight: 700; color: #A9A69E; letter-spacing: 0.06em">TELEFONDA KO'RINISHI</div>
+        <div style="width: 270px; max-width: 100%; height: 400px; border-radius: 40px; border: 8px solid #2F2F2C; background: #2433D6; box-sizing: border-box; padding: 70px 12px 0; position: relative; overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; left: -40px; bottom: -60px; width: 220px; height: 220px; border-radius: 110px; border: 34px solid #3646E4"></div>
+          <div style="position: relative; background: #F7F6F1; border-radius: 18px; padding: 12px; display: flex; gap: 10px">
+            <div style="width: 34px; height: 34px; border-radius: 9px; background: #141414; color: #FFFFFF; font-weight: 900; font-stretch: 125%; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0">tP</div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; color: #5F5D57"><span>talabaPass</span><span>{{whenLabel}}</span></div>
+              <div style="font-weight: 800; font-size: 14px; line-height: 1.25; color: #141414">{{title}}</div>
+              <div style="font-size: 13px; line-height: 1.35; color: #3A3A36">{{body}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section style="background: #FFFFFF; border-radius: 16px; padding: 20px; min-width: 0">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Yuborilganlar</h2>
+      <div style="overflow-x: auto; margin-top: 10px">
+        <sc-raw-table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 14px">
+          <sc-raw-thead><sc-raw-tr style="text-align: left; color: #5F5D57; font-size: 12px">
+            <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Vaqt</sc-raw-th>
+            <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Sarlavha</sc-raw-th>
+            <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Auditoriya</sc-raw-th>
+            <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">Yetkazildi</sc-raw-th>
+            <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">Ochildi</sc-raw-th>
+            <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Holat</sc-raw-th>
+          </sc-raw-tr></sc-raw-thead>
+          <sc-raw-tbody>
+            <sc-for list="{{hist}}" as="h" hint-placeholder-count="5">
+              <sc-raw-tr>
+                <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; font-family: 'IBM Plex Mono', monospace; white-space: nowrap">{{h.t}}</sc-raw-td>
+                <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; font-weight: 700">{{h.title}}</sc-raw-td>
+                <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; color: #5F5D57">{{h.aud}}</sc-raw-td>
+                <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; text-align: right; font-family: 'IBM Plex Mono', monospace">{{h.n}}</sc-raw-td>
+                <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; text-align: right; font-family: 'IBM Plex Mono', monospace">{{h.open}}</sc-raw-td>
+                <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6"><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: {{h.bg}}; color: {{h.fg}}">{{h.st}}</span></sc-raw-td>
+              </sc-raw-tr>
+            </sc-for>
+          </sc-raw-tbody>
+        </sc-raw-table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1040}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { aud: "uni", title: "Imtihon oldidan kino kechasi", body: "Bugun Kadr Kinoteatrida talabalar uchun chipta 25 000 so'm. Faqat seshanba!", when: "now", sent: [] };
+  }
+  fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+  renderVals() {
+    var self = this, s = this.state;
+    var defs = [["all", "Barcha talabalar", 24318, "talaba"], ["uni", "Universitet bo'yicha", 8772, "talaba"], ["geo", "Hudud: Chilonzor", 5106, "talaba"], ["biz", "Bizneslar", 412, "biznes"]];
+    var auds = defs.map(function (d) {
+      var on = d[0] === s.aud;
+      return { label: d[1], on: on ? "true" : "false", bg: on ? "#141414" : "#FFFFFF", fg: on ? "#FFFFFF" : "#141414", bd: on ? "#141414" : "#D6D3CA", pick: function () { self.setState({ aud: d[0] }); } };
+    });
+    var cur = defs.filter(function (d) { return d[0] === s.aud; })[0];
+    var audName = s.aud === "uni" ? "TATU, O'zMU" : cur[1];
+    var base = [
+      { t: "14.10 08:30", title: "Ertalabki kofe −25%", aud: "Hudud: Mirzo Ulug'bek", n: "—", open: "—", st: "Rejalashtirilgan", bg: "#E6E8FB", fg: "#2433D6" },
+      { t: "12.10 18:00", title: "Seshanba — kino kuni", aud: "Barcha talabalar", n: "24 006", open: "31%", st: "Yetkazildi", bg: "#E3F4EA", fg: "#0F5F37" },
+      { t: "10.10 09:00", title: "Imtihon haftasi: kofe arzon", aud: "TATU, O'zMU", n: "8 690", open: "42%", st: "Yetkazildi", bg: "#E3F4EA", fg: "#0F5F37" },
+      { t: "08.10 12:30", title: "Yangi hamkor: Forma Fitnes", aud: "Hudud: Yunusobod", n: "3 120", open: "27%", st: "Yetkazildi", bg: "#E3F4EA", fg: "#0F5F37" },
+      { t: "05.10 10:00", title: "Oylik hisobot tayyor", aud: "Bizneslar", n: "405", open: "64%", st: "Yetkazildi", bg: "#E3F4EA", fg: "#0F5F37" }
+    ];
+    return {
+      auds: auds, showUni: s.aud === "uni", reach: this.fmt(cur[2]), reachUnit: cur[3],
+      title: s.title, body: s.body, tLen: s.title.length, bLen: s.body.length,
+      onTitle: function (e) { self.setState({ title: e.target.value }); },
+      onBody: function (e) { self.setState({ body: e.target.value }); },
+      nowBg: s.when === "now" ? "#FFFFFF" : "transparent", laterBg: s.when === "later" ? "#FFFFFF" : "transparent",
+      now: function () { self.setState({ when: "now" }); }, later: function () { self.setState({ when: "later" }); },
+      whenLabel: s.when === "now" ? "hozir" : "ertaga 08:30",
+      sendLabel: s.when === "now" ? "Yuborish" : "Rejalashtirish",
+      sentNote: s.sent.length ? "Navbatga qo'shildi" : "Yuborishdan oldin 2-moderator tasdiqlaydi",
+      send: function () {
+        var row = { t: s.when === "now" ? "13.10 14:31" : "14.10 08:30", title: s.title, aud: audName, n: s.when === "now" ? "yuborilmoqda" : "—", open: "—", st: s.when === "now" ? "Tasdiq kutilmoqda" : "Rejalashtirilgan", bg: "#FFF0E6", fg: "#9A3A0E" };
+        self.setState({ sent: [row].concat(s.sent) });
+      },
+      hist: s.sent.concat(base)
+    };
+  }
+}
+</script>
+
+
+</body></html>

@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/*
+ * Dizayn tokenlari — design/screens/*.html dan olingan.
+ * Standart Tailwind palitrasi o'chirilgan: faqat shu yerdagi ranglar ishlaydi.
+ * Yangi qiymat kerak bo'lsa avval dizaynda borligini tekshiring, keyin shu yerga qo'shing.
+ */
+@theme {
+  --color-*: initial;
+
+  /* asos */
+  --color-ink: #141414;
+  --color-paper: #f3f2ee;
+  --color-white: #ffffff;
+  --color-admin-bg: #eeede8;
+  --color-surface: #eeece6;
+  --color-track: #e6e4dd;
+  --color-bar: #e7e5de;
+
+  /* matn */
+  --color-muted: #5f5d57;
+  --color-muted-2: #6e6b64;
+  --color-placeholder: #8a877f;
+  --color-placeholder-2: #7a776f;
+
+  /* chiziqlar */
+  --color-line: #d6d3ca;
+  --color-line-soft: #e2e0d8;
+  --color-dash: #dad7ce;
+
+  /* urg'u */
+  --color-blue: #2433d6;
+  --color-blue-2: #3646e4;
+  --color-orange: #ff5b1f;
+  --color-rust: #b23a0c;
+
+  /* holat */
+  --color-green: #0f5f37;
+  --color-green-live: #1e9e5a;
+  --color-green-text: #0f7040;
+  --color-green-bg: #e3f4ea;
+  --color-mint: #6fd39c;
+  --color-danger: #b4230c;
+  --color-danger-bg: #fbe3dc;
+  --color-danger-line: #f2c4b4;
+  --color-warn: #9a3a0e;
+  --color-warn-bg: #fff0e6;
+  --color-info-bg: #e6e8fb;
+
+  /* qora yuzalar va ulardagi matn */
+  --color-ink-2: #232321;
+  --color-ink-3: #2a2a27;
+  --color-ink-4: #2f2f2c;
+  --color-ink-5: #3a3a36;
+  --color-fog-1: #d8d5cd;
+  --color-fog-2: #bdbab2;
+  --color-fog-3: #a9a69e;
+
+  /* issiqlik shkalasi (kam → ko'p) */
+  --color-heat-0: #efede7;
+  --color-heat-1: #fbd5c2;
+  --color-heat-2: #fca57d;
+  --color-heat-3: #ff6a2e;
+  --color-heat-4: #b83a0a;
+
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), monospace;
+
+  /* o'lcham = piksel; dizayndagi qiymatlar */
+  --text-*: initial;
+  --text-9: 9px;
+  --text-10: 10px;
+  --text-11: 11px;
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-15: 15px;
+  --text-16: 16px;
+  --text-17: 17px;
+  --text-18: 18px;
+  --text-19: 19px;
+  --text-20: 20px;
+  --text-22: 22px;
+  --text-24: 24px;
+  --text-26: 26px;
+  --text-28: 28px;
+  --text-30: 30px;
+  --text-32: 32px;
+  --text-36: 36px;
+  --text-38: 38px;
+  --text-40: 40px;
+  --text-44: 44px;
+
+  --radius-*: initial;
+  --radius-2: 2px;
+  --radius-3: 3px;
+  --radius-4: 4px;
+  --radius-5: 5px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-9: 9px;
+  --radius-10: 10px;
+  --radius-11: 11px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-15: 15px;
+  --radius-16: 16px;
+  --radius-18: 18px;
+  --radius-19: 19px;
+  --radius-20: 20px;
+  --radius-22: 22px;
+}
+
+/* Dizayndagi standart chegara qalinligi */
+@utility border-hair {
+  border-width: 1.5px;
+  border-style: solid;
+}
+
+@utility border-t-hair-dashed {
+  border-top: 1.5px dashed var(--color-dash);
+}
+
+/* Qora sarlavha blokining pastki "chipta" tishli cheti (T1, T3). Ota element: relative. */
+@utility ticket-scallop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 14px;
+  background: radial-gradient(circle at 7px 7px, var(--color-paper) 5px, transparent 5.5px) 0 0 / 16px 14px repeat-x;
+}
+
+/* Chekning pastki arra cheti (T7, B4) */
+@utility receipt-edge {
+  height: 10px;
+  background:
+    linear-gradient(-45deg, transparent 6px, var(--color-white) 0) 0 0 / 12px 10px repeat-x,
+    linear-gradient(45deg, transparent 6px, var(--color-white) 0) 0 0 / 12px 10px repeat-x;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-placeholder);
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}

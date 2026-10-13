@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "title": "talabaPass — talabalar uchun chegirmalar",
+    "description": "O'zbekiston talabalari va mahalliy bizneslarni bog'laydigan chegirmalar platformasi."
+  },
+  "brand": {
+    "business": "BIZNES",
+    "admin": "ADMIN"
+  },
+  "common": {
+    "currency": "so'm",
+    "continue": "Davom etish",
+    "back": "Orqaga",
+    "login": "Kirish",
+    "logout": "Hisobdan chiqish",
+    "search": "Qidiruv",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "block": "Bloklash",
+    "view": "Ko'rish",
+    "pieces": "ta"
+  },
+  "course": {
+    "label": "Kurs",
+    "C1": "1",
+    "C2": "2",
+    "C3": "3",
+    "C4": "4",
+    "MASTER": "Mag.",
+    "MASTER_long": "Magistratura",
+    "nth": "{n}-kurs"
+  },
+  "weekday": {
+    "short": {
+      "1": "Du",
+      "2": "Se",
+      "3": "Ch",
+      "4": "Pa",
+      "5": "Ju",
+      "6": "Sh",
+      "7": "Ya"
+    },
+    "everyDay": "Har kuni"
+  },
+  "category": {
+    "all": "Hammasi",
+    "taom": "Taomlar",
+    "kofe": "Kofe",
+    "kitob": "Kitob",
+    "xizmat": "Xizmatlar",
+    "sport": "Sport",
+    "gozal": "Go'zallik",
+    "kino": "Kino"
+  },
+  "businessKind": {
+    "CAFE": "Kafe / restoran",
+    "SHOP": "Do'kon",
+    "SERVICE": "Xizmat",
+    "SPORT": "Sport",
+    "BEAUTY": "Go'zallik",
+    "EDUCATION": "Ta'lim",
+    "ENTERTAINMENT": "Ko'ngilochar"
+  },
+  "discountType": {
+    "PERCENT": "Foiz",
+    "FIXED_PRICE": "Yangi narx",
+    "BOGO": "1 + 1"
+  },
+  "paymentType": {
+    "CASH": "Naqd",
+    "CARD": "Karta",
+    "QR": "QR to'lov"
+  },
+  "studentNav": {
+    "home": "Asosiy",
+    "coupons": "Kuponlar",
+    "history": "Tarix",
+    "profile": "Profil"
+  },
+  "cashierNav": {
+    "scanner": "Skaner",
+    "discounts": "Chegirmalar",
+    "stats": "Statistika",
+    "profile": "Profil"
+  },
+  "businessNav": {
+    "label": "Asosiy menyu",
+    "stats": "Statistika",
+    "discounts": "Chegirmalar",
+    "sales": "Sotuvlar va cheklar",
+    "cashiers": "Kassirlar",
+    "profile": "Biznes profili"
+  },
+  "adminNav": {
+    "label": "Admin menyu",
+    "overview": "Umumiy",
+    "students": "Talabalar tekshiruvi",
+    "businesses": "Bizneslar",
+    "discounts": "Chegirmalar",
+    "transactions": "Tranzaksiyalar",
+    "notifications": "Bildirishnomalar",
+    "blocked": "Bloklanganlar"
+  },
+  "deal": {
+    "now": "Hozir",
+    "tomorrow": "Ertaga",
+    "until": "{time} gacha",
+    "saves": "{amount} tejaysiz"
+  },
+  "receipt": {
+    "confirmed": "Sotuv tasdiqlandi",
+    "number": "CHEK № {no}",
+    "business": "Biznes",
+    "product": "Mahsulot",
+    "time": "Vaqt",
+    "cashier": "Kassir",
+    "originalPrice": "Asl narx",
+    "discount": "Chegirma {badge}",
+    "paid": "To'landi"
+  },
+  "status": {
+    "verified": "Tasdiqlangan",
+    "inReview": "Ko'rib chiqilmoqda",
+    "approved": "Tasdiqlandi",
+    "rejected": "Rad etildi",
+    "blocked": "Bloklandi",
+    "active": "Faol",
+    "ended": "Tugagan",
+    "scheduled": "Rejalashtirilgan",
+    "delivered": "Yetkazildi"
+  }
+}

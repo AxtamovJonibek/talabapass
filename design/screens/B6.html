@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="uz"><head>
+<meta charset="utf-8">
+<title>Statistika — talabaPass Biznes</title>
+<script src="assets/62143cf3b3.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>/* vietnamese */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdboLnnA.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/archivo/v25/k3kQo8UDI-1M0wlSfdfoLnnA.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url("assets/258a93fe93.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1iIq129k.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/9836f315b5.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1iAq129k.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1iEq129k.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/bb87500e32.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl1FgtIU.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwlRFgtIU.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl9FgtIU.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3twJwl5FgtIU.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/d32f0e0701.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwl1FgtIU.woff2) format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwlRFgtIU.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwl9FgtIU.woff2) format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/ibmplexmono/v20/-F6qfjptAgt5VM-kVkqdyU8n3vAOwl5FgtIU.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/ce9a5ca3a8.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+<style>
+body{margin:0;background:#F3F2EE}
+a{color:#B23A0C}a:hover{color:#141414}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F3F2EE; font-family: 'Archivo', system-ui, sans-serif; color: #141414; display: flex; flex-wrap: wrap">
+
+  <aside style="flex: 1 1 220px; max-width: 100%; background: #141414; color: #F3F2EE; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; font-stretch: 125%; font-size: 17px; letter-spacing: -0.02em; padding: 0 8px">talaba<span style="background: #FFFFFF; color: #141414; padding: 2px 7px 3px; border-radius: 5px; font-size: 14px">Pass</span><span style="font-size: 11px; font-weight: 700; font-stretch: 100%; color: #141414; background: #FF5B1F; padding: 3px 6px; border-radius: 5px">BIZNES</span></div>
+    <div style="display: flex; align-items: center; gap: 10px; background: #232321; border-radius: 12px; padding: 10px">
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: #FF5B1F; color: #141414; display: flex; align-items: center; justify-content: center; font-weight: 900; font-stretch: 125%">B</div>
+      <div style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 700; font-size: 14px">Bodom Choyxonasi</span><span style="font-size: 12px; color: #A9A69E">Chilonzor</span></div>
+    </div>
+    <nav aria-label="Asosiy menyu" style="display: flex; flex-direction: column; gap: 2px">
+      <a href="#" style="height: 42px; border-radius: 10px; background: #FF5B1F; color: #141414; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 700; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Statistika</a>
+      <a href="web-biznes-chegirma.dc.html" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10"></path></svg>Chegirmalar<span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A9A69E">3</span></a>
+      <a href="#" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"></path></svg>Sotuvlar va cheklar</a>
+      <a href="#" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.3-5 6.5-5s5.7 1.5 6.5 5M16 4.5a3.5 3.5 0 0 1 0 7M18 15c2 .6 3.2 2.2 3.5 5"></path></svg>Kassirlar</a>
+      <a href="biznes-profil.dc.html" style="height: 42px; border-radius: 10px; color: #D8D5CD; display: flex; align-items: center; gap: 10px; padding: 0 12px; text-decoration: none; font-weight: 600; font-size: 14px">
+        <svg aria-hidden="true" width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9M3 9h18v11H3zM3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"></path></svg>Biznes profili</a>
+    </nav>
+    <div style="margin-top: auto; background: #232321; border-radius: 12px; padding: 14px; font-size: 13px; color: #D8D5CD; line-height: 1.45">
+      <div style="font-weight: 700; color: #FFFFFF; margin-bottom: 4px">Kassa ilovasi</div>
+      Kassirlar telefon orqali QR skanerlaydi. Taklif havolasini yuboring.
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px clamp(16px, 3vw, 40px) 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px">
+      <div>
+        <div style="font-size: 13px; color: #5F5D57">Seshanba, 13-oktabr · 14:31</div>
+        <h1 style="margin: 4px 0 0; font-size: 36px; font-weight: 900; font-stretch: 112%; letter-spacing: -0.035em; line-height: 1">Statistika</h1>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <div role="tablist" aria-label="Davr" style="display: flex; background: #E6E4DD; border-radius: 12px; padding: 4px; gap: 4px">
+          <sc-for list="{{periods}}" as="p" hint-placeholder-count="3">
+            <button type="button" role="tab" aria-selected="{{p.on}}" sc-camel-on-click="{{p.pick}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 9px; background: {{p.bg}}; color: #141414; font-family: inherit; font-size: 14px; font-weight: 700">{{p.label}}</button>
+          </sc-for>
+        </div>
+        <button type="button" style="height: 44px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #141414; background: #FFFFFF; color: #141414; font-family: inherit; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px">
+          <svg aria-hidden="true" width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"></path></svg>Excel hisobot</button>
+      </div>
+    </header>
+
+    <section aria-label="Asosiy ko'rsatkichlar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 10px">
+      <div style="background: #141414; color: #F3F2EE; border-radius: 18px; padding: 18px">
+        <div style="font-size: 13px; color: #BDBAB2">Sotuvlar</div>
+        <div style="font-size: 44px; font-weight: 900; font-stretch: 75%; line-height: 1; margin-top: 8px">{{k.sold}}</div>
+        <div style="font-size: 12px; margin-top: 8px; color: #6FD39C; font-weight: 700">{{k.soldDelta}}</div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 18px">
+        <div style="font-size: 13px; color: #5F5D57">Talabalardan tushum</div>
+        <div style="font-size: 44px; font-weight: 900; font-stretch: 75%; line-height: 1; margin-top: 8px">{{k.rev}}</div>
+        <div style="font-size: 12px; margin-top: 8px; color: #5F5D57">so'm · o'rtacha chek {{k.avg}}</div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 18px">
+        <div style="font-size: 13px; color: #5F5D57">Berilgan chegirma</div>
+        <div style="font-size: 44px; font-weight: 900; font-stretch: 75%; line-height: 1; margin-top: 8px; color: #B23A0C">{{k.disc}}</div>
+        <div style="font-size: 12px; margin-top: 8px; color: #5F5D57">so'm · sizning sarmoyangiz</div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 18px">
+        <div style="font-size: 13px; color: #5F5D57">Yangi mijozlar</div>
+        <div style="font-size: 44px; font-weight: 900; font-stretch: 75%; line-height: 1; margin-top: 8px">{{k.fresh}}</div>
+        <div style="font-size: 12px; margin-top: 8px; color: #5F5D57">birinchi marta kelgan talaba</div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 18px">
+        <div style="font-size: 13px; color: #5F5D57">Qayta kelganlar</div>
+        <div style="font-size: 44px; font-weight: 900; font-stretch: 75%; line-height: 1; margin-top: 8px">{{k.ret}}</div>
+        <div style="margin-top: 10px; height: 6px; border-radius: 3px; background: #E7E5DE; overflow: hidden"><div style="height: 6px; width: {{k.ret}}; background: #2433D6"></div></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch">
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 20px; flex: 2 1 520px; min-width: 0">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 800">{{chartTitle}}</h2>
+          <div style="display: flex; gap: 14px; font-size: 12px; color: #5F5D57">
+            <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #141414"></span>sotuvlar</span>
+            <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #FF5B1F"></span>{{nowLabel}}</span>
+          </div>
+        </div>
+        <div style="margin-top: 18px; display: flex; gap: 10px">
+          <div style="display: flex; flex-direction: column; justify-content: space-between; height: 220px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6B64; text-align: right; width: 26px; flex-shrink: 0">
+            <span>{{axisTop}}</span><span>{{axisMid}}</span><span>0</span>
+          </div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <div role="img" aria-label="{{chartTitle}}" style="height: 220px; display: flex; align-items: flex-end; gap: {{barGap}}; border-bottom: 1.5px solid #141414; background: linear-gradient(#EEECE6 1px, transparent 1px) 0 0 / 100% 50%">
+              <sc-for list="{{bars}}" as="b" hint-placeholder-count="30">
+                <div title="{{b.tip}}" style="flex: 1; height: {{b.h}}; background: {{b.c}}; border-radius: 3px 3px 0 0; min-width: 0"></div>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: {{barGap}}">
+              <sc-for list="{{bars}}" as="b" hint-placeholder-count="30">
+                <div style="flex: 1; min-width: 0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E6B64; text-align: center; white-space: nowrap; overflow: visible">{{b.label}}</div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; flex: 1 1 300px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 17px; font-weight: 800">Voronka</h2><span style="font-size: 12px; color: #5F5D57">so'nggi 30 kun</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span>Chegirmani ko'rdi</span><b style="font-family: 'IBM Plex Mono', monospace">18 420</b></div>
+          <div style="height: 30px; background: #E6E4DD; border-radius: 6px; width: 100%"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span>QR kod oldi</span><b style="font-family: 'IBM Plex Mono', monospace">2 106 <span style="color: #5F5D57; font-weight: 400">· 11.4%</span></b></div>
+          <div style="height: 30px; background: #2433D6; border-radius: 6px; width: 38%"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span>Kassada sotib oldi</span><b style="font-family: 'IBM Plex Mono', monospace">1 284 <span style="color: #5F5D57; font-weight: 400">· 61%</span></b></div>
+          <div style="height: 30px; background: #FF5B1F; border-radius: 6px; width: 23%"></div>
+        </div>
+        <p style="margin: auto 0 0; font-size: 13px; color: #5F5D57; line-height: 1.45; border-top: 1px solid #EEECE6; padding-top: 12px">QR olgan 822 talaba kassaga kelmagan. QR muddatini 10 daqiqadan 20 daqiqaga uzaytirib ko'ring.</p>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch">
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 20px; flex: 2 1 520px; min-width: 0">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap">
+          <h2 style="margin: 0; font-size: 17px; font-weight: 800">Talabalar qachon keladi</h2>
+          <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #5F5D57">kam
+            <span style="width: 14px; height: 14px; border-radius: 3px; background: #EFEDE7"></span><span style="width: 14px; height: 14px; border-radius: 3px; background: #FBD5C2"></span><span style="width: 14px; height: 14px; border-radius: 3px; background: #FCA57D"></span><span style="width: 14px; height: 14px; border-radius: 3px; background: #FF6A2E"></span><span style="width: 14px; height: 14px; border-radius: 3px; background: #B83A0A"></span>ko'p</div>
+        </div>
+        <div style="margin-top: 16px; overflow-x: auto">
+          <div style="min-width: 520px; display: grid; grid-template-columns: 30px repeat(15, minmax(0, 1fr)); gap: 4px">
+            <div></div>
+            <sc-for list="{{hours}}" as="h" hint-placeholder-count="15">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E6B64; text-align: center">{{h}}</div>
+            </sc-for>
+            <sc-for list="{{heat}}" as="c" hint-placeholder-count="112">
+              <div title="{{c.tip}}" style="height: 26px; border-radius: 4px; background: {{c.bg}}; font-size: 12px; font-weight: 700; color: #5F5D57; display: flex; align-items: center">{{c.label}}</div>
+            </sc-for>
+          </div>
+        </div>
+        <p style="margin: 14px 0 0; font-size: 13px; color: #5F5D57">Eng gavjum: <b style="color: #141414">Du–Ju, 12:00–15:00</b>. Shanba kechqurun bo'sh — yangi chegirma uchun qulay vaqt.</p>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 20px; min-width: 0; flex: 1 1 300px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 17px; font-weight: 800">Universitetlar</h2><span style="font-size: 12px; color: #5F5D57">sotuvlar, 30 kun</span></div>
+        <ul style="list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{unis}}" as="u" hint-placeholder-count="6">
+            <li style="display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-weight: 600">{{u.name}}</span><span style="font-family: 'IBM Plex Mono', monospace">{{u.n}}</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #EFEDE7"><div style="height: 8px; border-radius: 4px; width: {{u.w}}; background: #2433D6"></div></div>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+
+    <section style="background: #FFFFFF; border-radius: 18px; padding: 20px; min-width: 0">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 800">Chegirmalar samaradorligi</h2>
+        <a href="web-biznes-chegirma.dc.html" style="font-size: 14px; font-weight: 700; text-decoration: none">+ Yangi chegirma</a>
+      </div>
+      <div style="overflow-x: auto; margin-top: 12px">
+        <sc-raw-table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 14px">
+          <sc-raw-thead>
+            <sc-raw-tr style="text-align: left; color: #5F5D57; font-size: 12px">
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Chegirma</sc-raw-th>
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Holat</sc-raw-th>
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">Ko'rildi</sc-raw-th>
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">QR</sc-raw-th>
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">Sotildi</sc-raw-th>
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">QR → sotuv</sc-raw-th>
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">Tushum</sc-raw-th>
+              <sc-raw-th style="padding: 10px 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">Chegirma</sc-raw-th>
+            </sc-raw-tr>
+          </sc-raw-thead>
+          <sc-raw-tbody style="font-family: 'IBM Plex Mono', monospace">
+            <sc-for list="{{offers}}" as="o" hint-placeholder-count="4">
+              <sc-raw-tr>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; font-family: 'Archivo', sans-serif"><span style="display: inline-block; background: #FF5B1F; font-weight: 900; font-stretch: 70%; font-size: 14px; padding: 2px 5px; border-radius: 5px; margin-right: 8px; min-width: 34px; text-align: center">{{o.badge}}</span><b>{{o.name}}</b></sc-raw-td>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: {{o.sc}}">{{o.status}}</sc-raw-td>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; text-align: right">{{o.views}}</sc-raw-td>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; text-align: right">{{o.qr}}</sc-raw-td>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; text-align: right; font-weight: 600">{{o.sold}}</sc-raw-td>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; text-align: right">{{o.conv}}</sc-raw-td>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; text-align: right">{{o.rev}}</sc-raw-td>
+                <sc-raw-td style="padding: 12px 8px; border-bottom: 1px solid #EEECE6; text-align: right; color: #B23A0C">{{o.disc}}</sc-raw-td>
+              </sc-raw-tr>
+            </sc-for>
+            <sc-raw-tr style="font-weight: 600">
+              <sc-raw-td style="padding: 12px 8px; font-family: 'Archivo', sans-serif">Jami</sc-raw-td><sc-raw-td></sc-raw-td>
+              <sc-raw-td style="padding: 12px 8px; text-align: right">18 420</sc-raw-td>
+              <sc-raw-td style="padding: 12px 8px; text-align: right">2 106</sc-raw-td>
+              <sc-raw-td style="padding: 12px 8px; text-align: right">1 284</sc-raw-td>
+              <sc-raw-td style="padding: 12px 8px; text-align: right">61%</sc-raw-td>
+              <sc-raw-td style="padding: 12px 8px; text-align: right">30 120 000</sc-raw-td>
+              <sc-raw-td style="padding: 12px 8px; text-align: right; color: #B23A0C">12 030 000</sc-raw-td>
+            </sc-raw-tr>
+          </sc-raw-tbody>
+        </sc-raw-table>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch">
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 20px; flex: 2 1 520px; min-width: 0">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h2 style="margin: 0; font-size: 17px; font-weight: 800">Oxirgi sotuvlar</h2>
+          <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #0F5F37"><span style="width: 8px; height: 8px; border-radius: 4px; background: #1E9E5A"></span>jonli</span></div>
+        <div style="overflow-x: auto; margin-top: 10px">
+          <sc-raw-table style="width: 100%; min-width: 600px; border-collapse: collapse; font-size: 14px">
+            <sc-raw-thead><sc-raw-tr style="text-align: left; color: #5F5D57; font-size: 12px">
+              <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Vaqt</sc-raw-th>
+              <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Chek</sc-raw-th>
+              <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Talaba</sc-raw-th>
+              <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Mahsulot</sc-raw-th>
+              <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414">Kassir</sc-raw-th>
+              <sc-raw-th style="padding: 8px; font-weight: 600; border-bottom: 1.5px solid #141414; text-align: right">To'landi</sc-raw-th>
+            </sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
+              <sc-for list="{{tx}}" as="t" hint-placeholder-count="6">
+                <sc-raw-tr>
+                  <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; font-family: 'IBM Plex Mono', monospace">{{t.time}}</sc-raw-td>
+                  <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; font-family: 'IBM Plex Mono', monospace; color: #5F5D57">{{t.no}}</sc-raw-td>
+                  <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6"><b>{{t.who}}</b> <span style="color: #5F5D57">· {{t.uni}}</span></sc-raw-td>
+                  <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6">{{t.item}}</sc-raw-td>
+                  <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; color: #5F5D57">{{t.cashier}}</sc-raw-td>
+                  <sc-raw-td style="padding: 10px 8px; border-bottom: 1px solid #EEECE6; text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 600">{{t.sum}}</sc-raw-td>
+                </sc-raw-tr>
+              </sc-for>
+            </sc-raw-tbody>
+          </sc-raw-table>
+        </div>
+      </div>
+      <div style="background: #141414; color: #F3F2EE; border-radius: 18px; padding: 20px; min-width: 0; flex: 1 1 300px; display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 800">Kassirlar, 30 kun</h2>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; font-size: 14px"><span>Jasur Toshmatov</span><b style="font-family: 'IBM Plex Mono', monospace">902</b></div>
+          <div style="height: 8px; border-radius: 4px; background: #2F2F2C"><div style="height: 8px; border-radius: 4px; width: 70%; background: #FF5B1F"></div></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; justify-content: space-between; font-size: 14px"><span>Malika Rahimova</span><b style="font-family: 'IBM Plex Mono', monospace">382</b></div>
+          <div style="height: 8px; border-radius: 4px; background: #2F2F2C"><div style="height: 8px; border-radius: 4px; width: 30%; background: #FF5B1F"></div></div>
+        </div>
+        <div style="margin-top: auto; border-top: 1px solid #2F2F2C; padding-top: 12px; display: flex; justify-content: space-between; font-size: 13px; color: #BDBAB2"><span>Rad etilgan QR</span><b style="color: #FFFFFF; font-family: 'IBM Plex Mono', monospace">7</b></div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1760}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { period: "30" };
+    var w = [], i;
+    for (i = 0; i < 30; i++) {
+      var wd = ((i - 29 + 1) % 7 + 7) % 7;
+      var base = wd < 5 ? 1 : (wd === 5 ? 0.55 : 0.5);
+      var trend = 0.8 + 0.35 * (i / 29);
+      var noise = 0.88 + 0.24 * (((i * 37 + 11) % 17) / 16);
+      w.push({ wd: wd, v: base * trend * noise });
+    }
+    var sum = 0; for (i = 0; i < 29; i++) sum += w[i].v;
+    var vals = [], acc = 0;
+    for (i = 0; i < 29; i++) { var r = Math.round(w[i].v / sum * 1232); vals.push(r); acc += r; }
+    vals[28] += 1232 - acc;
+    vals.push(52);
+    this.vals = vals; this.wds = w.map(function (x) { return x.wd; });
+  }
+  fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+  mln(n) { return n >= 1000000 ? (Math.round(n / 100000) / 10).toFixed(n >= 10000000 ? 1 : 2).replace(/\.0+$/, "") + " mln" : this.fmt(n); }
+  renderVals() {
+    var self = this, p = this.state.period, vals = this.vals, i;
+    var periods = [["1", "Bugun"], ["7", "7 kun"], ["30", "30 kun"]].map(function (x) {
+      var on = x[0] === p;
+      return { label: x[1], on: on ? "true" : "false", bg: on ? "#FFFFFF" : "transparent", pick: function () { self.setState({ period: x[0] }); } };
+    });
+    var days = ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"];
+    var bars = [], max, k, chartTitle, nowLabel, barGap = "4px";
+    if (p === "1") {
+      var hv = [5, 7, 4, 2, 12, 13, 9, 0, 0, 0, 0, 0, 0, 0, 0];
+      max = 16;
+      for (i = 0; i < 15; i++) bars.push({ h: (hv[i] ? Math.max(3, hv[i] / max * 100) : 2) + "%", c: i === 6 ? "#FF5B1F" : (hv[i] ? "#141414" : "#E6E4DD"), label: (8 + i) + "", tip: (8 + i) + ":00 — " + hv[i] + " ta" });
+      chartTitle = "Bugun, soatlar bo'yicha"; nowLabel = "hozirgi soat"; barGap = "8px";
+      k = { sold: "52", soldDelta: "+9 kechagidan", rev: "1.22 mln", avg: "23 500", disc: "466 800", fresh: "9", ret: "35%" };
+    } else {
+      var n = p === "7" ? 7 : 30, start = 30 - n, s = 0;
+      max = 0; for (i = start; i < 30; i++) { max = Math.max(max, vals[i]); s += vals[i]; }
+      max = Math.ceil(max / 10) * 10;
+      for (i = start; i < 30; i++) {
+        var d = 14 + i, lab = d > 30 ? (d - 30) + ".10" : d + ".09";
+        bars.push({ h: (vals[i] / max * 100) + "%", c: i === 29 ? "#FF5B1F" : "#141414", label: (n === 7 || (29 - i) % 5 === 0) ? (n === 7 ? days[this.wds[i]] + " " + lab.split(".")[0] : lab) : "", tip: lab + " — " + vals[i] + " ta" });
+      }
+      chartTitle = n === 7 ? "So'nggi 7 kun, kunlik sotuvlar" : "So'nggi 30 kun, kunlik sotuvlar";
+      nowLabel = "bugun"; barGap = n === 7 ? "14px" : "4px";
+      k = n === 30
+        ? { sold: this.fmt(s), soldDelta: "+18% oldingi 30 kunga", rev: "30.1 mln", avg: "23 500", disc: "12.0 mln", fresh: "612", ret: "41%" }
+        : { sold: this.fmt(s), soldDelta: "+6% oldingi haftaga", rev: this.mln(s * 23458), avg: "23 500", disc: this.mln(s * 9369), fresh: this.fmt(Math.round(s * 0.44)), ret: "38%" };
+    }
+    var axisTop = p === "1" ? 16 : max;
+    var hours = []; for (i = 8; i <= 22; i++) hours.push(i < 10 ? "0" + i : "" + i);
+    var scale = ["#EFEDE7", "#FBD5C2", "#FCA57D", "#FF6A2E", "#B83A0A"];
+    var heat = [];
+    for (var r = 0; r < 7; r++) {
+      heat.push({ label: days[r], bg: "transparent", tip: days[r] });
+      for (var h = 8; h <= 22; h++) {
+        var lvl = 0, wk = r < 5;
+        if (wk && h >= 12 && h <= 14) lvl = h === 13 ? 4 : 3;
+        else if (wk && h >= 8 && h <= 10) lvl = h === 9 ? 2 : 1;
+        else if (!wk && h >= 16 && h <= 19) lvl = r === 6 && h === 17 ? 2 : 1;
+        else if (wk && (h === 11 || h === 15)) lvl = 1;
+        if (r === 4 && h >= 12 && h <= 14) lvl = 4;
+        heat.push({ label: "", bg: scale[lvl], tip: days[r] + " " + h + ":00" });
+      }
+    }
+    var uniData = [["TATU", 412], ["TDIU", 268], ["O'zMU", 231], ["Westminster", 142], ["Inha", 118], ["Boshqalar", 113]];
+    var unis = uniData.map(function (u) { return { name: u[0], n: u[1], w: Math.round(u[1] / 412 * 100) + "%" }; });
+    var offers = [
+      { badge: "−30%", name: "Osh 0.5 porsiya + choy", status: "Faol", sc: "#0F5F37", views: "9 120", qr: "1 130", sold: "690", conv: "61%", rev: "18 354 000", disc: "7 866 000" },
+      { badge: "−20%", name: "Nonushta: somsa + choy", status: "Faol", sc: "#0F5F37", views: "5 480", qr: "590", sold: "360", conv: "61%", rev: "6 336 000", disc: "1 584 000" },
+      { badge: "1+1", name: "Ko'k choy choynakda", status: "Faol", sc: "#0F5F37", views: "2 150", qr: "210", sold: "120", conv: "57%", rev: "1 440 000", disc: "1 440 000" },
+      { badge: "−22%", name: "Tushlik to'plami", status: "Tugagan", sc: "#6E6B64", views: "1 670", qr: "176", sold: "114", conv: "65%", rev: "3 990 000", disc: "1 140 000" }
+    ];
+    var tx = [
+      { time: "14:31", no: "004821", who: "Dilnoza K.", uni: "TATU", item: "Osh 0.5 + choy", cashier: "Jasur T.", sum: "26 600" },
+      { time: "14:28", no: "004820", who: "Sardor A.", uni: "TDIU", item: "Osh 0.5 + choy", cashier: "Jasur T.", sum: "26 600" },
+      { time: "14:19", no: "004819", who: "Madina Y.", uni: "O'zMU", item: "Osh 0.5 + choy", cashier: "Malika R.", sum: "26 600" },
+      { time: "14:07", no: "004818", who: "Bekzod R.", uni: "Westminster", item: "Osh 0.5 + choy", cashier: "Jasur T.", sum: "26 600" },
+      { time: "13:58", no: "004817", who: "Shahzoda N.", uni: "Inha", item: "Osh 0.5 + choy", cashier: "Jasur T.", sum: "26 600" },
+      { time: "13:52", no: "004816", who: "Javohir M.", uni: "TATU", item: "Osh 0.5 + choy", cashier: "Malika R.", sum: "26 600" }
+    ];
+    return { periods: periods, k: k, bars: bars, chartTitle: chartTitle, nowLabel: nowLabel, barGap: barGap, axisTop: axisTop, axisMid: Math.round(axisTop / 2), hours: hours, heat: heat, unis: unis, offers: offers, tx: tx };
+  }
+}
+</script>
+
+
+</body></html>

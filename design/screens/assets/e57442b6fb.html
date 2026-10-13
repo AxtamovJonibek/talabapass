@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>talabaPass — talabalar uchun chegirmalar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="container-type: inline-size; background: #F3F2EE; font-family: 'Archivo', system-ui, sans-serif; color: #141414; overflow-x: hidden">
+
+  <header style="position: sticky; top: 0; z-index: 20; background: #F3F2EE; border-bottom: 1.5px solid #141414">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 0 clamp(16px, 4cqw, 48px); height: 72px; display: flex; align-items: center; gap: 16px">
+      <a href="web-bosh-sahifa.dc.html" aria-label="talabaPass bosh sahifa" style="display: flex; align-items: center; gap: 6px; font-weight: 800; font-stretch: 125%; font-size: 20px; letter-spacing: -0.02em; text-decoration: none; color: #141414; flex-shrink: 0">talaba<span style="background: #2433D6; color: #FFFFFF; padding: 2px 8px 3px; border-radius: 6px; font-size: 17px">Pass</span></a>
+      <nav aria-label="Asosiy" style="flex: 1 1 auto; max-width: clamp(0px, calc((100cqw - 920px) * 999), 2000px); overflow: hidden; display: flex; justify-content: center; gap: 4px; white-space: nowrap">
+        <a href="#qanday" style="height: 44px; padding: 0 12px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 600; font-size: 15px">Qanday ishlaydi</a>
+        <a href="#talabalar" style="height: 44px; padding: 0 12px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 600; font-size: 15px">Talabalarga</a>
+        <a href="#biznes" style="height: 44px; padding: 0 12px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 600; font-size: 15px">Bizneslarga</a>
+        <a href="#hamkorlar" style="height: 44px; padding: 0 12px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 600; font-size: 15px">Hamkorlar</a>
+        <a href="#savollar" style="height: 44px; padding: 0 12px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 600; font-size: 15px">Savollar</a>
+      </nav>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0">
+        <a href="web-kirish.dc.html" style="height: 44px; padding: 0 16px; border-radius: 12px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 700; font-size: 15px; border: 1.5px solid #141414">Kirish</a>
+        <a href="web-talaba-royxat.dc.html" style="max-width: clamp(0px, calc((100cqw - 600px) * 999), 300px); overflow: hidden; white-space: nowrap; height: 44px; box-sizing: border-box; padding: 0 clamp(0px, calc((100cqw - 600px) * 999), 18px); border-radius: 12px; display: flex; align-items: center; background: #2433D6; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 15px">Boshlash — bepul</a>
+        <button type="button" onClick="{{toggleMenu}}" aria-label="Menyu" aria-expanded="{{menuOpenStr}}" style="width: clamp(0px, calc((920px - 100cqw) * 999), 44px); height: 44px; overflow: hidden; padding: 0; border: 0; border-radius: 12px; background: #141414; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="{{menuIcon}}"></path></svg>
+        </button>
+      </div>
+    </div>
+    <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+      <nav aria-label="Mobil menyu" style="border-top: 1px solid #D6D3CA; padding: 8px clamp(16px, 4cqw, 48px) 16px; display: flex; flex-direction: column">
+        <a href="#qanday" onClick="{{closeMenu}}" style="height: 52px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 700; font-size: 18px; border-bottom: 1px solid #E2E0D8">Qanday ishlaydi</a>
+        <a href="#talabalar" onClick="{{closeMenu}}" style="height: 52px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 700; font-size: 18px; border-bottom: 1px solid #E2E0D8">Talabalarga</a>
+        <a href="#biznes" onClick="{{closeMenu}}" style="height: 52px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 700; font-size: 18px; border-bottom: 1px solid #E2E0D8">Bizneslarga</a>
+        <a href="#hamkorlar" onClick="{{closeMenu}}" style="height: 52px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 700; font-size: 18px; border-bottom: 1px solid #E2E0D8">Hamkorlar</a>
+        <a href="#savollar" onClick="{{closeMenu}}" style="height: 52px; display: flex; align-items: center; color: #141414; text-decoration: none; font-weight: 700; font-size: 18px; border-bottom: 1px solid #E2E0D8">Savollar</a>
+        <a href="web-talaba-royxat.dc.html" style="margin-top: 14px; height: 52px; border-radius: 14px; background: #2433D6; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 800; font-size: 16px">Talaba sifatida boshlash</a>
+        <a href="web-biznes-royxat.dc.html" style="margin-top: 8px; height: 52px; border-radius: 14px; background: #FF5B1F; color: #141414; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 800; font-size: 16px">Biznesni ulash</a>
+      </nav>
+    </sc-if>
+  </header>
+
+  <section style="max-width: 1280px; margin: 0 auto; padding: clamp(36px, 6cqw, 80px) clamp(16px, 4cqw, 48px) clamp(40px, 6cqw, 90px); display: flex; flex-wrap: wrap; gap: clamp(32px, 5cqw, 64px); align-items: center">
+    <div style="flex: 1 1 480px; min-width: 0">
+      <div style="display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: 17px; background: #FFFFFF; border: 1.5px solid #141414; font-size: 13px; font-weight: 700">
+        <span style="width: 8px; height: 8px; border-radius: 4px; background: #1E9E5A"></span>O'zbekiston talabalari uchun</div>
+      <h1 style="margin: 22px 0 0; font-size: clamp(46px, 7.6cqw, 108px); line-height: 0.92; font-weight: 900; font-stretch: 112%; letter-spacing: -0.045em">Talaba bo'lish endi <span style="background: #FF5B1F; padding: 0 0.12em; border-radius: 0.12em; display: inline-block; transform: rotate(-2deg)">arzonroq.</span></h1>
+      <p style="margin: 24px 0 0; font-size: clamp(17px, 1.6cqw, 21px); line-height: 1.5; color: #3A3A36; max-width: 560px; text-wrap: pretty">Kafe, kitob do'koni, sport zal, sartaroshxona — shahar bo'ylab hamkor joylarda talaba narxi. Guvohnomangni bir marta tasdiqlatasan, keyin kassada faqat QR ko'rsatasan.</p>
+      <div style="margin-top: 30px; display: flex; flex-wrap: wrap; gap: 10px">
+        <a href="web-talaba-royxat.dc.html" style="height: 58px; padding: 0 24px; border-radius: 16px; background: #2433D6; color: #FFFFFF; display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 800; font-size: 17px">Talaba sifatida boshlash
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+        <a href="#biznes" style="height: 58px; padding: 0 22px; border-radius: 16px; border: 1.5px solid #141414; color: #141414; display: flex; align-items: center; text-decoration: none; font-weight: 700; font-size: 17px; background: #FFFFFF">Men biznes egasiman</a>
+      </div>
+      <div style="margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: #5F5D57">
+        <span style="display: flex; align-items: center; gap: 6px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5F37" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Talabalar uchun bepul</span>
+        <span style="display: flex; align-items: center; gap: 6px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5F37" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Obuna yo'q</span>
+        <span style="display: flex; align-items: center; gap: 6px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5F37" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>2 daqiqada ro'yxat</span>
+      </div>
+    </div>
+
+    <div role="img" aria-label="talabaPass ilovasi: chegirmalar lentasi va QR kupon" style="flex: 1 1 400px; min-width: 0; position: relative; height: 600px; display: flex; justify-content: center">
+      <div aria-hidden="true" style="position: absolute; left: 50%; top: 40px; width: 460px; height: 460px; margin-left: -230px; border-radius: 230px; border: 2px dashed #C9C6BC"></div>
+      <div style="position: relative; width: 280px; height: 580px; border-radius: 44px; background: #141414; padding: 10px; box-sizing: border-box; transform: rotate(3deg); box-shadow: 0 30px 60px -20px rgba(20,20,20,0.45)">
+        <div style="width: 100%; height: 100%; border-radius: 35px; background: #F3F2EE; overflow: hidden; padding: 34px 12px 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 9px">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px"><b style="font-size: 13px">Chilonzor</b><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; background: #141414; color: #F3F2EE; padding: 3px 7px; border-radius: 10px">Se · 14:20</span></div>
+          <div style="height: 104px; border-radius: 14px; background: #2433D6; color: #FFFFFF; padding: 10px 12px; box-sizing: border-box; display: flex; flex-direction: column">
+            <span style="font-size: 10px; opacity: 0.85">Bodom Choyxonasi · 0.6 km</span>
+            <span style="font-size: 44px; line-height: 0.9; font-weight: 900; font-stretch: 62%; margin-top: 4px">−30%</span>
+            <span style="font-size: 12px; font-weight: 700; margin-top: 2px">Osh 0.5 porsiya + choy</span>
+          </div>
+          <div style="display: flex; gap: 5px"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #141414; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center">Hammasi</span><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center">Kofe</span><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center">Kitob</span></div>
+          <div style="background: #FFFFFF; border-radius: 12px; padding: 8px; display: flex; gap: 8px">
+            <div style="width: 54px; height: 54px; border-radius: 9px; background: #DDE1F7; position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1E2A9E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z"></path></svg><span style="position: absolute; left: -4px; top: -5px; background: #FF5B1F; font-weight: 900; font-stretch: 70%; font-size: 11px; padding: 2px 4px; border-radius: 4px; transform: rotate(-6deg)">−40%</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 9px; color: #5F5D57">Nusxa Markazi · 0.1 km</span><b style="font-size: 11px">A4 chop etish</b><b style="font-size: 12px">300 so'm <s style="font-weight: 400; color: #6E6B64; font-size: 9px">500</s></b></div>
+          </div>
+          <div style="background: #FFFFFF; border-radius: 12px; padding: 8px; display: flex; gap: 8px">
+            <div style="width: 54px; height: 54px; border-radius: 9px; background: #E9DDF0; position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5B2479" stroke-width="1.4" stroke-linejoin="round"><path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10"></path></svg><span style="position: absolute; left: -4px; top: -5px; background: #FF5B1F; font-weight: 900; font-stretch: 70%; font-size: 11px; padding: 2px 4px; border-radius: 4px; transform: rotate(-6deg)">−44%</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 9px; color: #5F5D57">Kadr Kinoteatri · 3.0 km</span><b style="font-size: 11px">Kino chiptasi, 2D</b><b style="font-size: 12px">25 000 so'm <s style="font-weight: 400; color: #6E6B64; font-size: 9px">45 000</s></b></div>
+          </div>
+          <div style="background: #FFFFFF; border-radius: 12px; padding: 8px; display: flex; gap: 8px">
+            <div style="width: 54px; height: 54px; border-radius: 9px; background: #D7EEDF; position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#145A33" stroke-width="1.4" stroke-linecap="round"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"></path></svg><span style="position: absolute; left: -4px; top: -5px; background: #FF5B1F; font-weight: 900; font-stretch: 70%; font-size: 11px; padding: 2px 4px; border-radius: 4px; transform: rotate(-6deg)">−36%</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 9px; color: #5F5D57">Forma Fitnes · 2.1 km</span><b style="font-size: 11px">Oylik abonement</b><b style="font-size: 12px">290 000 so'm</b></div>
+          </div>
+        </div>
+      </div>
+      <div style="position: absolute; left: max(0px, calc(50% - 250px)); bottom: 40px; width: 176px; background: #FFFFFF; border: 1.5px solid #141414; border-radius: 16px; padding: 12px; transform: rotate(-7deg); box-shadow: 0 16px 30px -12px rgba(20,20,20,0.35)">
+        <div style="display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 2px">
+          <sc-for list="{{miniQr}}" as="c" hint-placeholder-count="81"><div style="aspect-ratio: 1; background: {{c}}"></div></sc-for>
+        </div>
+        <div style="margin-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; text-align: center; letter-spacing: 0.08em">TP-7K3Q-92XD</div>
+      </div>
+      <div style="position: absolute; right: max(0px, calc(50% - 260px)); top: 70px; background: #FF5B1F; border-radius: 14px; padding: 10px 14px 8px; transform: rotate(8deg); font-weight: 900; font-stretch: 62%; font-size: 48px; line-height: 0.9; box-shadow: 0 16px 30px -12px rgba(20,20,20,0.35)">1+1</div>
+      <div style="position: absolute; right: max(0px, calc(50% - 250px)); bottom: 120px; background: #141414; color: #F3F2EE; border-radius: 14px; padding: 12px 14px; transform: rotate(4deg); display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 11px; color: #BDBAB2">Oktabrda tejading</span>
+        <span style="font-size: 24px; font-weight: 900; font-stretch: 85%">206 400 so'm</span>
+      </div>
+    </div>
+  </section>
+
+  <div aria-hidden="true" style="background: #141414; color: #F3F2EE; border-block: 1.5px solid #141414; overflow: hidden; white-space: nowrap; padding: 16px 0; font-weight: 900; font-stretch: 75%; font-size: clamp(22px, 2.6cqw, 34px); letter-spacing: 0.01em">
+    <span style="display: inline-flex; gap: 28px; align-items: center; padding-left: 20px">
+      <span>OSH −30%</span><span style="color: #FF5B1F">✶</span><span>KAPUCHINO −25%</span><span style="color: #FF5B1F">✶</span><span>KINO 25 000</span><span style="color: #FF5B1F">✶</span><span>NUSXA 300 SO'M</span><span style="color: #FF5B1F">✶</span><span>SOCH OLISH −33%</span><span style="color: #FF5B1F">✶</span><span>LAVASH 1+1</span><span style="color: #FF5B1F">✶</span><span>KITOBLAR −15%</span><span style="color: #FF5B1F">✶</span><span>SPORT ZAL −36%</span>
+    </span>
+  </div>
+
+  <section id="qanday" style="max-width: 1280px; margin: 0 auto; padding: clamp(56px, 8cqw, 120px) clamp(16px, 4cqw, 48px) 0">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+      <h2 style="margin: 0; font-size: clamp(36px, 5cqw, 68px); line-height: 0.95; font-weight: 900; font-stretch: 112%; letter-spacing: -0.04em; max-width: 640px">Uch qadam.<br>Hammasi shu.</h2>
+      <p style="margin: 0; font-size: 17px; color: #5F5D57; max-width: 380px; line-height: 1.5">Plastik karta, qog'oz kupon yoki promokod kerak emas. Telefoning — sening talaba chiptang.</p>
+    </div>
+    <ol style="list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 12px">
+      <li style="background: #FFFFFF; border-radius: 22px; padding: 26px; position: relative; overflow: hidden; min-height: 230px; box-sizing: border-box">
+        <div style="font-size: 120px; line-height: 0.8; font-weight: 900; font-stretch: 62%; color: #2433D6">1</div>
+        <h3 style="margin: 22px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em">Ro'yxatdan o't</h3>
+        <p style="margin: 8px 0 0; font-size: 16px; color: #5F5D57; line-height: 1.5">Ism, familiya va universitet. Ikki daqiqa ham ketmaydi.</p>
+      </li>
+      <li style="background: #FFFFFF; border-radius: 22px; padding: 26px; position: relative; overflow: hidden; min-height: 230px; box-sizing: border-box">
+        <div style="font-size: 120px; line-height: 0.8; font-weight: 900; font-stretch: 62%; color: #2433D6">2</div>
+        <h3 style="margin: 22px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em">Guvohnomani tasdiqlat</h3>
+        <p style="margin: 8px 0 0; font-size: 16px; color: #5F5D57; line-height: 1.5">Rasmga ol yoki fayl yukla. Moderator odatda bir necha soatda tekshiradi.</p>
+        <div aria-hidden="true" style="position: absolute; right: 18px; top: 26px; transform: rotate(-10deg); border: 3px solid #0F5F37; color: #0F5F37; border-radius: 8px; padding: 4px 10px; font-weight: 900; font-stretch: 75%; font-size: 20px; letter-spacing: 0.06em">TASDIQLANDI</div>
+      </li>
+      <li style="background: #2433D6; color: #FFFFFF; border-radius: 22px; padding: 26px; position: relative; overflow: hidden; min-height: 230px; box-sizing: border-box">
+        <div style="font-size: 120px; line-height: 0.8; font-weight: 900; font-stretch: 62%; color: #FF5B1F">3</div>
+        <h3 style="margin: 22px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em">QR ko'rsat — teja</h3>
+        <p style="margin: 8px 0 0; font-size: 16px; color: #DCE0FF; line-height: 1.5">Chegirmani tanla, kassada QR ko'rsat. Chek o'zi tarixingga tushadi.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section id="talabalar" style="max-width: 1280px; margin: 0 auto; padding: clamp(64px, 9cqw, 140px) clamp(16px, 4cqw, 48px) 0; display: flex; flex-wrap: wrap; gap: clamp(32px, 5cqw, 72px); align-items: center">
+    <div style="flex: 1 1 360px; min-width: 0; order: 2">
+      <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.1em; color: #2433D6">TALABALARGA</div>
+      <h2 style="margin: 12px 0 0; font-size: clamp(36px, 5cqw, 68px); line-height: 0.95; font-weight: 900; font-stretch: 112%; letter-spacing: -0.04em">Stipendiya oy oxirigacha yetsin.</h2>
+      <p style="margin: 18px 0 0; font-size: 18px; color: #3A3A36; line-height: 1.55; max-width: 520px">Har kuni ishlatadigan narsalaring — tushlik, kofe, nusxa, kino — endi talaba narxida. Faqat sen va sendek talabalar uchun.</p>
+      <ul style="list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 22px 28px">
+        <li style="display: flex; flex-direction: column; gap: 6px">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
+          <b style="font-size: 18px">Yoningdagi chegirmalar</b><span style="font-size: 15px; color: #5F5D57; line-height: 1.5">Xarita va masofa bilan. Darsdan chiqding — 300 metrda kofe.</span></li>
+        <li style="display: flex; flex-direction: column; gap: 6px">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          <b style="font-size: 18px">Vaqtini bilib tur</b><span style="font-size: 15px; color: #5F5D57; line-height: 1.5">Qaysi chegirma hozir ishlayapti, qachon tugaydi, nechtasi qoldi — hammasi ko'z oldingda.</span></li>
+        <li style="display: flex; flex-direction: column; gap: 6px">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"></path></svg>
+          <b style="font-size: 18px">Tejaganing hisoblanadi</b><span style="font-size: 15px; color: #5F5D57; line-height: 1.5">Har bir xarid chek bilan saqlanadi. Oy oxirida qancha tejaganingni ko'rasan.</span></li>
+        <li style="display: flex; flex-direction: column; gap: 6px">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg>
+          <b style="font-size: 18px">Faqat talabalar uchun</b><span style="font-size: 15px; color: #5F5D57; line-height: 1.5">Har bir foydalanuvchi guvohnomasi bilan tasdiqlangan. Chegirmalar haqiqiy va adolatli.</span></li>
+      </ul>
+    </div>
+    <div role="img" aria-label="Oylik tejash cheki" style="flex: 1 1 360px; min-width: 0; order: 1; display: flex; justify-content: center; position: relative; padding: 20px 0">
+      <div style="width: 340px; max-width: 100%; transform: rotate(-3deg)">
+        <div style="background: #FFFFFF; border-radius: 16px 16px 0 0; padding: 24px 22px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; display: flex; flex-direction: column; gap: 9px; box-shadow: 0 30px 50px -30px rgba(20,20,20,0.5)">
+          <div style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #5F5D57">Dilnoza, TATU · oktabr</div>
+          <div style="font-family: 'Archivo', sans-serif; font-size: 40px; font-weight: 900; font-stretch: 85%; letter-spacing: -0.02em">206 400 so'm</div>
+          <div style="font-family: 'Archivo', sans-serif; font-size: 13px; color: #0F5F37; font-weight: 700; margin-top: -4px">tejaldi — 5 xarid</div>
+          <div style="border-top: 1.5px dashed #DAD7CE; margin: 6px 0"></div>
+          <div style="display: flex; justify-content: space-between"><span>Forma Fitnes</span><span style="color: #B23A0C">−160 000</span></div>
+          <div style="display: flex; justify-content: space-between"><span>Kadr Kinoteatri</span><span style="color: #B23A0C">−20 000</span></div>
+          <div style="display: flex; justify-content: space-between"><span>Bodom Choyxonasi</span><span style="color: #B23A0C">−11 400</span></div>
+          <div style="display: flex; justify-content: space-between"><span>Nusxa Markazi</span><span style="color: #B23A0C">−8 000</span></div>
+          <div style="display: flex; justify-content: space-between"><span>Qahva Bekati</span><span style="color: #B23A0C">−7 000</span></div>
+        </div>
+        <div aria-hidden="true" style="height: 12px; background: linear-gradient(-45deg, transparent 7px, #FFFFFF 0) 0 0 / 14px 12px repeat-x, linear-gradient(45deg, transparent 7px, #FFFFFF 0) 0 0 / 14px 12px repeat-x"></div>
+      </div>
+      <div aria-hidden="true" style="position: absolute; right: max(0px, calc(50% - 210px)); top: 0; width: 92px; height: 92px; border-radius: 46px; background: #2433D6; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 900; font-stretch: 75%; font-size: 17px; line-height: 1; transform: rotate(12deg)">FAQAT<br>TALABA</div>
+    </div>
+  </section>
+
+  <section style="max-width: 1280px; margin: 0 auto; padding: clamp(64px, 9cqw, 120px) clamp(16px, 4cqw, 48px) 0">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px">
+      <h2 style="margin: 0; font-size: clamp(28px, 3.4cqw, 44px); font-weight: 900; font-stretch: 110%; letter-spacing: -0.03em">Hozir Toshkentda ochiq</h2>
+      <a href="web-talaba-chegirmalar.dc.html" style="font-weight: 700; font-size: 16px; color: #2433D6; text-decoration: none; height: 44px; display: flex; align-items: center">Barcha chegirmalar →</a>
+    </div>
+    <div style="margin-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 12px">
+      <sc-for list="{{deals}}" as="d" hint-placeholder-count="4">
+        <a href="web-talaba-chegirma.dc.html" style="display: block; background: #FFFFFF; border-radius: 18px; text-decoration: none; color: #141414; position: relative">
+          <div style="height: 150px; margin: 10px 10px 0; border-radius: 12px; background: {{d.tile}}; position: relative; display: flex; align-items: center; justify-content: center">
+            <svg aria-hidden="true" width="74" height="74" viewBox="0 0 24 24" fill="none" stroke="{{d.ink}}" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="{{d.icon}}"></path></svg>
+            <span style="position: absolute; left: -4px; top: -6px; background: #FF5B1F; font-weight: 900; font-stretch: 65%; font-size: 26px; line-height: 1; padding: 5px 9px 3px; border-radius: 8px; transform: rotate(-5deg)">{{d.badge}}</span>
+          </div>
+          <div style="padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 13px; color: #5F5D57">{{d.store}}</span>
+            <b style="font-size: 17px">{{d.title}}</b>
+            <span style="font-size: 18px; font-weight: 800; margin-top: 4px">{{d.price}} <s style="font-family: 'IBM Plex Mono', monospace; font-weight: 400; font-size: 13px; color: #6E6B64">{{d.old}}</s></span>
+          </div>
+          <div style="margin: 0 14px; border-top: 1.5px dashed #DAD7CE"></div>
+          <div style="padding: 10px 16px 14px; display: flex; justify-content: space-between; font-size: 13px"><span style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #0F5F37"><span style="width: 7px; height: 7px; border-radius: 4px; background: #1E9E5A"></span>{{d.when}}</span><span style="font-family: 'IBM Plex Mono', monospace; color: #5F5D57">{{d.dist}}</span></div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section id="biznes" style="margin-top: clamp(64px, 9cqw, 140px); background: #141414; color: #F3F2EE">
+    <div style="max-width: 1280px; margin: 0 auto; padding: clamp(56px, 8cqw, 120px) clamp(16px, 4cqw, 48px); display: flex; flex-wrap: wrap; gap: clamp(32px, 5cqw, 72px); align-items: center">
+      <div style="flex: 1 1 420px; min-width: 0">
+        <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.1em; color: #FF5B1F">BIZNES EGALARIGA</div>
+        <h2 style="margin: 12px 0 0; font-size: clamp(36px, 5cqw, 68px); line-height: 0.95; font-weight: 900; font-stretch: 112%; letter-spacing: -0.04em">Bo'sh stol — eng qimmat stol.</h2>
+        <p style="margin: 18px 0 0; font-size: 18px; color: #CFCCC4; line-height: 1.55; max-width: 540px">Talabalar — eng sodiq va eng ko'p gapiradigan mijozlar. talabaPass ularni aynan sizga kerak bo'lgan kun va soatlarda olib keladi.</p>
+        <ul style="list-style: none; margin: 30px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 24px 28px">
+          <li style="display: flex; flex-direction: column; gap: 6px; border-top: 1.5px solid #3A3A37; padding-top: 14px"><b style="font-size: 18px">Bo'sh soatlarni to'ldiring</b><span style="font-size: 15px; color: #BDBAB2; line-height: 1.5">Chegirmani faqat kerakli kun va soatga qo'ying: masalan, Du–Ju 15:00–18:00.</span></li>
+          <li style="display: flex; flex-direction: column; gap: 6px; border-top: 1.5px solid #3A3A37; padding-top: 14px"><b style="font-size: 18px">Faqat sotuvda chegirma</b><span style="font-size: 15px; color: #BDBAB2; line-height: 1.5">Reklama byudjeti shart emas. Chegirma faqat kassada haqiqiy xarid bo'lganda beriladi.</span></li>
+          <li style="display: flex; flex-direction: column; gap: 6px; border-top: 1.5px solid #3A3A37; padding-top: 14px"><b style="font-size: 18px">Har bir raqam ko'rinadi</b><span style="font-size: 15px; color: #BDBAB2; line-height: 1.5">Nechta talaba ko'rdi, QR oldi, sotib oldi — qaysi universitetdan, qaysi soatda.</span></li>
+          <li style="display: flex; flex-direction: column; gap: 6px; border-top: 1.5px solid #3A3A37; padding-top: 14px"><b style="font-size: 18px">Kassir uchun 3 soniya</b><span style="font-size: 15px; color: #BDBAB2; line-height: 1.5">Telefonda QR skanerlanadi, chek avtomatik chiqadi. O'qitish kerak emas.</span></li>
+        </ul>
+        <div style="margin-top: 34px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+          <a href="web-biznes-royxat.dc.html" style="height: 58px; padding: 0 24px; border-radius: 16px; background: #FF5B1F; color: #141414; display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 800; font-size: 17px">Biznesni bepul ulash
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+          <span style="font-size: 14px; color: #A9A69E">Tariflar: [TARIF MA'LUMOTI]</span>
+        </div>
+      </div>
+
+      <div role="img" aria-label="Biznes statistikasi namunasi" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="background: #F3F2EE; color: #141414; border-radius: 22px; padding: 22px">
+          <div style="display: flex; justify-content: space-between; align-items: center"><b style="font-size: 15px">Bodom Choyxonasi · bugun</b><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #5F5D57">14:31</span></div>
+          <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+            <div><div style="font-size: 12px; color: #5F5D57">Sotuv</div><div style="font-size: 40px; font-weight: 900; font-stretch: 70%; line-height: 1">52</div></div>
+            <div><div style="font-size: 12px; color: #5F5D57">Tushum</div><div style="font-size: 40px; font-weight: 900; font-stretch: 70%; line-height: 1">1.22<span style="font-size: 16px"> mln</span></div></div>
+            <div><div style="font-size: 12px; color: #5F5D57">Yangi</div><div style="font-size: 40px; font-weight: 900; font-stretch: 70%; line-height: 1">9</div></div>
+          </div>
+          <div style="margin-top: 18px; height: 120px; display: flex; align-items: flex-end; gap: 6px; border-bottom: 1.5px solid #141414">
+            <sc-for list="{{hours}}" as="h" hint-placeholder-count="10"><div style="flex: 1; height: {{h.h}}; background: {{h.c}}; border-radius: 3px 3px 0 0"></div></sc-for>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6B64"><span>08</span><span>12</span><span>16</span><span>20</span></div>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap">
+          <div style="flex: 1 1 180px; background: #FF5B1F; color: #141414; border-radius: 18px; padding: 16px">
+            <div style="font-size: 13px; font-weight: 600">QR → sotuv</div>
+            <div style="font-size: 40px; font-weight: 900; font-stretch: 70%; line-height: 1; margin-top: 6px">61%</div>
+          </div>
+          <div style="flex: 1 1 180px; background: #2433D6; color: #FFFFFF; border-radius: 18px; padding: 16px">
+            <div style="font-size: 13px; font-weight: 600">Qayta kelganlar</div>
+            <div style="font-size: 40px; font-weight: 900; font-stretch: 70%; line-height: 1; margin-top: 6px">41%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="hamkorlar" style="max-width: 1280px; margin: 0 auto; padding: clamp(56px, 8cqw, 120px) clamp(16px, 4cqw, 48px) 0">
+    <h2 style="margin: 0; font-size: clamp(36px, 5cqw, 68px); line-height: 0.95; font-weight: 900; font-stretch: 112%; letter-spacing: -0.04em">Hamkorlarimiz</h2>
+    <p style="margin: 14px 0 0; font-size: 17px; color: #5F5D57; max-width: 540px; line-height: 1.5">Choyxonadan sport zalgacha — talabalarni kutib oladigan joylar.</p>
+    <div style="margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); border-top: 1.5px solid #141414; border-left: 1.5px solid #141414">
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; font-weight: 900; font-stretch: 125%; font-size: 22px; letter-spacing: -0.03em">BODOM<span style="color: #B23A0C">.</span></div>
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; font-style: italic; font-weight: 600; font-size: 24px; letter-spacing: -0.02em">qahva bekati</div>
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; font-weight: 900; font-stretch: 62%; font-size: 34px; letter-spacing: 0.04em">KADR</div>
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 20px"><span style="width: 22px; height: 22px; border-radius: 11px; border: 5px solid #141414; box-sizing: border-box"></span>forma fitnes</div>
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 20px">Sahifa/kitob</div>
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; font-weight: 900; font-stretch: 100%; font-size: 21px">NUSXA<span style="background: #141414; color: #F3F2EE; padding: 0 5px; margin-left: 4px; border-radius: 4px">M</span></div>
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; font-weight: 700; font-stretch: 125%; font-size: 18px; letter-spacing: 0.12em">USTA·BARBER</div>
+      <div style="height: 110px; border-right: 1.5px solid #141414; border-bottom: 1.5px solid #141414; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; font-style: italic">Lavash<span style="color: #B23A0C">Point</span></div>
+    </div>
+    <div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+      <span style="font-size: 14px; color: #5F5D57; margin-right: 6px">Talabalarimiz o'qiydigan oliygohlar:</span>
+      <span style="height: 34px; padding: 0 12px; border-radius: 17px; background: #FFFFFF; display: flex; align-items: center; font-size: 14px; font-weight: 700">TATU</span>
+      <span style="height: 34px; padding: 0 12px; border-radius: 17px; background: #FFFFFF; display: flex; align-items: center; font-size: 14px; font-weight: 700">O'zMU</span>
+      <span style="height: 34px; padding: 0 12px; border-radius: 17px; background: #FFFFFF; display: flex; align-items: center; font-size: 14px; font-weight: 700">TDIU</span>
+      <span style="height: 34px; padding: 0 12px; border-radius: 17px; background: #FFFFFF; display: flex; align-items: center; font-size: 14px; font-weight: 700">TDYU</span>
+      <span style="height: 34px; padding: 0 12px; border-radius: 17px; background: #FFFFFF; display: flex; align-items: center; font-size: 14px; font-weight: 700">Westminster</span>
+      <span style="height: 34px; padding: 0 12px; border-radius: 17px; background: #FFFFFF; display: flex; align-items: center; font-size: 14px; font-weight: 700">Inha</span>
+    </div>
+  </section>
+
+  <section aria-label="Raqamlarda" style="max-width: 1280px; margin: 0 auto; padding: clamp(56px, 8cqw, 110px) clamp(16px, 4cqw, 48px) 0">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px">
+      <div style="border-top: 3px solid #141414; padding-top: 14px"><div style="font-size: clamp(52px, 6cqw, 84px); font-weight: 900; font-stretch: 70%; line-height: 0.95">24 318</div><div style="font-size: 15px; color: #5F5D57; margin-top: 6px">tasdiqlangan talaba</div></div>
+      <div style="border-top: 3px solid #141414; padding-top: 14px"><div style="font-size: clamp(52px, 6cqw, 84px); font-weight: 900; font-stretch: 70%; line-height: 0.95">412</div><div style="font-size: 15px; color: #5F5D57; margin-top: 6px">hamkor biznes</div></div>
+      <div style="border-top: 3px solid #141414; padding-top: 14px"><div style="font-size: clamp(52px, 6cqw, 84px); font-weight: 900; font-stretch: 70%; line-height: 0.95">1 038</div><div style="font-size: 15px; color: #5F5D57; margin-top: 6px">faol chegirma</div></div>
+      <div style="border-top: 3px solid #FF5B1F; padding-top: 14px"><div style="font-size: clamp(52px, 6cqw, 84px); font-weight: 900; font-stretch: 70%; line-height: 0.95; color: #B23A0C">41.7 mln</div><div style="font-size: 15px; color: #5F5D57; margin-top: 6px">so'm — bugun talabalar tejadi</div></div>
+    </div>
+  </section>
+
+  <section id="savollar" style="max-width: 1280px; margin: 0 auto; padding: clamp(64px, 9cqw, 140px) clamp(16px, 4cqw, 48px) 0; display: flex; flex-wrap: wrap; gap: clamp(24px, 5cqw, 72px)">
+    <div style="flex: 1 1 300px; min-width: 0">
+      <h2 style="margin: 0; font-size: clamp(36px, 5cqw, 68px); line-height: 0.95; font-weight: 900; font-stretch: 112%; letter-spacing: -0.04em">Ko'p so'raladigan savollar</h2>
+      <p style="margin: 16px 0 0; font-size: 16px; color: #5F5D57; line-height: 1.5">Javob topolmadingizmi? Telegram orqali yozing — tez javob beramiz.</p>
+    </div>
+    <div style="flex: 2 1 520px; min-width: 0; border-top: 1.5px solid #141414">
+      <sc-for list="{{faq}}" as="f" hint-placeholder-count="5">
+        <div style="border-bottom: 1.5px solid #141414">
+          <button type="button" onClick="{{f.toggle}}" aria-expanded="{{f.exp}}" style="width: 100%; min-height: 72px; padding: 16px 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; font-family: inherit; font-size: clamp(18px, 1.8cqw, 22px); font-weight: 800; color: #141414">
+            <span>{{f.q}}</span>
+            <span style="width: 36px; height: 36px; border-radius: 18px; background: {{f.btnBg}}; color: {{f.btnFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="{{f.icon}}"></path></svg></span>
+          </button>
+          <sc-if value="{{f.open}}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; padding: 0 52px 22px 0; font-size: 16px; line-height: 1.6; color: #3A3A36">{{f.a}}</p>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width: 1280px; margin: 0 auto; padding: clamp(64px, 9cqw, 140px) clamp(16px, 4cqw, 48px)">
+    <div style="background: #FF5B1F; border-radius: 28px; padding: clamp(28px, 5cqw, 64px); position: relative; overflow: hidden">
+      <div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed #141414; opacity: 0.25"></div>
+      <div style="position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px">
+        <h2 style="margin: 0; font-size: clamp(40px, 6cqw, 88px); line-height: 0.92; font-weight: 900; font-stretch: 112%; letter-spacing: -0.045em; max-width: 760px">Bugungi chegirmang seni kutyapti.</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px; min-width: min(300px, 100%)">
+          <a href="web-talaba-royxat.dc.html" style="height: 58px; padding: 0 22px; border-radius: 16px; background: #141414; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; font-weight: 800; font-size: 17px">Talaba sifatida boshlash<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+          <a href="web-biznes-royxat.dc.html" style="height: 58px; padding: 0 22px; border-radius: 16px; background: #FFFFFF; color: #141414; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; font-weight: 800; font-size: 17px">Biznesni ulash<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background: #141414; color: #D8D5CD">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 56px clamp(16px, 4cqw, 48px) 28px; display: flex; flex-wrap: wrap; gap: 40px">
+      <div style="flex: 2 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; font-stretch: 125%; font-size: 22px; color: #FFFFFF">talaba<span style="background: #2433D6; padding: 2px 8px 3px; border-radius: 6px; font-size: 18px">Pass</span></div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.55; max-width: 340px">O'zbekiston talabalari va mahalliy bizneslarni bog'laydigan chegirmalar platformasi.</p>
+        <div style="display: flex; gap: 8px; margin-top: 6px">
+          <a href="#" aria-label="Telegram" style="width: 44px; height: 44px; border-radius: 22px; background: #2A2A27; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z"></path><path d="M9 13l12-9"></path></svg></a>
+          <a href="#" aria-label="Instagram" style="width: 44px; height: 44px; border-radius: 22px; background: #2A2A27; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><path d="M17.5 6.5h.01"></path></svg></a>
+          <a href="#" aria-label="YouTube" style="width: 44px; height: 44px; border-radius: 22px; background: #2A2A27; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"></rect><path d="M10 9l5 3-5 3z"></path></svg></a>
+          <a href="#" aria-label="LinkedIn" style="width: 44px; height: 44px; border-radius: 22px; background: #2A2A27; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M8 10v7M8 7h.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"></path></svg></a>
+        </div>
+      </div>
+      <div style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 4px">
+        <b style="color: #FFFFFF; font-size: 14px; margin-bottom: 6px">Loyiha</b>
+        <a href="#qanday" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Qanday ishlaydi</a>
+        <a href="#hamkorlar" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Hamkorlar</a>
+        <a href="#savollar" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Savollar</a>
+      </div>
+      <div style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 4px">
+        <b style="color: #FFFFFF; font-size: 14px; margin-bottom: 6px">Kirish</b>
+        <a href="web-talaba-royxat.dc.html" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Talaba ro'yxati</a>
+        <a href="web-biznes-royxat.dc.html" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Biznesni ulash</a>
+        <a href="web-kirish.dc.html" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Hisobga kirish</a>
+      </div>
+      <div style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 4px">
+        <b style="color: #FFFFFF; font-size: 14px; margin-bottom: 6px">Huquqiy</b>
+        <a href="web-maxfiylik.dc.html" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Maxfiylik siyosati</a>
+        <a href="web-maxfiylik.dc.html" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Foydalanish shartlari</a>
+        <a href="web-maxfiylik.dc.html" style="color: #D8D5CD; text-decoration: none; font-size: 15px; padding: 6px 0">Biznes hamkorlik shartlari</a>
+      </div>
+      <div style="flex: 1 1 180px; display: flex; flex-direction: column; gap: 4px">
+        <b style="color: #FFFFFF; font-size: 14px; margin-bottom: 6px">Aloqa</b>
+        <span style="font-size: 15px; padding: 6px 0">[TELEFON RAQAM]</span>
+        <span style="font-size: 15px; padding: 6px 0">[EMAIL]</span>
+        <span style="font-size: 15px; padding: 6px 0">Toshkent, [MANZIL]</span>
+      </div>
+    </div>
+    <div style="max-width: 1280px; margin: 0 auto; padding: 18px clamp(16px, 4cqw, 48px) 28px; border-top: 1px solid #2F2F2C; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 13px; color: #A9A69E">
+      <span>© 2026 talabaPass. Barcha huquqlar himoyalangan.</span>
+      <span style="display: flex; gap: 14px"><b style="color: #FFFFFF">O'zbekcha</b><span>Русский</span><span>English</span></span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":5800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { menu: false, open: 0 };
+    var q = [], seed = 11;
+    function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+    for (var r = 0; r < 9; r++) for (var c = 0; c < 9; c++) {
+      var corner = (r < 3 && c < 3) || (r < 3 && c > 5) || (r > 5 && c < 3);
+      var v;
+      if (corner) { var rr = r % 6, cc = c % 6; v = !(rr === 1 && cc === 1) ; }
+      else v = rnd() > 0.5;
+      q.push(v ? "#141414" : "#FFFFFF");
+    }
+    this.miniQr = q;
+  }
+  renderVals() {
+    var self = this, s = this.state;
+    var faqData = [
+      ["Kimlar foydalana oladi?", "O'zbekistondagi oliy ta'lim muassasalarining amaldagi talabalari — bakalavr va magistratura. Talaba guvohnomasining muddati o'tmagan bo'lishi kerak."],
+      ["Bu pullikmi?", "Talabalar uchun to'liq bepul. Obuna ham, yashirin to'lov ham yo'q — faqat chegirmali narxni to'laysan."],
+      ["Guvohnoma qancha vaqtda tekshiriladi?", "Odatda bir necha soat ichida. Natija SMS va bildirishnoma orqali keladi. Rad etilsa — sababi yoziladi va qayta yuklash mumkin."],
+      ["Ma'lumotlarim xavfsizmi?", "Guvohnoma rasmi faqat tekshiruv uchun ishlatiladi va bizneslarga ko'rsatilmaydi. Kassir faqat ismingiz va universitetingizni ko'radi. Batafsil — Maxfiylik siyosatida."],
+      ["Biznesimni qanday ulayman?", "Ro'yxatdan o'ting, STIR va biznes haqida qisqa ma'lumot kiriting. Tekshiruvdan so'ng birinchi chegirmani o'zingiz qo'shasiz — kunlari, soatlari va sonini o'zingiz belgilaysiz."]
+    ];
+    var faq = faqData.map(function (f, i) {
+      var open = s.open === i;
+      return { q: f[0], a: f[1], open: open, exp: open ? "true" : "false", icon: open ? "M5 12h14" : "M12 5v14M5 12h14", btnBg: open ? "#141414" : "#FFFFFF", btnFg: open ? "#FFFFFF" : "#141414",
+        toggle: function () { self.setState({ open: open ? -1 : i }); } };
+    });
+    var deals = [
+      { store: "Bodom Choyxonasi · Chilonzor", title: "Osh 0.5 porsiya + choy", price: "26 600 so'm", old: "38 000", badge: "−30%", when: "15:00 gacha", dist: "0.6 km", tile: "#F4DCCB", ink: "#8A3410", icon: "M3 11h18a9 9 0 0 1-18 0zM8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4M5 20h14" },
+      { store: "Kadr Kinoteatri · Olmazor", title: "Kino chiptasi, 2D seans", price: "25 000 so'm", old: "45 000", badge: "−44%", when: "faqat seshanba", dist: "3.0 km", tile: "#E9DDF0", ink: "#5B2479", icon: "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10" },
+      { store: "Lavash Point · Chilonzor", title: "Lavash + ayron", price: "Ikkinchisi bepul", old: "", badge: "1+1", when: "17:00 gacha", dist: "0.9 km", tile: "#F3E6C4", ink: "#7A5508", icon: "M5 6l14 3-2 11-14-3zM8 10l7 1.5M7.4 13.5l7 1.5" },
+      { store: "Sahifa Kitob Do'koni · Yunusobod", title: "Barcha badiiy kitoblar", price: "Chekdan −15%", old: "", badge: "−15%", when: "20:00 gacha", dist: "1.4 km", tile: "#F1D9D9", ink: "#7E1F1F", icon: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM4 21a2 2 0 0 1 2-2h13M9 7h6" }
+    ];
+    var hv = [5, 7, 4, 2, 12, 13, 9, 3, 2, 1];
+    var hours = hv.map(function (v, i) { return { h: (v / 13 * 100) + "%", c: i === 6 ? "#FF5B1F" : "#141414" }; });
+    return {
+      menuOpen: s.menu, menuOpenStr: s.menu ? "true" : "false", menuIcon: s.menu ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16",
+      toggleMenu: function () { self.setState({ menu: !s.menu }); }, closeMenu: function () { self.setState({ menu: false }); },
+      faq: faq, deals: deals, hours: hours, miniQr: this.miniQr
+    };
+  }
+}
+</script>
+</body>
+</html>
