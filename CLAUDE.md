@@ -83,7 +83,21 @@ Soya deyarli yo'q (faqat dizaynda aniq ko'rsatilgan holatlar). Gradient — faqa
 Responsive: media query EMAS. Dizayndagi kabi container query (`cqw`), `clamp()`, `flex-wrap`,
 `repeat(auto-fit, minmax(min(Npx,100%),1fr))`. Tekshiruv: 390px va 1440px.
 
-## Dizayndan ekran ko'chirish (majburiy tartib)
+## Ekran qanday quriladi — ikki yo'l
+- **Statik marketing sahifalari** (landing, huquqiy): pastdagi "ko'chirish" tartibi bilan — inline `style`, `dz` doirasi.
+  Faqat shu sahifalar uchun.
+- **Ilova ekranlari** (kirish, talaba, biznes, admin): `src/components/ui` primitivlaridan Tailwind bilan yig'iladi.
+  Dizaynga sodiqlik primitivlar orqali ta'minlanadi: qiymat dizayndan primitivga bir marta ko'chiriladi, ekranlar
+  uni qayta ishlatadi. Takrorlanadigan blok nusxalanmaydi — ikkinchi marta kerak bo'lsa primitivga aylantiriladi.
+  `design:gen` bu yerda faqat qiymatlarni o'qish uchun qoralama; uning chiqishi ilova kodiga ko'chirilmaydi.
+  Tekshiruv bir xil: `design:compare` 390 va 1440 da.
+
+Landing'dagi ma'lumotlar (7-bosqichda ulanadi, kodda `TODO(7-bosqich)` bilan belgilangan):
+- Statistika raqamlari bazadan hisoblanadi; belgilangan chegaradan kichik bo'lsa bo'lim yashiriladi.
+- Hamkorlar faqat bazadagi tasdiqlangan (`APPROVED`) bizneslardan chiqadi.
+- "Hozir Toshkentda ochiq" — bazadagi faol chegirmalar.
+
+## Dizayndan ekran ko'chirish (faqat marketing sahifalari)
 1. `npm run design:gen -- <ID> <namespace> --messages=messages/uz.json` — `design/screens/<ID>.html` dan komponentlar
    yaratadi (`scripts/design-maps/<ID>.json` xaritasi bo'yicha): o'lchamlar inline `style` da aynan ko'chiriladi, ranglar
    `var(--color-*)` tokenlariga almashadi, matnlar `messages/uz.json` ga tushadi. Token yo'q rang chiqsa — avval

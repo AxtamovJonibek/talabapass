@@ -1,6 +1,8 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useTranslations } from "next-intl";
 
+// TODO(7-bosqich): hamkorlar faqat bazadagi tasdiqlangan (APPROVED) bizneslardan, universitetlar esa talabasi bor
+// oliygohlardan chiqadi. Hozir — dizayndagi statik belgilar.
 export function Partners() {
   const t = useTranslations("landing.partners");
   return (

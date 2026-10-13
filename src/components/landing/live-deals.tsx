@@ -5,7 +5,7 @@ import { ICONS } from "@/components/ui/icons";
 import { Link } from "@/i18n/navigation";
 import { MINUS } from "@/lib/format";
 
-// Vaqtinchalik: dizayndagi namunalar. Lenta so'rovi tayyor bo'lgach (7-bosqich) bazadagi faol chegirmalar bilan almashtiriladi.
+// TODO(7-bosqich): dizayndagi namunalar. Lenta so'rovi tayyor bo'lgach (7-bosqich) bazadagi faol chegirmalar bilan almashtiriladi.
 const DEALS = [
   { id: "osh", badge: `${MINUS}30%`, tile: "var(--color-tile-taom)", ink: "var(--color-tint-taom)", icon: ICONS.bowl },
   { id: "kino", badge: `${MINUS}44%`, tile: "var(--color-tile-kino)", ink: "var(--color-tint-kino)", icon: ICONS.film },

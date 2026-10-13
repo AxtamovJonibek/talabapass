@@ -1,6 +1,8 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useTranslations } from "next-intl";
 
+// TODO(7-bosqich): raqamlar bazadan hisoblanadi (tasdiqlangan talabalar, APPROVED bizneslar, faol chegirmalar,
+// bugungi tejalgan summa). Belgilangan chegaradan kichik bo`lsa bo`lim umuman chiqarilmaydi. Hozir — dizayndagi matn.
 export function Stats() {
   const t = useTranslations("landing.stats");
   return (
