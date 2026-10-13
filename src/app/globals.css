@@ -27,10 +27,12 @@
   --color-line: #d6d3ca;
   --color-line-soft: #e2e0d8;
   --color-dash: #dad7ce;
+  --color-dash-2: #c9c6bc;
 
   /* urg'u */
   --color-blue: #2433d6;
   --color-blue-2: #3646e4;
+  --color-blue-tint: #dce0ff;
   --color-orange: #ff5b1f;
   --color-rust: #b23a0c;
 
@@ -52,9 +54,29 @@
   --color-ink-3: #2a2a27;
   --color-ink-4: #2f2f2c;
   --color-ink-5: #3a3a36;
+  --color-ink-6: #3a3a37;
+  --color-fog-0: #cfccc4;
   --color-fog-1: #d8d5cd;
   --color-fog-2: #bdbab2;
   --color-fog-3: #a9a69e;
+
+  /* kategoriya juftlari: tile — fon, tint — ikonka/siyoh */
+  --color-tile-taom: #f4dccb;
+  --color-tint-taom: #8a3410;
+  --color-tile-kofe: #e8ddcc;
+  --color-tint-kofe: #5b3a12;
+  --color-tile-kitob: #f1d9d9;
+  --color-tint-kitob: #7e1f1f;
+  --color-tile-xizmat: #dde1f7;
+  --color-tint-xizmat: #1e2a9e;
+  --color-tile-sport: #d7eedf;
+  --color-tint-sport: #145a33;
+  --color-tile-gozal: #e2e2de;
+  --color-tint-gozal: #2e2e2b;
+  --color-tile-kino: #e9ddf0;
+  --color-tint-kino: #5b2479;
+  --color-tile-bogo: #f3e6c4;
+  --color-tint-bogo: #7a5508;
 
   /* issiqlik shkalasi (kam → ko'p) */
   --color-heat-0: #efede7;
@@ -63,8 +85,13 @@
   --color-heat-3: #ff6a2e;
   --color-heat-4: #b83a0a;
 
-  --font-sans: var(--font-archivo), system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), monospace;
+  /*
+   * Oila nomlari to`g`ridan-to`g`ri yozilgan (next/font o`zgaruvchisi emas): next/font zanjirga
+   * "Archivo Fallback" qo`shadi va shriftda yo`q belgilar (→, ✶) dizayndagidan boshqacha chiqadi.
+   * Fayllarni baribir next/font yuklaydi (layout.tsx).
+   */
+  --font-sans: "Archivo", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
 
   /* o'lcham = piksel; dizayndagi qiymatlar */
   --text-*: initial;
@@ -142,6 +169,8 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* Dizayn brauzerning standart qator balandligiga tayanadi; Tailwind preflight esa 1.5 beradi. */
+    line-height: normal;
   }
 
   body {
@@ -162,5 +191,25 @@
 
   button:disabled {
     cursor: not-allowed;
+  }
+}
+
+/*
+ * Dizayn eksportidan aynan ko`chirilgan ekranlar (scripts/design-to-jsx.mjs) brauzerning standart
+ * uslublari ustida chizilgan: content-box, standart margin va h.k. `dz` ildizi ichida Tailwind
+ * preflight bekor qilinadi, shunda inline qiymatlar dizayndagidek ishlaydi.
+ */
+@layer base {
+  /* SVG bundan mustasno: `all: revert` width/height/stroke atributlarini ham bekor qilib yuboradi. */
+  .dz,
+  .dz *:not(svg, svg *),
+  .dz ::before,
+  .dz ::after {
+    all: revert;
+  }
+
+  .dz svg {
+    display: revert;
+    vertical-align: revert;
   }
 }

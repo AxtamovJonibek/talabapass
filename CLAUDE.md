@@ -83,6 +83,28 @@ Soya deyarli yo'q (faqat dizaynda aniq ko'rsatilgan holatlar). Gradient — faqa
 Responsive: media query EMAS. Dizayndagi kabi container query (`cqw`), `clamp()`, `flex-wrap`,
 `repeat(auto-fit, minmax(min(Npx,100%),1fr))`. Tekshiruv: 390px va 1440px.
 
+## Dizayndan ekran ko'chirish (majburiy tartib)
+1. `npm run design:gen -- <ID> <namespace> --messages=messages/uz.json` — `design/screens/<ID>.html` dan komponentlar
+   yaratadi (`scripts/design-maps/<ID>.json` xaritasi bo'yicha): o'lchamlar inline `style` da aynan ko'chiriladi, ranglar
+   `var(--color-*)` tokenlariga almashadi, matnlar `messages/uz.json` ga tushadi. Token yo'q rang chiqsa — avval
+   `globals.css` ga qo'shing. Mavjud faylni qayta yozmaydi (`--force` kerak).
+2. Dinamik qismlar (`{{…}}`, sc-for, sc-if, holat, havolalar) qo'lda tugallanadi.
+3. Sahifa ildiziga `className="dz"` qo'yiladi: dizayn brauzer standart uslublari (content-box, standart margin) ustida
+   chizilgan, `dz` esa Tailwind preflight'ni shu doirada bekor qiladi. `<button>` ni `<a>`/`<Link>` ga almashtirsangiz
+   `boxSizing: "border-box"` qo'shing (tugma standart bo'yicha border-box).
+4. `npm run design:compare -- <ID> <yo'l> 1440` va `… 390` — dizayn va sahifani yonma-yon `.compare/` ga chiqaradi,
+   farq foizi va farqli qatorlarni ko'rsatadi (`--click`, `--designClick` — holatlar uchun). Farq sababini
+   `npm run design:probe -- <ID> <yo'l> <kenglik> "<matn>"` bilan toping. Balandliklar teng va farq ~0.05% dan kam
+   bo'lmaguncha ekran tugagan hisoblanmaydi; natija rasmlari foydalanuvchiga ko'rsatiladi.
+   Git Bash'da `/` yo'li buzilmasligi uchun `MSYS_NO_PATHCONV=1` qo'ying.
+
+Shrift oilalari `globals.css` da to'g'ridan-to'g'ri yozilgan (`"Archivo", system-ui`): next/font o'zgaruvchisi zanjirga
+"Archivo Fallback" qo'shadi va shriftda yo'q belgilar (→, ✶) dizayndagidan farq qiladi. Shrift sozlamasi o'zgarsa
+dev serverni qayta ishga tushirish kerak.
+
+Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` · `/talaba/royxat` · `/chegirmalar` ·
+`/profil` · `/biznes`, `/biznes/royxat`, `/biznes/chegirmalar/yangi` · `/admin`.
+
 ## Kod qoidalari
 - Server Component — standart; `"use client"` faqat interaktivlik uchun.
 - Mutatsiyalar — server action, kirish zod bilan tekshiriladi. Har bir action va sahifa
@@ -94,7 +116,8 @@ Responsive: media query EMAS. Dizayndagi kabi container query (`cqw`), `clamp()`
 - Guvohnoma va biznes hujjatlari — faqat private bucket; hech qachon public URL emas.
   Faqat admin, qisqa muddatli presigned URL orqali, har bir ko'rish audit log'ga yoziladi.
 - QR/redeem mantig'iga tegilsa — testlar majburiy (pastdagi ro'yxat).
-- Rang/o'lcham uchun ixtiyoriy qiymat (`text-[#abc]`) yozilmaydi — token qo'shiladi.
+- Rang uchun ixtiyoriy qiymat (`text-[#abc]`, inline hex) yozilmaydi — token qo'shiladi. Dizayndan ko'chirilgan
+  ekranlarda o'lchamlar inline `style` da qoladi (aniqlik uchun); umumiy primitivlar (`components/ui`) Tailwind'da.
 
 ## Biznes qoidalari
 

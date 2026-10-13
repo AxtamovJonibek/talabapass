@@ -1,0 +1,66 @@
+{
+  "namespace": "landing",
+  "dir": "src/components/landing",
+  "sections": [
+    {
+      "name": "header",
+      "file": "landing-header",
+      "component": "LandingHeader"
+    },
+    {
+      "name": "hero",
+      "file": "hero",
+      "component": "Hero"
+    },
+    {
+      "name": "ticker",
+      "file": "ticker",
+      "component": "Ticker"
+    },
+    {
+      "name": "how",
+      "file": "how-it-works",
+      "component": "HowItWorks"
+    },
+    {
+      "name": "students",
+      "file": "for-students",
+      "component": "ForStudents"
+    },
+    {
+      "name": "deals",
+      "file": "live-deals",
+      "component": "LiveDeals"
+    },
+    {
+      "name": "business",
+      "file": "for-business",
+      "component": "ForBusiness"
+    },
+    {
+      "name": "partners",
+      "file": "partners",
+      "component": "Partners"
+    },
+    {
+      "name": "stats",
+      "file": "stats",
+      "component": "Stats"
+    },
+    {
+      "name": "faq",
+      "file": "faq",
+      "component": "Faq"
+    },
+    {
+      "name": "cta",
+      "file": "final-cta",
+      "component": "FinalCta"
+    },
+    {
+      "name": "footer",
+      "file": "landing-footer",
+      "component": "LandingFooter"
+    }
+  ]
+}

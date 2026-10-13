@@ -1,0 +1,26 @@
+{
+  "namespace": "legal",
+  "dir": "src/components/legal",
+  "sections": [
+    {
+      "name": "header",
+      "file": "legal-header",
+      "component": "LegalHeader"
+    },
+    {
+      "name": "intro",
+      "file": "legal-intro",
+      "component": "LegalIntro"
+    },
+    {
+      "name": "body",
+      "file": "legal-body",
+      "component": "LegalBody"
+    },
+    {
+      "name": "footer",
+      "file": "legal-footer",
+      "component": "LegalFooter"
+    }
+  ]
+}

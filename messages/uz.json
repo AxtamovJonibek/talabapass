@@ -128,5 +128,416 @@
     "ended": "Tugagan",
     "scheduled": "Rejalashtirilgan",
     "delivered": "Yetkazildi"
+  },
+  "landing": {
+    "header": {
+      "talabapass_bosh_sahifa": "talabaPass bosh sahifa",
+      "asosiy": "Asosiy",
+      "qanday_ishlaydi": "Qanday ishlaydi",
+      "talabalarga": "Talabalarga",
+      "bizneslarga": "Bizneslarga",
+      "hamkorlar": "Hamkorlar",
+      "savollar": "Savollar",
+      "kirish": "Kirish",
+      "boshlash_bepul": "Boshlash — bepul",
+      "menyu": "Menyu",
+      "mobil_menyu": "Mobil menyu",
+      "talaba_sifatida_boshlash": "Talaba sifatida boshlash",
+      "biznesni_ulash": "Biznesni ulash"
+    },
+    "hero": {
+      "ozbekiston_talabalari_uchun": "O'zbekiston talabalari uchun",
+      "talaba_bolish_endi": "Talaba bo'lish endi",
+      "arzonroq": "arzonroq.",
+      "kafe_kitob_dokoni_sport": "Kafe, kitob do'koni, sport zal, sartaroshxona — shahar bo'ylab hamkor joylarda talaba narxi. Guvohnomangni bir marta tasdiqlatasan, keyin kassada faqat QR ko'rsatasan.",
+      "talaba_sifatida_boshlash": "Talaba sifatida boshlash",
+      "men_biznes_egasiman": "Men biznes egasiman",
+      "talabalar_uchun_bepul": "Talabalar uchun bepul",
+      "obuna_yoq": "Obuna yo'q",
+      "2_daqiqada_royxat": "2 daqiqada ro'yxat",
+      "talabapass_ilovasi_chegirmalar_lentasi": "talabaPass ilovasi: chegirmalar lentasi va QR kupon",
+      "chilonzor": "Chilonzor",
+      "se_14_20": "Se · 14:20",
+      "bodom_choyxonasi_0_6": "Bodom Choyxonasi · 0.6 km",
+      "osh_0_5_porsiya": "Osh 0.5 porsiya + choy",
+      "hammasi": "Hammasi",
+      "kofe": "Kofe",
+      "kitob": "Kitob",
+      "nusxa_markazi_0_1": "Nusxa Markazi · 0.1 km",
+      "a4_chop_etish": "A4 chop etish",
+      "300_som": "300 so'm",
+      "kadr_kinoteatri_3_0": "Kadr Kinoteatri · 3.0 km",
+      "kino_chiptasi_2d": "Kino chiptasi, 2D",
+      "25_000_som": "25 000 so'm",
+      "forma_fitnes_2_1": "Forma Fitnes · 2.1 km",
+      "oylik_abonement": "Oylik abonement",
+      "290_000_som": "290 000 so'm",
+      "tp_7k3q_92xd": "TP-7K3Q-92XD",
+      "oktabrda_tejading": "Oktabrda tejading",
+      "206_400_som": "206 400 so'm"
+    },
+    "ticker": {
+      "osh_30": "OSH −30%",
+      "kapuchino_25": "KAPUCHINO −25%",
+      "kino_25_000": "KINO 25 000",
+      "nusxa_300_som": "NUSXA 300 SO'M",
+      "soch_olish_33": "SOCH OLISH −33%",
+      "lavash_1_1": "LAVASH 1+1",
+      "kitoblar_15": "KITOBLAR −15%",
+      "sport_zal_36": "SPORT ZAL −36%"
+    },
+    "how": {
+      "uch_qadam": "Uch qadam.",
+      "hammasi_shu": "Hammasi shu.",
+      "plastik_karta_qogoz_kupon": "Plastik karta, qog'oz kupon yoki promokod kerak emas. Telefoning — sening talaba chiptang.",
+      "royxatdan_ot": "Ro'yxatdan o't",
+      "ism_familiya_va_universitet": "Ism, familiya va universitet. Ikki daqiqa ham ketmaydi.",
+      "guvohnomani_tasdiqlat": "Guvohnomani tasdiqlat",
+      "rasmga_ol_yoki_fayl": "Rasmga ol yoki fayl yukla. Moderator odatda bir necha soatda tekshiradi.",
+      "tasdiqlandi": "TASDIQLANDI",
+      "qr_korsat_teja": "QR ko'rsat — teja",
+      "chegirmani_tanla_kassada_qr": "Chegirmani tanla, kassada QR ko'rsat. Chek o'zi tarixingga tushadi."
+    },
+    "students": {
+      "talabalarga": "TALABALARGA",
+      "stipendiya_oy_oxirigacha_yetsin": "Stipendiya oy oxirigacha yetsin.",
+      "har_kuni_ishlatadigan_narsalaring": "Har kuni ishlatadigan narsalaring — tushlik, kofe, nusxa, kino — endi talaba narxida. Faqat sen va sendek talabalar uchun.",
+      "yoningdagi_chegirmalar": "Yoningdagi chegirmalar",
+      "xarita_va_masofa_bilan": "Xarita va masofa bilan. Darsdan chiqding — 300 metrda kofe.",
+      "vaqtini_bilib_tur": "Vaqtini bilib tur",
+      "qaysi_chegirma_hozir_ishlayapti": "Qaysi chegirma hozir ishlayapti, qachon tugaydi, nechtasi qoldi — hammasi ko'z oldingda.",
+      "tejaganing_hisoblanadi": "Tejaganing hisoblanadi",
+      "har_bir_xarid_chek": "Har bir xarid chek bilan saqlanadi. Oy oxirida qancha tejaganingni ko'rasan.",
+      "faqat_talabalar_uchun": "Faqat talabalar uchun",
+      "har_bir_foydalanuvchi_guvohnomasi": "Har bir foydalanuvchi guvohnomasi bilan tasdiqlangan. Chegirmalar haqiqiy va adolatli.",
+      "oylik_tejash_cheki": "Oylik tejash cheki",
+      "dilnoza_tatu_oktabr": "Dilnoza, TATU · oktabr",
+      "206_400_som": "206 400 so'm",
+      "tejaldi_5_xarid": "tejaldi — 5 xarid",
+      "forma_fitnes": "Forma Fitnes",
+      "kadr_kinoteatri": "Kadr Kinoteatri",
+      "bodom_choyxonasi": "Bodom Choyxonasi",
+      "nusxa_markazi": "Nusxa Markazi",
+      "qahva_bekati": "Qahva Bekati",
+      "faqat": "FAQAT",
+      "talaba": "TALABA"
+    },
+    "deals": {
+      "hozir_toshkentda_ochiq": "Hozir Toshkentda ochiq",
+      "barcha_chegirmalar": "Barcha chegirmalar →",
+      "items": {
+        "osh": {
+          "store": "Bodom Choyxonasi · Chilonzor",
+          "title": "Osh 0.5 porsiya + choy",
+          "price": "26 600 so'm",
+          "old": "38 000",
+          "when": "15:00 gacha",
+          "dist": "0.6 km"
+        },
+        "kino": {
+          "store": "Kadr Kinoteatri · Olmazor",
+          "title": "Kino chiptasi, 2D seans",
+          "price": "25 000 so'm",
+          "old": "45 000",
+          "when": "faqat seshanba",
+          "dist": "3.0 km"
+        },
+        "lavash": {
+          "store": "Lavash Point · Chilonzor",
+          "title": "Lavash + ayron",
+          "price": "Ikkinchisi bepul",
+          "old": "",
+          "when": "17:00 gacha",
+          "dist": "0.9 km"
+        },
+        "kitob": {
+          "store": "Sahifa Kitob Do'koni · Yunusobod",
+          "title": "Barcha badiiy kitoblar",
+          "price": "Chekdan −15%",
+          "old": "",
+          "when": "20:00 gacha",
+          "dist": "1.4 km"
+        }
+      }
+    },
+    "business": {
+      "biznes_egalariga": "BIZNES EGALARIGA",
+      "bosh_stol_eng_qimmat": "Bo'sh stol — eng qimmat stol.",
+      "talabalar_eng_sodiq_va": "Talabalar — eng sodiq va eng ko'p gapiradigan mijozlar. talabaPass ularni aynan sizga kerak bo'lgan kun va soatlarda olib keladi.",
+      "bosh_soatlarni_toldiring": "Bo'sh soatlarni to'ldiring",
+      "chegirmani_faqat_kerakli_kun": "Chegirmani faqat kerakli kun va soatga qo'ying: masalan, Du–Ju 15:00–18:00.",
+      "faqat_sotuvda_chegirma": "Faqat sotuvda chegirma",
+      "reklama_byudjeti_shart_emas": "Reklama byudjeti shart emas. Chegirma faqat kassada haqiqiy xarid bo'lganda beriladi.",
+      "har_bir_raqam_korinadi": "Har bir raqam ko'rinadi",
+      "nechta_talaba_kordi_qr": "Nechta talaba ko'rdi, QR oldi, sotib oldi — qaysi universitetdan, qaysi soatda.",
+      "kassir_uchun_3_soniya": "Kassir uchun 3 soniya",
+      "telefonda_qr_skanerlanadi_chek": "Telefonda QR skanerlanadi, chek avtomatik chiqadi. O'qitish kerak emas.",
+      "biznesni_bepul_ulash": "Biznesni bepul ulash",
+      "tariflar_tarif_malumoti": "Tariflar: [TARIF MA'LUMOTI]",
+      "biznes_statistikasi_namunasi": "Biznes statistikasi namunasi",
+      "bodom_choyxonasi_bugun": "Bodom Choyxonasi · bugun",
+      "sotuv": "Sotuv",
+      "tushum": "Tushum",
+      "mln": "mln",
+      "yangi": "Yangi",
+      "qr_sotuv": "QR → sotuv",
+      "qayta_kelganlar": "Qayta kelganlar"
+    },
+    "partners": {
+      "hamkorlarimiz": "Hamkorlarimiz",
+      "choyxonadan_sport_zalgacha_talabalarni": "Choyxonadan sport zalgacha — talabalarni kutib oladigan joylar.",
+      "bodom": "BODOM",
+      "qahva_bekati": "qahva bekati",
+      "kadr": "KADR",
+      "forma_fitnes": "forma fitnes",
+      "sahifa_kitob": "Sahifa/kitob",
+      "nusxa": "NUSXA",
+      "m": "M",
+      "usta_barber": "USTA·BARBER",
+      "lavash": "Lavash",
+      "point": "Point",
+      "talabalarimiz_oqiydigan_oliygohlar": "Talabalarimiz o'qiydigan oliygohlar:",
+      "tatu": "TATU",
+      "ozmu": "O'zMU",
+      "tdiu": "TDIU",
+      "tdyu": "TDYU",
+      "westminster": "Westminster",
+      "inha": "Inha"
+    },
+    "stats": {
+      "raqamlarda": "Raqamlarda",
+      "tasdiqlangan_talaba": "tasdiqlangan talaba",
+      "hamkor_biznes": "hamkor biznes",
+      "faol_chegirma": "faol chegirma",
+      "41_7_mln": "41.7 mln",
+      "som_bugun_talabalar_tejadi": "so'm — bugun talabalar tejadi"
+    },
+    "faq": {
+      "kop_soraladigan_savollar": "Ko'p so'raladigan savollar",
+      "javob_topolmadingizmi_telegram_orqali": "Javob topolmadingizmi? Telegram orqali yozing — tez javob beramiz.",
+      "items": {
+        "1": {
+          "q": "Kimlar foydalana oladi?",
+          "a": "O'zbekistondagi oliy ta'lim muassasalarining amaldagi talabalari — bakalavr va magistratura. Talaba guvohnomasining muddati o'tmagan bo'lishi kerak."
+        },
+        "2": {
+          "q": "Bu pullikmi?",
+          "a": "Talabalar uchun to'liq bepul. Obuna ham, yashirin to'lov ham yo'q — faqat chegirmali narxni to'laysan."
+        },
+        "3": {
+          "q": "Guvohnoma qancha vaqtda tekshiriladi?",
+          "a": "Odatda bir necha soat ichida. Natija SMS va bildirishnoma orqali keladi. Rad etilsa — sababi yoziladi va qayta yuklash mumkin."
+        },
+        "4": {
+          "q": "Ma'lumotlarim xavfsizmi?",
+          "a": "Guvohnoma rasmi faqat tekshiruv uchun ishlatiladi va bizneslarga ko'rsatilmaydi. Kassir faqat ismingiz va universitetingizni ko'radi. Batafsil — Maxfiylik siyosatida."
+        },
+        "5": {
+          "q": "Biznesimni qanday ulayman?",
+          "a": "Ro'yxatdan o'ting, STIR va biznes haqida qisqa ma'lumot kiriting. Tekshiruvdan so'ng birinchi chegirmani o'zingiz qo'shasiz — kunlari, soatlari va sonini o'zingiz belgilaysiz."
+        }
+      }
+    },
+    "cta": {
+      "bugungi_chegirmang_seni_kutyapti": "Bugungi chegirmang seni kutyapti.",
+      "talaba_sifatida_boshlash": "Talaba sifatida boshlash",
+      "biznesni_ulash": "Biznesni ulash"
+    },
+    "footer": {
+      "ozbekiston_talabalari_va_mahalliy": "O'zbekiston talabalari va mahalliy bizneslarni bog'laydigan chegirmalar platformasi.",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "loyiha": "Loyiha",
+      "qanday_ishlaydi": "Qanday ishlaydi",
+      "hamkorlar": "Hamkorlar",
+      "savollar": "Savollar",
+      "kirish": "Kirish",
+      "talaba_royxati": "Talaba ro'yxati",
+      "biznesni_ulash": "Biznesni ulash",
+      "hisobga_kirish": "Hisobga kirish",
+      "huquqiy": "Huquqiy",
+      "maxfiylik_siyosati": "Maxfiylik siyosati",
+      "foydalanish_shartlari": "Foydalanish shartlari",
+      "biznes_hamkorlik_shartlari": "Biznes hamkorlik shartlari",
+      "aloqa": "Aloqa",
+      "telefon_raqam": "[TELEFON RAQAM]",
+      "email": "[EMAIL]",
+      "toshkent_manzil": "Toshkent, [MANZIL]",
+      "2026_talabapass_barcha_huquqlar": "© 2026 talabaPass. Barcha huquqlar himoyalangan.",
+      "ozbekcha": "O'zbekcha",
+      "русский": "Русский",
+      "english": "English"
+    }
+  },
+  "legal": {
+    "header": {
+      "bosh_sahifa": "Bosh sahifa",
+      "kirish": "Kirish"
+    },
+    "intro": {
+      "oxirgi_yangilanish_13_10": "Oxirgi yangilanish: 13.10.2026",
+      "huquqiy_malumotlar": "Huquqiy ma'lumotlar",
+      "qisqasi_guvohnomangiz_faqat_tekshiruv": "Qisqasi: guvohnomangiz faqat tekshiruv uchun kerak, ma'lumotlaringiz sotilmaydi, biznes sizdan faqat ism va universitetingizni ko'radi.",
+      "hujjat": "Hujjat"
+    },
+    "body": {
+      "mundarija": "Mundarija",
+      "mundarija_2": "MUNDARIJA",
+      "savol_bormi": "Savol bormi?",
+      "email": "[EMAIL]",
+      "xizmat_korsatuvchi_yuridik_shaxs": "Xizmat ko'rsatuvchi: [YURIDIK SHAXS NOMI], STIR [STIR], manzil: [YURIDIK MANZIL]."
+    },
+    "footer": {
+      "2026_talabapass": "© 2026 talabaPass",
+      "bosh_sahifa": "Bosh sahifa",
+      "talabalarga": "Talabalarga",
+      "bizneslarga": "Bizneslarga"
+    },
+    "docs": {
+      "maxfiylik": [
+        {
+          "h": "Qanday ma'lumot yig'amiz",
+          "p": [
+            "Talabadan: ism, familiya, telefon raqam, universitet, kurs va talaba guvohnomasi rasmi.",
+            "Biznesdan: nomi, STIR, manzil, ish vaqti, mas'ul shaxs va uning telefon raqami.",
+            "Foydalanish jarayonida: olingan chegirmalar, cheklar, ilovadagi harakatlar. Joylashuv — faqat ruxsat bersangiz va faqat yaqin chegirmalarni ko'rsatish uchun."
+          ]
+        },
+        {
+          "h": "Nima uchun ishlatamiz",
+          "p": [
+            "Talabalikni tasdiqlash va chegirmani faqat talabalarga berish.",
+            "Firibgarlikning oldini olish: bitta guvohnoma — bitta hisob.",
+            "Bizneslarga statistika berish — faqat umumlashtirilgan ko'rinishda (masalan, universitetlar bo'yicha sonlar).",
+            "Xizmatni yaxshilash va siz rozilik bergan bildirishnomalarni yuborish."
+          ]
+        },
+        {
+          "h": "Kim ko'radi",
+          "p": [
+            "Kassir sotuv paytida faqat ismingiz, familiyangizning bosh harfi, universitetingiz va kursingizni ko'radi.",
+            "Guvohnoma rasmini faqat talabaPass moderatorlari ko'radi; bizneslarga berilmaydi.",
+            "Ma'lumotlaringizni hech kimga sotmaymiz. Qonunda nazarda tutilgan hollarda — faqat vakolatli davlat organlariga."
+          ]
+        },
+        {
+          "h": "Saqlash va xavfsizlik",
+          "p": [
+            "Shaxsga doir ma'lumotlar O'zbekiston Respublikasi hududidagi serverlarda saqlanadi.",
+            "Guvohnoma rasmi tekshiruvdan so'ng [N] kun ichida o'chiriladi; tasdiq natijasi va guvohnoma raqami saqlanib qoladi.",
+            "Ma'lumotlar uzatishda shifrlanadi, xodimlarning kirish huquqi lavozimiga qarab cheklanadi."
+          ]
+        },
+        {
+          "h": "Sizning huquqlaringiz",
+          "p": [
+            "Ma'lumotlaringizni ko'rish, tuzatish va hisobni o'chirishni so'rash.",
+            "Bildirishnomalardan istalgan vaqtda voz kechish.",
+            "Murojaatlarga [N] ish kuni ichida javob beramiz: [EMAIL]."
+          ]
+        },
+        {
+          "h": "Qonunchilik",
+          "p": [
+            "Ushbu siyosat O'zbekiston Respublikasining \"Shaxsga doir ma'lumotlar to'g'risida\"gi Qonuni asosida tuzilgan.",
+            "Siyosat o'zgarsa, kamida 10 kun oldin ilova orqali xabar beramiz."
+          ]
+        }
+      ],
+      "shartlar": [
+        {
+          "h": "Kim foydalana oladi",
+          "p": [
+            "O'zbekistondagi oliy ta'lim muassasalarining amaldagi talabalari (bakalavr, magistratura).",
+            "Bitta odam — bitta hisob. Talabalik muddati tugagach, hisob oddiy rejimga o'tadi."
+          ]
+        },
+        {
+          "h": "Hisob va QR kod",
+          "p": [
+            "QR kod shaxsiy: uni boshqa odamga berish yoki skrinshotini tarqatish taqiqlanadi.",
+            "QR kod 10 daqiqa amal qiladi va bir marta ishlatiladi."
+          ]
+        },
+        {
+          "h": "Chegirmalar",
+          "p": [
+            "Chegirma shartlarini (foiz, kun, soat, soni) biznes belgilaydi va ilovada ko'rsatiladi.",
+            "Chegirma boshqa aksiyalar bilan birlashtirilmasligi mumkin — bu chegirma sahifasida yoziladi."
+          ]
+        },
+        {
+          "h": "Taqiqlangan harakatlar",
+          "p": [
+            "Soxta yoki boshqa odamning guvohnomasini yuklash.",
+            "Chegirmali mahsulotni qayta sotish uchun olish.",
+            "Qoidabuzarlik aniqlansa, hisob ogohlantirishsiz bloklanishi mumkin."
+          ]
+        },
+        {
+          "h": "Javobgarlik",
+          "p": [
+            "Mahsulot va xizmat sifati uchun biznes javob beradi; nizolarni hal qilishda talabaPass yordam beradi.",
+            "Platforma texnik ishlar paytida vaqtincha ishlamasligi mumkin."
+          ]
+        },
+        {
+          "h": "O'zgartirishlar",
+          "p": [
+            "Shartlar o'zgarsa, ilova orqali oldindan xabar beramiz. Foydalanishni davom ettirish — yangi shartlarga rozilik."
+          ]
+        }
+      ],
+      "biznes": [
+        {
+          "h": "Ulanish",
+          "p": [
+            "Biznes STIR va ro'yxatdan o'tganlik hujjati bilan tekshiruvdan o'tadi.",
+            "Tasdiqlangach, chegirmalarni o'zingiz qo'shasiz va boshqarasiz."
+          ]
+        },
+        {
+          "h": "Chegirmani bajarish",
+          "p": [
+            "E'lon qilingan chegirma ko'rsatilgan kun, soat va son doirasida berilishi shart.",
+            "Haqiqiy QR kodli talabaga chegirmani asossiz rad etish taqiqlanadi."
+          ]
+        },
+        {
+          "h": "Kassirlar",
+          "p": [
+            "Kassirlar taklif havolasi orqali qo'shiladi; ularning harakatlari uchun biznes javob beradi.",
+            "Kassir talabaning faqat ismi, universiteti va kursini ko'radi."
+          ]
+        },
+        {
+          "h": "Statistika va ma'lumotlar",
+          "p": [
+            "Biznes o'z sotuvlari bo'yicha to'liq statistikani ko'radi.",
+            "Talabalarning shaxsiy ma'lumotlarini platformadan tashqarida ishlatish taqiqlanadi."
+          ]
+        },
+        {
+          "h": "To'lov",
+          "p": [
+            "Ulanish bepul. Xizmat haqi: [TARIF MA'LUMOTI]."
+          ]
+        },
+        {
+          "h": "Bloklash asoslari",
+          "p": [
+            "Chegirmani muntazam bajarmaslik, talabalarni kamsitish, soxta ma'lumot berish.",
+            "Bloklanganda barcha faol chegirmalar darhol to'xtatiladi."
+          ]
+        }
+      ]
+    },
+    "tabs": {
+      "maxfiylik": "Maxfiylik siyosati",
+      "shartlar": "Foydalanish shartlari",
+      "biznes": "Biznes hamkorlik shartlari"
+    }
   }
 }

@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Dizayn eksporti va generatsiya qilingan kod:
     "design/**",
+    ".design-gen/**",
+    ".compare/**",
     "src/generated/**",
   ]),
 ]);
