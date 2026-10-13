@@ -11,15 +11,16 @@ const SIZES = {
   sm: "h-11 rounded-12 px-4 text-14",
 } as const;
 
+// [ko'rinish, standart yozuv og'irligi]
 const VARIANTS = {
-  blue: "border-0 bg-blue font-bold text-white",
-  orange: "border-0 bg-orange font-extrabold text-ink",
-  ink: "border-0 bg-ink font-bold text-white",
-  green: "border-0 bg-green font-extrabold text-white",
-  outline: "border-hair border-ink bg-white font-bold text-ink",
-  "danger-outline": "border-hair border-danger-line bg-white font-bold text-danger",
-  "danger-ghost": "border-0 bg-transparent font-bold text-danger",
-  ghost: "border-0 bg-transparent font-semibold",
+  blue: ["border-0 bg-blue text-white", "font-bold"],
+  orange: ["border-0 bg-orange text-ink", "font-extrabold"],
+  ink: ["border-0 bg-ink text-white", "font-bold"],
+  green: ["border-0 bg-green text-white", "font-extrabold"],
+  outline: ["border-hair border-ink bg-white text-ink", "font-bold"],
+  "danger-outline": ["border-hair border-danger-line bg-white text-danger", "font-bold"],
+  "danger-ghost": ["border-0 bg-transparent text-danger", "font-bold"],
+  ghost: ["border-0 bg-transparent", "font-semibold"],
 } as const;
 
 export type ButtonStyle = {
@@ -28,30 +29,34 @@ export type ButtonStyle = {
   /** Matn chapda, ikonka o'ngda (CTA) — aks holda markazda */
   spread?: boolean;
   block?: boolean;
+  /** Og'irroq yozuv (800): W2 "SMS kod olish", "Kirish" */
+  strong?: boolean;
 };
 
 export function buttonClass(
-  { variant = "blue", size = "lg", spread = false, block = false }: ButtonStyle,
+  { variant = "blue", size = "lg", spread = false, block = false, strong = false }: ButtonStyle,
   extra?: string,
 ) {
+  const [look, weight] = VARIANTS[variant];
   return cn(
     "flex items-center gap-2 font-sans no-underline disabled:opacity-50",
     spread ? "justify-between" : "justify-center",
     block && "w-full",
     SIZES[size],
-    VARIANTS[variant],
+    look,
+    strong ? "font-extrabold" : weight,
     extra,
   );
 }
 
 type ButtonProps = ButtonStyle & ComponentProps<"button">;
 
-export function Button({ variant, size, spread, block, className, type = "button", ...props }: ButtonProps) {
-  return <button type={type} className={buttonClass({ variant, size, spread, block }, className)} {...props} />;
+export function Button({ variant, size, spread, block, strong, className, type = "button", ...props }: ButtonProps) {
+  return <button type={type} className={buttonClass({ variant, size, spread, block, strong }, className)} {...props} />;
 }
 
 type ButtonLinkProps = ButtonStyle & ComponentProps<typeof Link>;
 
-export function ButtonLink({ variant, size, spread, block, className, ...props }: ButtonLinkProps) {
-  return <Link className={buttonClass({ variant, size, spread, block }, className)} {...props} />;
+export function ButtonLink({ variant, size, spread, block, strong, className, ...props }: ButtonLinkProps) {
+  return <Link className={buttonClass({ variant, size, spread, block, strong }, className)} {...props} />;
 }

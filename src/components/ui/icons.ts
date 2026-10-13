@@ -22,6 +22,7 @@ export const ICONS = {
   student: "M2 9l10-5 10 5-10 5zM6 11v5c3 2.5 9 2.5 12 0v-5",
   // umumiy
   arrowRight: "M5 12h14M13 6l6 6-6 6",
+  chevronRight: "M9 6l6 6-6 6",
   chevronDown: "M6 9l6 6 6-6",
   check: "M5 12l5 5 9-10",
   download: "M12 4v12M7 11l5 5 5-5M4 20h16",

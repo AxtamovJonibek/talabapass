@@ -21,7 +21,8 @@ npm run lint         ESLint
 npm run typecheck    tsc --noEmit
 npm test             Vitest
 npm run test:e2e     Playwright
-npm run db:dev       lokal Postgres (prisma dev, Docker kerak emas) — alohida terminalda ishlab turadi
+npm run db:dev       lokal Postgres (prisma dev, Docker kerak emas) — alohida terminalda ishlab turadi;
+                     kompyuter qayta yoqilgach o'zi ko'tarilmaydi (baza xatosi chiqsa birinchi shuni tekshiring)
 npm run db:migrate   migratsiyalarni qo'llash
 npm run db:seed      seed ma'lumotlar
 ```
@@ -92,6 +93,11 @@ Responsive: media query EMAS. Dizayndagi kabi container query (`cqw`), `clamp()`
   `design:gen` bu yerda faqat qiymatlarni o'qish uchun qoralama; uning chiqishi ilova kodiga ko'chirilmaydi.
   Tekshiruv bir xil: `design:compare` 390 va 1440 da.
 
+Primitivga qiymat ko'chirishda: dizayn `content-box` da chizilgan. `box-sizing: border-box` yozilmagan elementda
+balandlik/kenglik chegara va padding'ni o'z ichiga OLMAYDI — primitivda `box-content` ishlating (masalan `PhoneInput`),
+aks holda 1–3px farq chiqadi. `<button>` va `box-sizing: border-box` yozilganlar — oddiy (border-box).
+`<input>` ichida brauzerning standart 1px 2px padding'i bor (preflight uni olib tashlaydi).
+
 Landing'dagi ma'lumotlar (7-bosqichda ulanadi, kodda `TODO(7-bosqich)` bilan belgilangan):
 - Statistika raqamlari bazadan hisoblanadi; belgilangan chegaradan kichik bo'lsa bo'lim yashiriladi.
 - Hamkorlar faqat bazadagi tasdiqlangan (`APPROVED`) bizneslardan chiqadi.
@@ -132,6 +138,19 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - QR/redeem mantig'iga tegilsa — testlar majburiy (pastdagi ro'yxat).
 - Rang uchun ixtiyoriy qiymat (`text-[#abc]`, inline hex) yozilmaydi — token qo'shiladi. Dizayndan ko'chirilgan
   ekranlarda o'lchamlar inline `style` da qoladi (aniqlik uchun); umumiy primitivlar (`components/ui`) Tailwind'da.
+
+## Kirish va ruxsatlar
+- Kirish: telefon → 6 raqamli SMS kod (5 daqiqa, 5 urinish, 60 soniyada 1 ta, soatiga 5 ta; bazada faqat HMAC).
+  Raqam ro'yxatda bor-yo'qligi kod so'rashda oshkor qilinmaydi.
+- Kod to'g'ri, hisob yo'q → raqam imzolangan cookie'da 30 daqiqa "tasdiqlangan" deb saqlanadi (`getVerifiedPhone`)
+  va ro'yxat formasiga o'tiladi; ro'yxat formalari shu raqamga tayanadi.
+- Sessiya: tasodifiy token httpOnly cookie'da, bazada SHA-256 xeshi, 30 kun. Bloklangan foydalanuvchi sessiyasi darhol o'ladi.
+- `requireRole(...)` — har bir himoyalangan sahifa, layout (`RoleGate`) va server action boshida. Kirmagan → `/kirish`,
+  begona rol → o'z bosh sahifasi (`homePathFor`). Proxy (middleware) faqat til uchun.
+- Cookie o'qiydigan server komponentlar `<Suspense>` ichida turadi (Cache Components talabi).
+- Formalar `onSubmit` emas, `action={fn}` bilan ulanadi: sahifa ulanmasdan bosilgan yuborish GET bo'lib ketmaydi.
+- E2E (`npm run test:e2e`): lokal baza + seed + `.env` da `OTP_FIXED_CODE=000000` kerak. Yangi himoyalangan sahifa
+  qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi.
 
 ## Biznes qoidalari
 

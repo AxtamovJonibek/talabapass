@@ -37,24 +37,34 @@ export function Input({ className, invalid, ...props }: InputProps) {
   return <input className={cn(control, invalid ? "border-danger" : "border-line", className)} {...props} />;
 }
 
-type PhoneInputProps = Omit<ComponentProps<"input">, "type"> & { invalid?: boolean };
+const PHONE_SIZES = {
+  // Dizayndagidek content-box: balandlik chegarasiz hisoblanadi (T1: 52, W2: 56)
+  md: { box: "box-content h-13 rounded-12 px-3.5", text: "text-15" },
+  lg: { box: "box-content h-14 rounded-14 px-4", text: "text-16" },
+} as const;
+
+type PhoneInputProps = Omit<ComponentProps<"input">, "type" | "size"> & {
+  invalid?: boolean;
+  size?: keyof typeof PHONE_SIZES;
+};
 
 /** +998 prefiksli telefon maydoni (T1, W2). Qiymat — prefikssiz 9 raqam. */
-export function PhoneInput({ className, invalid, ...props }: PhoneInputProps) {
+export function PhoneInput({ className, invalid, size = "md", ...props }: PhoneInputProps) {
   return (
     <div
       className={cn(
-        "flex h-13 items-center gap-2.5 rounded-12 border-hair bg-white px-3.5",
+        "flex items-center gap-2.5 border-hair bg-white",
+        PHONE_SIZES[size].box,
         invalid ? "border-danger" : "border-ink",
         className,
       )}
     >
-      <span className="font-mono text-15 text-muted">+998</span>
+      <span className={cn("font-mono text-muted", PHONE_SIZES[size].text)}>+998</span>
       <input
         type="tel"
         inputMode="numeric"
         autoComplete="tel-national"
-        className="min-w-0 flex-1 border-0 bg-transparent font-mono text-15 text-ink outline-none"
+        className={cn("min-w-0 flex-1 border-0 bg-transparent px-0.5 py-px font-mono text-ink outline-none", PHONE_SIZES[size].text)}
         {...props}
       />
     </div>

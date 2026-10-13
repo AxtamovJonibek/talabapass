@@ -47,3 +47,5 @@ next-env.d.ts
 # skrinshot solishtiruvlari
 /.compare
 /.design-gen
+/test-results
+/playwright-report

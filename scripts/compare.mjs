@@ -45,7 +45,17 @@ async function shoot(url, isDesign) {
   await page.goto(url, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: "nextjs-portal{display:none!important} *{animation:none!important;transition:none!important;caret-color:transparent!important}" });
+  // Ilovadagi qadamlar tartibi: --fill="selector::qiymat" → --click → --type (klaviaturadan) → --blur
+  if (opts.fill && !isDesign) {
+    const [selector, value] = opts.fill.split("::");
+    await page.fill(selector, value);
+  }
   if (opts.click && !isDesign) await page.click(opts.click);
+  if (opts.type && !isDesign) {
+    await page.waitForTimeout(Number(opts.wait ?? 1500));
+    await page.keyboard.type(opts.type);
+  }
+  if (opts.blur && !isDesign) await page.evaluate(() => document.activeElement?.blur());
   if (opts.designClick && isDesign) await page.click(opts.designClick);
   await page.waitForTimeout(300);
   const buffer = await page.screenshot({ fullPage: true });

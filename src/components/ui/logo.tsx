@@ -37,7 +37,7 @@ export function Logo({ size = 18, chip = "blue", tag, tagTone = "orange", classN
       talaba
       <span className={cn(SIZES[size].chip, CHIPS[chip])}>Pass</span>
       {tag ? (
-        <span className={cn("rounded-5 px-1.5 py-[3px] text-11 font-bold tracking-normal font-stretch-100%", TAGS[tagTone])}>
+        <span className={cn("rounded-5 px-1.5 py-[3px] text-11 font-bold font-stretch-100%", TAGS[tagTone])}>
           {tag}
         </span>
       ) : null}

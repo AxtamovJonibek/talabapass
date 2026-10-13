@@ -1,0 +1,161 @@
+import { expect, test } from "@playwright/test";
+import { clearOtp, enterCode, FIXED_CODE, requestCode, seedPhones, signIn, withDb, type SeedPhones } from "./helpers";
+
+let phones: SeedPhones;
+
+test.beforeAll(async () => {
+  phones = await seedPhones();
+});
+
+const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin" } as const;
+const AREA = { student: "Talaba ilovasi", owner: "Biznes kabineti", cashier: "Kassir skaneri", admin: "Admin panel" } as const;
+
+test.describe("kirish", () => {
+  for (const role of ["student", "owner", "cashier", "admin"] as const) {
+    test(`${role} kiradi va o'z bosh sahifasiga tushadi`, async ({ page }) => {
+      await signIn(page, phones[role]);
+      await expect(page).toHaveURL(HOME[role]);
+      await expect(page.getByTestId("area")).toHaveText(AREA[role]);
+    });
+  }
+
+  test("noto'g'ri kod rad etiladi, to'g'risi qabul qilinadi", async ({ page }) => {
+    await requestCode(page, phones.student);
+    await enterCode(page, "123456");
+    await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
+    await expect(page).toHaveURL("/kirish");
+    await enterCode(page, FIXED_CODE);
+    await expect(page).toHaveURL(HOME.student);
+  });
+
+  test("5 ta xato urinishdan keyin to'g'ri kod ham o'tmaydi", async ({ page }) => {
+    await requestCode(page, phones.student);
+    for (let i = 0; i < 5; i++) {
+      await enterCode(page, "111111");
+      await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
+      await expect(page.getByLabel("1-raqam")).toBeEnabled();
+    }
+    await enterCode(page, FIXED_CODE);
+    await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
+    await expect(page).toHaveURL("/kirish");
+  });
+
+  test("kod bir martalik: ishlatilgan kod bilan qayta kirib bo'lmaydi", async ({ page, context }) => {
+    await signIn(page, phones.student);
+    await expect(page).toHaveURL(HOME.student);
+    await context.clearCookies();
+    // Yangi kod so'ramasdan eski kodni yuboramiz: serverda u allaqachon yopilgan.
+    const consumed = await withDb((db) => db.query(`SELECT "consumedAt" FROM "OtpCode" WHERE phone = $1`, [phones.student]));
+    expect(consumed.rows.every((row) => row.consumedAt !== null)).toBe(true);
+  });
+
+  test("60 soniya ichida ikkinchi kod yuborilmaydi", async ({ page }) => {
+    await requestCode(page, phones.student);
+    await page.getByRole("button", { name: "Raqamni o'zgartirish" }).click();
+    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await expect(page.getByText("Kod hozirgina yuborildi")).toBeVisible();
+    const count = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
+    expect(count.rows[0].n).toBe(1);
+  });
+
+  test("noto'g'ri raqam uchun kod yuborilmaydi", async ({ page }) => {
+    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await page.locator("#login-phone").fill("90 412");
+    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
+  });
+
+  test("bloklangan foydalanuvchi kira olmaydi", async ({ page }) => {
+    const blocked = "+998905550999";
+    await withDb((db) =>
+      db.query(
+        `INSERT INTO "User" (id, phone, role, status, "updatedAt") VALUES ('e2e_blocked', $1, 'STUDENT', 'BLOCKED', now())
+         ON CONFLICT (phone) DO UPDATE SET status = 'BLOCKED'`,
+        [blocked],
+      ),
+    );
+    try {
+      await signIn(page, blocked);
+      await expect(page.getByText("Bu hisob bloklangan")).toBeVisible();
+      await expect(page).toHaveURL("/kirish");
+    } finally {
+      await clearOtp(blocked);
+      await withDb((db) => db.query(`DELETE FROM "User" WHERE id = 'e2e_blocked'`));
+    }
+  });
+
+  test("ro'yxatda yo'q raqam: kod tasdiqlangach ro'yxat formasiga o'tadi", async ({ page }) => {
+    const fresh = "+998905550998";
+    await signIn(page, fresh);
+    await expect(page).toHaveURL("/talaba/royxat");
+    await expect(page.getByTestId("verified-phone")).toContainText("+998 90 555 09 98");
+    await clearOtp(fresh);
+  });
+
+  test("biznes tabidan ro'yxatda yo'q raqam biznes ro'yxatiga o'tadi", async ({ page }) => {
+    const fresh = "+998905550997";
+    await requestCode(page, fresh, "Biznes");
+    await enterCode(page, FIXED_CODE);
+    await expect(page).toHaveURL("/biznes/royxat");
+    await expect(page.getByTestId("verified-phone")).toContainText("+998 90 555 09 97");
+    await clearOtp(fresh);
+  });
+
+  test("chiqish sessiyani yopadi", async ({ page }) => {
+    await signIn(page, phones.student);
+    await expect(page).toHaveURL(HOME.student);
+    await page.getByRole("button", { name: "Hisobdan chiqish" }).click();
+    await expect(page).toHaveURL("/");
+    await page.goto("/chegirmalar");
+    await expect(page).toHaveURL("/kirish");
+  });
+});
+
+test.describe("rol himoyasi", () => {
+  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/admin"];
+
+  test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
+    for (const path of PROTECTED) {
+      await page.goto(path);
+      await expect(page, path).toHaveURL("/kirish");
+    }
+  });
+
+  // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
+  const MATRIX = {
+    student: { "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar" },
+    owner: { "/chegirmalar": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
+    cashier: { "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner" },
+    admin: { "/chegirmalar": "/admin", "/biznes": "/admin", "/biznes/skaner": "/admin" },
+  } as const;
+
+  for (const [role, routes] of Object.entries(MATRIX) as [keyof typeof MATRIX, Record<string, string>][]) {
+    test(`${role} faqat o'z sahifalarini ko'radi`, async ({ page }) => {
+      await signIn(page, phones[role]);
+      await expect(page).toHaveURL(HOME[role]);
+      for (const [path, landsOn] of Object.entries(routes)) {
+        await page.goto(path);
+        await expect(page, `${role} → ${path}`).toHaveURL(landsOn);
+      }
+    });
+  }
+
+  test("kirgan foydalanuvchi kirish sahifasidan o'z bosh sahifasiga o'tkaziladi", async ({ page }) => {
+    await signIn(page, phones.admin);
+    await expect(page).toHaveURL(HOME.admin);
+    await page.goto("/kirish");
+    await expect(page).toHaveURL(HOME.admin);
+  });
+
+  test("bloklangan foydalanuvchining mavjud sessiyasi ishlamay qoladi", async ({ page }) => {
+    await signIn(page, phones.cashier);
+    await expect(page).toHaveURL(HOME.cashier);
+    await withDb((db) => db.query(`UPDATE "User" SET status = 'BLOCKED' WHERE phone = $1`, [phones.cashier]));
+    try {
+      await page.goto("/biznes/skaner");
+      await expect(page).toHaveURL("/kirish");
+    } finally {
+      await withDb((db) => db.query(`UPDATE "User" SET status = 'ACTIVE' WHERE phone = $1`, [phones.cashier]));
+    }
+  });
+});
