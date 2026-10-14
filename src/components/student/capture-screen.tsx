@@ -1,14 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/icon";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 
 type Problem = "empty" | "bad_type" | "too_large" | "not_allowed" | "daily_limit" | "network";
+/** Jonli kamera nega ochilmadi: insecure — sahifa http orqali (brauzer kamerani bermaydi), denied — ruxsat berilmadi */
+type CameraIssue = "insecure" | "denied" | "unsupported";
+
+const subscribeToNothing = () => () => {};
+/** Muhit kamerani umuman bera oladimi — faqat brauzerda aniqlanadi (serverda: muammo yo'q deb hisoblanadi). */
+const environmentIssue = (): CameraIssue | null =>
+  // http:// manzilda (masalan, telefondan kompyuterning lokal IP'si orqali) brauzer kamera API'sini umuman bermaydi.
+  !window.isSecureContext ? "insecure" : typeof navigator.mediaDevices?.getUserMedia === "function" ? null : "unsupported";
 const MAX_BYTES = 10 * 1024 * 1024;
-const ACCEPT = "image/jpeg,image/png,application/pdf";
+const ACCEPT = "image/jpeg,image/png,image/heic,image/heif,.heic,.heif,application/pdf";
 
 type Props = {
   /** "Orqaga" qayerga olib boradi */
@@ -44,6 +52,9 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);
   const [sent, setSent] = useState(false);
+  const blocked = useSyncExternalStore(subscribeToNothing, environmentIssue, () => null);
+  const [permissionIssue, setPermissionIssue] = useState<CameraIssue | null>(null);
+  const cameraIssue = blocked ?? permissionIssue;
   const handoff = useTranslations("onboarding.handoff");
 
   useEffect(() => {
@@ -51,8 +62,9 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
     if (!rootRef.current?.offsetParent) return;
     let stream: MediaStream | undefined;
     let cancelled = false;
+    if (environmentIssue()) return;
     navigator.mediaDevices
-      ?.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
+      .getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
       .then((s) => {
         if (cancelled) return s.getTracks().forEach((track) => track.stop());
         stream = s;
@@ -62,8 +74,10 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
           setLive(true);
         }
       })
-      .catch(() => {
-        // Ruxsat berilmadi yoki kamera yo'q — fayl tanlash yo'li qoladi.
+      .catch((error: DOMException) => {
+        // Kamera umuman yo'q (kompyuter) — jim: tugma fayl tanlashni ochadi. Ruxsat berilmagan bo'lsa — tushuntiramiz.
+        if (error.name === "NotAllowedError" || error.name === "SecurityError") setPermissionIssue("denied");
+        else if (error.name !== "NotFoundError" && error.name !== "OverconstrainedError") setPermissionIssue("unsupported");
       });
     return () => {
       cancelled = true;
@@ -185,6 +199,12 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
           {problem ? t(`errors.${problem}`) : busy ? t("uploading") : t("hint")}
         </div>
       </div>
+
+      {cameraIssue ? (
+        <p data-testid="camera-issue" role="status" className="mx-6 mt-3 mb-0 rounded-12 bg-ink-2 px-3.5 py-3 text-13 leading-[1.45] text-fog-1">
+          {t(`camera.${cameraIssue}`)}
+        </p>
+      ) : null}
 
       <div className="mx-6 mt-[18px] flex flex-col gap-2.5">
         {(["tipLight", "tipValid"] as const).map((tip) => (

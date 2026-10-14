@@ -3,7 +3,8 @@
  * Sanalar ishga tushirilgan kunga nisbatan hisoblanadi, shuning uchun ilova doim "jonli" ko'rinadi.
  * Baza bo'sh bo'lmasa hech narsa qilmaydi (mavjud ma'lumotni o'chirmaydi).
  *
- * Eslatma: guvohnoma/hujjat fayllari haqiqatda yuklanmaydi — fileKey'lar "seed/..." ko'rinishidagi namunalar.
+ * Tekshiruv navbatidagi guvohnoma va biznes hujjatlari uchun namunaviy fayllar yaratiladi ("NAMUNA" yozuvi bilan),
+ * ular ham haqiqiy yuklashlardek tozalash pipeline'idan o'tadi (src/server/storage/maintenance.ts).
  */
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
@@ -11,6 +12,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "../src/generated/prisma/client";
 import { priceAfterPercent } from "../src/lib/format";
 import { fromTashkent, toTashkent } from "../src/lib/time";
+import { maintainStoredFiles } from "../src/server/storage/maintenance";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
@@ -578,9 +580,12 @@ async function main() {
     ],
   });
 
+  const files = await maintainStoredFiles({ generateMissing: true });
+
   console.log(
     [
       "Seed tayyor:",
+      `  namunaviy fayllar: ${files.generated}`,
       `  universitetlar: ${UNIVERSITIES.length}, tumanlar: ${DISTRICTS.length}, kategoriyalar: ${CATEGORIES.length}`,
       `  talabalar: ${students.length + 1} tasdiqlangan, ${PENDING_STUDENTS.length} navbatda`,
       `  bizneslar: ${BUSINESSES.length} faol, ${PENDING_BUSINESSES.length} navbatda`,

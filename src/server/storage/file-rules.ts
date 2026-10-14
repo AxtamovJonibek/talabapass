@@ -2,7 +2,14 @@
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
-export type AllowedType = { mime: "image/jpeg" | "image/png" | "application/pdf"; ext: "jpg" | "png" | "pdf" };
+export type AllowedType =
+  | { mime: "image/jpeg"; ext: "jpg" }
+  | { mime: "image/png"; ext: "png" }
+  | { mime: "image/heic"; ext: "heic" }
+  | { mime: "application/pdf"; ext: "pdf" };
+
+/** iPhone kamerasi (HEIF/HEIC) brendlari — `ftyp` qutisidagi asosiy brend */
+const HEIC_BRANDS = new Set(["heic", "heix", "hevc", "hevx", "heim", "heis", "mif1", "msf1"]);
 
 /**
  * Fayl turini mazmunidan (boshidagi baytlardan) aniqlaydi. Mijoz yuborgan nom yoki Content-Type ga ishonilmaydi:
@@ -13,6 +20,9 @@ export function sniffType(bytes: Uint8Array): AllowedType | null {
   if (starts(0xff, 0xd8, 0xff)) return { mime: "image/jpeg", ext: "jpg" };
   if (starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return { mime: "image/png", ext: "png" };
   if (starts(0x25, 0x50, 0x44, 0x46, 0x2d)) return { mime: "application/pdf", ext: "pdf" }; // %PDF-
+  // ISO BMFF: 4 bayt quti uzunligi, keyin "ftyp" va brend
+  const box = String.fromCharCode(...bytes.subarray(4, 12));
+  if (box.startsWith("ftyp") && HEIC_BRANDS.has(box.slice(4))) return { mime: "image/heic", ext: "heic" };
   return null;
 }
 

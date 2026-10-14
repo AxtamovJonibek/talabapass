@@ -1,14 +1,17 @@
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { PDFDocument } from "pdf-lib";
+import sharp from "sharp";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../db";
 import { storage } from "../storage";
 import { DAILY_UPLOAD_LIMIT, submitStudentCard, SUPERSEDED_REASON } from "./verification";
 
 const USER = "itest_card_student";
-const JPEG = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4, 5, 6, 7, 8]);
-const PDF = Uint8Array.from(Buffer.from("%PDF-1.7 test"));
+// Haqiqiy fayllar (tozalash ularni qayta kodlaydi); JPEG'da telefon kamerasidagidek GPS bor.
+let JPEG: Uint8Array;
+let PDF: Uint8Array;
 let dir: string;
 
 async function filesOnDisk(): Promise<string[]> {
@@ -24,6 +27,15 @@ async function setStatus(status: "DRAFT" | "PENDING" | "APPROVED" | "REJECTED" |
 }
 
 beforeAll(async () => {
+  JPEG = new Uint8Array(
+    await sharp({ create: { width: 320, height: 200, channels: 3, background: "#cfa" } })
+      .withExif({ IFD0: { Make: "SecretPhoneMaker" }, IFD3: { GPSLatitudeRef: "N", GPSLatitude: "41/1 18/1 0/1" } })
+      .jpeg()
+      .toBuffer(),
+  );
+  const pdf = await PDFDocument.create();
+  pdf.addPage([200, 100]);
+  PDF = await pdf.save();
   // Testlar o'z vaqtinchalik omboriga yozadi — loyihadagi .data ga tegmaydi.
   dir = await mkdtemp(join(tmpdir(), "talabapass-itest-"));
   process.env.STORAGE_DRIVER = "local";
@@ -57,9 +69,14 @@ describe("guvohnoma yuklash", () => {
     expect(profile.status).toBe("PENDING");
 
     const [verification] = await db.verification.findMany({ where: { studentId: USER } });
-    expect(verification).toMatchObject({ status: "PENDING", fileName: "guvohnoma_old.jpg", fileSize: JPEG.byteLength, mime: "image/jpeg" });
+    expect(verification).toMatchObject({ status: "PENDING", fileName: "guvohnoma_old.jpg", mime: "image/jpeg" });
     expect(verification!.fileKey).toMatch(new RegExp(`^verifications/${USER}/[0-9a-f-]{36}\\.jpg$`));
-    expect(await storage().get(verification!.fileKey)).toEqual(JPEG);
+
+    // Omborda — tozalangan nusxa: EXIF/GPS yo'q, o'lcham bazadagiga teng
+    const stored = (await storage().get(verification!.fileKey))!;
+    expect(stored.byteLength).toBe(verification!.fileSize);
+    expect((await sharp(stored).metadata()).exif).toBeUndefined();
+    expect(Buffer.from(stored).toString("latin1")).not.toContain("SecretPhoneMaker");
   });
 
   it("saqlash kaliti foydalanuvchi bergan nomga bog'liq emas", async () => {

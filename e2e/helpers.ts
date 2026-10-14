@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { expect, type Page } from "@playwright/test";
 import pg from "pg";
+import sharp from "sharp";
 
 /** Testlar uchun to'g'ridan-to'g'ri baza ulanishi (seed foydalanuvchilarini topish, holatni tayyorlash). */
 export async function withDb<T>(run: (client: pg.Client) => Promise<T>): Promise<T> {
@@ -72,3 +73,7 @@ export async function signIn(page: Page, phone: string) {
   await requestCode(page, phone);
   await enterCode(page, FIXED_CODE);
 }
+
+/** Haqiqiy (o'qiladigan) kichik JPEG — yuklash testlari uchun. Tozalash soxta baytlarni rad etadi. */
+export const sampleJpeg = async (): Promise<Buffer> =>
+  sharp({ create: { width: 120, height: 80, channels: 3, background: "#e4e2db" } }).jpeg().toBuffer();

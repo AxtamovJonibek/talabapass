@@ -78,7 +78,8 @@ async function shoot(url, isDesign) {
   // --file="selector::nom.jpg" — ilovada kichik JPEG faylni tanlash (yuklash holatini ko'rsatish uchun)
   if (opts.file && !isDesign) {
     const [selector, name] = opts.file.split("::");
-    const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xd9]);
+    const { default: sharp } = await import("sharp");
+    const jpeg = await sharp({ create: { width: 120, height: 80, channels: 3, background: "#e4e2db" } }).jpeg().toBuffer();
     await page.setInputFiles(selector, { name, mimeType: "image/jpeg", buffer: jpeg });
     await page.waitForTimeout(Number(opts.wait ?? 1500));
   }

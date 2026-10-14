@@ -134,7 +134,7 @@ export function CardUploadDesktop({ qr, pendingFileName, backHref }: Props) {
               <input
                 ref={input}
                 type="file"
-                accept="image/jpeg,image/png,application/pdf"
+                accept="image/jpeg,image/png,image/heic,image/heif,.heic,.heif,application/pdf"
                 disabled={uploading}
                 data-testid="card-file-web"
                 className="absolute size-px opacity-0"

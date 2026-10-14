@@ -13,6 +13,12 @@ describe("sniffType", () => {
     expect(sniffType(PDF)).toEqual({ mime: "application/pdf", ext: "pdf" });
   });
 
+  it("HEIC (iPhone) ni ftyp brendidan taniydi, AVIF va MP4 ni emas", () => {
+    const ftyp = (brand: string) => Uint8Array.from([0, 0, 0, 0x18, ...Buffer.from("ftyp" + brand), 0, 0, 0, 0]);
+    for (const brand of ["heic", "heix", "mif1", "msf1"]) expect(sniffType(ftyp(brand)), brand).toEqual({ mime: "image/heic", ext: "heic" });
+    for (const brand of ["avif", "isom", "mp42", "qt  "]) expect(sniffType(ftyp(brand)), brand).toBeNull();
+  });
+
   it("boshqa mazmunni rad etadi — nomi yoki kengaytmasi qanday bo'lishidan qat'i nazar", () => {
     expect(sniffType(Uint8Array.from(Buffer.from("<html><script>alert(1)</script>")))).toBeNull();
     expect(sniffType(Uint8Array.from(Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'>")))).toBeNull();

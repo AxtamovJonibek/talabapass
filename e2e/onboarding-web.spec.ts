@@ -1,12 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createUploadToken } from "../src/server/student/upload-token";
-import { codeBox, enterCode, FIXED_CODE, local, seedPhones, withDb } from "./helpers";
+import { codeBox, enterCode, FIXED_CODE, local, seedPhones, withDb, sampleJpeg } from "./helpers";
 
 // Veb ko'rinish (WT1) va kompyuter → telefon o'tkazmasi
 test.use({ viewport: { width: 1440, height: 1000 } });
 
 const STUDENT = "+998905550811";
-const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xd9]);
+let JPEG: Buffer;
 const SECRET = process.env.AUTH_SECRET!;
 
 async function cleanup() {
@@ -16,6 +16,9 @@ async function cleanup() {
     await db.query(`DELETE FROM "RateLimitHit" WHERE key LIKE 'otp-ip:%'`);
   });
 }
+test.beforeAll(async () => {
+  JPEG = await sampleJpeg();
+});
 test.beforeEach(cleanup);
 test.afterAll(cleanup);
 
@@ -53,7 +56,7 @@ test("veb: forma → kod → fayl yuklash → tekshiruv", async ({ page }) => {
 test("veb: yaroqsiz fayl rad etiladi", async ({ page }) => {
   await registerOnWeb(page);
   await page.getByTestId("card-file-web").setInputFiles({ name: "guvohnoma.pdf", mimeType: "application/pdf", buffer: Buffer.from("bu pdf emas") });
-  await expect(page.getByRole("alert").filter({ hasText: "Faqat JPG, PNG yoki PDF fayl yuklang." })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "Faqat JPG, PNG, HEIC yoki PDF fayl yuklang" })).toBeVisible();
   await expect(page.getByTestId("upload-row")).toHaveCount(0);
   expect((await student()).status).toBe("DRAFT");
 });

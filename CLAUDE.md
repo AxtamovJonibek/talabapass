@@ -21,11 +21,14 @@ npm run lint         ESLint
 npm run typecheck    tsc --noEmit
 npm test             Vitest (sof mantiq)
 npm run test:db      baza bilan testlar (*.itest.ts) — lokal baza kerak
-npm run test:e2e     Playwright
+npm run test:e2e     Playwright (kamera testlari to'liq Chromium bilan: `npx playwright install chromium`)
 npm run db:dev       lokal Postgres (prisma dev, Docker kerak emas) — alohida terminalda ishlab turadi;
                      kompyuter qayta yoqilgach o'zi ko'tarilmaydi (baza xatosi chiqsa birinchi shuni tekshiring)
 npm run db:migrate   migratsiyalarni qo'llash
-npm run db:seed      seed ma'lumotlar
+npm run db:seed      seed ma'lumotlar (namunaviy guvohnoma/hujjat fayllari bilan)
+npm run files:sanitize  ombordagi fayllarni qayta tozalash, yo'qlarini namuna bilan to'ldirish
+npm run dev:tunnel   telefonda kamerani sinash: dev serverni HTTPS tunnel bilan ochadi (ishlab turgan `npm run dev` kerak).
+                     Tunnel ochiq ekan OTP_FIXED_CODE internetdan ishlaydi — sinovdan keyin darhol yoping.
 ```
 
 ## Papkalar
@@ -171,7 +174,11 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 ## Fayllar (guvohnoma, hujjatlar)
 - Faqat `storage()` (`src/server/storage`) orqali; hozir lokal disk (`.data/private`), R2 shu interfeysga ulanadi.
   Vercel'da lokal disk ishlamaydi (fayllar yo'qoladi) — deploy'dan oldin R2 kerak.
-- Tur mazmundan aniqlanadi (`sniffType`: JPG/PNG/PDF), 10 MB; kalit faqat o'zimiz yaratgan qismlardan
+- Saqlashdan oldin har bir fayl `sanitizeDocument` dan o'tadi: rasmlar (JPG/PNG/HEIC) qayta kodlanadi — EXIF, GPS,
+  XMP qolmaydi, yo'nalish qo'llanadi, 2560px gacha, 50 Mpx dan katta rad etiladi; HEIC → JPEG. PDF: hujjat
+  ma'lumotlari va XMP obyektlari o'chiriladi; **PDF ichidagi rasmlarning EXIF'i tozalanmaydi** (ma'lum cheklov).
+  Ochib bo'lmaydigan fayl — `bad_type`. Mavjud/seed fayllar: `npm run files:sanitize`.
+- Tur mazmundan aniqlanadi (`sniffType`: JPG/PNG/HEIC/PDF), 10 MB (oqim o'qilayotganda ham); kalit faqat o'zimiz yaratgan qismlardan
   (`verifications/<userId>/<uuid>.<ext>`), foydalanuvchi bergan nom faqat ko'rsatish uchun saqlanadi.
 - Faylni beradigan har bir manzil ruxsatni o'zi tekshiradi; public manzil yo'q.
 - Yuklash: `POST /api/talaba/guvohnoma` — sessiya (talaba) yoki 15 daqiqalik `x-upload-token`

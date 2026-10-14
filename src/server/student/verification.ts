@@ -4,6 +4,7 @@ import { canUploadCard, effectiveStudentStatus } from "../auth/student-status";
 import { db } from "../db";
 import { storage } from "../storage";
 import { checkUpload, safeFileName, type UploadProblem } from "../storage/file-rules";
+import { sanitizeDocument, UnreadableFileError, type CleanFile } from "../storage/sanitize";
 
 /** Bir talaba bir kunda yuklay oladigan fayllar soni (omborni to'ldirishga qarshi). */
 export const DAILY_UPLOAD_LIMIT = 10;
@@ -13,7 +14,8 @@ export type SubmitProblem = UploadProblem | "not_allowed" | "daily_limit";
 export type SubmitResult = { ok: true; verificationId: string } | { ok: false; problem: SubmitProblem };
 
 /**
- * Talaba guvohnomasini qabul qiladi: mazmunini tekshiradi, private omborga yozadi, tekshiruv navbatiga qo'yadi.
+ * Talaba guvohnomasini qabul qiladi: mazmunini tekshiradi, metama'lumotlardan tozalaydi (rasm qayta kodlanadi —
+ * EXIF/GPS qolmaydi), private omborga yozadi, tekshiruv navbatiga qo'yadi.
  * Kutib turgan oldingi yuklash bo'lsa — u yopiladi va fayli o'chiriladi (moderator faqat oxirgisini ko'radi).
  */
 export async function submitStudentCard(userId: string, bytes: Uint8Array, originalName: string): Promise<SubmitResult> {
@@ -28,9 +30,17 @@ export async function submitStudentCard(userId: string, bytes: Uint8Array, origi
   const recent = await db.verification.count({ where: { studentId: userId, createdAt: { gt: new Date(Date.now() - 86_400_000) } } });
   if (recent >= DAILY_UPLOAD_LIMIT) return { ok: false, problem: "daily_limit" };
 
+  let clean: CleanFile;
+  try {
+    clean = await sanitizeDocument(bytes, checked.type);
+  } catch (error) {
+    if (error instanceof UnreadableFileError) return { ok: false, problem: "bad_type" };
+    throw error;
+  }
+
   // Kalit faqat o'zimiz yaratgan qismlardan: foydalanuvchi bergan nom yo'lga kirmaydi.
-  const fileKey = `verifications/${userId}/${randomUUID()}.${checked.type.ext}`;
-  await storage().put(fileKey, bytes);
+  const fileKey = `verifications/${userId}/${randomUUID()}.${clean.ext}`;
+  await storage().put(fileKey, clean.bytes);
 
   try {
     const { created, superseded } = await db.$transaction(async (tx) => {
@@ -43,9 +53,9 @@ export async function submitStudentCard(userId: string, bytes: Uint8Array, origi
         data: {
           studentId: userId,
           fileKey,
-          fileName: safeFileName(originalName, `guvohnoma.${checked.type.ext}`),
-          fileSize: bytes.byteLength,
-          mime: checked.type.mime,
+          fileName: safeFileName(originalName, `guvohnoma.${clean.ext}`),
+          fileSize: clean.bytes.byteLength,
+          mime: clean.mime,
         },
         select: { id: true },
       });

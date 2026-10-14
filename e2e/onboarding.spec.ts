@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { codeBox, clearOtp, enterCode, FIXED_CODE, local, requestCode, seedPhones, signIn, withDb } from "./helpers";
+import { codeBox, clearOtp, enterCode, FIXED_CODE, local, requestCode, seedPhones, signIn, withDb, sampleJpeg } from "./helpers";
 
 // Faqat shu testlar ishlatadigan raqamlar
 const NEW_STUDENT = "+998905550801";
@@ -7,7 +7,7 @@ const FROM_LOGIN = "+998905550802";
 const EXPIRING = "+998905550803";
 const PHONES = [NEW_STUDENT, FROM_LOGIN, EXPIRING];
 
-const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xd9]);
+let JPEG: Buffer;
 
 async function removeTestStudents() {
   await withDb(async (db) => {
@@ -29,6 +29,9 @@ async function fillRegistration(page: Page, phone: string | null) {
 const studentStatus = (phone: string) =>
   withDb(async (db) => (await db.query(`SELECT s.status FROM "StudentProfile" s JOIN "User" u ON u.id = s."userId" WHERE u.phone = $1`, [phone])).rows[0]?.status);
 
+test.beforeAll(async () => {
+  JPEG = await sampleJpeg();
+});
 test.beforeEach(removeTestStudents);
 test.afterAll(removeTestStudents);
 
@@ -108,7 +111,7 @@ test.describe("guvohnoma yuklash", () => {
   test("rasm/PDF bo'lmagan fayl rad etiladi (nomi .jpg bo'lsa ham)", async ({ page }) => {
     await registered(page);
     await page.getByTestId("card-file").setInputFiles({ name: "guvohnoma.jpg", mimeType: "image/jpeg", buffer: Buffer.from("<html><script>alert(1)</script>") });
-    await expect(page.getByText("Faqat JPG, PNG yoki PDF fayl yuklang.")).toBeVisible();
+    await expect(page.getByText("Faqat JPG, PNG, HEIC yoki PDF fayl yuklang")).toBeVisible();
     await expect(page).toHaveURL("/talaba/guvohnoma");
     expect(await studentStatus(NEW_STUDENT)).toBe("DRAFT");
   });
