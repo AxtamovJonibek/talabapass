@@ -8,7 +8,7 @@ import { normalizePhone } from "@/lib/format";
 import { requestOtp, verifyOtp } from "../auth/otp";
 import { clientIp } from "../auth/phone-check";
 import { cashierBusiness } from "../business/cashiers";
-import { createSession, destroySession, homePathFor, rememberVerifiedPhone } from "../auth/session";
+import { ADMIN_PASSWORD_PATH, createSession, destroySession, homePathFor, rememberVerifiedPhone } from "../auth/session";
 import { db } from "../db";
 
 export type AuthError = "phone" | "tooSoon" | "dailyLimit" | "ipLimit" | "sms" | "wrongCode" | "expired" | "locked" | "blocked" | "noBusiness";
@@ -60,7 +60,8 @@ export async function verifyCodeAction(rawPhone: string, rawCode: string, rawInt
   if (user.role === "CASHIER" && !(await cashierBusiness(user.id))) return { ok: false, error: "noBusiness" };
 
   await createSession(user.id, (await headers()).get("user-agent"));
-  return redirect({ href: homePathFor(user.role), locale });
+  // Admin: SMS koddan keyin parol (ikkinchi qadam) — admin-auth.ts.
+  return redirect({ href: user.role === "ADMIN" ? ADMIN_PASSWORD_PATH : homePathFor(user.role), locale });
 }
 
 export async function logoutAction(): Promise<void> {

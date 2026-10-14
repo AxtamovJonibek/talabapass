@@ -8,10 +8,12 @@ import { redirect } from "@/i18n/navigation";
 import type { Role } from "@/generated/prisma/client";
 import { db } from "../db";
 import { authSecret } from "../env";
+import { ADMIN_UNLOCK_TTL_MS, checkAdminUnlock, signAdminUnlock } from "./admin-password";
 import { authCookieOptions as cookieOptions } from "./cookie-options";
 
 const SESSION_COOKIE = "tp_session";
 const VERIFIED_PHONE_COOKIE = "tp_verified_phone";
+const ADMIN_UNLOCK_COOKIE = "tp_admin";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60_000;
 const VERIFIED_PHONE_TTL_MS = 30 * 60_000;
 
@@ -32,6 +34,7 @@ export async function destroySession(): Promise<void> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (token) await db.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   store.delete(SESSION_COOKIE);
+  store.delete(ADMIN_UNLOCK_COOKIE);
 }
 
 /** Foydalanuvchining barcha qurilmalardagi sessiyalarini yopadi (bloklash, hisobni o'chirish). */
@@ -91,14 +94,44 @@ async function go(href: string): Promise<never> {
 export async function requireRole(...roles: Role[]): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) return go("/kirish");
+  if (user.role === "ADMIN" && !(await adminUnlocked())) return go(ADMIN_PASSWORD_PATH);
   if (!roles.includes(user.role)) return go(homePathFor(user.role));
   return user;
+}
+
+// ───────── admin: SMS koddan keyin parol (ikkinchi qadam) ─────────
+// Admin sessiyasi parolsiz hech narsa ochmaydi: sahifa, layout va action'lar `requireRole` orqali,
+// API manzillari `getUnlockedAdmin` orqali. Cookie joriy sessiya tokeniga bog'langan.
+
+export const ADMIN_PASSWORD_PATH = "/kirish/admin";
+
+async function currentSessionHash(): Promise<string | null> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  return token ? hashToken(token) : null;
+}
+
+export async function adminUnlocked(): Promise<boolean> {
+  const sessionHash = await currentSessionHash();
+  if (!sessionHash) return false;
+  return checkAdminUnlock(authSecret(), sessionHash, (await cookies()).get(ADMIN_UNLOCK_COOKIE)?.value);
+}
+
+export async function unlockAdmin(): Promise<void> {
+  const sessionHash = await currentSessionHash();
+  if (!sessionHash) return;
+  (await cookies()).set(ADMIN_UNLOCK_COOKIE, signAdminUnlock(authSecret(), sessionHash), cookieOptions(ADMIN_UNLOCK_TTL_MS));
+}
+
+/** API manzillari uchun: parol bilan ochilgan admin yoki null (yo'naltirmaydi). */
+export async function getUnlockedAdmin(): Promise<CurrentUser | null> {
+  const user = await getCurrentUser();
+  return user?.role === "ADMIN" && (await adminUnlocked()) ? user : null;
 }
 
 /** Kirgan foydalanuvchini kirish sahifasidan o'z bosh sahifasiga o'tkazadi. */
 export async function redirectIfSignedIn(): Promise<void> {
   const user = await getCurrentUser();
-  if (user) await go(homePathFor(user.role));
+  if (user) await go(user.role === "ADMIN" && !(await adminUnlocked()) ? ADMIN_PASSWORD_PATH : homePathFor(user.role));
 }
 
 // ───────── tasdiqlangan, lekin hali ro'yxatdan o'tmagan raqam ─────────

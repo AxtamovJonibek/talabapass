@@ -46,7 +46,6 @@ describe("production muhit tekshiruvi", () => {
 const STAGING = {
   NODE_ENV: "production",
   APP_ENV: "staging",
-  STAGING_PASSWORD: "p".repeat(16),
   AUTH_SECRET: "x".repeat(43),
   DATABASE_URL: "postgres://u:p@host/db",
   OTP_FIXED_CODE: "000000",
@@ -59,15 +58,10 @@ const STAGING = {
 };
 
 describe("sinov serveri (APP_ENV=staging)", () => {
-  it("OTP_FIXED_CODE va SMS_PROVIDER=dev ruxsat etiladi (parol va bucket bor bo'lsa)", () => {
+  it("OTP_FIXED_CODE va SMS_PROVIDER=dev ruxsat etiladi (bucket bor bo'lsa); STAGING_PASSWORD kerak emas", () => {
     expect(productionEnvProblems(STAGING)).toEqual([]);
     expect(productionEnvProblems({ ...STAGING, SMS_PROVIDER: undefined })).toEqual([]);
     expect(productionEnvProblems({ ...STAGING, APP_ENV: " Staging " })).toEqual([]);
-  });
-
-  it("STAGING_PASSWORD yo'q yoki qisqa bo'lsa to'xtaydi", () => {
-    expect(() => assertProductionEnv({ ...STAGING, STAGING_PASSWORD: undefined })).toThrow(/STAGING_PASSWORD/);
-    expect(() => assertProductionEnv({ ...STAGING, STAGING_PASSWORD: "qisqa" })).toThrow(/STAGING_PASSWORD/);
   });
 
   it("lokal disk yoki to'liq bo'lmagan S3 sozlamasi bilan to'xtaydi", () => {
@@ -128,10 +122,10 @@ describe("server start (instrumentation.register)", () => {
     await expect(registerWith(SAFE)).resolves.toBeUndefined();
   });
 
-  it("staging: to'liq sozlamada start o'tadi, parolsiz to'xtaydi", async () => {
+  it("staging: to'liq sozlamada start o'tadi, bucket'siz to'xtaydi", async () => {
     await expect(registerWith(STAGING)).resolves.toBeUndefined();
-    const noPassword = Object.fromEntries(Object.entries(STAGING).filter(([key]) => key !== "STAGING_PASSWORD"));
-    await expect(registerWith(noPassword)).rejects.toThrow(/STAGING_PASSWORD/);
+    const noBucket = Object.fromEntries(Object.entries(STAGING).filter(([key]) => key !== "STORAGE_DRIVER"));
+    await expect(registerWith(noBucket)).rejects.toThrow(/STORAGE_DRIVER=s3/);
   });
 
   it("development'da start o'tadi", async () => {

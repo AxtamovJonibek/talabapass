@@ -81,9 +81,20 @@ export async function enterCode(page: Page, code: string) {
   await page.keyboard.type(code);
 }
 
-export async function signIn(page: Page, phone: string) {
+/** .env.development dagi ADMIN_PASSWORD_HASH ning paroli (faqat lokal). */
+export const ADMIN_PASSWORD = "dev-admin-parol";
+
+export async function enterAdminPassword(page: Page, password: string = ADMIN_PASSWORD) {
+  await page.locator("#admin-password").fill(password);
+  await page.getByRole("button", { name: "Kirish", exact: true }).click();
+}
+
+/** Kirish. Admin uchun SMS koddan keyin parol ham kiritiladi (`adminPassword: false` — kiritilmaydi). */
+export async function signIn(page: Page, phone: string, { adminPassword = true } = {}) {
   await requestCode(page, phone);
   await enterCode(page, FIXED_CODE);
+  await page.waitForURL((url) => url.pathname !== "/kirish");
+  if (adminPassword && new URL(page.url()).pathname === "/kirish/admin") await enterAdminPassword(page);
 }
 
 /** Haqiqiy (o'qiladigan) kichik JPEG — yuklash testlari uchun. Tozalash soxta baytlarni rad etadi. */

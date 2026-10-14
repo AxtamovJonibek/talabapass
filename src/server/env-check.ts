@@ -2,13 +2,12 @@
  * Muhit o'zgaruvchilarini tekshirish — sof funksiya (server-only emas: instrumentation, proxy va testlardan chaqiriladi).
  * Production'da ishlab chiqish uchun mo'ljallangan "qulayliklar" yoqilgan bo'lsa server ishga tushmaydi.
  *
- * Istisno — sinov serveri (`APP_ENV=staging`): production build, lekin butun sayt Basic Auth ortida
- * (`STAGING_PASSWORD`), shuning uchun OTP_FIXED_CODE va SMS_PROVIDER=dev ruxsat etiladi.
+ * Istisno — sinov serveri (`APP_ENV=staging`): production build, SMS provayder ulanguncha OTP_FIXED_CODE va
+ * SMS_PROVIDER=dev ruxsat etiladi (admin baribir parol bilan yopiq — admin-password.ts).
  * `APP_ENV` yo'q yoki boshqa qiymat — oddiy production qoidalari.
  */
 type Env = Record<string, string | undefined>;
 
-export const STAGING_PASSWORD_MIN = 12;
 const S3_VARS = ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const;
 
 export function isStaging(env: Env = process.env): boolean {
@@ -25,9 +24,6 @@ export function productionEnvProblems(env: Env): string[] {
   const problems: string[] = [];
 
   if (isStaging(env)) {
-    if (!env.STAGING_PASSWORD || env.STAGING_PASSWORD.length < STAGING_PASSWORD_MIN) {
-      problems.push(`APP_ENV=staging: STAGING_PASSWORD o'rnatilmagan yoki ${STAGING_PASSWORD_MIN} belgidan qisqa — sayt ochiq qolardi.`);
-    }
     if ((env.STORAGE_DRIVER ?? "local").trim().toLowerCase() !== "s3") {
       problems.push("APP_ENV=staging: STORAGE_DRIVER=s3 kerak (Vercel'da lokal disk fayllarni yo'qotadi).");
     } else {

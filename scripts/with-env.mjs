@@ -11,7 +11,7 @@ if (!file || command.length === 0) {
   process.exit(2);
 }
 if (!existsSync(file)) {
-  console.error(`${file} topilmadi. .env.staging.example dan nusxa oling.`);
+  console.error(`${file} topilmadi (Vercel Environment Variables bilan bir xil qiymatlar).`);
   process.exit(2);
 }
 process.loadEnvFile(file);

@@ -205,6 +205,17 @@
       "dailyLimit": "Bu raqamga bugun juda ko'p kod yuborildi. Ertaga urinib ko'ring.",
       "ipLimit": "Juda ko'p so'rov yuborildi. {minutes} daqiqadan keyin urinib ko'ring.",
       "noBusiness": "Siz hech qaysi biznesga kassir sifatida biriktirilmagansiz. Biznes egasidan yangi taklif havolasini so'rang."
+    },
+    "admin": {
+      "title": "Admin paroli",
+      "subtitle": "SMS kod tasdiqlandi. Admin panelga kirish uchun parolni kiriting.",
+      "passwordLabel": "Parol",
+      "submit": "Kirish",
+      "checking": "Tekshirilmoqda…",
+      "errors": {
+        "wrong": "Parol noto'g'ri",
+        "locked": "Juda ko'p xato urinish. {minutes} daqiqadan keyin SMS kod bilan qayta kiring."
+      }
     }
   },
   "placeholder": {

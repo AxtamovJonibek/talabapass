@@ -152,7 +152,8 @@ test.describe("kirish", () => {
       ),
     );
     try {
-      await signIn(page, blocked);
+      await requestCode(page, blocked);
+      await enterCode(page, FIXED_CODE);
       await expect(page.getByText("Bu hisob bloklangan")).toBeVisible();
       await expect(page).toHaveURL("/kirish");
     } finally {

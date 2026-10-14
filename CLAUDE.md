@@ -7,7 +7,12 @@ Rollar: `STUDENT`, `BUSINESS_OWNER`, `CASHIER`, `ADMIN`. Har bir rol faqat o'z s
 
 ## Ish tartibi
 Ish bosqichlarga bo'lingan (reja: 11 bosqich). Har bir bosqich oxirida: `typecheck`, `lint`, `test`
-o'tadi → `git commit` → foydalanuvchiga tekshirish ro'yxati beriladi. Keyingi bosqich tasdiqdan so'ng.
+o'tadi → `git commit` → **`git push`** (har commit'dan keyin) → foydalanuvchiga tekshirish ro'yxati beriladi.
+Keyingi bosqich tasdiqdan so'ng.
+
+**Foydalanuvchi sinovi faqat Vercel havolasida** (https://talabapass.vercel.app), localhost emas. Hisobot oxirida:
+"Havolada tekshiring: [sahifalar]". Lokal ishga tushirish (`next build && next start`, e2e) — faqat o'zimizning
+tekshiruvimiz uchun.
 
 ## Stack
 Next.js App Router · TypeScript strict · Tailwind v4 · PostgreSQL (Neon) + Prisma 7 ·
@@ -156,7 +161,7 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - SMS chegaralari (`otp-rules.ts`): bitta raqamga 60 soniyada 1 ta va kuniga 5 ta; bitta IP'dan soatiga 10 ta so'rov
   (IP bazada faqat xesh ko'rinishida). 5 ta noto'g'ri urinish → kod bekor, raqam 15 daqiqa bloklanadi.
   Qoidalar o'zgarsa uchala qatlamdagi testlar yangilanadi: `otp-rules.test.ts`, `otp.itest.ts`, `e2e/auth.spec.ts`.
-- `OTP_FIXED_CODE` faqat `.env.development` da. `NODE_ENV=production` da `OTP_FIXED_CODE`, `SMS_PROVIDER=dev` yoki
+- `OTP_FIXED_CODE` faqat `.env.development` da va sinov serverida (`APP_ENV=staging`). `NODE_ENV=production` da `OTP_FIXED_CODE`, `SMS_PROVIDER=dev` yoki
   provayder/sir yo'qligi topilsa server start'da jarayon xato bilan to'xtaydi (`instrumentation-node.ts`, `env-check.ts`).
 - Bloklash faqat `src/server/moderation.ts` orqali: holat va barcha sessiyalarni yopish bitta tranzaksiyada
   (biznes bloklansa — egasi va barcha kassirlari). Holatni to'g'ridan-to'g'ri `update` bilan o'zgartirmang.
@@ -177,7 +182,7 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
   ichida o'qiladi (aks holda "blocking-prerender-runtime").
 - Formalar `onSubmit` emas, `action={fn}` bilan ulanadi: sahifa ulanmasdan bosilgan yuborish GET bo'lib ketmaydi.
 - E2E (`npm run test:e2e`): lokal baza + seed + `.env` da `OTP_FIXED_CODE=000000` kerak. Yangi himoyalangan sahifa
-  qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi.
+  qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi. Admin kirishi SMS + parol (pastda "Admin paroli").
 
 ## Fayllar (guvohnoma, hujjatlar)
 - Faqat `storage()` (`src/server/storage`) orqali; hozir lokal disk (`.data/private`), R2 shu interfeysga ulanadi.
@@ -269,22 +274,33 @@ Muddat o'tsa talaba `EXPIRED`: yangi guvohnoma yuklashga yo'naltiriladi, chegirm
 saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — cron'ga tayanilmaydi.
 
 ## Sinov serveri (staging)
-- Alohida Vercel loyihasi + alohida Neon baza + alohida private bucket. `APP_ENV=staging` (build vaqtida ham kerak —
-  o'zgartirilsa Redeploy). Env ro'yxati: `.env.staging.example`.
-- `APP_ENV=staging` da: butun sayt Basic Auth (`proxy.ts`, parol `STAGING_PASSWORD` ≥ 12, foydalanuvchi nomi ixtiyoriy),
-  `X-Robots-Tag` + `robots` meta noindex, "Sinov versiyasi" belgisi (`StagingBadge`, dizaynda yo'q), `OTP_FIXED_CODE`
-  va `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Start'da parol va `STORAGE_DRIVER=s3` majburiy.
+- Havola: https://talabapass.vercel.app — alohida Neon baza va alohida private bucket. `APP_ENV=staging`
+  (build vaqtida ham kerak — o'zgartirilsa Redeploy).
+- Sayt hammaga ochiq (Basic Auth yo'q): landing, talaba, biznes. `APP_ENV=staging` da: `X-Robots-Tag` + `robots` meta
+  noindex, "Sinov versiyasi" belgisi (`StagingBadge`, dizaynda yo'q), SMS/Telegram ulanguncha `OTP_FIXED_CODE` va
+  `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Start'da `STORAGE_DRIVER=s3` majburiy.
   `APP_ENV` yo'q/boshqa qiymat — production qoidalari o'zgarmagan (`env-check.test.ts`).
-- `/api` Basic Auth'dan o'tmaydi (proxy tanani buferlaydi — yuklashlar); API o'z sessiyasini tekshiradi.
 - Fayllar: `STORAGE_DRIVER=s3` (`storage/s3.ts`) — R2 yoki Supabase S3 endpoint, path-style.
-- Vercel build: `vercel-build` = `prisma migrate deploy && next build` (migratsiya `DATABASE_URL_UNPOOLED` orqali).
+- Vercel build: `vercel-build` = `check-env` → `prisma migrate deploy` → `next build`. Muhit xato bo'lsa deploy
+  aniq xabar bilan to'xtaydi (aks holda runtime'da `MIDDLEWARE_INVOCATION_FAILED`). Migratsiya `DATABASE_URL_UNPOOLED` orqali.
   Seed: `.env.staging` to'ldirib `npm run staging:seed`.
+- `proxy.ts` da faqat Edge'ga mos kod: `node:*`, baza, `src/server` importi yo'q (Vercel'da alohida funksiya).
 - Ma'lum cheklov: Vercel so'rov tanasi ≤ 4.5 MB — undan katta guvohnoma/hujjat yuklanmaydi (presigned yuklash keyin).
+
+## Admin paroli (ikkinchi qadam, production'da ham)
+- Admin: telefon → SMS kod → `/kirish/admin` da parol. Xesh `ADMIN_PASSWORD_HASH` env'da (`npm run admin:hash`,
+  scrypt, `scrypt:N:r:p:salt:hash`); xesh yo'q/buzilgan bo'lsa admin umuman kira olmaydi.
+- To'g'ri parol → `tp_admin` cookie: HMAC, joriy sessiya tokeniga bog'langan, 12 soat. Chiqish/bloklash bilan o'ladi.
+- `requireRole` parolsiz adminni `/kirish/admin` ga yuboradi (barcha sahifa, layout, action); API — `getUnlockedAdmin()`
+  (parolsiz 404). Yangi admin API shu funksiya bilan yoziladi.
+- 5 ta xato (15 daqiqa ichida) → admin sessiyalari yopiladi, 15 daqiqa parol qabul qilinmaydi. Har urinish
+  `AuditLog`: `admin.password.ok|fail`. Testlar: `admin-password.test.ts`, `e2e/admin-password.spec.ts`.
+- Lokal: `.env.development` dagi xesh, parol `dev-admin-parol` (`e2e/helpers.ts` → `signIn` o'zi kiritadi).
 
 ## Ishga tushishdan oldin (majburiy ro'yxat)
 Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilgan bo'lishi kerak:
-- [ ] **Admin uchun TOTP ikkinchi faktor** (authenticator ilova): admin kirishi SMS + TOTP; zaxira kodlar;
-      admin sessiyasi qisqaroq. SMS'ning o'zi (SIM almashtirish) admin uchun yetarli emas.
+- [ ] **Admin uchun TOTP ikkinchi faktor** (authenticator ilova): hozir SMS + umumiy parol (`ADMIN_PASSWORD_HASH`);
+      har admin uchun alohida TOTP va zaxira kodlar — keyin.
 - [ ] SMS provayder (Eskiz.uz yoki boshqa) ulangan; `SMS_PROVIDER=dev` va `OTP_FIXED_CODE` yo'q (server baribir ishga tushmaydi).
 - [ ] Fayllar Cloudflare R2'da (lokal disk Vercel'da ishlamaydi); bucket private.
 - [ ] Ma'lumotlarni saqlash joyi va W3 matni ("O'zbekiston hududidagi serverlar") — yurist bilan kelishilgan.
