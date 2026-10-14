@@ -39,6 +39,8 @@ export const ICONS = {
   close: "M6 6l12 12M18 6L6 18",
   plus: "M12 5v14M5 12h14",
   minus: "M5 12h14",
+  /** B5 "Tahrirlash" */
+  edit: "M4 20h4L19 9l-4-4L4 16zM13 7l4 4",
   /** B1 manzil maydoni */
   pin: "M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM14.5 9.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z",
   /** WB1 joy fotolari */

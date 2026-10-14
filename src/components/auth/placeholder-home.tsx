@@ -26,6 +26,12 @@ export async function PlaceholderHome({ area, roles }: { area: Area; roles: Role
         {t(`placeholder.${area}`)}
       </h1>
       <p className="m-0 text-15 text-muted">{t("placeholder.signedInAs", { name })}</p>
+      {/* Kassir faqat o'z biznesini ko'radi (skaner 8-bosqichda) */}
+      {user.role === "CASHIER" ? (
+        <p data-testid="cashier-business" className="m-0 text-15 font-bold">
+          {user.memberships.find((m) => m.role === "CASHIER")?.business.name}
+        </p>
+      ) : null}
       <p className="m-0 text-13 text-muted">{t("placeholder.comingSoon")}</p>
       <form action={logoutAction}>
         <Button type="submit" variant="danger-ghost" className="h-[50px]">

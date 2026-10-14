@@ -172,6 +172,9 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - `router.push/replace` dan keyin darhol `router.refresh()` chaqirmang — u o'tishni bekor qilishi mumkin.
 - Lokal `prisma dev` (PGlite) parallel ulanishlarda so'rovlarni aralashtiradi (`08P01`, "Server has closed the
   connection") — `.env` da `DATABASE_POOL_MAX=1`. Production'da qo'yilmaydi.
+- E2E da `withDb` lokal PGlite bilan: test tugashi bilan ~10 soniya yangi ulanish uzilishi mumkin (ECONNRESET) —
+  `withDb` 20 soniyagacha qayta urinadi. Dinamik segmentli sahifalarda (`[id]`, `[token]`) `params` faqat Suspense
+  ichida o'qiladi (aks holda "blocking-prerender-runtime").
 - Formalar `onSubmit` emas, `action={fn}` bilan ulanadi: sahifa ulanmasdan bosilgan yuborish GET bo'lib ketmaydi.
 - E2E (`npm run test:e2e`): lokal baza + seed + `.env` da `OTP_FIXED_CODE=000000` kerak. Yangi himoyalangan sahifa
   qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi.
@@ -253,6 +256,13 @@ Server — `src/server/business/discounts.ts` (`saveDiscount`, `setDiscountActiv
 turidan (`CATEGORY_BY_KIND`). Forma matnlari dizayndagidek ("38 000", "60 ta", "13.10 – 31.10") — `parseAmount`,
 `parseDateRange`. WB2 maslahati — oxirgi 60 kunlik sotuvlardan (20 tadan kam bo'lsa ko'rsatilmaydi).
 Chetlanishlar: chegirma rasmi ("+" belgisi) 7-bosqichda; WB2 oldindan ko'rishda masofa yo'q; kabinetda "Chiqish".
+
+**Kassirlar.** Taklif — `/kassir/<token>`: tasodifiy token (bazada SHA-256), 48 soat, bir marta (`acceptedAt IS NULL`
+sharti bilan atom), faqat tasdiqlangan biznes taklif qiladi, ochiq takliflar ≤ 10. Bitta raqam — bitta rol, kassir bir
+vaqtda bitta biznesda. Kassirning biznesi faqat `cashierBusiness(userId)` dan (faol a'zolik, bloklanmagan biznes).
+Egasi o'chirsa: a'zolik `active=false` + kassirning barcha sessiyalari o'chiriladi; `getCurrentUser` ham a'zoligi yo'q
+kassirni qaytarmaydi; kirishda `noBusiness`. B5: `/biznes/profil` (dizayn), `/biznes/kassirlar`; "Smenada" — oxirgi
+skan 60 daqiqa ichida. Dizayndan chetlanish: kassir qatorida "×" (o'chirish), taklif havolasi bloki, qabul sahifasi.
 
 **Talaba tasdig'i muddatli.** Admin tasdiqlashda guvohnoma № va `cardExpiresAt` ni kiritadi.
 Muddat o'tsa talaba `EXPIRED`: yangi guvohnoma yuklashga yo'naltiriladi, chegirma ololmaydi, tarixi

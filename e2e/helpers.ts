@@ -3,14 +3,26 @@ import { expect, type Page } from "@playwright/test";
 import pg from "pg";
 import sharp from "sharp";
 
-/** Testlar uchun to'g'ridan-to'g'ri baza ulanishi (seed foydalanuvchilarini topish, holatni tayyorlash). */
-export async function withDb<T>(run: (client: pg.Client) => Promise<T>): Promise<T> {
+/**
+ * Testlar uchun to'g'ridan-to'g'ri baza ulanishi (seed foydalanuvchilarini topish, holatni tayyorlash).
+ * Lokal `prisma dev` (PGlite) dev server bilan bir vaqtda kelgan ulanishni ba'zan uzib yuboradi
+ * (ECONNRESET / "Connection terminated"), ayniqsa test tugashi bilan ~10 soniya — shunda 20 soniyagacha qayta uriniladi.
+ */
+export async function withDb<T>(run: (client: pg.Client) => Promise<T>, attempt = 1): Promise<T> {
   const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
+  client.on("error", () => undefined);
   try {
+    await client.connect();
     return await run(client);
+  } catch (error) {
+    const message = (error as Error).message ?? "";
+    if (attempt < 20 && /ECONNRESET|Connection terminated/.test(message)) {
+      await new Promise((r) => setTimeout(r, 1000));
+      return withDb(run, attempt + 1);
+    }
+    throw error;
   } finally {
-    await client.end();
+    await client.end().catch(() => undefined);
   }
 }
 

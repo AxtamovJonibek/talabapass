@@ -57,6 +57,9 @@ export const getCurrentUser = cache(async () => {
     },
   });
   if (!session || session.expiresAt <= new Date() || session.user.status !== "ACTIVE") return null;
+  // Kassir faqat faol a'zoligi (va bloklanmagan biznesi) bo'lsa ishlaydi — egasi o'chirsa sessiya baribir yopiladi,
+  // bu ikkinchi himoya qatlami.
+  if (session.user.role === "CASHIER" && !session.user.memberships.some((m) => m.role === "CASHIER" && m.business.status !== "BLOCKED")) return null;
   return session.user;
 });
 

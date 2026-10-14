@@ -202,7 +202,8 @@
       "locked": "Juda ko'p xato urinish. Kod bekor qilindi — {minutes} daqiqadan keyin yangi kod oling.",
       "blocked": "Bu hisob bloklangan. Yordam uchun biz bilan bog'laning.",
       "dailyLimit": "Bu raqamga bugun juda ko'p kod yuborildi. Ertaga urinib ko'ring.",
-      "ipLimit": "Juda ko'p so'rov yuborildi. {minutes} daqiqadan keyin urinib ko'ring."
+      "ipLimit": "Juda ko'p so'rov yuborildi. {minutes} daqiqadan keyin urinib ko'ring.",
+      "noBusiness": "Siz hech qaysi biznesga kassir sifatida biriktirilmagansiz. Biznes egasidan yangi taklif havolasini so'rang."
     }
   },
   "placeholder": {
@@ -943,6 +944,58 @@
     "edit": "Tahrirlash",
     "empty": "Hali chegirma yo'q. Birinchisini yarating — tekshiruvdan so'ng talabalarga ko'rinadi.",
     "toggleFailed": "Holatni o'zgartirib bo'lmadi. Sahifani yangilang."
+  },
+  "cashiers": {
+    "title": "Kassirlar",
+    "invite": "+ Taklif qilish",
+    "inviteWeb": "Kassirni taklif qilish",
+    "scansToday": "Bugun {count} ta skan",
+    "onShift": "Smenada",
+    "shiftEnded": "Smena tugagan",
+    "remove": "O'chirish",
+    "confirmRemove": "{name} kassirlar ro'yxatidan o'chirilsinmi? Uning telefonidagi skaner darhol yopiladi.",
+    "empty": "Hali kassir yo'q. Taklif havolasini yuboring — kassir o'z telefonida ochib, raqamini tasdiqlaydi.",
+    "notApproved": "Kassir qo'shish biznes tasdiqlangandan keyin ochiladi.",
+    "tooMany": "Ochiq takliflar juda ko'p. Avval eskilarini bekor qiling.",
+    "linkTitle": "Taklif havolasi",
+    "linkHint": "Bir marta ishlatiladi va 48 soatda eskiradi. Faqat kassirning o'ziga yuboring.",
+    "copy": "Nusxa olish",
+    "copied": "Nusxa olindi",
+    "openInvites": "Ochiq takliflar",
+    "inviteUntil": "{time} gacha amal qiladi",
+    "revoke": "Bekor qilish",
+    "failed": "Amalni bajarib bo'lmadi. Sahifani yangilang.",
+    "accept": {
+      "title": "Kassir sifatida qo'shiling",
+      "lead": "{business} sizni talabaPass kassiri sifatida taklif qildi. Raqamingizni tasdiqlang — telefoningiz QR skanerga aylanadi.",
+      "firstName": "Ism",
+      "lastName": "Familiya",
+      "phone": "Telefon raqam",
+      "submit": "SMS kod olish",
+      "confirm": "Tasdiqlash",
+      "invalidTitle": "Havola yaroqsiz",
+      "invalidLead": "Taklif allaqachon ishlatilgan yoki muddati (48 soat) o'tgan. Biznes egasidan yangi havola so'rang.",
+      "home": "Bosh sahifa",
+      "errors": {
+        "phone": "Telefon raqamini to'liq kiriting.",
+        "firstName": "Ismingizni kiriting.",
+        "lastName": "Familiyangizni kiriting.",
+        "invalid": "Taklif allaqachon ishlatilgan yoki muddati o'tgan.",
+        "phoneInUse": "Bu raqam boshqa turdagi hisobga biriktirilgan. Kassir uchun boshqa raqam kiriting.",
+        "otherBusiness": "Bu raqam boshqa biznesda kassir. Avval o'sha biznes egasi sizni ro'yxatdan o'chirishi kerak.",
+        "blocked": "Bu hisob bloklangan."
+      }
+    }
+  },
+  "businessProfile": {
+    "edit": "Tahrirlash",
+    "approved": "Tasdiqlangan hamkor",
+    "pending": "Tekshiruvda",
+    "warned": "Ogohlantirilgan hamkor",
+    "salesToday": "bugun sotuv",
+    "revenueToday": "bugun tushum",
+    "activeDiscounts": "faol chegirma",
+    "title": "Biznes profili"
   },
   "admin": {
     "role": "Bosh moderator",

@@ -199,7 +199,7 @@ test.describe("kirish", () => {
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
+  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
     test.slow(); // 8 ta sahifa — dev serverda birinchi kompilyatsiya uzoq
@@ -213,7 +213,7 @@ test.describe("rol himoyasi", () => {
   const MATRIX = {
     student: { "/biznes/chegirma/yangi": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar" },
     owner: { "/chegirmalar": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
-    cashier: { "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner" },
+    cashier: { "/biznes/profil": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner" },
     admin: { "/chegirmalar": "/admin/talabalar", "/biznes": "/admin/talabalar", "/biznes/skaner": "/admin/talabalar", "/admin": "/admin/talabalar" },
   } as const;
 

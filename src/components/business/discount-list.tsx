@@ -91,7 +91,9 @@ export function DiscountList({ discounts }: { discounts: OwnerDiscount[] }) {
                 </div>
                 <div className="text-12 text-muted">{state}</div>
               </Link>
-              {d.status === "ACTIVE" || d.status === "PAUSED" ? (
+              {d.status === "ENDED" ? (
+                <Switch small checked={false} disabled label={t("inactive")} onChange={() => undefined} />
+              ) : d.status === "ACTIVE" || d.status === "PAUSED" ? (
                 <Switch
                   small
                   checked={live}

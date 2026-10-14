@@ -218,7 +218,7 @@ export async function ownerDiscounts(ownerId: string) {
   const today = new Date(`${todayInTashkent()}T00:00:00Z`);
   const discounts = await db.discount.findMany({
     where: { business: { ownerId } },
-    orderBy: [{ createdAt: "desc" }],
+    orderBy: [{ createdAt: "asc" }],
     select: {
       id: true,
       title: true,
