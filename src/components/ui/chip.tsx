@@ -29,17 +29,22 @@ export function Chip({ selected = false, count, children, className, type = "but
 
 type ToggleSquareProps = Omit<ComponentProps<"button">, "children"> & {
   selected?: boolean;
+  /** Uzunroq yozuv uchun kichikroq shrift: "Mag." (13px), hafta kunlari (14px) */
+  textSize?: 13 | 14 | 15;
   children: ReactNode;
 };
 
 /** Kvadrat tanlov tugmasi: kurs (T1), hafta kunlari (B2). */
-export function ToggleSquare({ selected = false, children, className, type = "button", ...props }: ToggleSquareProps) {
+const TOGGLE_TEXT = { 13: "text-13", 14: "text-14", 15: "text-15" } as const;
+
+export function ToggleSquare({ selected = false, textSize = 15, children, className, type = "button", ...props }: ToggleSquareProps) {
   return (
     <button
       type={type}
       aria-pressed={selected}
       className={cn(
-        "h-11 rounded-10 border-hair font-sans text-15 font-semibold",
+        "h-11 rounded-10 border-hair font-sans font-semibold",
+        TOGGLE_TEXT[textSize],
         selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink",
         className,
       )}

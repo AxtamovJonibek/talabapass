@@ -1,7 +1,7 @@
 /**
  * Dizayn ekrani va ilova sahifasini bir xil kenglikda skrinshot qilib, yonma-yon bitta rasmga birlashtiradi.
  *
- *   node scripts/compare.mjs <ID> <yo'l> <kenglik> [--height=844] [--base=http://localhost:3000] [--click="selector"]
+ *   node scripts/compare.mjs <ID> <yo'l> <kenglik> [--height=844] [--base=http://localhost:3000] [--click="selector"] [--cookie=nom=qiymat]
  *   node scripts/compare.mjs W1 / 1440
  *
  * Natija: .compare/<ID>-<kenglik>.png (chapda dizayn, o'ngda ilova) va farq foizi.
@@ -41,14 +41,26 @@ const designUrl = `http://127.0.0.1:${server.address().port}/${id}.html`;
 
 const browser = await chromium.launch();
 async function shoot(url, isDesign) {
-  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
+  // --cookie=nom=qiymat — ilovaga tayyor sessiya bilan kirish (scripts/compare-fixtures.mjs)
+  if (opts.cookie && !isDesign) {
+    const [name, value] = opts.cookie.split(/=(.*)/s);
+    await context.addCookies([{ name, value, url: base }]);
+  }
+  const page = await context.newPage();
   await page.goto(url, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: "nextjs-portal{display:none!important} *{animation:none!important;transition:none!important;caret-color:transparent!important}" });
-  // Ilovadagi qadamlar tartibi: --fill="selector::qiymat" → --click → --type (klaviaturadan) → --blur
+  // Ilovadagi qadamlar tartibi: --fill="selector::qiymat;;selector2::qiymat2" → --select="selector::yorliq" → --click → --type (klaviaturadan) → --blur
   if (opts.fill && !isDesign) {
-    const [selector, value] = opts.fill.split("::");
-    await page.fill(selector, value);
+    for (const pair of opts.fill.split(";;")) {
+      const [selector, value] = pair.split("::");
+      await page.fill(selector, value);
+    }
+  }
+  if (opts.select && !isDesign) {
+    const [selector, label] = opts.select.split("::");
+    await page.selectOption(selector, { label });
   }
   if (opts.click && !isDesign) await page.click(opts.click);
   if (opts.type && !isDesign) {
@@ -59,7 +71,7 @@ async function shoot(url, isDesign) {
   if (opts.designClick && isDesign) await page.click(opts.designClick);
   await page.waitForTimeout(300);
   const buffer = await page.screenshot({ fullPage: true });
-  await page.close();
+  await context.close();
   return PNG.sync.read(buffer);
 }
 

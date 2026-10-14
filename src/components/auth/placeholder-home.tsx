@@ -5,6 +5,7 @@ import { Logo } from "@/components/ui/logo";
 import { formatPhone } from "@/lib/format";
 import { logoutAction } from "@/server/actions/auth";
 import { requireRole } from "@/server/auth/session";
+import { requireActiveStudent } from "@/server/auth/student";
 
 type Area = "student" | "business" | "cashier" | "admin";
 
@@ -13,7 +14,8 @@ type Area = "student" | "business" | "cashier" | "admin";
  * Haqiqiy ekranlar keyingi bosqichlarda shu manzillarga keladi.
  */
 export async function PlaceholderHome({ area, roles }: { area: Area; roles: Role[] }) {
-  const user = await requireRole(...roles);
+  // Talaba ilovasi faqat tasdiqlangan (va guvohnomasi muddati o'tmagan) talabaga ochiladi.
+  const user = area === "student" ? await requireActiveStudent() : await requireRole(...roles);
   const t = await getTranslations();
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || formatPhone(user.phone);
 

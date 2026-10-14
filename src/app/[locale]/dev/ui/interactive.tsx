@@ -32,7 +32,7 @@ export function InteractiveDemos() {
 
       <div className="grid w-[342px] grid-cols-5 gap-1.5">
         {COURSES.map((c) => (
-          <ToggleSquare key={c} selected={course === c} onClick={() => setCourse(c)} className={c === "MASTER" ? "text-13" : undefined}>
+          <ToggleSquare key={c} selected={course === c} onClick={() => setCourse(c)} textSize={c === "MASTER" ? 13 : 15}>
             {t(`course.${c}`)}
           </ToggleSquare>
         ))}
@@ -49,7 +49,7 @@ export function InteractiveDemos() {
               else next.add(d);
               setDays(next);
             }}
-            className="text-14"
+            textSize={14}
           >
             {t(`weekday.short.${d}`)}
           </ToggleSquare>

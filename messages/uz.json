@@ -626,5 +626,67 @@
       "shartlar": "Foydalanish shartlari",
       "biznes": "Biznes hamkorlik shartlari"
     }
+  },
+  "onboarding": {
+    "step": "QADAM {n}/3",
+    "register": {
+      "title": "Talabamisan?<br></br>Arzonroq<br></br>to'laysan.",
+      "lead": "Kafe, kitob, sport zal, sartaroshxona — hammasi talaba narxida. Guvohnomang yetarli.",
+      "phone": "Telefon raqam",
+      "firstName": "Ism",
+      "lastName": "Familiya",
+      "lastNamePlaceholder": "Familiyangiz",
+      "university": "Universitet",
+      "universityPlaceholder": "Universitetni tanlang",
+      "submit": "Davom etish",
+      "haveAccount": "Akkauntingiz bormi? <login>Kirish</login>",
+      "confirm": "Tasdiqlash",
+      "errors": {
+        "phone": "Telefon raqamni to'liq kiriting: 9 ta raqam.",
+        "firstName": "Ismingizni kiriting.",
+        "lastName": "Familiyangizni kiriting.",
+        "universityId": "Universitetni tanlang.",
+        "course": "Kursni tanlang."
+      }
+    },
+    "capture": {
+      "back": "Orqaga",
+      "torch": "Chiroq",
+      "title": "Talaba guvohnomangizni<br></br>ramkaga joylang",
+      "lead": "Old tomoni. Rasm, F.I.Sh. va amal muddati aniq ko'rinsin.",
+      "hint": "Biroz yaqinroq olib keling",
+      "uploading": "Yuklanmoqda…",
+      "tipLight": "Yorug' joyda, chaqnashsiz",
+      "tipValid": "Muddati o'tmagan guvohnoma",
+      "file": "Fayl",
+      "shoot": "Rasmga olish",
+      "formats": "PDF, JPG<br></br>10 MB gacha",
+      "expiredNotice": "Guvohnomangiz muddati tugadi. Chegirmalardan foydalanishni davom ettirish uchun yangisini yuklang.",
+      "errors": {
+        "empty": "Fayl bo'sh. Boshqasini tanlang.",
+        "bad_type": "Faqat JPG, PNG yoki PDF fayl yuklang.",
+        "too_large": "Fayl 10 MB dan katta.",
+        "not_allowed": "Hozir guvohnoma yuklab bo'lmaydi.",
+        "daily_limit": "Bugun juda ko'p fayl yuklandi. Ertaga urinib ko'ring.",
+        "network": "Yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring."
+      }
+    },
+    "status": {
+      "stampPending": "TEKSHIRUVDA",
+      "stampRejected": "RAD ETILDI",
+      "titlePending": "Hujjatingizni<br></br>tekshiryapmiz",
+      "leadPending": "Tasdiqlangach SMS va bildirishnoma keladi — keyin barcha chegirmalar ochiladi.",
+      "titleRejected": "Hujjat qabul<br></br>qilinmadi",
+      "leadRejected": "Sababini tuzatib, guvohnomani qayta yuklang — tekshiruv yana boshlanadi.",
+      "sent": "Ma'lumotlar yuborildi",
+      "review": "Moderator tekshiruvi",
+      "reviewHint": "Odatda bir necha soat ichida",
+      "access": "Ilovaga kirish ochiladi",
+      "refresh": "Holatni yangilash",
+      "reupload": "Boshqa rasm yuklash",
+      "today": "bugun, {time}",
+      "yesterday": "kecha, {time}",
+      "master": "Magistratura"
+    }
   }
 }

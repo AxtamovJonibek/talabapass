@@ -14,6 +14,7 @@
   --color-white: #ffffff;
   --color-admin-bg: #eeede8;
   --color-surface: #eeece6;
+  --color-surface-2: #e4e2db;
   --color-track: #e6e4dd;
   --color-bar: #e7e5de;
 
@@ -28,6 +29,7 @@
   --color-line-soft: #e2e0d8;
   --color-dash: #dad7ce;
   --color-dash-2: #c9c6bc;
+  --color-line-strong: #b9b6ad;
 
   /* urg'u */
   --color-blue: #2433d6;
@@ -35,6 +37,7 @@
   --color-blue-tint: #dce0ff;
   --color-orange: #ff5b1f;
   --color-rust: #b23a0c;
+  --color-orange-ink: #d2410b;
 
   /* holat */
   --color-green: #0f5f37;
@@ -42,6 +45,7 @@
   --color-green-text: #0f7040;
   --color-green-bg: #e3f4ea;
   --color-mint: #6fd39c;
+  --color-mint-2: #3fbf7f;
   --color-danger: #b4230c;
   --color-danger-bg: #fbe3dc;
   --color-danger-line: #f2c4b4;
@@ -50,15 +54,20 @@
   --color-info-bg: #e6e8fb;
 
   /* qora yuzalar va ulardagi matn */
+  --color-ink-0: #0e0e0d;
+  --color-ink-1: #1b1b19;
   --color-ink-2: #232321;
   --color-ink-3: #2a2a27;
   --color-ink-4: #2f2f2c;
   --color-ink-5: #3a3a36;
   --color-ink-6: #3a3a37;
+  --color-ink-7: #45453f;
+  --color-ink-8: #4f4f49;
   --color-fog-0: #cfccc4;
   --color-fog-1: #d8d5cd;
   --color-fog-2: #bdbab2;
   --color-fog-3: #a9a69e;
+  --color-fog-4: #8d8a82;
 
   /* kategoriya juftlari: tile — fon, tint — ikonka/siyoh */
   --color-tile-taom: #f4dccb;
@@ -156,6 +165,11 @@
   bottom: -7px;
   height: 14px;
   background: radial-gradient(circle at 7px 7px, var(--color-paper) 5px, transparent 5.5px) 0 0 / 16px 14px repeat-x;
+}
+
+/* Holat yo'lagidagi uzuq chiziq (T3: hali boshlanmagan qadamga) */
+@utility timeline-dashed {
+  background: repeating-linear-gradient(var(--color-line-strong) 0 4px, transparent 4px 8px);
 }
 
 /* Chekning pastki arra cheti (T7, B4) */
