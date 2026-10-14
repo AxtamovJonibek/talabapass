@@ -199,7 +199,7 @@ test.describe("kirish", () => {
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/admin", "/admin/talabalar", "/admin/bizneslar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
+  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/admin", "/admin/talabalar", "/admin/bizneslar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
     test.slow(); // 8 ta sahifa — dev serverda birinchi kompilyatsiya uzoq
@@ -211,9 +211,9 @@ test.describe("rol himoyasi", () => {
 
   // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
   const MATRIX = {
-    student: { "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar" },
+    student: { "/biznes/chegirma/yangi": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar" },
     owner: { "/chegirmalar": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
-    cashier: { "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner" },
+    cashier: { "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner" },
     admin: { "/chegirmalar": "/admin/talabalar", "/biznes": "/admin/talabalar", "/biznes/skaner": "/admin/talabalar", "/admin": "/admin/talabalar" },
   } as const;
 

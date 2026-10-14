@@ -31,8 +31,8 @@ export function Field({ label, htmlFor, hint, counter, error, children, classNam
   );
 }
 
-const shell = "box-border w-full min-w-0 rounded-12 border-hair bg-white px-3.5 text-ink outline-none focus:border-ink";
-const control = `${shell} h-13 font-sans text-15`;
+const shell = "box-border w-full min-w-0 rounded-12 border-hair bg-white text-ink outline-none focus:border-ink";
+const control = `${shell} h-13 px-3.5 font-sans text-15`;
 
 const MONO = { 14: "font-mono text-14", 15: "font-mono text-15" } as const;
 
@@ -40,14 +40,18 @@ type InputProps = ComponentProps<"input"> & {
   invalid?: boolean;
   /** 50px balandlik — B1 telefon formasi */
   dense?: boolean;
+  /** 48px — B2/WB2 maydonlari */
+  compact?: boolean;
+  /** Yon padding 12px (14 o'rniga) — B2/WB2 vaqt, son va muddat */
+  tight?: boolean;
   /** Raqamli qiymatlar (STIR, ish vaqti, telefon) uchun mono shrift */
   mono?: keyof typeof MONO;
 };
 
-export function Input({ className, invalid, dense = false, mono, ...props }: InputProps) {
+export function Input({ className, invalid, dense = false, compact = false, tight = false, mono, ...props }: InputProps) {
   return (
     <input
-      className={cn(shell, dense ? "h-12.5" : "h-13", mono ? MONO[mono] : "font-sans text-15", invalid ? "border-danger" : "border-line", className)}
+      className={cn(shell, compact ? "h-12" : dense ? "h-12.5" : "h-13", tight ? "px-3" : "px-3.5", mono ? MONO[mono] : "font-sans text-15", invalid ? "border-danger" : "border-line", className)}
       {...props}
     />
   );

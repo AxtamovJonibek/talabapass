@@ -244,6 +244,13 @@ ilova sahifalari `requireActiveStudent()`, ro'yxat qadamlari `requireStudent()` 
 (va biznesi `APPROVED`) ko'rinadi. Tasdiqlangan chegirmada mazmun (nom, tur, narx/foiz, shartlar)
 o'zgarsa qayta `PENDING_REVIEW`; to'xtatish/yoqish, kunlik son, kun/soat oralig'i — tekshiruvsiz.
 
+Chegirma muharriri (B2 / WB2): `/biznes/chegirma/yangi`, `/biznes/chegirma/<id>`; ro'yxat `/biznes/chegirmalar`.
+Server — `src/server/business/discounts.ts` (`saveDiscount`, `setDiscountActive`); forma va server bitta
+`validateDiscount`. Chegirma faqat arizasi yuborilgan (bloklanmagan/rad etilmagan) biznesda. Kategoriya biznes
+turidan (`CATEGORY_BY_KIND`). Forma matnlari dizayndagidek ("38 000", "60 ta", "13.10 – 31.10") — `parseAmount`,
+`parseDateRange`. WB2 maslahati — oxirgi 60 kunlik sotuvlardan (20 tadan kam bo'lsa ko'rsatilmaydi).
+Chetlanishlar: chegirma rasmi ("+" belgisi) 7-bosqichda; WB2 oldindan ko'rishda masofa yo'q; kabinetda "Chiqish".
+
 **Talaba tasdig'i muddatli.** Admin tasdiqlashda guvohnoma № va `cardExpiresAt` ni kiritadi.
 Muddat o'tsa talaba `EXPIRED`: yangi guvohnoma yuklashga yo'naltiriladi, chegirma ololmaydi, tarixi
 saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — cron'ga tayanilmaydi.

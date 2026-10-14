@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contentChanged, discountTerms, validateDiscount, type DiscountDraft } from "./discount";
+import { contentChanged, discountTerms, formatDateRange, parseAmount, parseDateRange, validateDiscount, weekdaysLabel, type DiscountDraft } from "./discount";
 
 const TODAY = "2026-10-14";
 const base: DiscountDraft = {
@@ -128,5 +128,38 @@ describe("contentChanged — qayta tekshiruvga tushish", () => {
 
   it("faqat bo'sh joy farqi — yo'q", () => {
     expect(contentChanged(base, { ...base, title: ` ${base.title} ` })).toBe(false);
+  });
+});
+
+describe("formadagi matnlar", () => {
+  it("parseAmount", () => {
+    expect(parseAmount("38 000")).toBe(38000);
+    expect(parseAmount("60 ta")).toBe(60);
+    expect(parseAmount("26 000 so'm")).toBe(26000);
+    expect(parseAmount("")).toBeNull();
+    expect(parseAmount("12a")).toBeNull();
+  });
+
+  it("parseDateRange: yilsiz va yilli", () => {
+    expect(parseDateRange("13.10 – 31.10", "2026-10-14")).toEqual({ startsOn: "2026-10-13", endsOn: "2026-10-31" });
+    expect(parseDateRange("20.12-15.01", "2026-10-14")).toEqual({ startsOn: "2026-12-20", endsOn: "2027-01-15" });
+    // yanvar oktyabrda yozilsa — kelasi yil
+    expect(parseDateRange("05.01 – 20.01", "2026-10-14")).toEqual({ startsOn: "2027-01-05", endsOn: "2027-01-20" });
+    expect(parseDateRange("13.10.2026 – 02.11.2026", "2026-10-14")).toEqual({ startsOn: "2026-10-13", endsOn: "2026-11-02" });
+    expect(parseDateRange("ertaga", "2026-10-14")).toBeNull();
+  });
+
+  it("formatDateRange", () => {
+    expect(formatDateRange("2026-10-13", "2026-10-31", "2026-10-14")).toBe("13.10 – 31.10");
+    expect(formatDateRange("2026-12-20", "2027-01-15", "2026-10-14")).toBe("20.12.2026 – 15.01.2027");
+  });
+
+  it("weekdaysLabel", () => {
+    const names = (d: number) => ["", "Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"][d];
+    expect(weekdaysLabel([1, 2, 3, 4, 5, 6, 7], names, "Har kuni")).toBe("Har kuni");
+    expect(weekdaysLabel([1, 2, 3, 4, 5], names, "Har kuni")).toBe("Du–Ju");
+    expect(weekdaysLabel([6, 7], names, "Har kuni")).toBe("Sh–Ya");
+    expect(weekdaysLabel([1, 3], names, "Har kuni")).toBe("Du, Ch");
+    expect(weekdaysLabel([1, 2, 5], names, "Har kuni")).toBe("Du, Se, Ju");
   });
 });

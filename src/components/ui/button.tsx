@@ -19,6 +19,8 @@ const SIZES = {
   card: "h-12.5 rounded-14 px-[18px] text-15",
   /** Admin harakatlari: A2 "Tasdiqlash" */
   md: "h-12 rounded-12 px-4 text-15",
+  /** WB2 sarlavhasidagi asosiy tugma: "E'lon qilish" */
+  "md-wide": "h-12 rounded-12 px-[22px] text-15",
   /** Ikkilamchi: B6 "Excel hisobot" */
   sm: "h-11 rounded-12 px-4 text-14",
 } as const;

@@ -59,4 +59,10 @@ if (admins[0]) {
   await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ('cmp_admin_s', $1, $2, now() + interval '30 days')`, [admins[0].id, hash("cmp-admin")]);
   console.log("ADMIN     --cookie=tp_session=cmp-admin");
 }
+const { rows: owners } = await db.query(`SELECT u.id FROM "User" u JOIN "Business" b ON b."ownerId" = u.id WHERE b.name = 'Bodom Choyxonasi'`);
+if (owners[0]) {
+  await db.query(`DELETE FROM "Session" WHERE id = 'cmp_owner_s'`);
+  await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ('cmp_owner_s', $1, $2, now() + interval '30 days')`, [owners[0].id, hash("cmp-owner")]);
+  console.log("BIZNES    --cookie=tp_session=cmp-owner (Bodom Choyxonasi egasi)");
+}
 await db.end();

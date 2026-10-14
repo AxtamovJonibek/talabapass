@@ -8,10 +8,12 @@ type SwitchProps = {
   label: string;
   id?: string;
   disabled?: boolean;
+  /** 46×28 — B5 chegirma qatori */
+  small?: boolean;
 };
 
 /** 50×30 almashtirgich (T8 bildirishnomalar, B5 chegirma faolligi). */
-export function Switch({ checked, onChange, label, id, disabled }: SwitchProps) {
+export function Switch({ checked, onChange, label, id, disabled, small = false }: SwitchProps) {
   return (
     <button
       id={id}
@@ -21,9 +23,9 @@ export function Switch({ checked, onChange, label, id, disabled }: SwitchProps) 
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn("relative h-[30px] w-[50px] shrink-0 rounded-15 border-0 p-0", checked ? "bg-ink" : "bg-line")}
+      className={cn("relative shrink-0 border-0 p-0", small ? "h-7 w-[46px] rounded-14" : "h-[30px] w-[50px] rounded-15", checked ? "bg-ink" : "bg-line")}
     >
-      <span className={cn("absolute top-[3px] size-6 rounded-12 bg-white", checked ? "right-[3px]" : "left-[3px]")} />
+      <span className={cn("absolute top-[3px] bg-white", small ? "size-[22px] rounded-11" : "size-6 rounded-12", checked ? "right-[3px]" : "left-[3px]")} />
     </button>
   );
 }

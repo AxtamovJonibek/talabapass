@@ -147,3 +147,59 @@ export function contentChanged(
 
 /** "Du–Ju · 12:00–15:00" kabi ko'rinish uchun: oraliq yarim tundan o'tsa belgi. */
 export const isOvernight = crossesMidnight;
+
+// ───────── formadagi matnlarni o'qish / ko'rsatish (B2, WB2) ─────────
+
+/** "38 000" → 38000; "60 ta" → 60. Raqam bo'lmasa null. */
+export function parseAmount(value: string): number | null {
+  const digits = value.replace(/[\s ]/g, "").replace(/(so'm|so‘m|ta)$/i, "");
+  return /^\d{1,9}$/.test(digits) ? Number(digits) : null;
+}
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const iso = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
+
+/**
+ * "13.10 – 31.10" yoki "13.10.2026 – 31.10.2026" → { startsOn, endsOn } ("YYYY-MM-DD").
+ * Yil yozilmasa: boshlanish — joriy yil (sana bugundan yarim yil oldin qolsa — keyingi yil),
+ * tugash — boshlanish yili (boshlanishdan oldin qolsa — keyingi yil). Tekshiruv `validateDiscount` da.
+ */
+export function parseDateRange(value: string, today: string): { startsOn: string; endsOn: string } | null {
+  const m = /^\s*(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?\s*[–—-]\s*(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?\s*$/.exec(value);
+  if (!m) return null;
+  const [ty, tm, td] = today.split("-").map(Number);
+  let startYear = m[3] ? Number(m[3]) : ty;
+  if (!m[3]) {
+    const monthsBack = (tm - Number(m[2])) + (td > Number(m[1]) ? 0.5 : 0);
+    if (monthsBack > 6) startYear += 1;
+  }
+  const startsOn = iso(startYear, Number(m[2]), Number(m[1]));
+  let endYear = m[6] ? Number(m[6]) : startYear;
+  if (!m[6] && iso(endYear, Number(m[5]), Number(m[4])) < startsOn) endYear += 1;
+  return { startsOn, endsOn: iso(endYear, Number(m[5]), Number(m[4])) };
+}
+
+/** "2026-10-13", "2026-10-31" → "13.10 – 31.10" (yil boshqa bo'lsa — yil bilan). */
+export function formatDateRange(startsOn: string, endsOn: string, today: string): string {
+  const short = (d: string, withYear: boolean) => `${d.slice(8, 10)}.${d.slice(5, 7)}${withYear ? `.${d.slice(0, 4)}` : ""}`;
+  const withYear = startsOn.slice(0, 4) !== today.slice(0, 4) || endsOn.slice(0, 4) !== startsOn.slice(0, 4);
+  return `${short(startsOn, withYear)} – ${short(endsOn, withYear)}`;
+}
+
+/**
+ * Hafta kunlari yorlig'i: [1..7] → "Har kuni", [1..5] → "Du–Ju", [6,7] → "Sh–Ya", [1,3] → "Du, Ch".
+ * Ketma-ket 3 va undan ko'p kun — oraliq bilan.
+ */
+export function weekdaysLabel(weekdays: number[], names: (day: number) => string, everyDay: string): string {
+  const days = [...new Set(weekdays)].filter((d) => d >= 1 && d <= 7).sort((a, b) => a - b);
+  if (days.length === 7) return everyDay;
+  const parts: string[] = [];
+  for (let i = 0; i < days.length; ) {
+    let j = i;
+    while (j + 1 < days.length && days[j + 1] === days[j] + 1) j++;
+    if (j - i >= 1 && (j - i >= 2 || (days[i] === 6 && days[j] === 7))) parts.push(`${names(days[i])}–${names(days[j])}`);
+    else for (let k = i; k <= j; k++) parts.push(names(days[k]));
+    i = j + 1;
+  }
+  return parts.join(", ");
+}
