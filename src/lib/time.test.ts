@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMinute, fromTashkent, isOpenAt, parseMinute, toTashkent, type Schedule } from "./time";
+import { formatMinute, fromTashkent, isOpenAt, openWindowStart, parseMinute, toTashkent, type Schedule } from "./time";
 
 const utc = (iso: string) => new Date(iso);
 const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
@@ -73,5 +73,67 @@ describe("isOpenAt", () => {
     expect(isOpenAt(schedule, tashkent("2026-10-12", "13:00"))).toBe(false);
     expect(isOpenAt(schedule, tashkent("2026-11-02", "13:00"))).toBe(false);
     expect(isOpenAt(schedule, tashkent("2026-10-30", "13:00"))).toBe(true);
+  });
+});
+
+describe("yarim tundan o'tadigan oraliq (22:00–02:00)", () => {
+  // Faqat dushanba kuni boshlanadi, 13–31 oktabr. 12.10.2026 — dushanba, 13.10 — seshanba.
+  const night: Schedule = {
+    weekdays: [1],
+    fromMinute: 22 * 60,
+    toMinute: 2 * 60,
+    startsOn: day("2026-10-12"),
+    endsOn: day("2026-10-19"),
+  };
+  const at = (date: string, hhmm: string) => fromTashkent(day(date), parseMinute(hhmm)!);
+
+  it("dushanba 22:00–23:59 ochiq", () => {
+    expect(isOpenAt(night, at("2026-10-12", "22:00"))).toBe(true);
+    expect(isOpenAt(night, at("2026-10-12", "23:59"))).toBe(true);
+    expect(isOpenAt(night, at("2026-10-12", "21:59"))).toBe(false);
+  });
+
+  it("seshanba 00:00–01:59 ham ochiq — hafta kuni boshlanishiga qarab", () => {
+    expect(isOpenAt(night, at("2026-10-13", "00:00"))).toBe(true);
+    expect(isOpenAt(night, at("2026-10-13", "01:00"))).toBe(true);
+    expect(isOpenAt(night, at("2026-10-13", "01:59"))).toBe(true);
+    expect(isOpenAt(night, at("2026-10-13", "02:00"))).toBe(false);
+  });
+
+  it("seshanba 22:00 da yopiq (seshanba ro'yxatda yo'q), dushanba 01:00 da ham yopiq (yakshanba yo'q)", () => {
+    expect(isOpenAt(night, at("2026-10-13", "22:30"))).toBe(false);
+    expect(isOpenAt(night, at("2026-10-19", "01:00"))).toBe(false);
+  });
+
+  it("oraliq boshlangan sana qaytadi — kunlik limit shu kunga yoziladi", () => {
+    expect(openWindowStart(night, at("2026-10-13", "01:00"))).toEqual(day("2026-10-12"));
+    expect(openWindowStart(night, at("2026-10-12", "23:00"))).toEqual(day("2026-10-12"));
+  });
+
+  it("muddatning oxirgi kuni boshlangan oraliq ertasiga tunda ham amal qiladi", () => {
+    // 19.10 — dushanba, endsOn; oraliq 20.10 01:00 gacha davom etadi
+    expect(isOpenAt(night, at("2026-10-20", "01:00"))).toBe(true);
+    // muddatdan oldingi kun boshlangan oraliq amal qilmaydi: 12.10 00:30 — 11.10 (yakshanba) davomi
+    expect(isOpenAt({ ...night, weekdays: [7] }, at("2026-10-12", "00:30"))).toBe(false);
+  });
+
+  it("yakshanba → dushanba o'tishi (hafta chegarasi)", () => {
+    const sunday: Schedule = { ...night, weekdays: [7], startsOn: day("2026-10-01"), endsOn: day("2026-10-31") };
+    expect(isOpenAt(sunday, at("2026-10-18", "23:00"))).toBe(true); // yakshanba
+    expect(isOpenAt(sunday, at("2026-10-19", "01:30"))).toBe(true); // dushanba tongi
+    expect(isOpenAt(sunday, at("2026-10-19", "23:00"))).toBe(false);
+  });
+
+  it("UTC bo'yicha kun boshqa bo'lsa ham Toshkent vaqti hisobga olinadi", () => {
+    // 12.10 18:30 UTC = 12.10 23:30 Toshkent (dushanba)
+    expect(isOpenAt(night, new Date("2026-10-12T18:30:00Z"))).toBe(true);
+    // 12.10 20:30 UTC = 13.10 01:30 Toshkent
+    expect(isOpenAt(night, new Date("2026-10-12T20:30:00Z"))).toBe(true);
+  });
+
+  it("24:00 gacha bo'lgan oraliq yarim tundan o'tmaydi", () => {
+    const evening: Schedule = { ...night, weekdays: [1], fromMinute: 18 * 60, toMinute: 1440 };
+    expect(isOpenAt(evening, at("2026-10-12", "23:59"))).toBe(true);
+    expect(isOpenAt(evening, at("2026-10-13", "00:00"))).toBe(false);
   });
 });

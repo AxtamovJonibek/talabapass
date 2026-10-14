@@ -51,15 +51,15 @@ model User {
 }
 
 model OtpCode {
-  id         String    @id @default(cuid())
-  phone      String
-  codeHash   String
-  expiresAt  DateTime
-  attempts   Int       @default(0)
-  consumedAt DateTime?
+  id          String    @id @default(cuid())
+  phone       String
+  codeHash    String
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  consumedAt  DateTime?
   /// 5 ta xato urinishdan keyin: kod bekor, raqam shu vaqtgacha bloklangan
   lockedUntil DateTime?
-  createdAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
 
   @@index([phone, createdAt])
 }
@@ -353,7 +353,8 @@ model Discount {
   inkColor        String?
   /// 1 = dushanba … 7 = yakshanba (Toshkent vaqti)
   weekdays        Int[]
-  /// Kun boshidan daqiqalar (Toshkent vaqti): 12:00 = 720
+  /// Kun boshidan daqiqalar (Toshkent vaqti): 12:00 = 720. toMinute < fromMinute — oraliq yarim tundan o'tadi
+  /// (22:00–02:00); haftaning kuni boshlanish vaqtiga qarab hisoblanadi.
   fromMinute      Int
   toMinute        Int
   dailyLimit      Int
@@ -469,6 +470,16 @@ model Coupon {
   expiresAt      DateTime
   createdAt      DateTime     @default(now())
   closedAt       DateTime?
+
+  // ── Olingan paytdagi shartlar (snapshot). Chegirma keyin tahrirlansa ham kupon shu shartlarda bajariladi.
+  termsTitle          String
+  termsType           DiscountType
+  termsPercent        Int?
+  /// so'm; narxsiz chegirmada (masalan "chekdan −15%") null — kassada kiritiladi
+  termsOriginalPrice  Int?
+  termsDiscountAmount Int?
+  termsFinalPrice     Int?
+  termsNote           String?
 
   discount     Discount      @relation(fields: [discountId], references: [id])
   student      User          @relation(fields: [studentId], references: [id])

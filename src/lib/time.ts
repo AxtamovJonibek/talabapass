@@ -53,14 +53,33 @@ export type Schedule = {
   endsOn: Date;
 };
 
-/** Chegirma shu lahzada ochiqmi (kun, soat va muddat bo'yicha). */
-export function isOpenAt(schedule: Schedule, instant: Date): boolean {
+/** Oraliq yarim tundan o'tadimi (22:00–02:00 kabi). */
+export const crossesMidnight = (s: Pick<Schedule, "fromMinute" | "toMinute">) => s.toMinute <= s.fromMinute;
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Shu lahzada ochiq bo'lgan oraliq qaysi kuni boshlangan (Toshkent sanasi) — ochiq bo'lmasa null.
+ * Haftaning kuni va muddat (startsOn–endsOn) oraliq BOSHLANGAN kunga qarab tekshiriladi:
+ * dushanba 23:00 da boshlangan oraliq seshanba 01:00 da ham amal qiladi, hatto seshanba ro'yxatda bo'lmasa ham.
+ * Kunlik limit ham shu sanaga yoziladi.
+ */
+export function openWindowStart(schedule: Schedule, instant: Date): Date | null {
   const now = toTashkent(instant);
-  return (
-    now.date >= schedule.startsOn &&
-    now.date <= schedule.endsOn &&
-    schedule.weekdays.includes(now.weekday) &&
-    now.minute >= schedule.fromMinute &&
-    now.minute < schedule.toMinute
-  );
+  const startedOn = (date: Date, weekday: number) =>
+    date >= schedule.startsOn && date <= schedule.endsOn && schedule.weekdays.includes(weekday) ? date : null;
+
+  if (!crossesMidnight(schedule)) {
+    return now.minute >= schedule.fromMinute && now.minute < schedule.toMinute ? startedOn(now.date, now.weekday) : null;
+  }
+  // Kechki qism: bugun boshlangan oraliq
+  if (now.minute >= schedule.fromMinute) return startedOn(now.date, now.weekday);
+  // Tungi qism: kecha boshlangan oraliqning davomi
+  if (now.minute < schedule.toMinute) return startedOn(new Date(now.date.getTime() - DAY_MS), now.weekday === 1 ? 7 : now.weekday - 1);
+  return null;
+}
+
+/** Chegirma shu lahzada ochiqmi (kun, soat va muddat bo'yicha; yarim tundan o'tadigan oraliqlar ham). */
+export function isOpenAt(schedule: Schedule, instant: Date): boolean {
+  return openWindowStart(schedule, instant) !== null;
 }

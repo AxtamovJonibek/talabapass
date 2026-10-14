@@ -10,6 +10,7 @@ import "dotenv/config";
 import { randomBytes } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "../src/generated/prisma/client";
+import { discountTerms } from "../src/lib/discount";
 import { priceAfterPercent } from "../src/lib/format";
 import { fromTashkent, toTashkent } from "../src/lib/time";
 import { maintainStoredFiles } from "../src/server/storage/maintenance";
@@ -279,6 +280,20 @@ const PENDING_STUDENTS = [
   { firstName: "Feruza", lastName: "Abdullayeva", uni: "TATU", faculty: "Kiberxavfsizlik", course: "C2", file: "guvohnoma.jpg", size: 1_700_000, mime: "image/jpeg", minutesAgo: 64 },
 ] as const;
 
+/** Kupon olingan paytdagi shartlar (snapshot); sotilgan kuponda — chekdagi haqiqiy summalar. */
+function terms(d: DiscountSeed, paid?: { originalPrice: number; paidAmount: number }) {
+  const t = discountTerms({ type: d.type, originalPrice: d.originalPrice ?? null, percent: d.percent ?? null, newPrice: d.newPrice ?? null });
+  return {
+    termsTitle: d.title,
+    termsType: d.type,
+    termsPercent: d.percent ?? null,
+    termsNote: d.note ?? null,
+    termsOriginalPrice: paid?.originalPrice ?? t.originalPrice,
+    termsDiscountAmount: paid ? paid.originalPrice - paid.paidAmount : t.discountAmount,
+    termsFinalPrice: paid?.paidAmount ?? t.finalPrice,
+  };
+}
+
 // ───────── asosiy oqim ─────────
 
 async function main() {
@@ -495,7 +510,7 @@ async function main() {
           if (createdAt.getTime() + 10 * 60_000 >= now.getTime()) continue;
           coupons.push({
             code: couponCode(), discountId: discount.id, studentId: pick(students).id, date, status: "EXPIRED",
-            secret: randomBytes(20), createdAt, expiresAt: new Date(createdAt.getTime() + 10 * 60_000),
+            secret: randomBytes(20), ...terms(d), createdAt, expiresAt: new Date(createdAt.getTime() + 10 * 60_000),
             closedAt: new Date(createdAt.getTime() + 10 * 60_000),
           });
         }
@@ -512,7 +527,7 @@ async function main() {
       const claimedAt = new Date(sale.at.getTime() - int(1, 8) * 60_000);
       coupons.push({
         id, code: couponCode(), discountId: sale.discount.id, studentId, date: sale.date, status: "REDEEMED",
-        secret: randomBytes(20), createdAt: claimedAt, expiresAt: new Date(claimedAt.getTime() + 10 * 60_000), closedAt: sale.at,
+        secret: randomBytes(20), ...terms(sale.discount.seed, { originalPrice, paidAmount }), createdAt: claimedAt, expiresAt: new Date(claimedAt.getTime() + 10 * 60_000), closedAt: sale.at,
       });
       redemptions.push({
         couponId: id, receiptNo, businessId: biz.businessId, discountId: sale.discount.id, studentId, cashierId,
@@ -547,7 +562,7 @@ async function main() {
     const id = `seed_dilnoza_${key}`;
     coupons.push({
       id, code: couponCode(), discountId: discount.id, studentId: dilnoza.id, date, status: "REDEEMED",
-      secret: randomBytes(20), createdAt: new Date(at.getTime() - 4 * 60_000), expiresAt: new Date(at.getTime() + 6 * 60_000), closedAt: at,
+      secret: randomBytes(20), ...terms(discount.seed, { originalPrice, paidAmount }), createdAt: new Date(at.getTime() - 4 * 60_000), expiresAt: new Date(at.getTime() + 6 * 60_000), closedAt: at,
     });
     redemptions.push({
       couponId: id, receiptNo: business.receiptSeq, businessId: biz.businessId, discountId: discount.id,
