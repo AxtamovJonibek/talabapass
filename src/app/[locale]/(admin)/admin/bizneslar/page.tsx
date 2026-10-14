@@ -37,7 +37,7 @@ async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/
       href: `/admin/bizneslar?id=${b.id}`,
       initials: initialsOf(b.name),
       name: b.name,
-      ago: agoText(b.createdAt),
+      ago: agoText(b.submittedAt ?? b.createdAt),
       meta: [kinds(b.kind), b.district?.name, b.address].filter(Boolean).join(" · "),
       flag: hasRegistration ? t("flags.docsComplete") : t("flags.docsMissing"),
       flagTone: hasRegistration ? "ok" : "warn",
@@ -86,7 +86,7 @@ async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/
           <BusinessReview
             key={detail.id}
             businessId={detail.id}
-            code={t("sentAgo", { code: `ARIZA-B-${detail.id.slice(-5).toUpperCase()}`, ago: agoText(detail.createdAt) })}
+            code={t("sentAgo", { code: `ARIZA-B-${detail.id.slice(-5).toUpperCase()}`, ago: agoText(detail.submittedAt ?? detail.createdAt) })}
             name={detail.name}
             meta={[kinds(detail.kind), detail.district?.name, detail.address].filter(Boolean).join(" · ")}
             state={detail.owner.status === "BLOCKED" ? "BLOCKED" : detail.status}

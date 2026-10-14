@@ -64,7 +64,13 @@ async function shoot(url, isDesign) {
     const [selector, label] = opts.select.split("::");
     await page.selectOption(selector, { label });
   }
-  if (opts.click && !isDesign) await page.click(opts.click);
+  // --click="sel1;;sel2" — ilovada ketma-ket bosishlar
+  if (opts.click && !isDesign) {
+    for (const selector of opts.click.split(";;")) {
+      await page.click(selector);
+      await page.waitForTimeout(300);
+    }
+  }
   if (opts.type && !isDesign) {
     await page.waitForTimeout(Number(opts.wait ?? 1500));
     await page.keyboard.type(opts.type);

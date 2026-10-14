@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser } from "@/server/auth/session";
 import { authSecret } from "@/server/env";
+import { readLimited, uploadedFileName } from "@/server/http/read-limited";
 import { MAX_UPLOAD_BYTES } from "@/server/storage/file-rules";
 import { readUploadToken } from "@/server/student/upload-token";
 import { submitStudentCard, type SubmitProblem } from "@/server/student/verification";
@@ -24,31 +25,6 @@ async function uploaderId(request: NextRequest): Promise<string | null> {
   return user?.role === "STUDENT" ? user.id : null;
 }
 
-/** Tanani o'qiydi, lekin chegaradan oshgan zahoti to'xtaydi (Content-Length yolg'on bo'lsa ham xotiraga to'liq olinmaydi). */
-async function readLimited(request: NextRequest, limit: number): Promise<Uint8Array | null> {
-  if (!request.body) return new Uint8Array(0);
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    if (size > limit) {
-      await reader.cancel();
-      return null;
-    }
-    chunks.push(value);
-  }
-  const out = new Uint8Array(size);
-  let offset = 0;
-  for (const chunk of chunks) {
-    out.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  return out;
-}
-
 /**
  * Talaba guvohnomasini yuklash. Fayl so'rov tanasida xom holda keladi (multipart emas),
  * asl nomi `x-file-name` sarlavhasida (URL-kodlangan).
@@ -64,13 +40,6 @@ export async function POST(request: NextRequest) {
 
   const bytes = await readLimited(request, MAX_UPLOAD_BYTES);
   if (!bytes) return NextResponse.json({ ok: false, problem: "too_large" }, { status: 413 });
-  let name = "";
-  try {
-    name = decodeURIComponent(request.headers.get("x-file-name") ?? "");
-  } catch {
-    // noto'g'ri kodlangan nom — standart nom ishlatiladi
-  }
-
-  const result = await submitStudentCard(userId, bytes, name);
+  const result = await submitStudentCard(userId, bytes, uploadedFileName(request));
   return NextResponse.json(result, { status: result.ok ? 201 : STATUS[result.problem] });
 }

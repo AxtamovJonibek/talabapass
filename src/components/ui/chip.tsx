@@ -1,21 +1,32 @@
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
+const CHIP_SIZES = {
+  /** T4 kategoriyalar */
+  md: "h-[38px] rounded-19 px-3.5",
+  /** B1 biznes turi (telefon formasi) */
+  form: "h-[38px] rounded-19 px-[13px]",
+  /** WB1 biznes turi (veb formasi) */
+  lg: "h-10 rounded-20 px-3.5",
+} as const;
+
 type ChipProps = Omit<ComponentProps<"button">, "children"> & {
   selected?: boolean;
+  size?: keyof typeof CHIP_SIZES;
   /** Mono sanoq: kategoriyadagi chegirmalar soni */
   count?: ReactNode;
   children: ReactNode;
 };
 
 /** Filtr chipi (T4 kategoriyalar, B1 biznes turi, A3 auditoriya). */
-export function Chip({ selected = false, count, children, className, type = "button", ...props }: ChipProps) {
+export function Chip({ selected = false, size = "md", count, children, className, type = "button", ...props }: ChipProps) {
   return (
     <button
       type={type}
       aria-pressed={selected}
       className={cn(
-        "flex h-[38px] shrink-0 items-center gap-1.5 rounded-19 border-hair px-3.5 font-sans text-14 font-semibold",
+        "flex shrink-0 items-center gap-1.5 border-hair font-sans text-14 font-semibold",
+        CHIP_SIZES[size],
         selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink",
         className,
       )}

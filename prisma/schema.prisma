@@ -234,6 +234,9 @@ model Business {
   rejectReason String?
   reviewedById String?
   reviewedAt   DateTime?
+  /// Ariza (ma'lumot + hujjatlar) tekshiruvga yuborilgan payt. null — egasi hali hujjatlarni yuklamoqda,
+  /// admin navbatida ko'rinmaydi. Rad etilgandan keyin qayta yuborilsa yangilanadi.
+  submittedAt  DateTime?
   /// Chek raqami hisoblagichi — redeem tranzaksiyasida atom oshiriladi
   receiptSeq   Int            @default(0)
   createdAt    DateTime       @default(now())
@@ -248,7 +251,7 @@ model Business {
   redemptions  Redemption[]
   scanAttempts ScanAttempt[]
 
-  @@index([status])
+  @@index([status, submittedAt])
   @@index([ownerId])
 }
 

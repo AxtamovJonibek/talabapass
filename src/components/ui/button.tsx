@@ -9,6 +9,14 @@ const SIZES = {
   wide: "h-13 rounded-14 px-6 text-16",
   /** Shu qatordagi ikkilamchi tugma: WT1 "Orqaga" (torroq, 15px) */
   "wide-quiet": "h-13 rounded-14 px-[18px] text-15",
+  /** WB1 pastidagi tugmalar (54px): "Keyingi: hujjatlar" */
+  tall: "h-13.5 rounded-14 px-6 text-16",
+  /** O'sha qatordagi ikkilamchi: WB1 "Orqaga" */
+  "tall-quiet": "h-13.5 rounded-14 px-[18px] text-15",
+  /** WB1 3-qadam "Kabinetga o'tish" */
+  "tall-link": "h-13.5 rounded-14 px-[22px] text-15",
+  /** Karta ichidagi CTA (50px): WB1 "Chegirma yaratish" */
+  card: "h-12.5 rounded-14 px-[18px] text-15",
   /** Admin harakatlari: A2 "Tasdiqlash" */
   md: "h-12 rounded-12 px-4 text-15",
   /** Ikkilamchi: B6 "Excel hisobot" */

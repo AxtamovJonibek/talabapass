@@ -211,8 +211,8 @@ test.describe("biznes arizasi", () => {
         await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ($1 || '_s', $1, $2, now() + interval '1 day')`, [u.id, hash(u.token)]);
       }
       await db.query(
-        `INSERT INTO "Business" (id, "ownerId", name, kind, address, "workingHours", tin, status, "updatedAt", "createdAt")
-         VALUES ($1, $2, 'E2E Kafe', 'CAFE', 'Test ko''chasi 1', '09:00–18:00', '399000111', 'PENDING', now(), now() - interval '10 days')`,
+        `INSERT INTO "Business" (id, "ownerId", name, kind, address, "workingHours", tin, status, "updatedAt", "createdAt", "submittedAt")
+         VALUES ($1, $2, 'E2E Kafe', 'CAFE', 'Test ko''chasi 1', '09:00–18:00', '399000111', 'PENDING', now(), now() - interval '10 days', now() - interval '10 days')`,
         [BUSINESS, OWNER.id],
       );
       await db.query(`INSERT INTO "BusinessMember" (id, "businessId", "userId", role) VALUES ('e2e_rev_m1', $1, $2, 'OWNER'), ('e2e_rev_m2', $1, $3, 'CASHIER')`, [BUSINESS, OWNER.id, CASHIER.id]);

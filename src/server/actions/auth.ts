@@ -6,6 +6,7 @@ import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { normalizePhone } from "@/lib/format";
 import { requestOtp, verifyOtp } from "../auth/otp";
+import { clientIp } from "../auth/phone-check";
 import { createSession, destroySession, homePathFor, rememberVerifiedPhone } from "../auth/session";
 import { db } from "../db";
 
@@ -14,12 +15,6 @@ export type RequestCodeResult = { ok: true; phone: string } | { ok: false; error
 export type VerifyCodeResult = { ok: false; error: AuthError };
 
 const SEND_ERRORS = { too_soon: "tooSoon", daily_limit: "dailyLimit", ip_limit: "ipLimit", locked: "locked" } as const;
-
-/** So'rov yuborgan IP. Vercel x-forwarded-for ni o'zi qo'yadi (mijoz yuborganini ustidan yozadi). */
-async function clientIp(): Promise<string> {
-  const h = await headers();
-  return h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-}
 
 const intentSchema = z.enum(["student", "business"]);
 

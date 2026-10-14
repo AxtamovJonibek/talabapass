@@ -21,23 +21,30 @@ const TAGS = {
   paper: "bg-paper text-ink",
 } as const;
 
+// "BIZNES" yorlig'i: sm — sidebar/WB1 (11px), md — B1 telefon sarlavhasi (12px, kengroq)
+const TAG_SIZES = {
+  sm: "px-1.5 text-11",
+  md: "px-[7px] text-12 tracking-[0.04em]",
+} as const;
+
 type LogoProps = {
   size?: keyof typeof SIZES;
   chip?: keyof typeof CHIPS;
   /** "BIZNES" / "ADMIN" yorlig'i */
   tag?: string;
   tagTone?: keyof typeof TAGS;
+  tagSize?: keyof typeof TAG_SIZES;
   className?: string;
 };
 
 /** "talaba[Pass]" belgisi. So'z rangi ota elementdan olinadi. */
-export function Logo({ size = 18, chip = "blue", tag, tagTone = "orange", className }: LogoProps) {
+export function Logo({ size = 18, chip = "blue", tag, tagTone = "orange", tagSize = "sm", className }: LogoProps) {
   return (
     <div className={cn("flex items-center font-extrabold font-stretch-125%", SIZES[size].root, className)}>
       talaba
       <span className={cn(SIZES[size].chip, CHIPS[chip])}>Pass</span>
       {tag ? (
-        <span className={cn("rounded-5 px-1.5 py-[3px] text-11 font-bold font-stretch-100%", TAGS[tagTone])}>
+        <span className={cn("rounded-5 py-[3px] font-bold font-stretch-100%", TAG_SIZES[tagSize], TAGS[tagTone])}>
           {tag}
         </span>
       ) : null}

@@ -1,12 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { normalizePhone } from "@/lib/format";
-import { requestOtp, verifyOtp } from "../auth/otp";
-import { createSession, forgetVerifiedPhone, getVerifiedPhone, homePathFor } from "../auth/session";
+import { confirmPhone } from "../auth/phone-check";
+import { createSession, forgetVerifiedPhone, homePathFor } from "../auth/session";
 import { effectiveStudentStatus, studentPathFor } from "../auth/student-status";
 import { db } from "../db";
 import { createStudent, studentFormSchema } from "../student/registration";
@@ -19,8 +19,6 @@ export type RegisterResult =
   /** SMS kod yuborildi (yoki yaqinda yuborilgan) — kod kiritish qadami */
   | { ok: true; step: "code"; phone: string; retryInSeconds?: number };
 
-const SEND_ERRORS = { too_soon: "tooSoon", daily_limit: "dailyLimit", ip_limit: "ipLimit", locked: "locked" } as const;
-
 const inputSchema = z.object({
   phone: z.string().max(32),
   firstName: z.string().max(80),
@@ -29,11 +27,6 @@ const inputSchema = z.object({
   course: z.string().max(10),
   code: z.string().max(12).optional(),
 });
-
-async function clientIp(): Promise<string> {
-  const h = await headers();
-  return h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-}
 
 /**
  * T1 / WT1 — talaba ro'yxati. Raqam egaligi SMS kod bilan tasdiqlanadi (kirish sahifasidan tasdiqlangan
@@ -54,30 +47,9 @@ export async function registerStudentAction(raw: unknown): Promise<RegisterResul
   }
   if (!phone || !form.success || fields.length > 0) return { ok: false, fields };
 
-  const alreadyVerified = (await getVerifiedPhone()) === phone;
-  if (!alreadyVerified) {
-    const code = input.data.code?.replace(/\D/g, "");
-    if (!code) {
-      const t = await getTranslations("auth");
-      try {
-        const sent = await requestOtp(phone, await clientIp(), (c) => t("sms", { code: c }));
-        if (!sent.ok) {
-          const retryInSeconds = Math.ceil(sent.retryInMs / 1000);
-          // Kod hozirgina yuborilgan — foydalanuvchida u bor, kiritish qadamiga o'tamiz.
-          if (sent.reason === "too_soon") return { ok: true, step: "code", phone, retryInSeconds };
-          return { ok: false, error: SEND_ERRORS[sent.reason], retryInSeconds };
-        }
-      } catch (error) {
-        console.error("SMS yuborilmadi:", error);
-        return { ok: false, error: "sms" };
-      }
-      return { ok: true, step: "code", phone };
-    }
-    const verified = await verifyOtp(phone, code);
-    if (verified !== "ok") {
-      return { ok: false, error: verified === "locked" ? "locked" : verified === "wrong" ? "wrongCode" : "expired" };
-    }
-  }
+  const check = await confirmPhone(phone, input.data.code);
+  if (check.status === "code") return { ok: true, step: "code", phone, retryInSeconds: check.retryInSeconds };
+  if (check.status === "error") return { ok: false, error: check.error, retryInSeconds: check.retryInSeconds };
 
   const locale = await getLocale();
   const userAgent = (await headers()).get("user-agent");

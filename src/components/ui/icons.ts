@@ -39,6 +39,10 @@ export const ICONS = {
   close: "M6 6l12 12M18 6L6 18",
   plus: "M12 5v14M5 12h14",
   minus: "M5 12h14",
+  /** B1 manzil maydoni */
+  pin: "M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM14.5 9.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z",
+  /** WB1 joy fotolari */
+  camera: "M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z",
 } as const;
 
 export type IconName = keyof typeof ICONS;

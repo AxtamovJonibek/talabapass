@@ -11,6 +11,8 @@ import { checkCardExpiry, normalizeCardNumber, parseDateInput } from "./review-r
  */
 
 const QUEUE_PAGE = 30;
+/** Navbatdagi biznes arizalari: hujjatlari yuklanib, tekshiruvga yuborilganlari (yarim yo'lda qolganlar emas). */
+const BUSINESS_QUEUE = { status: "PENDING", submittedAt: { not: null } } as const;
 const startOfToday = () => fromTashkent(toTashkent(new Date()).date, 0);
 
 // ───────── navbatlar ─────────
@@ -18,7 +20,7 @@ const startOfToday = () => fromTashkent(toTashkent(new Date()).date, 0);
 export async function pendingCounts() {
   const [students, businesses] = await Promise.all([
     db.verification.count({ where: { status: "PENDING" } }),
-    db.business.count({ where: { status: "PENDING" } }),
+    db.business.count({ where: BUSINESS_QUEUE }),
   ]);
   return { students, businesses };
 }
@@ -82,12 +84,12 @@ export async function studentDetail(verificationId: string) {
 export async function businessQueue() {
   const [items, total] = await Promise.all([
     db.business.findMany({
-      where: { status: "PENDING" },
-      orderBy: { createdAt: "asc" },
+      where: BUSINESS_QUEUE,
+      orderBy: { submittedAt: "asc" },
       take: QUEUE_PAGE,
-      select: { id: true, name: true, kind: true, address: true, createdAt: true, docs: { select: { kind: true } }, district: { select: { name: true } } },
+      select: { id: true, name: true, kind: true, address: true, createdAt: true, submittedAt: true, docs: { select: { kind: true } }, district: { select: { name: true } } },
     }),
-    db.business.count({ where: { status: "PENDING" } }),
+    db.business.count({ where: BUSINESS_QUEUE }),
   ]);
   return { items, total };
 }
@@ -107,6 +109,7 @@ export async function businessDetail(businessId: string) {
       contactPhone: true,
       status: true,
       createdAt: true,
+      submittedAt: true,
       district: { select: { name: true } },
       owner: { select: { id: true, phone: true, status: true } },
       docs: { orderBy: { createdAt: "asc" }, select: { id: true, kind: true, fileName: true } },
@@ -220,7 +223,7 @@ export async function blockStudent(input: { verificationId: string; reasonText: 
 export async function approveBusiness(businessId: string, actorId: string): Promise<{ ok: true } | { ok: false; error: "not_pending" }> {
   return db.$transaction(async (tx) => {
     const closed = await tx.business.updateMany({
-      where: { id: businessId, status: "PENDING" },
+      where: { id: businessId, ...BUSINESS_QUEUE },
       data: { status: "APPROVED", rejectReason: null, reviewedById: actorId, reviewedAt: new Date() },
     });
     if (closed.count === 0) return { ok: false as const, error: "not_pending" as const };
@@ -232,7 +235,7 @@ export async function approveBusiness(businessId: string, actorId: string): Prom
 export async function rejectBusiness(input: { businessId: string; reasonText: string; reasonKey: string }, actorId: string) {
   return db.$transaction(async (tx) => {
     const closed = await tx.business.updateMany({
-      where: { id: input.businessId, status: "PENDING" },
+      where: { id: input.businessId, ...BUSINESS_QUEUE },
       data: { status: "REJECTED", rejectReason: input.reasonText, reviewedById: actorId, reviewedAt: new Date() },
     });
     if (closed.count === 0) return { ok: false as const, error: "not_pending" as const };

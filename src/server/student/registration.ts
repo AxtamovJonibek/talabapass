@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { toTashkent } from "@/lib/time";
 import { db } from "../db";
+import { isUniqueViolation } from "../db-errors";
 
 const NAME = /^[\p{L}][\p{L}'ʻʼ’` -]{1,39}$/u;
 
@@ -37,9 +38,7 @@ export async function createStudent(phone: string, form: StudentForm): Promise<{
       });
     } catch (error) {
       // publicId to'qnashuvi (unique) — yangi raqam bilan qayta urinamiz; boshqa xatolar yuqoriga chiqadi.
-      const target = (error as { code?: string; meta?: { target?: unknown } }).meta?.target;
-      const collided = (error as { code?: string }).code === "P2002" && JSON.stringify(target ?? "").includes("publicId");
-      if (!collided || attempt >= 5) throw error;
+      if (!isUniqueViolation(error, "publicId") || attempt >= 5) throw error;
     }
   }
 }

@@ -176,7 +176,15 @@ test.describe("kirish", () => {
     await requestCode(page, fresh, "Biznes");
     await enterCode(page, FIXED_CODE);
     await expect(page).toHaveURL("/biznes/royxat");
-    await expect(page.getByTestId("verified-phone")).toContainText("+998 90 555 09 97");
+    // Tasdiqlangan raqam ariza formasiga o'zgartirib bo'lmaydigan qilib qo'yiladi (2-qadam)
+    await page.locator("#b1-name").fill("Test");
+    await page.getByRole("button", { name: "Kafe / restoran" }).locator("visible=true").click();
+    await page.locator("#b1-address").fill("Test ko'chasi 1");
+    await page.locator("#b1-hours").fill("09:00 – 18:00");
+    await page.locator("#b1-tin").fill("309000997");
+    await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
+    await expect(page.locator("#b1-phone")).toHaveValue("90 555 09 97");
+    await expect(page.locator("#b1-phone")).toHaveAttribute("readonly", "");
     await clearOtp(fresh);
   });
 
@@ -194,6 +202,7 @@ test.describe("rol himoyasi", () => {
   const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/admin", "/admin/talabalar", "/admin/bizneslar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
+    test.slow(); // 8 ta sahifa — dev serverda birinchi kompilyatsiya uzoq
     for (const path of PROTECTED) {
       await page.goto(path);
       await expect(page, path).toHaveURL("/kirish");

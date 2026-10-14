@@ -200,6 +200,20 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - Har bir qaror `AuditLog` da: `student.approve|reject`, `user.block`, `business.approve|reject|block`.
 - Dizaynda chizilmagan: guvohnoma №/muddat uchun kiritish maydonlari, PDF ko'rinishi, biznes rad etish sabablari ro'yxati.
 
+## Biznes arizasi (B1 / WB1)
+- `/biznes/royxat` (kirmagan) → 1-qadam ma'lumot, 2-qadam STIR/mas'ul/telefon/fayllar/rozilik → SMS kod →
+  hisob va ariza (`submittedAt = null`) → fayllar `POST /api/biznes/hujjat?tur=registration|photo|logo` →
+  `submitBusiness` (`submittedAt = now`). Telefonda STIR 1-qadamda (B1), vebda 2-qadamda (WB1).
+- Admin navbatida faqat `PENDING` **va** `submittedAt` bor arizalar. Yarim yo'lda qolgan yoki rad etilgan ariza
+  egasining `/biznes` sahifasida forma bo'lib ochiladi (tuzatib, qayta yuboradi); tekshiruvdagisi o'zgarmaydi.
+- Qoidalar `src/lib/business.ts` (forma va server bitta); STIR yagonaligi — bazada (`isUniqueViolation`).
+  Guvohnoma bitta (yangisi almashtiradi), joy fotolari 1–3 ta, logotip va foto — faqat rasm. Rozilik `AuditLog`
+  ga shartlar versiyasi bilan (`business.submit`). Tuman manzildagi nomdan aniqlanadi (aniq bo'lmasa — bo'sh).
+- Bitta raqam — bitta rol: talaba raqami bilan biznes ochib bo'lmaydi (`phoneInUse`).
+- Dizayndan chetlanishlar: soliq bazasi tekshiruvi yo'q (STIR ostidagi yashil yozuv chiqmaydi); B1 da 7-tur
+  "Ko'ngilochar" ham bor; B1 2-qadami va mobil "tekshiruvda" ekrani chizilmagan (WB1 bloklaridan); WB1 3-qadamda
+  muhr sarlavha qatorida (dizayndagi mutlaq joylashuv tor kenglikda matnni yopardi), "Orqaga" nofaol.
+
 ## Talaba holatlari
 `DRAFT → PENDING → APPROVED | REJECTED`, `APPROVED → EXPIRED` (muddat). Yo'naltirish `studentPathFor` da;
 ilova sahifalari `requireActiveStudent()`, ro'yxat qadamlari `requireStudent()` chaqiradi.

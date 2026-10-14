@@ -55,6 +55,12 @@ export function normalizePhone(input: string): string | null {
   return /^\d{9}$/.test(local) ? `+998${local}` : null;
 }
 
+/** Telefon maydoniga qaytarib qo'yish uchun "+998" siz qism: "+998901234567" → "90 123 45 67". Tanilmasa — o'zi. */
+export function phoneNational(value: string): string {
+  const phone = normalizePhone(value);
+  return phone ? formatPhone(phone).replace(/^\+998 /, "") : value;
+}
+
 /** Ism va familiyadan bosh harflar: "Dilnoza Karimova" → "DK" */
 export function initials(firstName?: string | null, lastName?: string | null): string {
   return [firstName, lastName]

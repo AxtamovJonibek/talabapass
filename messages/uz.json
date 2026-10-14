@@ -746,6 +746,101 @@
       "expiredLead": "Kompyuterdagi sahifani yangilab, QR kodni qayta skanerlang."
     }
   },
+  "businessOnboarding": {
+    "step": "{n}/2",
+    "stepWeb": "QADAM {n}/3",
+    "haveAccount": "Hisobim bor — kirish",
+    "mobileTitle": "Talabalarni<br></br>mijozga aylantiring",
+    "mobileLead": "Qisqa ma'lumot — tekshiruvdan so'ng chegirma qo'sha olasiz.",
+    "webTitle": "Talabalar sizni topsin.",
+    "webLead": "Ulanish bepul va 5 daqiqa oladi. Tekshiruvdan so'ng chegirmalarni o'zingiz boshqarasiz.",
+    "steps": {
+      "1": {
+        "title": "Biznes haqida",
+        "hint": "Nomi, kategoriya, manzil"
+      },
+      "2": {
+        "title": "Hujjatlar",
+        "hint": "STIR va guvohnoma"
+      },
+      "3": {
+        "title": "Tekshiruv",
+        "hint": "Odatda 1 ish kuni"
+      }
+    },
+    "promises": {
+      "1": "Chegirma faqat haqiqiy sotuvda beriladi",
+      "2": "Kun, soat va sonni o'zingiz belgilaysiz",
+      "3": "Har bir sotuv statistikada ko'rinadi"
+    },
+    "infoTitle": "Biznesingiz haqida",
+    "docsTitle": "Tasdiqlash uchun hujjatlar",
+    "logo": "Logo",
+    "logoUpload": "Logotip yuklash",
+    "name": "Biznes nomi",
+    "kind": "Kategoriya",
+    "address": "Manzil",
+    "workingHours": "Ish vaqti",
+    "workingHoursPlaceholder": "09:00 – 23:00",
+    "tin": "STIR (INN)",
+    "tinPlaceholder": "9 ta raqam",
+    "description": "Qisqacha tavsif",
+    "contactName": "Mas'ul shaxs",
+    "phone": "Telefon",
+    "registrationDoc": "Ro'yxatdan o'tganlik guvohnomasi",
+    "registrationHint": "PDF, JPG yoki PNG · 10 MB gacha",
+    "photos": "Joy fotolari (3 ta)",
+    "photosHint": "peshtaxta, zal, kassa",
+    "uploaded": "{name} · yuklandi",
+    "selected": "{name} · tanlandi",
+    "photosCount": "{count} ta foto tanlandi",
+    "remove": "Olib tashlash",
+    "consent": "<terms>Biznes hamkorlik shartlari</terms> bilan tanishdim va roziman",
+    "next": "Keyingi: hujjatlar",
+    "submit": "Tekshiruvga yuborish",
+    "back": "Orqaga",
+    "codeTitle": "Raqamni tasdiqlang",
+    "confirm": "Tasdiqlash va yuborish",
+    "saving": "Saqlanmoqda…",
+    "uploading": "Fayllar yuklanmoqda… {done}/{total}",
+    "rejectedTitle": "Ariza rad etildi",
+    "rejectedLead": "Sabab: {reason}. Ma'lumotlarni tuzatib, qayta yuboring.",
+    "pending": {
+      "stamp": "TEKSHIRUVDA",
+      "title": "Ariza qabul qilindi",
+      "lead": "Moderator STIR va hujjatlarni tekshiradi, kerak bo'lsa qo'ng'iroq qiladi. Odatda 1 ish kuni ichida.",
+      "badge": "−30%",
+      "ctaTitle": "Vaqtni yutib oling: birinchi chegirmani tayyorlang",
+      "ctaLead": "Tasdiqlangan zahoti talabalarga ko'rinadi.",
+      "cta": "Chegirma yaratish",
+      "cabinet": "Kabinetga o'tish"
+    },
+    "errors": {
+      "name": "Biznes nomini kiriting (2–60 belgi).",
+      "kind": "Kategoriyani tanlang.",
+      "address": "Manzilni to'liq kiriting.",
+      "workingHours": "Ish vaqtini kiriting, masalan 09:00 – 23:00.",
+      "description": "Tavsif 120 belgidan oshmasin.",
+      "tin": "STIR 9 ta raqamdan iborat.",
+      "contactName": "Mas'ul shaxsning ismini kiriting.",
+      "phone": "Telefon raqamini to'liq kiriting.",
+      "tinTaken": "Bu STIR bilan biznes allaqachon ro'yxatdan o'tgan. Yordam uchun biz bilan bog'laning.",
+      "phoneInUse": "Bu raqam boshqa turdagi hisobga biriktirilgan. Boshqa raqam kiriting.",
+      "notEditable": "Arizani hozir o'zgartirib bo'lmaydi.",
+      "noRegistration": "Ro'yxatdan o'tganlik guvohnomasini yuklang.",
+      "noPhotos": "Kamida bitta joy fotosini yuklang.",
+      "consent": "Davom etish uchun shartlarga rozilik bildiring.",
+      "upload": {
+        "empty": "Fayl bo'sh.",
+        "bad_type": "Fayl turi mos emas: guvohnoma — PDF, JPG, PNG yoki HEIC; foto va logotip — faqat rasm.",
+        "too_large": "Fayl 10 MB dan katta.",
+        "not_allowed": "Bu arizaga fayl qo'shib bo'lmaydi.",
+        "daily_limit": "Bugun juda ko'p fayl yuklandi. Ertaga urinib ko'ring.",
+        "too_many": "Ko'pi bilan 3 ta foto.",
+        "network": "Fayl yuklanmadi — internetni tekshirib, qayta urinib ko'ring."
+      }
+    }
+  },
   "admin": {
     "role": "Bosh moderator",
     "nav": {
