@@ -7,7 +7,7 @@ test.beforeAll(async () => {
   phones = await seedPhones();
 });
 
-const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin" } as const;
+const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin/talabalar" } as const;
 const AREA = { student: "Talaba ilovasi", owner: "Biznes kabineti", cashier: "Kassir skaneri", admin: "Admin panel" } as const;
 
 test.describe("kirish", () => {
@@ -15,9 +15,34 @@ test.describe("kirish", () => {
     test(`${role} kiradi va o'z bosh sahifasiga tushadi`, async ({ page }) => {
       await signIn(page, phones[role]);
       await expect(page).toHaveURL(HOME[role]);
-      await expect(page.getByTestId("area")).toHaveText(AREA[role]);
+      if (role === "admin") await expect(page.getByRole("heading", { name: "Talabalar tekshiruvi" })).toBeVisible();
+      else await expect(page.getByTestId("area")).toHaveText(AREA[role]);
     });
   }
+
+  test("admin: /admin tekshiruvga yo'naltiradi, tayyor bo'lmagan bo'limlar xira va bosilmaydi", async ({ page }) => {
+    await signIn(page, phones.admin);
+    await expect(page).toHaveURL(HOME.admin);
+    await page.goto("/admin");
+    await expect(page).toHaveURL("/admin/talabalar");
+    const nav = page.getByRole("navigation", { name: "Admin menyu" });
+    for (const name of ["Umumiy", "Tranzaksiyalar", "Bildirishnomalar"]) {
+      await expect(nav.getByText(name)).toHaveAttribute("aria-disabled", "true");
+      await expect(nav.getByRole("link", { name })).toHaveCount(0);
+    }
+    await nav.getByRole("link", { name: /Bizneslar/ }).click();
+    await expect(page).toHaveURL("/admin/bizneslar");
+    await expect(nav.getByRole("link", { name: /Talabalar tekshiruvi/ })).toBeVisible();
+  });
+
+  test("admin panelidan chiqish", async ({ page }) => {
+    await signIn(page, phones.admin);
+    await expect(page).toHaveURL(HOME.admin);
+    await page.getByRole("button", { name: "Hisobdan chiqish" }).click();
+    await expect(page).toHaveURL("/");
+    await page.goto("/admin/talabalar");
+    await expect(page).toHaveURL("/kirish");
+  });
 
   test("noto'g'ri kod rad etiladi, to'g'risi qabul qilinadi", async ({ page }) => {
     await requestCode(page, phones.student);
@@ -180,7 +205,7 @@ test.describe("rol himoyasi", () => {
     student: { "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar" },
     owner: { "/chegirmalar": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
     cashier: { "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner" },
-    admin: { "/chegirmalar": "/admin", "/biznes": "/admin", "/biznes/skaner": "/admin" },
+    admin: { "/chegirmalar": "/admin/talabalar", "/biznes": "/admin/talabalar", "/biznes/skaner": "/admin/talabalar", "/admin": "/admin/talabalar" },
   } as const;
 
   for (const [role, routes] of Object.entries(MATRIX) as [keyof typeof MATRIX, Record<string, string>][]) {

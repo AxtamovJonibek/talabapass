@@ -39,16 +39,21 @@ export function StatusDesktop({ sentAt, queuePosition, rejected }: Props) {
         </>
       }
     >
-      <div className="relative flex flex-col gap-[18px]">
-        <div
-          className={cn(
-            "absolute top-0 right-0 -rotate-10 rounded-8 border-[3px] border-solid px-3 py-1 text-26 font-black tracking-[0.06em] font-stretch-75%",
-            rejected ? "border-danger text-danger" : "border-orange text-orange-ink",
-          )}
-        >
-          {rejected ? t("status.stampRejected") : t("status.stampPending")}
+      <div className="flex flex-col gap-[18px]">
+        {/* Dizaynda muhr absolute bo'lib, tavsif matnining ustiga tushardi. Endi sarlavha bilan bir qatorda va
+            pastdan joy oladi: burilgan burchaklari ham matnga tegmaydi. */}
+        <div className="flex items-start justify-between gap-4">
+          <OnboardingHeading className="max-w-[70%]">{rejected ? t("web.rejectedTitle") : t("web.statusTitle")}</OnboardingHeading>
+          <div
+            data-testid="status-stamp-web"
+            className={cn(
+              "mt-1 mb-3 shrink-0 -rotate-10 rounded-8 border-[3px] border-solid px-3 py-1 text-26 font-black tracking-[0.06em] font-stretch-75%",
+              rejected ? "border-danger text-danger" : "border-orange text-orange-ink",
+            )}
+          >
+            {rejected ? t("status.stampRejected") : t("status.stampPending")}
+          </div>
         </div>
-        <OnboardingHeading className="max-w-[70%]">{rejected ? t("web.rejectedTitle") : t("web.statusTitle")}</OnboardingHeading>
         <p className="m-0 max-w-[520px] text-16 leading-[1.5] text-muted">{rejected ? t("status.leadRejected") : t("web.statusLead")}</p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))] gap-2.5">
           <Fact label={t("web.sentLabel")} mono>

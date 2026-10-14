@@ -124,7 +124,7 @@ test.describe("guvohnoma yuklash", () => {
 
     const { admin } = await seedPhones();
     await signIn(page, admin);
-    await expect(page).toHaveURL("/admin");
+    await expect(page).toHaveURL("/admin/talabalar");
     const asAdmin = await page.request.post("/api/talaba/guvohnoma", { data: JPEG, headers: { "content-type": "application/octet-stream" } });
     expect(asAdmin.status()).toBe(401);
   });

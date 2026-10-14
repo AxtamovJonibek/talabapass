@@ -12,6 +12,8 @@ export type SidebarItem = {
   count?: ReactNode;
   /** To'q sariq hisoblagich: navbatdagi arizalar soni (A2) */
   badge?: ReactNode;
+  /** Hali tayyor bo'lmagan bo'lim: xira, bosilmaydi */
+  disabled?: boolean;
 };
 
 type SidebarProps = {
@@ -32,7 +34,17 @@ export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProp
     <aside className="box-border flex max-w-full flex-[1_1_220px] flex-col gap-[22px] bg-ink px-4 py-6 text-paper">
       {header}
       <nav aria-label={navLabel} className="flex flex-col gap-0.5">
-        {items.map((item) => (
+        {items.map((item) =>
+          item.disabled ? (
+            <span
+              key={item.href}
+              aria-disabled="true"
+              className="flex h-[42px] cursor-not-allowed items-center gap-2.5 rounded-10 px-3 text-14 font-semibold text-fog-1 opacity-40"
+            >
+              <Icon name={item.icon} size={18} />
+              {item.label}
+            </span>
+          ) : (
           <Link
             key={item.href}
             href={item.href}
@@ -53,7 +65,8 @@ export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProp
               <span className={cn("ml-auto font-mono text-12", item.active ? null : "text-fog-3")}>{item.count}</span>
             ) : null}
           </Link>
-        ))}
+          ),
+        )}
       </nav>
       {footer ? <div className="mt-auto">{footer}</div> : null}
     </aside>

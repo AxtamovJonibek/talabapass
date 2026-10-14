@@ -234,6 +234,19 @@ o'zgarsa qayta `PENDING_REVIEW`; to'xtatish/yoqish, kunlik son, kun/soat oralig'
 Muddat o'tsa talaba `EXPIRED`: yangi guvohnoma yuklashga yo'naltiriladi, chegirma ololmaydi, tarixi
 saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — cron'ga tayanilmaydi.
 
+## Ishga tushishdan oldin (majburiy ro'yxat)
+Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilgan bo'lishi kerak:
+- [ ] **Admin uchun TOTP ikkinchi faktor** (authenticator ilova): admin kirishi SMS + TOTP; zaxira kodlar;
+      admin sessiyasi qisqaroq. SMS'ning o'zi (SIM almashtirish) admin uchun yetarli emas.
+- [ ] SMS provayder (Eskiz.uz yoki boshqa) ulangan; `SMS_PROVIDER=dev` va `OTP_FIXED_CODE` yo'q (server baribir ishga tushmaydi).
+- [ ] Fayllar Cloudflare R2'da (lokal disk Vercel'da ishlamaydi); bucket private.
+- [ ] Ma'lumotlarni saqlash joyi va W3 matni ("O'zbekiston hududidagi serverlar") — yurist bilan kelishilgan.
+- [ ] Huquqiy matnlardagi `[EMAIL]`, `[STIR]`, `[TARIF MA'LUMOTI]`, `[N] kun` va h.k. to'ldirilgan.
+- [ ] Guvohnoma rasmlari tekshiruvdan keyin `[N]` kunda o'chiriladi (siyosatda va'da qilingan) — cron.
+- [ ] `pruneOtpData` va eskirgan kuponlarni yopish cron'lari ulangan.
+- [ ] PDF ichidagi rasmlarning EXIF'i tozalanmaydi — PDF'ni rasmga aylantirish yoki shu cheklovni qabul qilish.
+- [ ] Rate limit IP'si: hosting `x-forwarded-for` ni o'zi yozishini tekshirish (Vercel — ha).
+
 ## Ochiq masalalar
 - W3 matnida "ma'lumotlar O'zbekiston hududidagi serverlarda saqlanadi" deyilgan, hosting esa
   Vercel/Neon/R2. Production'gacha yurist bilan hal qilinadi; matn o'zboshimchalik bilan o'zgartirilmaydi.

@@ -31,6 +31,7 @@ export const ICONS = {
   grid: "M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z",
   bell: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4",
   file: "M14 3H6v18h12V7zM14 3v4h4",
+  logout: "M14 4h5v16h-5M10 8l-4 4 4 4M6 12h11",
   chevronDown: "M6 9l6 6 6-6",
   check: "M5 12l5 5 9-10",
   download: "M12 4v12M7 11l5 5 5-5M4 20h16",

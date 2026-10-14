@@ -44,7 +44,7 @@ async function sessionCount(userId: string) {
 
 async function asAdmin(page: Page) {
   await signIn(page, (await seedPhones()).admin);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/admin/talabalar");
 }
 
 async function loggedIn(context: BrowserContext, token: string, baseURL: string) {

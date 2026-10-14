@@ -45,9 +45,11 @@ export function OnboardingShell({ step, showLogin = false, children, footer }: P
       </header>
 
       <div className="mx-auto box-border flex w-full max-w-[1280px] flex-1 flex-wrap items-start gap-[clamp(24px,5cqw,64px)] px-[clamp(16px,4cqw,48px)] py-[clamp(28px,5cqw,64px)]">
-        <aside className="min-w-0 flex-[1_1_300px]">
+        {/* Sarlavha o'lchami chap ustun kengligiga bog'liq (cqi): "chegirmalar" kabi uzun so'z ham ustunga sig'adi
+            va o'ng kartaga yaqinlashmaydi (dizaynda 1280–1440px da deyarli tegib turardi). */}
+        <aside className="@container min-w-0 flex-[1_1_300px]">
           <div className="text-13 font-extrabold tracking-[0.1em] text-blue">{t("eyebrow")}</div>
-          <h1 className="mt-2.5 mb-0 text-[clamp(36px,4.4cqw,60px)] leading-[0.95] font-black tracking-[-0.04em] font-stretch-112%">
+          <h1 className="mt-2.5 mb-0 text-[clamp(32px,16cqi,60px)] leading-[0.95] font-black tracking-[-0.04em] font-stretch-112%">
             {t("title")}
           </h1>
           <ol className="mt-[30px] mb-0 flex list-none flex-col gap-2 p-0">

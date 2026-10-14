@@ -1,6 +1,9 @@
-import { PlaceholderHome } from "@/components/auth/placeholder-home";
+import { getLocale } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
+import { requireRole } from "@/server/auth/session";
 
-// 10-bosqichda: A1 — admin umumiy ko'rinish
-export default function AdminHomePage() {
-  return <PlaceholderHome area="admin" roles={["ADMIN"]} />;
+// TODO(10-bosqich): A1 — admin umumiy ko'rinishi. Hozircha tekshiruv navbatiga yo'naltiriladi.
+export default async function AdminHomePage() {
+  await requireRole("ADMIN");
+  redirect({ href: "/admin/talabalar", locale: await getLocale() });
 }
