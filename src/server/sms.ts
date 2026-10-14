@@ -1,5 +1,5 @@
 import "server-only";
-import { isProduction } from "./env";
+import { devShortcutsAllowed } from "./env-check";
 
 /**
  * SMS yuborish adapteri. Hozircha faqat dev rejim: kod server log'iga chiqadi.
@@ -17,10 +17,12 @@ const devSender: SmsSender = {
 };
 
 function resolveSender(): SmsSender {
-  const provider = (process.env.SMS_PROVIDER ?? "").trim().toLowerCase() || (isProduction ? "" : "dev");
+  // Dev rejim: ishlab chiqishda va sinov serverida (APP_ENV=staging) — env-check.ts.
+  const devAllowed = devShortcutsAllowed();
+  const provider = (process.env.SMS_PROVIDER ?? "").trim().toLowerCase() || (devAllowed ? "dev" : "");
   if (provider === "dev") {
     // Server start'dagi tekshiruvdan (env-check.ts) keyingi ikkinchi qulf.
-    if (isProduction) throw new Error("SMS_PROVIDER=dev production'da ishlatilmaydi.");
+    if (!devAllowed) throw new Error("SMS_PROVIDER=dev production'da ishlatilmaydi.");
     return devSender;
   }
   throw new Error(provider ? `Noma'lum SMS_PROVIDER: ${provider}` : "SMS provayder ulanmagan.");

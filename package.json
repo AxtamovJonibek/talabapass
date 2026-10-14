@@ -14,6 +14,9 @@
     "db:dev": "prisma dev --name talabapass-dev",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "vercel-build": "prisma migrate deploy && next build",
+    "staging:migrate": "node scripts/with-env.mjs .env.staging prisma migrate deploy",
+    "staging:seed": "node scripts/with-env.mjs .env.staging prisma db seed",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "design:gen": "node scripts/design-to-jsx.mjs",
@@ -27,6 +30,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "aws4fetch": "1.0.20",
     "heic-convert": "^2.1.0",
     "next": "16.4.0",
     "next-intl": "^4.14.9",

@@ -268,6 +268,19 @@ skan 60 daqiqa ichida. Dizayndan chetlanish: kassir qatorida "×" (o'chirish), t
 Muddat o'tsa talaba `EXPIRED`: yangi guvohnoma yuklashga yo'naltiriladi, chegirma ololmaydi, tarixi
 saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — cron'ga tayanilmaydi.
 
+## Sinov serveri (staging)
+- Alohida Vercel loyihasi + alohida Neon baza + alohida private bucket. `APP_ENV=staging` (build vaqtida ham kerak —
+  o'zgartirilsa Redeploy). Env ro'yxati: `.env.staging.example`.
+- `APP_ENV=staging` da: butun sayt Basic Auth (`proxy.ts`, parol `STAGING_PASSWORD` ≥ 12, foydalanuvchi nomi ixtiyoriy),
+  `X-Robots-Tag` + `robots` meta noindex, "Sinov versiyasi" belgisi (`StagingBadge`, dizaynda yo'q), `OTP_FIXED_CODE`
+  va `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Start'da parol va `STORAGE_DRIVER=s3` majburiy.
+  `APP_ENV` yo'q/boshqa qiymat — production qoidalari o'zgarmagan (`env-check.test.ts`).
+- `/api` Basic Auth'dan o'tmaydi (proxy tanani buferlaydi — yuklashlar); API o'z sessiyasini tekshiradi.
+- Fayllar: `STORAGE_DRIVER=s3` (`storage/s3.ts`) — R2 yoki Supabase S3 endpoint, path-style.
+- Vercel build: `vercel-build` = `prisma migrate deploy && next build` (migratsiya `DATABASE_URL_UNPOOLED` orqali).
+  Seed: `.env.staging` to'ldirib `npm run staging:seed`.
+- Ma'lum cheklov: Vercel so'rov tanasi ≤ 4.5 MB — undan katta guvohnoma/hujjat yuklanmaydi (presigned yuklash keyin).
+
 ## Ishga tushishdan oldin (majburiy ro'yxat)
 Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilgan bo'lishi kerak:
 - [ ] **Admin uchun TOTP ikkinchi faktor** (authenticator ilova): admin kirishi SMS + TOTP; zaxira kodlar;

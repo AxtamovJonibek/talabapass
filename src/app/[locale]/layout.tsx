@@ -4,6 +4,8 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { resolveLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
+import { StagingBadge } from "@/components/StagingBadge";
+import { isStaging } from "@/server/env-check";
 import "../globals.css";
 
 // Archivo — variable shrift; `wdth` o'qi dizayndagi font-stretch (62–125%) uchun shart.
@@ -29,7 +31,11 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: "meta" });
-  return { title: t("title"), description: t("description") };
+  return {
+    title: t("title"),
+    description: t("description"),
+    ...(isStaging() && { robots: { index: false, follow: false } }),
+  };
 }
 
 export const viewport: Viewport = {
@@ -38,11 +44,13 @@ export const viewport: Viewport = {
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
   const locale = await resolveLocale(params);
+  const t = await getTranslations({ locale, namespace: "meta" });
 
   return (
     <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        {isStaging() && <StagingBadge label={t("stagingBadge")} />}
       </body>
     </html>
   );

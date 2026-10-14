@@ -2,13 +2,14 @@ import "server-only";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
 import { isSafeKey } from "./file-rules";
+import { s3ConfigFromEnv, s3Storage } from "./s3";
 
 /**
  * Private fayl ombori: talaba guvohnomalari va biznes hujjatlari.
  * Hech qachon public URL bermaydi — fayl faqat ruxsat tekshirilgan server kodi orqali o'qiladi.
  *
- * Hozir: lokal disk (`STORAGE_LOCAL_DIR`, standart `.data/private`).
- * Keyin: Cloudflare R2 — shu interfeysni amalga oshiruvchi ikkinchi adapter (`STORAGE_DRIVER=r2`).
+ * Lokal disk (`STORAGE_LOCAL_DIR`, standart `.data/private`) yoki S3-mos private bucket — R2 / Supabase
+ * (`STORAGE_DRIVER=s3`, s3.ts).
  * R2'da 10 MB gacha fayl to'g'ridan-to'g'ri presigned URL bilan yuklanadi (Vercel so'rov hajmini 4.5 MB bilan cheklaydi).
  */
 export interface PrivateStorage {
@@ -52,5 +53,6 @@ export function storage(): PrivateStorage {
   if (instance) return instance;
   const driver = (process.env.STORAGE_DRIVER ?? "local").trim().toLowerCase();
   if (driver === "local") return (instance = localDisk(process.env.STORAGE_LOCAL_DIR ?? ".data/private"));
+  if (driver === "s3") return (instance = s3Storage(s3ConfigFromEnv()));
   throw new Error(`Noma'lum STORAGE_DRIVER: ${driver}`);
 }

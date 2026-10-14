@@ -1,21 +1,49 @@
 /**
- * Muhit o'zgaruvchilarini tekshirish — sof funksiya (server-only emas: instrumentation va testlardan chaqiriladi).
+ * Muhit o'zgaruvchilarini tekshirish — sof funksiya (server-only emas: instrumentation, proxy va testlardan chaqiriladi).
  * Production'da ishlab chiqish uchun mo'ljallangan "qulayliklar" yoqilgan bo'lsa server ishga tushmaydi.
+ *
+ * Istisno — sinov serveri (`APP_ENV=staging`): production build, lekin butun sayt Basic Auth ortida
+ * (`STAGING_PASSWORD`), shuning uchun OTP_FIXED_CODE va SMS_PROVIDER=dev ruxsat etiladi.
+ * `APP_ENV` yo'q yoki boshqa qiymat — oddiy production qoidalari.
  */
 type Env = Record<string, string | undefined>;
+
+export const STAGING_PASSWORD_MIN = 12;
+const S3_VARS = ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const;
+
+export function isStaging(env: Env = process.env): boolean {
+  return (env.APP_ENV ?? "").trim().toLowerCase() === "staging";
+}
+
+/** OTP_FIXED_CODE va SMS dev rejimi ishlaydimi: ishlab chiqish/test yoki sinov serveri. */
+export function devShortcutsAllowed(env: Env = process.env): boolean {
+  return env.NODE_ENV !== "production" || isStaging(env);
+}
 
 export function productionEnvProblems(env: Env): string[] {
   if (env.NODE_ENV !== "production") return [];
   const problems: string[] = [];
 
-  if (env.OTP_FIXED_CODE) {
-    problems.push("OTP_FIXED_CODE o'rnatilgan: production'da hamma shu kod bilan istalgan hisobga kira oladi. O'chiring.");
-  }
-  if ((env.SMS_PROVIDER ?? "").trim().toLowerCase() === "dev") {
-    problems.push("SMS_PROVIDER=dev: kodlar SMS o'rniga server log'iga chiqadi. Haqiqiy provayderni ulang.");
-  }
-  if (!env.SMS_PROVIDER?.trim()) {
-    problems.push("SMS_PROVIDER o'rnatilmagan: hech kim tizimga kira olmaydi.");
+  if (isStaging(env)) {
+    if (!env.STAGING_PASSWORD || env.STAGING_PASSWORD.length < STAGING_PASSWORD_MIN) {
+      problems.push(`APP_ENV=staging: STAGING_PASSWORD o'rnatilmagan yoki ${STAGING_PASSWORD_MIN} belgidan qisqa — sayt ochiq qolardi.`);
+    }
+    if ((env.STORAGE_DRIVER ?? "local").trim().toLowerCase() !== "s3") {
+      problems.push("APP_ENV=staging: STORAGE_DRIVER=s3 kerak (Vercel'da lokal disk fayllarni yo'qotadi).");
+    } else {
+      const missing = S3_VARS.filter((name) => !env[name]?.trim());
+      if (missing.length) problems.push(`STORAGE_DRIVER=s3: ${missing.join(", ")} o'rnatilmagan.`);
+    }
+  } else {
+    if (env.OTP_FIXED_CODE) {
+      problems.push("OTP_FIXED_CODE o'rnatilgan: production'da hamma shu kod bilan istalgan hisobga kira oladi. O'chiring.");
+    }
+    if ((env.SMS_PROVIDER ?? "").trim().toLowerCase() === "dev") {
+      problems.push("SMS_PROVIDER=dev: kodlar SMS o'rniga server log'iga chiqadi. Haqiqiy provayderni ulang.");
+    }
+    if (!env.SMS_PROVIDER?.trim()) {
+      problems.push("SMS_PROVIDER o'rnatilmagan: hech kim tizimga kira olmaydi.");
+    }
   }
   if (!env.AUTH_SECRET || env.AUTH_SECRET.length < 32) {
     problems.push("AUTH_SECRET o'rnatilmagan yoki 32 belgidan qisqa.");

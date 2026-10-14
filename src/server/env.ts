@@ -1,4 +1,5 @@
 import "server-only";
+import { devShortcutsAllowed } from "./env-check";
 
 /** Imzolar va xeshlar uchun server siri. Kamida 32 belgi. */
 export function authSecret(): string {
@@ -12,10 +13,11 @@ export function authSecret(): string {
 export const isProduction = process.env.NODE_ENV === "production";
 
 /**
- * Faqat ishlab chiqish/test uchun: belgilansa har bir SMS kod shu qiymat bo'ladi.
- * Production'da server bu o'zgaruvchi bilan umuman ishga tushmaydi (env-check.ts); bu yerdagi tekshiruv — ikkinchi qulf.
+ * Faqat ishlab chiqish/test va sinov serveri (`APP_ENV=staging`, Basic Auth ortida) uchun: belgilansa har bir SMS kod
+ * shu qiymat bo'ladi. Production'da server bu o'zgaruvchi bilan umuman ishga tushmaydi (env-check.ts);
+ * bu yerdagi tekshiruv — ikkinchi qulf.
  */
 export function fixedOtpForDev(): string | null {
   const code = process.env.OTP_FIXED_CODE;
-  return !isProduction && code && /^\d{6}$/.test(code) ? code : null;
+  return devShortcutsAllowed() && code && /^\d{6}$/.test(code) ? code : null;
 }
