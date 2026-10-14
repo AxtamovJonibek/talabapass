@@ -2,11 +2,13 @@ import "server-only";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import type { Role } from "@/generated/prisma/client";
 import { db } from "../db";
-import { authSecret, isProduction } from "../env";
+import { authSecret } from "../env";
+import { authCookieOptions as cookieOptions } from "./cookie-options";
 
 const SESSION_COOKIE = "tp_session";
 const VERIFIED_PHONE_COOKIE = "tp_verified_phone";
@@ -14,10 +16,6 @@ const SESSION_TTL_MS = 30 * 24 * 60 * 60_000;
 const VERIFIED_PHONE_TTL_MS = 30 * 60_000;
 
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
-
-function cookieOptions(maxAgeMs: number) {
-  return { httpOnly: true, secure: isProduction, sameSite: "lax" as const, path: "/", maxAge: Math.floor(maxAgeMs / 1000) };
-}
 
 // ───────── sessiya ─────────
 
@@ -34,6 +32,13 @@ export async function destroySession(): Promise<void> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (token) await db.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   store.delete(SESSION_COOKIE);
+}
+
+/** Foydalanuvchining barcha qurilmalardagi sessiyalarini yopadi (bloklash, hisobni o'chirish). */
+export async function revokeUserSessions(userIds: string | string[]): Promise<number> {
+  const ids = Array.isArray(userIds) ? userIds : [userIds];
+  if (ids.length === 0) return 0;
+  return (await db.session.deleteMany({ where: { userId: { in: ids } } })).count;
 }
 
 /** Joriy foydalanuvchi (bir so'rov ichida bir marta o'qiladi). Bloklangan yoki sessiyasi eskirgan bo'lsa — null. */
@@ -105,6 +110,8 @@ export async function rememberVerifiedPhone(phone: string): Promise<void> {
 }
 
 export async function getVerifiedPhone(): Promise<string | null> {
+  // Muddat joriy vaqt bilan solishtiriladi — faqat so'rov vaqtida hisoblanadi (prerender'da emas).
+  await connection();
   const raw = (await cookies()).get(VERIFIED_PHONE_COOKIE)?.value;
   if (!raw) return null;
   const cut = raw.lastIndexOf(".");

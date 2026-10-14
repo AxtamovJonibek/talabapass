@@ -9,9 +9,17 @@ import { requestOtp, verifyOtp } from "../auth/otp";
 import { createSession, destroySession, homePathFor, rememberVerifiedPhone } from "../auth/session";
 import { db } from "../db";
 
-export type AuthError = "phone" | "tooSoon" | "hourlyLimit" | "sms" | "wrongCode" | "expired" | "locked" | "blocked";
+export type AuthError = "phone" | "tooSoon" | "dailyLimit" | "ipLimit" | "sms" | "wrongCode" | "expired" | "locked" | "blocked";
 export type RequestCodeResult = { ok: true; phone: string } | { ok: false; error: AuthError; retryInSeconds?: number };
 export type VerifyCodeResult = { ok: false; error: AuthError };
+
+const SEND_ERRORS = { too_soon: "tooSoon", daily_limit: "dailyLimit", ip_limit: "ipLimit", locked: "locked" } as const;
+
+/** So'rov yuborgan IP. Vercel x-forwarded-for ni o'zi qo'yadi (mijoz yuborganini ustidan yozadi). */
+async function clientIp(): Promise<string> {
+  const h = await headers();
+  return h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
 
 const intentSchema = z.enum(["student", "business"]);
 
@@ -22,10 +30,8 @@ export async function requestCodeAction(rawPhone: string): Promise<RequestCodeRe
 
   const t = await getTranslations("auth");
   try {
-    const sent = await requestOtp(phone, (code) => t("sms", { code }));
-    if (!sent.ok) {
-      return { ok: false, error: sent.reason === "too_soon" ? "tooSoon" : "hourlyLimit", retryInSeconds: Math.ceil(sent.retryInMs / 1000) };
-    }
+    const sent = await requestOtp(phone, await clientIp(), (code) => t("sms", { code }));
+    if (!sent.ok) return { ok: false, error: SEND_ERRORS[sent.reason], retryInSeconds: Math.ceil(sent.retryInMs / 1000) };
   } catch (error) {
     console.error("SMS yuborilmadi:", error);
     return { ok: false, error: "sms" };

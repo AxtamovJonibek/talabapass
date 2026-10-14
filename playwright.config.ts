@@ -13,6 +13,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [["list"]],
+  // Dev server sahifani birinchi ochishda kompilyatsiya qiladi — standart 5 soniya yetmasligi mumkin.
+  expect: { timeout: 15_000 },
   use: { baseURL: `http://localhost:${port}`, locale: "uz-UZ", timezoneId: "Asia/Tashkent" },
   webServer: {
     command: `npm run dev -- --port ${port}`,

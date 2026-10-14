@@ -22,7 +22,7 @@ export async function PlaceholderRegister({ kind }: { kind: "student" | "busines
         </p>
       ) : null}
       <p className="m-0 text-13 text-muted">{t("placeholder.comingSoon")}</p>
-      <ButtonLink href="/kirish" variant="outline" size="sm">
+      <ButtonLink href={kind === "business" ? "/kirish?rol=biznes" : "/kirish"} variant="outline" size="sm">
         {t("common.login")}
       </ButtonLink>
     </main>

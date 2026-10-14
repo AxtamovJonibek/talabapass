@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { buttonClass } from "@/components/ui/button";
 import { Field, PhoneInput } from "@/components/ui/field";
@@ -36,9 +36,15 @@ const STUBS = {
 const clock = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
 /** W2 / W2m — kirish: telefon → SMS kod. Talaba va biznes uchun bitta ekran, ikki mavzu. */
+const subscribeToNothing = () => () => {};
+/** Manzildagi `?rol=biznes` — faqat brauzerda o'qiladi (sahifa statik qoladi, kiritilgan matn yo'qolmaydi). */
+const roleFromUrl = (): Role => (new URLSearchParams(window.location.search).get("rol") === "biznes" ? "business" : "student");
+
 export function LoginScreen() {
   const t = useTranslations("auth");
-  const [role, setRole] = useState<Role>("student");
+  const urlRole = useSyncExternalStore<Role>(subscribeToNothing, roleFromUrl, () => "student");
+  const [pickedRole, setRole] = useState<Role | null>(null);
+  const role = pickedRole ?? urlRole;
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phoneInput, setPhoneInput] = useState("");
   const [phone, setPhone] = useState("");
@@ -58,10 +64,12 @@ export function LoginScreen() {
 
   // Formalar `action` orqali ulanadi: sahifa hali ulanmagan paytda bosilsa ham React yuborishni ushlab qoladi
   // (aks holda brauzer raqamni manzil satriga GET bilan yuborar edi).
-  function sendCode() {
+  // Raqam holatdan emas, formaning o'zidan o'qiladi: sahifa ulanmasdan oldin yozilgan matn ham yo'qolmaydi.
+  function sendCode(rawPhone: string = phoneInput) {
     setFailure(null);
+    setPhoneInput(rawPhone);
     startTransition(async () => {
-      const result = await requestCodeAction(phoneInput);
+      const result = await requestCodeAction(rawPhone);
       if (!result.ok) {
         setFailure(result);
         // Kod yaqinda yuborilgan bo'lsa ham kiritish qadamiga o'tamiz — foydalanuvchida kod bor.
@@ -88,7 +96,9 @@ export function LoginScreen() {
     });
   }
 
-  const errorText = failure ? t(`errors.${failure.error}`, { seconds: failure.retryInSeconds ?? 0 }) : null;
+  const errorText = failure
+    ? t(`errors.${failure.error}`, { seconds: failure.retryInSeconds ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
+    : null;
 
   return (
     <div className="@container flex min-h-screen flex-wrap bg-paper text-ink">
@@ -150,7 +160,7 @@ export function LoginScreen() {
           {step === "phone" ? (
             <form
               className="flex flex-col gap-3.5"
-              action={sendCode}
+              action={(form) => sendCode(String(form.get("phone") ?? ""))}
             >
               <Field label={t("phoneLabel")} htmlFor="login-phone" error={errorText}>
                 <PhoneInput
@@ -159,8 +169,7 @@ export function LoginScreen() {
                   size="lg"
                   autoFocus
                   invalid={failure?.error === "phone"}
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
+                  defaultValue={phoneInput}
                 />
               </Field>
               <button type="submit" disabled={pending} className={buttonClass({ variant: cta, strong: true })}>
@@ -194,7 +203,7 @@ export function LoginScreen() {
                       {t("resendIn")} <b className="font-mono text-ink">{clock(resendIn)}</b>
                     </span>
                   ) : (
-                    <button type="button" onClick={sendCode} disabled={pending} className="border-0 bg-transparent p-0 font-sans text-13 font-bold text-blue">
+                    <button type="button" onClick={() => sendCode()} disabled={pending} className="border-0 bg-transparent p-0 font-sans text-13 font-bold text-blue">
                       {t("resend")}
                     </button>
                   )}

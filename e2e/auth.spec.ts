@@ -28,16 +28,27 @@ test.describe("kirish", () => {
     await expect(page).toHaveURL(HOME.student);
   });
 
-  test("5 ta xato urinishdan keyin to'g'ri kod ham o'tmaydi", async ({ page }) => {
+  test("5 ta xato urinish: kod bekor bo'ladi, raqam bloklanadi, to'g'ri kod va yangi kod so'rash ishlamaydi", async ({ page }) => {
     await requestCode(page, phones.student);
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       await enterCode(page, "111111");
       await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
       await expect(page.getByLabel("1-raqam")).toBeEnabled();
     }
+    await enterCode(page, "111111");
+    await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
+    await expect(page.getByLabel("1-raqam")).toBeEnabled();
+
     await enterCode(page, FIXED_CODE);
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
     await expect(page).toHaveURL("/kirish");
+
+    // yangi kod so'rash ham blok tugaguncha rad etiladi
+    await page.getByRole("button", { name: "Raqamni o'zgartirish" }).click();
+    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
+    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
+    expect(codes.rows[0].n).toBe(1);
   });
 
   test("kod bir martalik: ishlatilgan kod bilan qayta kirib bo'lmaydi", async ({ page, context }) => {
@@ -56,6 +67,47 @@ test.describe("kirish", () => {
     await expect(page.getByText("Kod hozirgina yuborildi")).toBeVisible();
     const count = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
     expect(count.rows[0].n).toBe(1);
+  });
+
+  test("bitta IP'dan soatiga 10 ta so'rovdan keyin kod yuborilmaydi", async ({ page }) => {
+    await requestCode(page, phones.student);
+    // Shu brauzer IP'si nomidan yana 9 ta so'rov yozib qo'yamiz (jami 10)
+    await withDb((db) => db.query(`INSERT INTO "RateLimitHit" (id, key) SELECT 'e2e_hit_' || n, (SELECT key FROM "RateLimitHit" LIMIT 1) FROM generate_series(1, 9) n`));
+    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await page.locator("#login-phone").fill("90 555 09 96");
+    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await expect(page.getByText("Juda ko'p so'rov yuborildi")).toBeVisible();
+    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = '+998905550996'`));
+    expect(codes.rows[0].n).toBe(0);
+  });
+
+  test("faqat +998: boshqa davlat raqamiga kod yuborilmaydi", async ({ page }) => {
+    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await page.locator("#login-phone").fill("+7 904 123 78 56");
+    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
+    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone LIKE '+7%' OR phone LIKE '%9041237856'`));
+    expect(codes.rows[0].n).toBe(0);
+  });
+
+  test("sessiya cookie: httpOnly va SameSite=Lax, JS orqali o'qib bo'lmaydi", async ({ page, context }) => {
+    await signIn(page, phones.student);
+    await expect(page).toHaveURL(HOME.student);
+    const cookie = (await context.cookies()).find((c) => c.name === "tp_session");
+    expect(cookie).toBeDefined();
+    expect(cookie!.httpOnly).toBe(true);
+    expect(cookie!.sameSite).toBe("Lax");
+    expect(cookie!.path).toBe("/");
+    // Secure `next dev` (http) da ataylab o'chiq; production qiymati cookie-options.test.ts da tekshiriladi.
+    expect(await page.evaluate(() => document.cookie)).not.toContain("tp_session");
+  });
+
+  test("/kirish?rol=biznes Biznes tabini ochadi", async ({ page }) => {
+    await page.goto("/kirish?rol=biznes", { waitUntil: "networkidle" });
+    await expect(page.getByRole("tab", { name: "Biznes" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("heading", { name: "Biznes kabinetiga kirish" })).toBeVisible();
+    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await expect(page.getByRole("tab", { name: "Talaba" })).toHaveAttribute("aria-selected", "true");
   });
 
   test("noto'g'ri raqam uchun kod yuborilmaydi", async ({ page }) => {

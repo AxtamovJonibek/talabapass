@@ -57,9 +57,21 @@ model OtpCode {
   expiresAt  DateTime
   attempts   Int       @default(0)
   consumedAt DateTime?
+  /// 5 ta xato urinishdan keyin: kod bekor, raqam shu vaqtgacha bloklangan
+  lockedUntil DateTime?
   createdAt  DateTime  @default(now())
 
   @@index([phone, createdAt])
+}
+
+/// So'rovlar chegarasi uchun hisob (masalan, bitta IP'dan soatiga 10 ta SMS so'rovi).
+/// key — "otp-ip:<IP ning HMAC xeshi>"; IP ochiq saqlanmaydi.
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }
 
 model Session {

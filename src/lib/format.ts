@@ -43,10 +43,15 @@ export function formatPhone(e164: string): string {
   return m ? `+998 ${m[1]} ${m[2]} ${m[3]} ${m[4]}` : e164;
 }
 
-/** Foydalanuvchi kiritgan raqamni E.164 ga keltiradi; noto'g'ri bo'lsa null. */
+/**
+ * Foydalanuvchi kiritgan raqamni E.164 ga keltiradi; noto'g'ri bo'lsa null.
+ * Faqat O'zbekiston raqamlari: natija har doim +998 va 9 raqam. Boshqa davlat kodi ("+7…", "+1…") rad etiladi.
+ */
 export function normalizePhone(input: string): string | null {
-  const digits = input.replace(/\D/g, "");
-  const local = digits.startsWith("998") ? digits.slice(3) : digits;
+  const trimmed = input.trim();
+  if (trimmed.startsWith("+") && !/^\+\s*998/.test(trimmed)) return null;
+  const digits = trimmed.replace(/\D/g, "");
+  const local = digits.startsWith("998") && digits.length === 12 ? digits.slice(3) : digits;
   return /^\d{9}$/.test(local) ? `+998${local}` : null;
 }
 

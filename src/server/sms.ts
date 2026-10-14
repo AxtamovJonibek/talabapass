@@ -17,13 +17,13 @@ const devSender: SmsSender = {
 };
 
 function resolveSender(): SmsSender {
-  const provider = process.env.SMS_PROVIDER ?? (isProduction ? "" : "dev");
-  if (provider === "dev") return devSender;
-  throw new Error(
-    provider
-      ? `Noma'lum SMS_PROVIDER: ${provider}`
-      : "SMS provayder ulanmagan. Sinov muhitida SMS_PROVIDER=dev qo'ying (kodlar log'ga chiqadi).",
-  );
+  const provider = (process.env.SMS_PROVIDER ?? "").trim().toLowerCase() || (isProduction ? "" : "dev");
+  if (provider === "dev") {
+    // Server start'dagi tekshiruvdan (env-check.ts) keyingi ikkinchi qulf.
+    if (isProduction) throw new Error("SMS_PROVIDER=dev production'da ishlatilmaydi.");
+    return devSender;
+  }
+  throw new Error(provider ? `Noma'lum SMS_PROVIDER: ${provider}` : "SMS provayder ulanmagan.");
 }
 
 export async function sendSms(phone: string, text: string): Promise<void> {

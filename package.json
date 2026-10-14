@@ -19,7 +19,8 @@
     "design:gen": "node scripts/design-to-jsx.mjs",
     "design:compare": "node scripts/compare.mjs",
     "design:probe": "node scripts/probe.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:db": "vitest run --config vitest.db.config.mts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",

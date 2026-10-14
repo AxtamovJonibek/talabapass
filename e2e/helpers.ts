@@ -13,7 +13,8 @@ export async function withDb<T>(run: (client: pg.Client) => Promise<T>): Promise
   }
 }
 
-export const FIXED_CODE = process.env.OTP_FIXED_CODE ?? "000000";
+/** .env.development dagi OTP_FIXED_CODE bilan bir xil bo'lishi kerak. */
+export const FIXED_CODE = "000000";
 
 export type SeedPhones = { admin: string; student: string; owner: string; cashier: string };
 
@@ -36,7 +37,11 @@ export async function seedPhones(): Promise<SeedPhones> {
 
 /** SMS chegaralari (60 soniyada 1 ta, soatiga 5 ta) testlarga xalaqit bermasligi uchun raqamning kodlarini tozalaydi. */
 export async function clearOtp(phone: string): Promise<void> {
-  await withDb((db) => db.query(`DELETE FROM "OtpCode" WHERE phone = $1`, [phone]));
+  await withDb(async (db) => {
+    await db.query(`DELETE FROM "OtpCode" WHERE phone = $1`, [phone]);
+    // Testlar bitta IP'dan keladi — soatiga 10 ta so'rov chegarasi ham tozalanadi.
+    await db.query(`DELETE FROM "RateLimitHit" WHERE key LIKE 'otp-ip:%'`);
+  });
 }
 
 /** +998XXXXXXXXX → formaga yoziladigan 9 raqam */

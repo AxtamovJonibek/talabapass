@@ -13,7 +13,7 @@ export const isProduction = process.env.NODE_ENV === "production";
 
 /**
  * Faqat ishlab chiqish/test uchun: belgilansa har bir SMS kod shu qiymat bo'ladi.
- * Production'da e'tiborga olinmaydi.
+ * Production'da server bu o'zgaruvchi bilan umuman ishga tushmaydi (env-check.ts); bu yerdagi tekshiruv — ikkinchi qulf.
  */
 export function fixedOtpForDev(): string | null {
   const code = process.env.OTP_FIXED_CODE;

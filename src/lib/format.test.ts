@@ -45,6 +45,20 @@ describe("telefon", () => {
     expect(normalizePhone("998904123785")).toBe("+998904123785");
   });
 
+  it("faqat +998: boshqa davlat kodlari rad etiladi", () => {
+    expect(normalizePhone("+7 904 123 78 56")).toBeNull();
+    expect(normalizePhone("+7 90 412 37 85")).toBeNull();
+    expect(normalizePhone("+1 904123785")).toBeNull();
+    expect(normalizePhone("+44 7911 123456")).toBeNull();
+    expect(normalizePhone("+99890412378")).toBeNull();
+    expect(normalizePhone("79041237856")).toBeNull();
+    expect(normalizePhone("0090412378599")).toBeNull();
+    // natija har doim +998 bilan boshlanadi
+    for (const input of ["90 412 37 85", "998904123785", "+998 90 412 37 85", " +998904123785 "]) {
+      expect(normalizePhone(input)).toMatch(/^\+998\d{9}$/);
+    }
+  });
+
   it("noto'g'ri raqamni rad etadi", () => {
     expect(normalizePhone("90 412 37")).toBeNull();
     expect(normalizePhone("")).toBeNull();

@@ -19,7 +19,8 @@ npm run dev          ishlab chiqish serveri
 npm run build        production build
 npm run lint         ESLint
 npm run typecheck    tsc --noEmit
-npm test             Vitest
+npm test             Vitest (sof mantiq)
+npm run test:db      baza bilan testlar (*.itest.ts) — lokal baza kerak
 npm run test:e2e     Playwright
 npm run db:dev       lokal Postgres (prisma dev, Docker kerak emas) — alohida terminalda ishlab turadi;
                      kompyuter qayta yoqilgach o'zi ko'tarilmaydi (baza xatosi chiqsa birinchi shuni tekshiring)
@@ -140,8 +141,16 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
   ekranlarda o'lchamlar inline `style` da qoladi (aniqlik uchun); umumiy primitivlar (`components/ui`) Tailwind'da.
 
 ## Kirish va ruxsatlar
-- Kirish: telefon → 6 raqamli SMS kod (5 daqiqa, 5 urinish, 60 soniyada 1 ta, soatiga 5 ta; bazada faqat HMAC).
+- Kirish: telefon → 6 raqamli SMS kod (5 daqiqa amal qiladi; bazada faqat HMAC). Faqat +998 raqamlar.
   Raqam ro'yxatda bor-yo'qligi kod so'rashda oshkor qilinmaydi.
+- SMS chegaralari (`otp-rules.ts`): bitta raqamga 60 soniyada 1 ta va kuniga 5 ta; bitta IP'dan soatiga 10 ta so'rov
+  (IP bazada faqat xesh ko'rinishida). 5 ta noto'g'ri urinish → kod bekor, raqam 15 daqiqa bloklanadi.
+  Qoidalar o'zgarsa uchala qatlamdagi testlar yangilanadi: `otp-rules.test.ts`, `otp.itest.ts`, `e2e/auth.spec.ts`.
+- `OTP_FIXED_CODE` faqat `.env.development` da. `NODE_ENV=production` da `OTP_FIXED_CODE`, `SMS_PROVIDER=dev` yoki
+  provayder/sir yo'qligi topilsa server start'da jarayon xato bilan to'xtaydi (`instrumentation-node.ts`, `env-check.ts`).
+- Bloklash faqat `src/server/moderation.ts` orqali: holat va barcha sessiyalarni yopish bitta tranzaksiyada
+  (biznes bloklansa — egasi va barcha kassirlari). Holatni to'g'ridan-to'g'ri `update` bilan o'zgartirmang.
+- Auth cookie'lari: httpOnly, SameSite=Lax, Secure (faqat `next dev` da o'chiq) — `cookie-options.ts`.
 - Kod to'g'ri, hisob yo'q → raqam imzolangan cookie'da 30 daqiqa "tasdiqlangan" deb saqlanadi (`getVerifiedPhone`)
   va ro'yxat formasiga o'tiladi; ro'yxat formalari shu raqamga tayanadi.
 - Sessiya: tasodifiy token httpOnly cookie'da, bazada SHA-256 xeshi, 30 kun. Bloklangan foydalanuvchi sessiyasi darhol o'ladi.

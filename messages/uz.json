@@ -144,9 +144,18 @@
       "registerTitle": "Yangi talaba hisobini ochish",
       "registerSubtitle": "Ism, universitet va guvohnoma — 2 daqiqa",
       "stubs": {
-        "1": { "label": "Bodom Choyxonasi", "value": "−30%" },
-        "2": { "label": "Kadr Kinoteatri", "value": "−44%" },
-        "3": { "label": "Lavash Point", "value": "1+1" }
+        "1": {
+          "label": "Bodom Choyxonasi",
+          "value": "−30%"
+        },
+        "2": {
+          "label": "Kadr Kinoteatri",
+          "value": "−44%"
+        },
+        "3": {
+          "label": "Lavash Point",
+          "value": "1+1"
+        }
       }
     },
     "business": {
@@ -158,9 +167,18 @@
       "registerSubtitle": "STIR va qisqa ma'lumot — 5 daqiqa",
       "cashierNote": "Kassirmisiz? Biznes egasi yuborgan taklif havolasi orqali kiring — raqamingiz avtomatik ulanadi.",
       "stubs": {
-        "1": { "label": "bugun sotuv", "value": "52" },
-        "2": { "label": "QR → sotuv", "value": "61%" },
-        "3": { "label": "yangi mijoz", "value": "+9" }
+        "1": {
+          "label": "bugun sotuv",
+          "value": "52"
+        },
+        "2": {
+          "label": "QR → sotuv",
+          "value": "61%"
+        },
+        "3": {
+          "label": "yangi mijoz",
+          "value": "+9"
+        }
       }
     },
     "phoneLabel": "Telefon raqam",
@@ -178,12 +196,13 @@
     "errors": {
       "phone": "Telefon raqamni to'liq kiriting: 9 ta raqam.",
       "tooSoon": "Kod hozirgina yuborildi. {seconds} soniyadan keyin qayta urinib ko'ring.",
-      "hourlyLimit": "Bu raqamga juda ko'p kod yuborildi. Birozdan keyin urinib ko'ring.",
       "sms": "SMS yuborib bo'lmadi. Birozdan keyin urinib ko'ring.",
       "wrongCode": "Kod noto'g'ri. Qayta tekshirib kiriting.",
       "expired": "Kod muddati o'tgan. Yangi kod oling.",
-      "locked": "Juda ko'p xato urinish. Yangi kod oling.",
-      "blocked": "Bu hisob bloklangan. Yordam uchun biz bilan bog'laning."
+      "locked": "Juda ko'p xato urinish. Kod bekor qilindi — {minutes} daqiqadan keyin yangi kod oling.",
+      "blocked": "Bu hisob bloklangan. Yordam uchun biz bilan bog'laning.",
+      "dailyLimit": "Bu raqamga bugun juda ko'p kod yuborildi. Ertaga urinib ko'ring.",
+      "ipLimit": "Juda ko'p so'rov yuborildi. {minutes} daqiqadan keyin urinib ko'ring."
     }
   },
   "placeholder": {
