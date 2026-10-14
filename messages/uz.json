@@ -950,6 +950,7 @@
       "overview": "Umumiy",
       "students": "Talabalar tekshiruvi",
       "businesses": "Bizneslar",
+      "discounts": "Chegirmalar",
       "transactions": "Tranzaksiyalar",
       "notifications": "Bildirishnomalar",
       "label": "Admin menyu"
@@ -978,14 +979,19 @@
         "PENDING": "Ko'rib chiqilmoqda",
         "APPROVED": "Tasdiqlandi",
         "REJECTED": "Rad etildi",
-        "BLOCKED": "Bloklandi"
+        "BLOCKED": "Bloklandi",
+        "PENDING_REVIEW": "Ko'rib chiqilmoqda",
+        "ACTIVE": "Tasdiqlandi"
       },
       "flags": {
         "fresh": "Yangi ariza",
         "resubmitted": "Avval rad etilgan",
         "renewal": "Muddat yangilash",
         "docsComplete": "Hujjatlar bor",
-        "docsMissing": "Hujjat yetishmaydi"
+        "docsMissing": "Hujjat yetishmaydi",
+        "newDiscount": "Yangi chegirma",
+        "changed": "O'zgartirilgan",
+        "businessPending": "Biznes tekshiruvda"
       },
       "zoom": "Kattalashtirish",
       "open": "Ochish",
@@ -1014,7 +1020,17 @@
         "contact": "Mas'ul shaxs",
         "hours": "Ish vaqti",
         "address": "Manzil",
-        "firstDiscount": "1-chegirma"
+        "firstDiscount": "1-chegirma",
+        "business": "Biznes",
+        "discountType": "Turi",
+        "value": "Chegirma",
+        "originalPrice": "Asl narx",
+        "finalPrice": "Talaba to'laydi",
+        "schedule": "Kunlar va soat",
+        "dailyLimit": "Kunlik soni",
+        "perStudent": "Bir talabaga",
+        "period": "Muddat",
+        "terms": "Shartlar"
       },
       "checks": {
         "smsVerified": "SMS tasdiqlangan",
@@ -1024,7 +1040,12 @@
         "tooFar": "Juda uzoq",
         "unique": "Yagona",
         "duplicate": "Takroriy",
-        "none": "—"
+        "none": "—",
+        "inRange": "Chegarada",
+        "belowOriginal": "Asl narxdan past",
+        "approved": "Tasdiqlangan",
+        "pending": "Tekshiruvda",
+        "overnight": "Yarim tundan o'tadi"
       },
       "approve": "Tasdiqlash",
       "rejectReason": "Rad etish sababi",
@@ -1054,8 +1075,18 @@
           "documents": "Hujjatlar to'liq emas",
           "photos": "Joy fotolari yetishmaydi",
           "contact": "Mas'ul shaxs bilan bog'lanib bo'lmadi"
+        },
+        "discount": {
+          "misleading": "Narx yoki chegirma noto'g'ri ko'rsatilgan",
+          "prohibited": "Taqiqlangan mahsulot (alkogol, tamaki)",
+          "unclear": "Nom yoki shartlar tushunarsiz",
+          "duplicate": "Xuddi shunday chegirma allaqachon bor"
         }
-      }
+      },
+      "discountsTitle": "Chegirmalar tekshiruvi",
+      "discountsSub": "Narx, foiz va shartlar talabani chalg'itmasligini tekshiring",
+      "hintDiscounts": "Tasdiqlangan chegirma biznes ham tasdiqlangan bo'lsa darhol talabalarga ko'rinadi. Rad etish sababi biznesga ko'rinadi.",
+      "preview": "Talaba shunday ko'radi"
     }
   }
 }

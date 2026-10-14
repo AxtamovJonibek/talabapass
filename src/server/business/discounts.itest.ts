@@ -152,3 +152,24 @@ describe("WB2 maslahati", () => {
     });
   });
 });
+
+describe("admin qarori", () => {
+  it("tasdiqlash → faol; rad etish → sabab biznesga; ikkinchi qaror o'tmaydi", async () => {
+    const { approveDiscount, rejectDiscount } = await import("../admin/discount-review");
+    const a = (await saveDiscount(owner, null, DRAFT, "publish")) as { id: string };
+    const b = (await saveDiscount(owner, null, { ...DRAFT, title: "Ikkinchi chegirma" }, "publish")) as { id: string };
+
+    expect(await approveDiscount(a.id, owner)).toEqual({ ok: true });
+    expect(await status(a.id)).toBe("ACTIVE");
+    expect(await approveDiscount(a.id, owner)).toEqual({ ok: false, error: "not_pending" });
+
+    expect(await rejectDiscount({ discountId: b.id, reasonKey: "unclear", reasonText: "Nom tushunarsiz" }, owner)).toEqual({ ok: true });
+    expect(await ownDiscount(owner, b.id)).toMatchObject({ status: "REJECTED", rejectReason: "Nom tushunarsiz" });
+    expect(await rejectDiscount({ discountId: a.id, reasonKey: "unclear", reasonText: "x" }, owner)).toEqual({ ok: false, error: "not_pending" });
+    expect(await db.auditLog.count({ where: { action: { in: ["discount.approve", "discount.reject"] }, entityId: { in: [a.id, b.id] } } })).toBe(2);
+
+    // Tasdiqlangandan keyin narx o'zgarsa — yana navbatga
+    await saveDiscount(owner, a.id, { ...DRAFT, percent: 50 }, "publish");
+    expect(await status(a.id)).toBe("PENDING_REVIEW");
+  });
+});

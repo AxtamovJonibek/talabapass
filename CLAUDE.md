@@ -199,6 +199,9 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
   `AuditLog` ga `file.view` (kim, qaysi fayl, `maqsad`). `<img>` ko'rsatilishi ham ko'rish hisoblanadi.
 - Har bir qaror `AuditLog` da: `student.approve|reject`, `user.block`, `business.approve|reject|block`.
 - Dizaynda chizilmagan: guvohnoma №/muddat uchun kiritish maydonlari, PDF ko'rinishi, biznes rad etish sabablari ro'yxati.
+- Chegirmalar navbati `/admin/chegirmalar?id=…` (dizaynda yo'q, A2 kartasi va jadvalidan): `PENDING_REVIEW` → tasdiqlash
+  (`ACTIVE`) yoki rad etish (sabab matni biznes ro'yxatida ko'rinadi). Audit: `discount.approve|reject`.
+  Navbatda "Biznes tekshiruvda" belgisi — biznes tasdiqlanmaguncha chegirma talabaga chiqmaydi.
 
 ## Biznes arizasi (B1 / WB1)
 - `/biznes/royxat` (kirmagan) → 1-qadam ma'lumot, 2-qadam STIR/mas'ul/telefon/fayllar/rozilik → SMS kod →

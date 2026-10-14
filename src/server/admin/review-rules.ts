@@ -6,6 +6,8 @@ import { toTashkent } from "@/lib/time";
 export const STUDENT_REJECT_REASONS = ["expired", "unclear", "mismatch", "fake"] as const;
 export const BUSINESS_REJECT_REASONS = ["tin", "documents", "photos", "contact"] as const;
 export type StudentRejectReason = (typeof STUDENT_REJECT_REASONS)[number];
+export const DISCOUNT_REJECT_REASONS = ["misleading", "prohibited", "unclear", "duplicate"] as const;
+export type DiscountRejectReason = (typeof DISCOUNT_REJECT_REASONS)[number];
 export type BusinessRejectReason = (typeof BUSINESS_REJECT_REASONS)[number];
 
 /** Guvohnoma raqami: harf, raqam, chiziqcha; bo'sh joylarsiz, katta harfda saqlanadi. */

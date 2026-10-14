@@ -8,13 +8,15 @@ import { logoutAction } from "@/server/actions/auth";
 import { pendingCounts } from "@/server/admin/review";
 import type { CurrentUser } from "@/server/auth/session";
 
-export type AdminSection = "overview" | "students" | "businesses" | "transactions" | "notifications";
+export type AdminSection = "overview" | "students" | "businesses" | "discounts" | "transactions" | "notifications";
 
 // ready: false — bo'lim keyingi bosqichlarda quriladi (10-bosqich); panelda xira ko'rinadi.
 const ITEMS = [
   { key: "overview", href: "/admin", icon: "grid", ready: false },
   { key: "students", href: "/admin/talabalar", icon: "idCard", ready: true },
   { key: "businesses", href: "/admin/bizneslar", icon: "store", ready: true },
+  // Dizaynda yo'q — A2 andozasidagi uchinchi navbat
+  { key: "discounts", href: "/admin/chegirmalar", icon: "ticket", ready: true },
   { key: "transactions", href: "/admin/tranzaksiyalar", icon: "receipt", ready: false },
   { key: "notifications", href: "/admin/bildirishnomalar", icon: "bell", ready: false },
 ] as const;
@@ -25,7 +27,7 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
   const brand = await getTranslations("brand");
   const common = await getTranslations("common");
   const counts = await pendingCounts();
-  const badge = { students: counts.students, businesses: counts.businesses } as Partial<Record<AdminSection, number>>;
+  const badge = { students: counts.students, businesses: counts.businesses, discounts: counts.discounts } as Partial<Record<AdminSection, number>>;
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
   return (

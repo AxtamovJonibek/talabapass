@@ -11,7 +11,8 @@ import {
   rejectStudent,
   type ApproveStudentError,
 } from "../admin/review";
-import { BUSINESS_REJECT_REASONS, STUDENT_REJECT_REASONS } from "../admin/review-rules";
+import { approveDiscount, rejectDiscount } from "../admin/discount-review";
+import { BUSINESS_REJECT_REASONS, DISCOUNT_REJECT_REASONS, STUDENT_REJECT_REASONS } from "../admin/review-rules";
 import { requireRole } from "../auth/session";
 
 export type ReviewResult = { ok: true } | { ok: false; error: ApproveStudentError | "not_pending" | "invalid" };
@@ -63,4 +64,21 @@ export async function blockBusinessAction(raw: unknown): Promise<ReviewResult> {
   const input = z.object({ businessId: id, reason: z.enum(BUSINESS_REJECT_REASONS) }).safeParse(raw);
   if (!input.success) return { ok: false, error: "invalid" };
   return blockBusinessFromReview({ businessId: input.data.businessId, reasonKey: input.data.reason }, admin.id);
+}
+
+/** Chegirmalar navbati: tasdiqlash — chegirma faol bo'ladi (biznes ham tasdiqlangan bo'lsa talabalarga ko'rinadi). */
+export async function approveDiscountAction(raw: unknown): Promise<ReviewResult> {
+  const admin = await requireRole("ADMIN");
+  const input = z.object({ discountId: id }).safeParse(raw);
+  if (!input.success) return { ok: false, error: "invalid" };
+  return approveDiscount(input.data.discountId, admin.id);
+}
+
+/** Rad etish — sabab biznesga ko'rinadigan matn sifatida saqlanadi. */
+export async function rejectDiscountAction(raw: unknown): Promise<ReviewResult> {
+  const admin = await requireRole("ADMIN");
+  const input = z.object({ discountId: id, reason: z.enum(DISCOUNT_REJECT_REASONS) }).safeParse(raw);
+  if (!input.success) return { ok: false, error: "invalid" };
+  const t = await getTranslations("admin.review.reasons.discount");
+  return rejectDiscount({ discountId: input.data.discountId, reasonKey: input.data.reason, reasonText: t(input.data.reason) }, admin.id);
 }
