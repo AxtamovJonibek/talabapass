@@ -166,7 +166,12 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - Sessiya: tasodifiy token httpOnly cookie'da, bazada SHA-256 xeshi, 30 kun. Bloklangan foydalanuvchi sessiyasi darhol o'ladi.
 - `requireRole(...)` — har bir himoyalangan sahifa, layout (`RoleGate`) va server action boshida. Kirmagan → `/kirish`,
   begona rol → o'z bosh sahifasi (`homePathFor`). Proxy (middleware) faqat til uchun.
-- Cookie o'qiydigan server komponentlar `<Suspense>` ichida turadi (Cache Components talabi).
+- Cookie o'qiydigan server komponentlar `<Suspense>` ichida turadi (Cache Components talabi). Dinamik sahifa
+  o'z `<Suspense>` chegarasiga ega bo'lsin (`export default` → `<Suspense><…Content/></Suspense>`): mijoz tomonidagi
+  o'tishda umumiy layout'dagi chegara ishlamaydi va o'tish bloklanadi.
+- `router.push/replace` dan keyin darhol `router.refresh()` chaqirmang — u o'tishni bekor qilishi mumkin.
+- Lokal `prisma dev` (PGlite) parallel ulanishlarda so'rovlarni aralashtiradi (`08P01`, "Server has closed the
+  connection") — `.env` da `DATABASE_POOL_MAX=1`. Production'da qo'yilmaydi.
 - Formalar `onSubmit` emas, `action={fn}` bilan ulanadi: sahifa ulanmasdan bosilgan yuborish GET bo'lib ketmaydi.
 - E2E (`npm run test:e2e`): lokal baza + seed + `.env` da `OTP_FIXED_CODE=000000` kerak. Yangi himoyalangan sahifa
   qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi.
@@ -184,6 +189,16 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - Yuklash: `POST /api/talaba/guvohnoma` — sessiya (talaba) yoki 15 daqiqalik `x-upload-token`
   (kompyuter → telefon QR o'tkazmasi; faqat yuklashga ruxsat beradi, sessiya bermaydi).
 - Lokal tekshiruv uchun tayyor foydalanuvchilar: `node scripts/compare-fixtures.mjs` (`--cookie=tp_session=cmp-…`).
+
+## Admin tekshiruvi (A2)
+- `/admin/talabalar?id=…`, `/admin/bizneslar?id=…`; navbat eskisi tepada; qarordan keyin keyingi ariza ochiladi.
+- Talabani tasdiqlashda admin guvohnoma № va amal muddatini rasmdan kiritadi (bitta raqam — bitta hisob,
+  muddat bugundan oldin va 7 yildan uzoq bo'lmasin). Rad etish sababi talabaga ko'rinadigan matn sifatida saqlanadi.
+- Bloklash faqat `moderation.ts` orqali (sessiyalar bilan birga); tugma `confirm` so'raydi.
+- Fayllar: `/api/admin/fayl/{guvohnoma|hujjat}/<id>` — faqat admin (boshqalarga 404), `no-store`, har bir so'rov
+  `AuditLog` ga `file.view` (kim, qaysi fayl, `maqsad`). `<img>` ko'rsatilishi ham ko'rish hisoblanadi.
+- Har bir qaror `AuditLog` da: `student.approve|reject`, `user.block`, `business.approve|reject|block`.
+- Dizaynda chizilmagan: guvohnoma №/muddat uchun kiritish maydonlari, PDF ko'rinishi, biznes rad etish sabablari ro'yxati.
 
 ## Talaba holatlari
 `DRAFT → PENDING → APPROVED | REJECTED`, `APPROVED → EXPIRED` (muddat). Yo'naltirish `studentPathFor` da;

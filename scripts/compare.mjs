@@ -30,8 +30,9 @@ const server = createServer(async (req, res) => {
   try {
     const path = normalize(join(root, decodeURIComponent(new URL(req.url, "http://x").pathname)));
     if (!path.startsWith(root)) throw new Error("tashqarida");
+    const body = await readFile(path);
     res.writeHead(200, { "content-type": MIME[extname(path)] ?? "application/octet-stream" });
-    res.end(await readFile(path));
+    res.end(body);
   } catch {
     res.writeHead(404).end();
   }
@@ -39,7 +40,8 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const designUrl = `http://127.0.0.1:${server.address().port}/${id}.html`;
 
-const browser = await chromium.launch();
+// To'liq Chromium: headless-shell kamera API'sini qo'llamaydi va T2 da keraksiz xabar chiqaradi.
+const browser = await chromium.launch({ channel: "chromium" });
 async function shoot(url, isDesign) {
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
   // --cookie=nom=qiymat — ilovaga tayyor sessiya bilan kirish (scripts/compare-fixtures.mjs)

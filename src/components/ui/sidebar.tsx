@@ -10,6 +10,8 @@ export type SidebarItem = {
   icon: IconName;
   active?: boolean;
   count?: ReactNode;
+  /** To'q sariq hisoblagich: navbatdagi arizalar soni (A2) */
+  badge?: ReactNode;
 };
 
 type SidebarProps = {
@@ -37,13 +39,16 @@ export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProp
             aria-current={item.active ? "page" : undefined}
             className={cn(
               "flex h-[42px] items-center gap-2.5 rounded-10 px-3 text-14 no-underline",
-              item.active
-                ? cn("font-bold", accent === "orange" ? "bg-orange text-ink" : "bg-blue text-white")
-                : "font-semibold text-fog-1",
+              // A2: hisoblagichli bandlar faol bo'lmasa ham qalin
+              item.active || item.badge != null ? "font-bold" : "font-semibold",
+              item.active ? (accent === "orange" ? "bg-orange text-ink" : "bg-blue text-white") : "text-fog-1",
             )}
           >
             <Icon name={item.icon} size={18} />
             {item.label}
+            {item.badge != null ? (
+              <span className="ml-auto rounded-10 bg-orange px-[7px] py-px text-12 font-extrabold text-ink">{item.badge}</span>
+            ) : null}
             {item.count != null ? (
               <span className={cn("ml-auto font-mono text-12", item.active ? null : "text-fog-3")}>{item.count}</span>
             ) : null}

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { CaptureScreen } from "@/components/student/capture-screen";
 import { resolveLocale } from "@/i18n/locale";
@@ -13,6 +14,8 @@ type Props = PageProps<"/[locale]/talaba/guvohnoma/telefon">;
  */
 async function Handoff({ searchParams }: Pick<Props, "searchParams">) {
   const { t: token } = await searchParams;
+  // Token muddati joriy vaqt bilan solishtiriladi — faqat so'rov vaqtida (prerender'da emas).
+  await connection();
   const valid = typeof token === "string" && readUploadToken(token, authSecret()) !== null;
   if (valid) return <CaptureScreen backHref="/" uploadToken={token} />;
 

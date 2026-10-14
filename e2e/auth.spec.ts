@@ -166,7 +166,7 @@ test.describe("kirish", () => {
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/admin"];
+  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/admin", "/admin/talabalar", "/admin/bizneslar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
     for (const path of PROTECTED) {
@@ -177,9 +177,9 @@ test.describe("rol himoyasi", () => {
 
   // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
   const MATRIX = {
-    student: { "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar" },
+    student: { "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar" },
     owner: { "/chegirmalar": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
-    cashier: { "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner" },
+    cashier: { "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner" },
     admin: { "/chegirmalar": "/admin", "/biznes": "/admin", "/biznes/skaner": "/admin" },
   } as const;
 

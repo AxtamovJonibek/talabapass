@@ -48,6 +48,7 @@ test.describe("talaba ro'yxati", () => {
     await expect(page).toHaveURL("/talaba/guvohnoma");
     expect(await studentStatus(NEW_STUDENT)).toBe("DRAFT");
 
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("card-file").setInputFiles({ name: "guvohnoma_old.jpg", mimeType: "image/jpeg", buffer: JPEG });
     await expect(page).toHaveURL("/talaba/tekshiruv");
     await expect(page.getByTestId("status-stamp")).toHaveText("TEKSHIRUVDA");
@@ -110,6 +111,7 @@ test.describe("guvohnoma yuklash", () => {
 
   test("rasm/PDF bo'lmagan fayl rad etiladi (nomi .jpg bo'lsa ham)", async ({ page }) => {
     await registered(page);
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("card-file").setInputFiles({ name: "guvohnoma.jpg", mimeType: "image/jpeg", buffer: Buffer.from("<html><script>alert(1)</script>") });
     await expect(page.getByText("Faqat JPG, PNG, HEIC yoki PDF fayl yuklang")).toBeVisible();
     await expect(page).toHaveURL("/talaba/guvohnoma");
@@ -129,6 +131,7 @@ test.describe("guvohnoma yuklash", () => {
 
   test("yuklangan fayl hech qanday manzil orqali ochilmaydi", async ({ page }) => {
     await registered(page);
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("card-file").setInputFiles({ name: "guvohnoma.jpg", mimeType: "image/jpeg", buffer: JPEG });
     await expect(page).toHaveURL("/talaba/tekshiruv");
 
@@ -149,6 +152,7 @@ test.describe("holatga qarab yo'naltirish", () => {
     await fillRegistration(page, NEW_STUDENT);
     await expect(codeBox(page)).toBeEnabled();
     await enterCode(page, FIXED_CODE);
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("card-file").setInputFiles({ name: "xira.jpg", mimeType: "image/jpeg", buffer: JPEG });
     await expect(page).toHaveURL("/talaba/tekshiruv");
 
@@ -162,6 +166,7 @@ test.describe("holatga qarab yo'naltirish", () => {
 
     await page.getByRole("link", { name: "Boshqa rasm yuklash" }).click();
     await expect(page).toHaveURL("/talaba/guvohnoma");
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("card-file").setInputFiles({ name: "aniq.jpg", mimeType: "image/jpeg", buffer: JPEG });
     await expect(page).toHaveURL("/talaba/tekshiruv");
     await expect(page.getByTestId("status-stamp")).toHaveText("TEKSHIRUVDA");
@@ -190,6 +195,7 @@ test.describe("holatga qarab yo'naltirish", () => {
     await page.goto("/chegirmalar");
     await expect(page).toHaveURL("/talaba/guvohnoma");
 
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("card-file").setInputFiles({ name: "yangi.jpg", mimeType: "image/jpeg", buffer: JPEG });
     await expect(page).toHaveURL("/talaba/tekshiruv");
     expect(await studentStatus(EXPIRING)).toBe("PENDING");

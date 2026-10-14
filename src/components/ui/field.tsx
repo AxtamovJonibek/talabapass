@@ -77,13 +77,20 @@ type SelectProps = ComponentProps<"select"> & {
   invalid?: boolean;
   /** Brauzerning o'z ko'rinishi (strelkasi) bilan — WT1 veb formasi */
   native?: boolean;
+  /** Pastroq va kichikroq yozuvli (48px, 14px) — A2 rad etish sababi */
+  compact?: boolean;
 };
 
-export function Select({ className, invalid, native = false, children, ...props }: SelectProps) {
+export function Select({ className, invalid, native = false, compact = false, children, ...props }: SelectProps) {
   if (native) {
     return (
       <select
-        className={cn("h-13 w-full min-w-0 rounded-12 border-hair bg-white px-3 font-sans text-15 text-ink outline-none focus:border-ink", invalid ? "border-danger" : "border-line", className)}
+        className={cn(
+          "min-w-0 rounded-12 border-hair bg-white px-3 font-sans text-ink outline-none focus:border-ink",
+          compact ? "h-12 text-14" : "h-13 w-full text-15",
+          invalid ? "border-danger" : "border-line",
+          className,
+        )}
         {...props}
       >
         {children}

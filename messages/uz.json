@@ -745,5 +745,119 @@
       "expiredTitle": "Havola eskirgan",
       "expiredLead": "Kompyuterdagi sahifani yangilab, QR kodni qayta skanerlang."
     }
+  },
+  "admin": {
+    "role": "Bosh moderator",
+    "nav": {
+      "overview": "Umumiy",
+      "students": "Talabalar tekshiruvi",
+      "businesses": "Bizneslar",
+      "transactions": "Tranzaksiyalar",
+      "notifications": "Bildirishnomalar",
+      "label": "Admin menyu"
+    },
+    "review": {
+      "studentsTitle": "Talabalar tekshiruvi",
+      "studentsSub": "Guvohnoma rasmi va kiritilgan ma'lumotlarni solishtiring",
+      "businessesTitle": "Bizneslar tekshiruvi",
+      "businessesSub": "STIR, hujjatlar va birinchi chegirmani tekshiring",
+      "approvedToday": "Bugun tasdiqlandi:",
+      "averageWait": "O'rtacha kutish:",
+      "wait": "{hours} s {minutes} daq",
+      "waitNone": "—",
+      "queue": "Navbat",
+      "oldestFirst": "eskisi tepada",
+      "more": "yana {n} ta ariza",
+      "empty": "Navbat bo'sh — barcha arizalar ko'rib chiqilgan.",
+      "detailLabel": "Ariza tafsiloti",
+      "sentAgo": "{code} · {ago} yuborilgan",
+      "ago": {
+        "min": "{n} daq",
+        "hour": "{n} soat",
+        "day": "{n} kun"
+      },
+      "state": {
+        "PENDING": "Ko'rib chiqilmoqda",
+        "APPROVED": "Tasdiqlandi",
+        "REJECTED": "Rad etildi",
+        "BLOCKED": "Bloklandi"
+      },
+      "flags": {
+        "fresh": "Yangi ariza",
+        "resubmitted": "Avval rad etilgan",
+        "renewal": "Muddat yangilash",
+        "docsComplete": "Hujjatlar bor",
+        "docsMissing": "Hujjat yetishmaydi"
+      },
+      "zoom": "Kattalashtirish",
+      "open": "Ochish",
+      "pdfPreview": "PDF hujjat — ko'rish uchun oching",
+      "photos": {
+        "1": "Peshtaxta",
+        "2": "Ichki zal",
+        "3": "Kassa"
+      },
+      "noPhoto": "Rasm yo'q",
+      "table": {
+        "field": "Maydon",
+        "value": "Kiritilgan",
+        "check": "Tekshiruv"
+      },
+      "fields": {
+        "name": "Ism, familiya",
+        "university": "Universitet",
+        "faculty": "Fakultet",
+        "course": "Kurs",
+        "phone": "Telefon",
+        "cardNumber": "Guvohnoma №",
+        "cardExpires": "Amal muddati",
+        "tin": "STIR",
+        "legalName": "Yuridik nomi",
+        "contact": "Mas'ul shaxs",
+        "hours": "Ish vaqti",
+        "address": "Manzil",
+        "firstDiscount": "1-chegirma"
+      },
+      "checks": {
+        "smsVerified": "SMS tasdiqlangan",
+        "fromImage": "Rasmdan kiriting",
+        "valid": "Amalda",
+        "expired": "O'tgan",
+        "tooFar": "Juda uzoq",
+        "unique": "Yagona",
+        "duplicate": "Takroriy",
+        "none": "—"
+      },
+      "approve": "Tasdiqlash",
+      "rejectReason": "Rad etish sababi",
+      "reject": "Rad etish",
+      "block": "Bloklash",
+      "confirmBlockStudent": "Talaba hisobini bloklaysizmi? Uning barcha sessiyalari darhol yopiladi va bu raqam bilan qayta ro'yxatdan o'ta olmaydi.",
+      "confirmBlockBusiness": "Biznesni bloklaysizmi? Barcha faol chegirmalari to'xtaydi, egasi va kassirlarining sessiyalari darhol yopiladi.",
+      "hintStudents": "Tasdiqlansa talabaga SMS va push boradi. Bloklangan raqam va guvohnoma № qayta ro'yxatdan o'ta olmaydi.",
+      "hintBusinesses": "Tasdiqlangach biznes chegirmalari talabalarga ko'rinadi. Bloklash barcha faol chegirmalarni darhol to'xtatadi.",
+      "errors": {
+        "not_pending": "Bu ariza allaqachon ko'rib chiqilgan.",
+        "card_number": "Guvohnoma raqamini rasmdagidek kiriting (harf, raqam, chiziqcha).",
+        "card_duplicate": "Bu guvohnoma raqami boshqa hisobda bor — tasdiqlab bo'lmaydi.",
+        "expiry_invalid": "Amal muddatini kiriting.",
+        "expiry_past": "Guvohnoma muddati o'tgan — tasdiqlab bo'lmaydi.",
+        "expiry_far": "Muddat 7 yildan uzoq — sanani tekshiring."
+      },
+      "reasons": {
+        "student": {
+          "expired": "Hujjat muddati o'tgan",
+          "unclear": "Rasm aniq emas",
+          "mismatch": "Ma'lumotlar mos emas",
+          "fake": "Takroriy / soxta hujjat"
+        },
+        "business": {
+          "tin": "STIR topilmadi yoki mos emas",
+          "documents": "Hujjatlar to'liq emas",
+          "photos": "Joy fotolari yetishmaydi",
+          "contact": "Mas'ul shaxs bilan bog'lanib bo'lmadi"
+        }
+      }
+    }
   }
 }

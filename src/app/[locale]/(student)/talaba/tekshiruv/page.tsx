@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PhoneOrWeb } from "@/components/student/responsive";
 import { StatusDesktop } from "@/components/student/status-desktop";
@@ -12,7 +13,7 @@ import { latestVerification } from "@/server/student/verification";
 const DAY_MS = 86_400_000;
 
 // T3 / WT1 (3-qadam) — tekshiruv holati
-export default async function StudentReviewPage() {
+async function StudentReviewPageContent() {
   const user = await requireStudent();
   const { status } = user.student;
   const locale = await getLocale();
@@ -50,5 +51,15 @@ export default async function StudentReviewPage() {
       }
       web={<StatusDesktop sentAt={sentAt} queuePosition={verification.queuePosition} rejected={rejected} />}
     />
+  );
+}
+
+// Dinamik qism (cookie, so'rov parametrlari) sahifaning o'z Suspense chegarasida: mijoz tomonidagi o'tishda
+// umumiy layout'dagi chegara ishlamaydi.
+export default function StudentReviewPage() {
+  return (
+    <Suspense fallback={null}>
+      <StudentReviewPageContent />
+    </Suspense>
   );
 }

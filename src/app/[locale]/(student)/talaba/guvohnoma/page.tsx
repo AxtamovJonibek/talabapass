@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import QRCode from "qrcode";
@@ -18,7 +19,7 @@ function qrMatrix(text: string): boolean[][] {
 }
 
 // T2 / WT1 (2-qadam) — guvohnomani suratga olish yoki yuklash
-export default async function StudentCardPage() {
+async function StudentCardPageContent() {
   const user = await requireStudent();
   const { status } = user.student;
   if (!canUploadCard(status)) redirect({ href: "/chegirmalar", locale: await getLocale() });
@@ -37,5 +38,15 @@ export default async function StudentCardPage() {
       phone={<CaptureScreen backHref={backHref ?? "/"} expired={status === "EXPIRED"} />}
       web={<CardUploadDesktop qr={qrMatrix(handoffUrl)} pendingFileName={pending?.fileName ?? null} backHref={backHref} />}
     />
+  );
+}
+
+// Dinamik qism (cookie, so'rov parametrlari) sahifaning o'z Suspense chegarasida: mijoz tomonidagi o'tishda
+// umumiy layout'dagi chegara ishlamaydi.
+export default function StudentCardPage() {
+  return (
+    <Suspense fallback={null}>
+      <StudentCardPageContent />
+    </Suspense>
   );
 }

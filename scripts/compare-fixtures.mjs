@@ -52,4 +52,11 @@ for (const f of FIXTURES) {
   ]);
   console.log(`${f.status.padEnd(9)} --cookie=tp_session=${f.token}`);
 }
+// Seed'dagi admin uchun tayyor sessiya (A1–A3 ekranlari)
+const { rows: admins } = await db.query(`SELECT id FROM "User" WHERE phone = '+998900000001'`);
+if (admins[0]) {
+  await db.query(`DELETE FROM "Session" WHERE id = 'cmp_admin_s'`);
+  await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ('cmp_admin_s', $1, $2, now() + interval '30 days')`, [admins[0].id, hash("cmp-admin")]);
+  console.log("ADMIN     --cookie=tp_session=cmp-admin");
+}
 await db.end();

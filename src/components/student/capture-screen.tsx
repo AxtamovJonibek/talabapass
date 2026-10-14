@@ -90,7 +90,8 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
     setBusy(true);
     setProblem(null);
     try {
-      const response = await fetch("/api/talaba/guvohnoma", {
+      // Mobil tarmoqda bir martalik uzilish bo'lishi mumkin — bir marta qayta urinamiz.
+      const send = () => fetch("/api/talaba/guvohnoma", {
         method: "POST",
         body: file,
         headers: {
@@ -99,11 +100,13 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
           ...(uploadToken ? { "x-upload-token": uploadToken } : {}),
         },
       });
+      const response = await send().catch(() => new Promise<Response>((r) => setTimeout(() => r(send()), 800)));
       const result = (await response.json()) as { ok: boolean; problem?: Problem };
       if (result.ok && uploadToken) return setSent(true);
       if (result.ok) {
+        // Faqat o'tish: tekshiruv sahifasi har safar serverdan yangi chiziladi. Ketidan refresh() chaqirilsa,
+        // u joriy sahifani yangilab, o'tishni bekor qilib qo'yishi mumkin.
         router.replace("/talaba/tekshiruv");
-        router.refresh();
         return;
       }
       setProblem(result.problem ?? "network");

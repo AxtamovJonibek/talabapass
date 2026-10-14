@@ -42,6 +42,7 @@ test("veb: forma → kod → fayl yuklash → tekshiruv", async ({ page }) => {
   await registerOnWeb(page);
   await expect(page.getByRole("heading", { name: "Talaba guvohnomasi" })).toBeVisible();
 
+  await page.waitForLoadState("networkidle");
   await page.getByTestId("card-file-web").setInputFiles({ name: "guvohnoma.jpg", mimeType: "image/jpeg", buffer: JPEG });
   await expect(page.getByTestId("upload-row")).toContainText("Yuklandi");
   expect((await student()).status).toBe("PENDING");
@@ -55,6 +56,7 @@ test("veb: forma → kod → fayl yuklash → tekshiruv", async ({ page }) => {
 
 test("veb: yaroqsiz fayl rad etiladi", async ({ page }) => {
   await registerOnWeb(page);
+  await page.waitForLoadState("networkidle");
   await page.getByTestId("card-file-web").setInputFiles({ name: "guvohnoma.pdf", mimeType: "application/pdf", buffer: Buffer.from("bu pdf emas") });
   await expect(page.getByRole("alert").filter({ hasText: "Faqat JPG, PNG, HEIC yoki PDF fayl yuklang" })).toBeVisible();
   await expect(page.getByTestId("upload-row")).toHaveCount(0);
@@ -69,6 +71,7 @@ test("telefon bilan rasmga olish: telefonda kirmasdan yuklanadi, kompyuterdagi s
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const phonePage = await phone.newPage();
   await phonePage.goto(`/talaba/guvohnoma/telefon?t=${encodeURIComponent(createUploadToken(id, SECRET))}`, { waitUntil: "networkidle" });
+  await phonePage.waitForLoadState("networkidle");
   await phonePage.getByTestId("card-file").setInputFiles({ name: "telefondan.jpg", mimeType: "image/jpeg", buffer: JPEG });
   await expect(phonePage.getByText("Rasm yuborildi")).toBeVisible();
   // token sessiya bermaydi

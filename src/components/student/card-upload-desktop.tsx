@@ -97,7 +97,6 @@ export function CardUploadDesktop({ qr, pendingFileName, backHref }: Props) {
               onClick={() => {
                 if (!upload?.done) return input.current?.click();
                 router.push("/talaba/tekshiruv");
-                router.refresh();
               }}
             >
               {t("web.submit")}
