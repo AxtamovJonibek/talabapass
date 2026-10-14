@@ -39,8 +39,10 @@ export function Input({ className, invalid, ...props }: InputProps) {
 
 const PHONE_SIZES = {
   // Dizayndagidek content-box: balandlik chegarasiz hisoblanadi (T1: 52, W2: 56)
-  md: { box: "box-content h-13 rounded-12 px-3.5", text: "text-15" },
-  lg: { box: "box-content h-14 rounded-14 px-4", text: "text-16" },
+  md: { box: "box-content h-13 rounded-12 bg-white px-3.5", text: "text-15", prefix: "text-15" },
+  lg: { box: "box-content h-14 rounded-14 bg-white px-4", text: "text-16", prefix: "text-16" },
+  // WT1: fon yo'q, "+998" 16px, raqam 15px
+  web: { box: "box-content h-13 rounded-12 px-3.5", text: "text-15", prefix: "text-16" },
 } as const;
 
 type PhoneInputProps = Omit<ComponentProps<"input">, "type" | "size"> & {
@@ -53,13 +55,13 @@ export function PhoneInput({ className, invalid, size = "md", ...props }: PhoneI
   return (
     <div
       className={cn(
-        "flex items-center gap-2.5 border-hair bg-white",
+        "flex items-center gap-2.5 border-hair",
         PHONE_SIZES[size].box,
         invalid ? "border-danger" : "border-ink",
         className,
       )}
     >
-      <span className={cn("font-mono text-muted", PHONE_SIZES[size].text)}>+998</span>
+      <span className={cn("font-mono text-muted", PHONE_SIZES[size].prefix)}>+998</span>
       <input
         type="tel"
         inputMode="numeric"
@@ -71,9 +73,23 @@ export function PhoneInput({ className, invalid, size = "md", ...props }: PhoneI
   );
 }
 
-type SelectProps = ComponentProps<"select"> & { invalid?: boolean };
+type SelectProps = ComponentProps<"select"> & {
+  invalid?: boolean;
+  /** Brauzerning o'z ko'rinishi (strelkasi) bilan — WT1 veb formasi */
+  native?: boolean;
+};
 
-export function Select({ className, invalid, children, ...props }: SelectProps) {
+export function Select({ className, invalid, native = false, children, ...props }: SelectProps) {
+  if (native) {
+    return (
+      <select
+        className={cn("h-13 w-full min-w-0 rounded-12 border-hair bg-white px-3 font-sans text-15 text-ink outline-none focus:border-ink", invalid ? "border-danger" : "border-line", className)}
+        {...props}
+      >
+        {children}
+      </select>
+    );
+  }
   return (
     <div className="relative">
       <select

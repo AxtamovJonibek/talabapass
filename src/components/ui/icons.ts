@@ -27,6 +27,7 @@ export const ICONS = {
   bolt: "M13 2L4 14h7l-1 8 9-12h-7z",
   upload: "M12 16V4M7 9l5-5 5 5M4 20h16",
   idCard: "M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM9 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM14 10h4M14 13h3M6 16h6",
+  shieldCheck: "M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM9 12l2 2 4-4",
   chevronDown: "M6 9l6 6 6-6",
   check: "M5 12l5 5 9-10",
   download: "M12 4v12M7 11l5 5 5-5M4 20h16",

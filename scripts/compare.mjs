@@ -68,7 +68,20 @@ async function shoot(url, isDesign) {
     await page.keyboard.type(opts.type);
   }
   if (opts.blur && !isDesign) await page.evaluate(() => document.activeElement?.blur());
-  if (opts.designClick && isDesign) await page.click(opts.designClick);
+  // --designClick="sel1;;sel2" — dizaynda ketma-ket bosishlar (masalan, ikki marta "Davom etish")
+  if (opts.designClick && isDesign) {
+    for (const selector of opts.designClick.split(";;")) {
+      await page.click(selector);
+      await page.waitForTimeout(150);
+    }
+  }
+  // --file="selector::nom.jpg" — ilovada kichik JPEG faylni tanlash (yuklash holatini ko'rsatish uchun)
+  if (opts.file && !isDesign) {
+    const [selector, name] = opts.file.split("::");
+    const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xd9]);
+    await page.setInputFiles(selector, { name, mimeType: "image/jpeg", buffer: jpeg });
+    await page.waitForTimeout(Number(opts.wait ?? 1500));
+  }
   await page.waitForTimeout(300);
   const buffer = await page.screenshot({ fullPage: true });
   await context.close();

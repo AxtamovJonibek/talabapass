@@ -6,18 +6,15 @@ import { buttonClass } from "@/components/ui/button";
 import { Field, PhoneInput } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
-import { OtpInput } from "@/components/ui/otp-input";
 import { Segmented } from "@/components/ui/segmented";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
-import { formatPhone } from "@/lib/format";
+import { CodeEntry, OTP_LENGTH, RESEND_SECONDS } from "./code-entry";
 import { requestCodeAction, verifyCodeAction, type AuthError } from "@/server/actions/auth";
 
 type Role = "student" | "business";
 type Failure = { error: AuthError; retryInSeconds?: number };
 
-const RESEND_SECONDS = 60;
-const OTP_LENGTH = 6;
 
 // Chap paneldagi qiya kartochkalar (W2): [fon/matn, burilish]
 const STUBS = {
@@ -32,8 +29,6 @@ const STUBS = {
     ["bg-ink-3 text-white", "-rotate-2"],
   ],
 } as const;
-
-const clock = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
 /** W2 / W2m — kirish: telefon → SMS kod. Talaba va biznes uchun bitta ekran, ikki mavzu. */
 const subscribeToNothing = () => () => {};
@@ -183,43 +178,21 @@ export function LoginScreen() {
                 if (code.length === OTP_LENGTH) verify(code);
               }}
             >
-              <div className="flex flex-col gap-2">
-                <span className="text-13 font-semibold">{t("codeSentTo", { phone: formatPhone(phone) })}</span>
-                <OtpInput
-                  value={code}
-                  onChange={(next) => {
-                    setCode(next);
-                    if (next.length === OTP_LENGTH && !pending) verify(next);
-                  }}
-                  digitLabel={(n) => t("digit", { n })}
-                  length={OTP_LENGTH}
-                  invalid={failure?.error === "wrongCode"}
-                  disabled={pending}
-                  autoFocus
-                />
-                <div className="flex justify-between text-13 text-muted">
-                  {resendIn > 0 ? (
-                    <span>
-                      {t("resendIn")} <b className="font-mono text-ink">{clock(resendIn)}</b>
-                    </span>
-                  ) : (
-                    <button type="button" onClick={() => sendCode()} disabled={pending} className="border-0 bg-transparent p-0 font-sans text-13 font-bold text-blue">
-                      {t("resend")}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep("phone");
-                      setFailure(null);
-                    }}
-                    className="border-0 bg-transparent p-0 font-sans text-13 font-bold text-blue"
-                  >
-                    {t("changePhone")}
-                  </button>
-                </div>
-                {errorText ? <p className="m-0 text-12 font-semibold text-danger">{errorText}</p> : null}
-              </div>
+              <CodeEntry
+                phone={phone}
+                code={code}
+                onCode={setCode}
+                onComplete={verify}
+                onResend={() => sendCode()}
+                onChangePhone={() => {
+                  setStep("phone");
+                  setFailure(null);
+                }}
+                resendIn={resendIn}
+                pending={pending}
+                invalid={failure?.error === "wrongCode"}
+                errorText={errorText}
+              />
               <button type="submit" disabled={pending} className={buttonClass({ variant: cta, strong: true })}>
                 {pending ? t("checking") : t("submit")}
               </button>

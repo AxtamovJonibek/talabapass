@@ -99,6 +99,13 @@ balandlik/kenglik chegara va padding'ni o'z ichiga OLMAYDI — primitivda `box-c
 aks holda 1–3px farq chiqadi. `<button>` va `box-sizing: border-box` yozilganlar — oddiy (border-box).
 `<input>` ichida brauzerning standart 1px 2px padding'i bor (preflight uni olib tashlaydi).
 
+Primitiv uslubini `className` bilan ustidan yozmang (`text-13`, `px-…`, rang): bir xil xususiyatning ikki klassi
+qaysi biri yutishi kafolatlanmagan. Buning o'rniga primitivga variant/prop qo'shing (`Button size="wide-quiet"`,
+`ToggleSquare textSize`). `className` faqat joylashuv uchun (margin, flex, absolute).
+
+Telefon va veb uchun alohida chizilgan ekranlar (T1–T3 ↔ WT1): holat bitta hook'da, ko'rinish ikkita,
+`PhoneOrWeb` 700px da almashtiradi. Ikkalasi DOM'da turadi — `id` lar farqli bo'lsin, testlarda `visible=true`.
+
 Landing'dagi ma'lumotlar (7-bosqichda ulanadi, kodda `TODO(7-bosqich)` bilan belgilangan):
 - Statistika raqamlari bazadan hisoblanadi; belgilangan chegaradan kichik bo'lsa bo'lim yashiriladi.
 - Hamkorlar faqat bazadagi tasdiqlangan (`APPROVED`) bizneslardan chiqadi.
@@ -160,6 +167,20 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - Formalar `onSubmit` emas, `action={fn}` bilan ulanadi: sahifa ulanmasdan bosilgan yuborish GET bo'lib ketmaydi.
 - E2E (`npm run test:e2e`): lokal baza + seed + `.env` da `OTP_FIXED_CODE=000000` kerak. Yangi himoyalangan sahifa
   qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi.
+
+## Fayllar (guvohnoma, hujjatlar)
+- Faqat `storage()` (`src/server/storage`) orqali; hozir lokal disk (`.data/private`), R2 shu interfeysga ulanadi.
+  Vercel'da lokal disk ishlamaydi (fayllar yo'qoladi) — deploy'dan oldin R2 kerak.
+- Tur mazmundan aniqlanadi (`sniffType`: JPG/PNG/PDF), 10 MB; kalit faqat o'zimiz yaratgan qismlardan
+  (`verifications/<userId>/<uuid>.<ext>`), foydalanuvchi bergan nom faqat ko'rsatish uchun saqlanadi.
+- Faylni beradigan har bir manzil ruxsatni o'zi tekshiradi; public manzil yo'q.
+- Yuklash: `POST /api/talaba/guvohnoma` — sessiya (talaba) yoki 15 daqiqalik `x-upload-token`
+  (kompyuter → telefon QR o'tkazmasi; faqat yuklashga ruxsat beradi, sessiya bermaydi).
+- Lokal tekshiruv uchun tayyor foydalanuvchilar: `node scripts/compare-fixtures.mjs` (`--cookie=tp_session=cmp-…`).
+
+## Talaba holatlari
+`DRAFT → PENDING → APPROVED | REJECTED`, `APPROVED → EXPIRED` (muddat). Yo'naltirish `studentPathFor` da;
+ilova sahifalari `requireActiveStudent()`, ro'yxat qadamlari `requireStudent()` chaqiradi.
 
 ## Biznes qoidalari
 

@@ -47,6 +47,12 @@ export async function clearOtp(phone: string): Promise<void> {
 /** +998XXXXXXXXX → formaga yoziladigan 9 raqam */
 export const local = (phone: string) => phone.replace(/^\+998/, "");
 
+/**
+ * SMS kodning birinchi katagi. Ro'yxat sahifasida ikki ko'rinish (telefon va veb) DOM'da turadi,
+ * shuning uchun faqat ko'rinib turgani olinadi.
+ */
+export const codeBox = (page: Page) => page.getByLabel("1-raqam").locator("visible=true");
+
 export async function requestCode(page: Page, phone: string, role: "Talaba" | "Biznes" = "Talaba") {
   await clearOtp(phone);
   // Tugma React ulanmasdan bosilsa forma oddiy GET bilan yuboriladi — avval sahifa tinchishini kutamiz.
@@ -54,11 +60,11 @@ export async function requestCode(page: Page, phone: string, role: "Talaba" | "B
   if (role === "Biznes") await page.getByRole("tab", { name: "Biznes" }).click();
   await page.locator("#login-phone").fill(local(phone));
   await page.getByRole("button", { name: "SMS kod olish" }).click();
-  await expect(page.getByLabel("1-raqam")).toBeEnabled();
+  await expect(codeBox(page)).toBeEnabled();
 }
 
 export async function enterCode(page: Page, code: string) {
-  await page.getByLabel("1-raqam").click();
+  await codeBox(page).click();
   await page.keyboard.type(code);
 }
 

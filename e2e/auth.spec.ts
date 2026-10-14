@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearOtp, enterCode, FIXED_CODE, requestCode, seedPhones, signIn, withDb, type SeedPhones } from "./helpers";
+import { codeBox, clearOtp, enterCode, FIXED_CODE, requestCode, seedPhones, signIn, withDb, type SeedPhones } from "./helpers";
 
 let phones: SeedPhones;
 
@@ -33,11 +33,11 @@ test.describe("kirish", () => {
     for (let i = 0; i < 4; i++) {
       await enterCode(page, "111111");
       await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
-      await expect(page.getByLabel("1-raqam")).toBeEnabled();
+      await expect(codeBox(page)).toBeEnabled();
     }
     await enterCode(page, "111111");
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
-    await expect(page.getByLabel("1-raqam")).toBeEnabled();
+    await expect(codeBox(page)).toBeEnabled();
 
     await enterCode(page, FIXED_CODE);
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
@@ -140,7 +140,9 @@ test.describe("kirish", () => {
     const fresh = "+998905550998";
     await signIn(page, fresh);
     await expect(page).toHaveURL("/talaba/royxat");
-    await expect(page.getByTestId("verified-phone")).toContainText("+998 90 555 09 98");
+    // Tasdiqlangan raqam formada tayyor turadi va o'zgartirib bo'lmaydi
+    await expect(page.locator("#reg-phone")).toHaveValue("90 555 09 98");
+    await expect(page.locator("#reg-phone")).toHaveAttribute("readonly", "");
     await clearOtp(fresh);
   });
 

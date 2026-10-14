@@ -687,6 +687,58 @@
       "today": "bugun, {time}",
       "yesterday": "kecha, {time}",
       "master": "Magistratura"
+    },
+    "web": {
+      "haveAccount": "Hisobing bormi?",
+      "login": "Kirish",
+      "eyebrow": "TALABA HISOBI",
+      "title": "Uch qadam — va chegirmalar ochiq.",
+      "steps": {
+        "1": {
+          "title": "Ma'lumotlar",
+          "hint": "Ism, universitet, kurs"
+        },
+        "2": {
+          "title": "Guvohnoma",
+          "hint": "Rasm yoki fayl"
+        },
+        "3": {
+          "title": "Tekshiruv",
+          "hint": "Odatda bir necha soat"
+        }
+      },
+      "privacy": "Guvohnoma rasmini faqat moderator ko'radi. Bizneslar uni hech qachon ko'rmaydi.",
+      "back": "Orqaga",
+      "personalTitle": "Shaxsiy ma'lumotlar",
+      "codeTitle": "Raqamni tasdiqlang",
+      "cardTitle": "Talaba guvohnomasi",
+      "drop": "Faylni shu yerga tashlang",
+      "dropHint": "yoki <pick>kompyuterdan tanlang</pick> · JPG, PNG, PDF · 10 MB gacha",
+      "phoneTitle": "Telefon bilan rasmga olish",
+      "phoneHint": "Kodni telefon kamerasi bilan skanerlang — rasm shu yerga keladi.",
+      "qrLabel": "Telefonga o'tish QR kodi",
+      "uploading": "Yuklanmoqda…",
+      "uploaded": "Yuklandi",
+      "submit": "Tekshiruvga yuborish",
+      "statusTitle": "Hujjatingizni tekshiryapmiz",
+      "statusLead": "Odatda bir necha soat ichida. Tasdiqlangach SMS keladi — shu sahifani yopsangiz ham bo'ladi.",
+      "rejectedTitle": "Hujjat qabul qilinmadi",
+      "sentLabel": "Yuborildi",
+      "stateLabel": "Holat",
+      "statePending": "Moderatorda",
+      "stateRejected": "Rad etildi",
+      "queueLabel": "Navbatda",
+      "queueValue": "{n}-o'rin",
+      "reasonLabel": "Sabab",
+      "whileWaiting": "Kutayotganda: <deals>chegirmalarni ko'rib chiqing</deals> — tasdiqlangach darhol olasiz.",
+      "refresh": "Holatni yangilash",
+      "reupload": "Boshqa rasm yuklash"
+    },
+    "handoff": {
+      "doneTitle": "Rasm yuborildi",
+      "doneLead": "Kompyuteringizga qayting — sahifa o'zi yangilanadi.",
+      "expiredTitle": "Havola eskirgan",
+      "expiredLead": "Kompyuterdagi sahifani yangilab, QR kodni qayta skanerlang."
     }
   }
 }

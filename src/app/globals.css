@@ -11,6 +11,7 @@
   /* asos */
   --color-ink: #141414;
   --color-paper: #f3f2ee;
+  --color-paper-2: #f7f6f1;
   --color-white: #ffffff;
   --color-admin-bg: #eeede8;
   --color-surface: #eeece6;
@@ -145,6 +146,7 @@
   --radius-19: 19px;
   --radius-20: 20px;
   --radius-22: 22px;
+  --radius-24: 24px;
 }
 
 /* Dizayndagi standart chegara qalinligi */

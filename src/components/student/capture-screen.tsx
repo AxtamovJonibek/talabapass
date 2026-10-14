@@ -15,6 +15,11 @@ type Props = {
   backHref: string;
   /** Guvohnoma muddati o'tgani sabab qayta yuklash so'ralyapti */
   expired?: boolean;
+  /**
+   * Kompyuterdagi sahifadan QR orqali o'tilgan (sessiyasiz): yuklash shu token nomidan bajariladi,
+   * tugagach tekshiruv sahifasiga o'tilmaydi — "kompyuterga qayting" ko'rsatiladi.
+   */
+  uploadToken?: string;
 };
 
 const roundButton = "flex size-11 items-center justify-center rounded-22 border-0 bg-ink-2 text-paper";
@@ -25,10 +30,11 @@ const corner = "absolute box-content size-[30px] border-orange";
  * Kamera ruxsati bo'lsa ramkada jonli tasvir chiqadi va tugma kadrni oladi; bo'lmasa tugma telefonning
  * o'z kamerasini (fayl tanlash orqali) ochadi.
  */
-export function CaptureScreen({ backHref, expired = false }: Props) {
+export function CaptureScreen({ backHref, expired = false, uploadToken }: Props) {
   const t = useTranslations("onboarding.capture");
   const step = useTranslations("onboarding");
   const router = useRouter();
+  const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<MediaStreamTrack | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -37,8 +43,12 @@ export function CaptureScreen({ backHref, expired = false }: Props) {
   const [torch, setTorch] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);
+  const [sent, setSent] = useState(false);
+  const handoff = useTranslations("onboarding.handoff");
 
   useEffect(() => {
+    // Keng ekranda bu ko'rinish yashirin (veb ko'rinishi chiqadi) — kamera so'ralmaydi.
+    if (!rootRef.current?.offsetParent) return;
     let stream: MediaStream | undefined;
     let cancelled = false;
     navigator.mediaDevices
@@ -69,9 +79,14 @@ export function CaptureScreen({ backHref, expired = false }: Props) {
       const response = await fetch("/api/talaba/guvohnoma", {
         method: "POST",
         body: file,
-        headers: { "content-type": "application/octet-stream", "x-file-name": encodeURIComponent(name) },
+        headers: {
+          "content-type": "application/octet-stream",
+          "x-file-name": encodeURIComponent(name),
+          ...(uploadToken ? { "x-upload-token": uploadToken } : {}),
+        },
       });
       const result = (await response.json()) as { ok: boolean; problem?: Problem };
+      if (result.ok && uploadToken) return setSent(true);
       if (result.ok) {
         router.replace("/talaba/tekshiruv");
         router.refresh();
@@ -112,8 +127,20 @@ export function CaptureScreen({ backHref, expired = false }: Props) {
     if (file) void upload(file, file.name);
   };
 
+  if (sent) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-ink-0 px-6 text-center text-paper">
+        <div className="flex size-14 items-center justify-center rounded-full bg-mint-2 text-ink">
+          <Icon name="check" size={28} strokeWidth={3} />
+        </div>
+        <h1 className="m-0 text-28 leading-[1.05] font-extrabold tracking-[-0.03em] font-stretch-110%">{handoff("doneTitle")}</h1>
+        <p className="m-0 text-14 leading-[1.45] text-fog-3">{handoff("doneLead")}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-dvh flex-col bg-ink-0 text-paper">
+    <div ref={rootRef} className="flex min-h-dvh flex-col bg-ink-0 text-paper">
       <div className="flex items-center justify-between px-4 pt-14">
         <Link href={backHref} aria-label={t("back")} className={roundButton}>
           <Icon name="chevronLeft" size={20} />

@@ -1,4 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { PhoneOrWeb } from "@/components/student/responsive";
+import { StatusDesktop } from "@/components/student/status-desktop";
 import { StatusScreen } from "@/components/student/status-screen";
 import { redirect } from "@/i18n/navigation";
 import { formatMinute, toTashkent } from "@/lib/time";
@@ -9,7 +11,7 @@ import { latestVerification } from "@/server/student/verification";
 
 const DAY_MS = 86_400_000;
 
-// T3 — tekshiruv holati
+// T3 / WT1 (3-qadam) — tekshiruv holati
 export default async function StudentReviewPage() {
   const user = await requireStudent();
   const { status } = user.student;
@@ -33,13 +35,20 @@ export default async function StudentReviewPage() {
         ? t("onboarding.status.yesterday", { time })
         : `${String(sent.date.getUTCDate()).padStart(2, "0")}.${String(sent.date.getUTCMonth() + 1).padStart(2, "0")}, ${time}`;
 
+  const rejected = status === "REJECTED" ? { reason: verification.rejectReason ?? "" } : undefined;
+
   return (
-    <StatusScreen
-      name={[user.firstName, user.lastName].filter(Boolean).join(" ")}
-      meta={`${user.student.university.shortName} · ${courseLabel}`}
-      file={`${verification.fileName} · ${formatFileSize(verification.fileSize)}`}
-      sentAt={sentAt}
-      rejected={status === "REJECTED" ? { reason: verification.rejectReason ?? "" } : undefined}
+    <PhoneOrWeb
+      phone={
+        <StatusScreen
+          name={[user.firstName, user.lastName].filter(Boolean).join(" ")}
+          meta={`${user.student.university.shortName} · ${courseLabel}`}
+          file={`${verification.fileName} · ${formatFileSize(verification.fileSize)}`}
+          sentAt={sentAt}
+          rejected={rejected}
+        />
+      }
+      web={<StatusDesktop sentAt={sentAt} queuePosition={verification.queuePosition} rejected={rejected} />}
     />
   );
 }

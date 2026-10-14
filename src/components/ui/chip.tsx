@@ -31,19 +31,22 @@ type ToggleSquareProps = Omit<ComponentProps<"button">, "children"> & {
   selected?: boolean;
   /** Uzunroq yozuv uchun kichikroq shrift: "Mag." (13px), hafta kunlari (14px) */
   textSize?: 13 | 14 | 15;
+  /** Veb formadagi (WT1) qalinroq va kengroq variant: 700, kamida 56px, yon padding 14px */
+  wide?: boolean;
   children: ReactNode;
 };
 
 /** Kvadrat tanlov tugmasi: kurs (T1), hafta kunlari (B2). */
 const TOGGLE_TEXT = { 13: "text-13", 14: "text-14", 15: "text-15" } as const;
 
-export function ToggleSquare({ selected = false, textSize = 15, children, className, type = "button", ...props }: ToggleSquareProps) {
+export function ToggleSquare({ selected = false, textSize = 15, wide = false, children, className, type = "button", ...props }: ToggleSquareProps) {
   return (
     <button
       type={type}
       aria-pressed={selected}
       className={cn(
-        "h-11 rounded-10 border-hair font-sans font-semibold",
+        "h-11 rounded-10 border-hair font-sans",
+        wide ? "min-w-14 px-3.5 font-bold" : "font-semibold",
         TOGGLE_TEXT[textSize],
         selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink",
         className,

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { clearOtp, enterCode, FIXED_CODE, local, requestCode, seedPhones, signIn, withDb } from "./helpers";
+import { codeBox, clearOtp, enterCode, FIXED_CODE, local, requestCode, seedPhones, signIn, withDb } from "./helpers";
 
 // Faqat shu testlar ishlatadigan raqamlar
 const NEW_STUDENT = "+998905550801";
@@ -38,7 +38,7 @@ test.describe("talaba ro'yxati", () => {
     await fillRegistration(page, NEW_STUDENT);
 
     // Raqam egaligi SMS kod bilan tasdiqlanadi
-    await expect(page.getByLabel("1-raqam")).toBeEnabled();
+    await expect(codeBox(page)).toBeEnabled();
     expect(await studentStatus(NEW_STUDENT), "koddan oldin hisob ochilmaydi").toBeUndefined();
     await enterCode(page, FIXED_CODE);
 
@@ -75,9 +75,9 @@ test.describe("talaba ro'yxati", () => {
     await page.goto("/talaba/royxat", { waitUntil: "networkidle" });
     await page.locator("#reg-phone").fill(local(NEW_STUDENT));
     await page.getByRole("button", { name: "Davom etish" }).click();
-    await expect(page.getByText("Ismingizni kiriting.")).toBeVisible();
-    await expect(page.getByText("Familiyangizni kiriting.")).toBeVisible();
-    await expect(page.getByText("Kursni tanlang.")).toBeVisible();
+    await expect(page.getByText("Ismingizni kiriting.").locator("visible=true")).toBeVisible();
+    await expect(page.getByText("Familiyangizni kiriting.").locator("visible=true")).toBeVisible();
+    await expect(page.getByText("Kursni tanlang.").locator("visible=true")).toBeVisible();
     const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [NEW_STUDENT]));
     expect(codes.rows[0].n).toBe(0);
   });
@@ -87,7 +87,7 @@ test.describe("talaba ro'yxati", () => {
     await clearOtp(student);
     await page.goto("/talaba/royxat", { waitUntil: "networkidle" });
     await fillRegistration(page, student);
-    await expect(page.getByLabel("1-raqam")).toBeEnabled();
+    await expect(codeBox(page)).toBeEnabled();
     await enterCode(page, FIXED_CODE);
     await expect(page).toHaveURL("/chegirmalar");
     // mavjud hisob ma'lumotlari o'zgarmagan
@@ -100,7 +100,7 @@ test.describe("guvohnoma yuklash", () => {
   async function registered(page: Page) {
     await page.goto("/talaba/royxat", { waitUntil: "networkidle" });
     await fillRegistration(page, NEW_STUDENT);
-    await expect(page.getByLabel("1-raqam")).toBeEnabled();
+    await expect(codeBox(page)).toBeEnabled();
     await enterCode(page, FIXED_CODE);
     await expect(page).toHaveURL("/talaba/guvohnoma");
   }
@@ -144,7 +144,7 @@ test.describe("holatga qarab yo'naltirish", () => {
     // scripts/compare-fixtures.mjs dagi tayyor foydalanuvchi o'rniga shu yerda yaratamiz
     await page.goto("/talaba/royxat", { waitUntil: "networkidle" });
     await fillRegistration(page, NEW_STUDENT);
-    await expect(page.getByLabel("1-raqam")).toBeEnabled();
+    await expect(codeBox(page)).toBeEnabled();
     await enterCode(page, FIXED_CODE);
     await page.getByTestId("card-file").setInputFiles({ name: "xira.jpg", mimeType: "image/jpeg", buffer: JPEG });
     await expect(page).toHaveURL("/talaba/tekshiruv");
@@ -155,7 +155,7 @@ test.describe("holatga qarab yo'naltirish", () => {
     });
     await page.reload();
     await expect(page.getByTestId("status-stamp")).toHaveText("RAD ETILDI");
-    await expect(page.getByText("Rasm aniq emas")).toBeVisible();
+    await expect(page.getByText("Rasm aniq emas").locator("visible=true")).toBeVisible();
 
     await page.getByRole("link", { name: "Boshqa rasm yuklash" }).click();
     await expect(page).toHaveURL("/talaba/guvohnoma");

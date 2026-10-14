@@ -5,6 +5,10 @@ import { Link } from "@/i18n/navigation";
 const SIZES = {
   /** Asosiy CTA: T1 "Davom etish", B1 "Keyingi" */
   lg: "h-14 rounded-14 px-5 text-16",
+  /** Veb formalar pastidagi tugmalar: WT1 "Davom etish", "Orqaga" */
+  wide: "h-13 rounded-14 px-6 text-16",
+  /** Shu qatordagi ikkilamchi tugma: WT1 "Orqaga" (torroq, 15px) */
+  "wide-quiet": "h-13 rounded-14 px-[18px] text-15",
   /** Admin harakatlari: A2 "Tasdiqlash" */
   md: "h-12 rounded-12 px-4 text-15",
   /** Ikkilamchi: B6 "Excel hisobot" */
@@ -18,6 +22,10 @@ const VARIANTS = {
   ink: ["border-0 bg-ink text-white", "font-bold"],
   green: ["border-0 bg-green text-white", "font-extrabold"],
   outline: ["border-hair border-ink bg-white text-ink", "font-bold"],
+  /** Ikkilamchi, kulrang chegarali: WT1 "Orqaga" */
+  "outline-soft": ["border-hair border-line bg-white text-ink", "font-bold"],
+  /** O'sha tugmaning faol bo'lmagan ko'rinishi: WT1 birinchi qadamdagi "Orqaga" */
+  "outline-idle": ["border-hair border-line bg-white text-fog-3", "font-bold"],
   "danger-outline": ["border-hair border-danger-line bg-white text-danger", "font-bold"],
   "danger-ghost": ["border-0 bg-transparent text-danger", "font-bold"],
   ghost: ["border-0 bg-transparent", "font-semibold"],

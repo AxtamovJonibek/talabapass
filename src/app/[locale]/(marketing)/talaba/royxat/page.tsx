@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
-import { RegisterForm } from "@/components/student/register-form";
+import { RegisterScreen } from "@/components/student/register-screen";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/locale";
 import { getCurrentUser, getVerifiedPhone, homePathFor } from "@/server/auth/session";
@@ -19,7 +19,7 @@ async function Register() {
     db.university.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     getVerifiedPhone(),
   ]);
-  return <RegisterForm universities={universities} verifiedPhone={verifiedPhone} />;
+  return <RegisterScreen universities={universities} verifiedPhone={verifiedPhone} />;
 }
 
 // T1 / WT1 — talaba ro'yxati, 1-qadam
