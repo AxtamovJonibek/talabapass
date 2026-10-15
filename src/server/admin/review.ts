@@ -19,12 +19,13 @@ const startOfToday = () => fromTashkent(toTashkent(new Date()).date, 0);
 // ───────── navbatlar ─────────
 
 export async function pendingCounts() {
-  const [students, businesses, discounts] = await Promise.all([
+  const [students, businesses, discounts, universities] = await Promise.all([
     db.verification.count({ where: { status: "PENDING" } }),
     db.business.count({ where: BUSINESS_QUEUE }),
     db.discount.count({ where: { status: "PENDING_REVIEW" } }),
+    db.universityRequest.count({ where: { status: "PENDING" } }),
   ]);
-  return { students, businesses, discounts };
+  return { students, businesses, discounts, universities };
 }
 
 export async function studentQueue() {

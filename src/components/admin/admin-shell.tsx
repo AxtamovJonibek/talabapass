@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/ui/logo";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Icon } from "@/components/ui/icon";
@@ -9,7 +10,7 @@ import { blockedCounts } from "@/server/admin/overview";
 import { pendingCounts } from "@/server/admin/review";
 import type { CurrentUser } from "@/server/auth/session";
 
-export type AdminSection = "overview" | "students" | "businesses" | "discounts" | "transactions" | "notifications" | "blocked";
+export type AdminSection = "overview" | "students" | "businesses" | "discounts" | "transactions" | "notifications" | "blocked" | "users" | "universities" | "profile";
 
 const ITEMS = [
   { key: "overview", href: "/admin", icon: "grid" },
@@ -20,6 +21,10 @@ const ITEMS = [
   { key: "transactions", href: "/admin/tranzaksiyalar", icon: "receipt" },
   { key: "notifications", href: "/admin/bildirishnomalar", icon: "bell" },
   { key: "blocked", href: "/admin/bloklanganlar", icon: "ban" },
+  // Dizaynda yo'q — admin boshqaruvi (mavjud primitivlardan)
+  { key: "users", href: "/admin/foydalanuvchilar", icon: "users" },
+  { key: "universities", href: "/admin/universitetlar", icon: "student" },
+  { key: "profile", href: "/admin/profil", icon: "user" },
 ] as const;
 
 /** Admin paneli qobig'i (A1–A3): qora yon panel + asosiy maydon. Tor ekranda panel tepaga o'raladi. */
@@ -28,7 +33,7 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
   const brand = await getTranslations("brand");
   const common = await getTranslations("common");
   const [counts, blocked] = await Promise.all([pendingCounts(), blockedCounts()]);
-  const badge = { students: counts.students, businesses: counts.businesses, discounts: counts.discounts } as Partial<Record<AdminSection, number>>;
+  const badge = { students: counts.students, businesses: counts.businesses, discounts: counts.discounts, universities: counts.universities } as Partial<Record<AdminSection, number>>;
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
   return (
@@ -50,10 +55,10 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
             <div className="flex size-[34px] items-center justify-center rounded-full bg-paper text-12 font-extrabold text-ink">
               {initials(user.firstName, user.lastName)}
             </div>
-            <div className="flex min-w-0 flex-1 flex-col">
+            <Link href="/admin/profil" className="flex min-w-0 flex-1 flex-col text-inherit no-underline">
               <span className="text-13 font-bold">{name}</span>
               <span className="text-12 text-fog-3">{t("role")}</span>
-            </div>
+            </Link>
             {/* Dizaynda chiqish tugmasi yo'q — panel pastidagi ism yonida kichik ikonka */}
             <form action={logoutAction}>
               <button type="submit" aria-label={common("logout")} title={common("logout")} className="flex size-8 items-center justify-center rounded-8 border-0 bg-transparent p-0 text-fog-3 hover:text-white">
