@@ -47,20 +47,19 @@ export function StudentWebHeader({ sticky = false, initials, children }: { stick
   );
 }
 
-/** Bildirishnomalar qo'ng'irog'i: o'qilmagani bo'lsa to'q sariq nuqta (T4 — 44px, WT2 — 46px). */
+/** Bildirishnomalar qo'ng'irog'i: o'qilmagani bo'lsa to'q sariq nuqta (T4 — 44px, WT2 — 46px). Bosilsa xabarlar ro'yxati. */
 export function BellButton({ unread, size = "md" }: { unread: boolean; size?: "md" | "lg" }) {
   const t = useTranslations("feed");
   return (
-    // Bildirishnomalar ro'yxati keyingi bosqichda; hozircha faqat belgi
-    <span
-      role="img"
+    <Link
+      href="/bildirishnomalar"
       aria-label={t("notifications")}
-      className={cn("relative flex shrink-0 items-center justify-center rounded-full bg-white", size === "md" ? "size-11" : "size-[46px]")}
+      className={cn("relative flex shrink-0 items-center justify-center rounded-full bg-white text-ink no-underline", size === "md" ? "size-11" : "size-[46px]")}
     >
       <Icon name="bell" size={20} />
       {unread ? (
         <span className={cn("absolute size-3 rounded-full border-2 border-solid border-white bg-orange", size === "md" ? "top-2.5 right-[11px]" : "top-[11px] right-3")} />
       ) : null}
-    </span>
+    </Link>
   );
 }

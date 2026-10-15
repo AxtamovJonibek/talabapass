@@ -8,6 +8,9 @@
  */
 type Env = Record<string, string | undefined>;
 
+/** Web Push (VAPID): uchalasi birga yoki hech biri — yarim sozlangan push jimgina ishlamay qoladi. */
+const VAPID_VARS = ["VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT"] as const;
+
 const S3_VARS = ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const;
 
 export function isStaging(env: Env = process.env): boolean {
@@ -40,6 +43,13 @@ export function productionEnvProblems(env: Env): string[] {
     if (!env.SMS_PROVIDER?.trim()) {
       problems.push("SMS_PROVIDER o'rnatilmagan: hech kim tizimga kira olmaydi.");
     }
+  }
+  const vapidMissing = VAPID_VARS.filter((name) => !env[name]?.trim());
+  if (vapidMissing.length > 0 && vapidMissing.length < VAPID_VARS.length) {
+    problems.push(`Web Push: ${vapidMissing.join(", ")} o'rnatilmagan (${VAPID_VARS.join(", ")} birga kerak; kalitlar — npm run push:keys).`);
+  }
+  if (env.VAPID_SUBJECT?.trim() && !/^(mailto:|https:\/\/)/.test(env.VAPID_SUBJECT.trim())) {
+    problems.push("VAPID_SUBJECT mailto:… yoki https://… ko'rinishida bo'lishi kerak.");
   }
   if (!env.AUTH_SECRET || env.AUTH_SECRET.length < 32) {
     problems.push("AUTH_SECRET o'rnatilmagan yoki 32 belgidan qisqa.");

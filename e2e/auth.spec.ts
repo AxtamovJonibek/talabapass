@@ -7,14 +7,14 @@ test.beforeAll(async () => {
   phones = await seedPhones();
 });
 
-const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin/talabalar" } as const;
+const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin" } as const;
 
 test.describe("kirish", () => {
   for (const role of ["student", "owner", "cashier", "admin"] as const) {
     test(`${role} kiradi va o'z bosh sahifasiga tushadi`, async ({ page }) => {
       await signIn(page, phones[role]);
       await expect(page).toHaveURL(HOME[role]);
-      if (role === "admin") await expect(page.getByRole("heading", { name: "Talabalar tekshiruvi" })).toBeVisible();
+      if (role === "admin") await expect(page.getByRole("heading", { name: "Platforma" })).toBeVisible();
       // Talaba bosh sahifasi — lenta (T4)
       else if (role === "student") await expect(page.locator("#t4-search")).toBeVisible();
       // Kassir bosh sahifasi — skaner (B3), o'z biznesi bilan
@@ -24,19 +24,27 @@ test.describe("kirish", () => {
     });
   }
 
-  test("admin: /admin tekshiruvga yo'naltiradi, tayyor bo'lmagan bo'limlar xira va bosilmaydi", async ({ page }) => {
+  test("admin: yon panelning barcha bandlari ochiladi — bo'sh sahifa yo'q", async ({ page }) => {
     await signIn(page, phones.admin);
     await expect(page).toHaveURL(HOME.admin);
-    await page.goto("/admin");
-    await expect(page).toHaveURL("/admin/talabalar");
     const nav = page.getByRole("navigation", { name: "Admin menyu" });
-    for (const name of ["Umumiy", "Tranzaksiyalar", "Bildirishnomalar"]) {
-      await expect(nav.getByText(name)).toHaveAttribute("aria-disabled", "true");
-      await expect(nav.getByRole("link", { name })).toHaveCount(0);
+    // [band, manzil, sahifa sarlavhasi]
+    const sections = [
+      ["Umumiy", "/admin", "Platforma"],
+      ["Talabalar tekshiruvi", "/admin/talabalar", "Talabalar tekshiruvi"],
+      ["Bizneslar", "/admin/bizneslar", "Bizneslar tekshiruvi"],
+      ["Chegirmalar", "/admin/chegirmalar", "Chegirmalar tekshiruvi"],
+      ["Tranzaksiyalar", "/admin/tranzaksiyalar", "Tranzaksiyalar"],
+      ["Bildirishnomalar", "/admin/bildirishnomalar", "Bildirishnoma yuborish"],
+      ["Bloklanganlar", "/admin/bloklanganlar", "Bloklanganlar"],
+    ] as const;
+    for (const [label, href, heading] of sections) {
+      await nav.getByRole("link", { name: new RegExp(label) }).click();
+      await expect(page, label).toHaveURL(href);
+      await expect(page.getByRole("heading", { level: 1, name: heading }), label).toBeVisible();
+      // hech bir band o'chirilgan emas
+      await expect(nav.locator("[aria-disabled=true]")).toHaveCount(0);
     }
-    await nav.getByRole("link", { name: /Bizneslar/ }).click();
-    await expect(page).toHaveURL("/admin/bizneslar");
-    await expect(nav.getByRole("link", { name: /Talabalar tekshiruvi/ })).toBeVisible();
   });
 
   test("admin panelidan chiqish", async ({ page }) => {
@@ -206,7 +214,7 @@ test.describe("kirish", () => {
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/chegirmalar", "/kuponlar", "/tarix", "/profil", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
+  const PROTECTED = ["/chegirmalar", "/kuponlar", "/tarix", "/profil", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/admin/tranzaksiyalar", "/admin/bildirishnomalar", "/admin/bloklanganlar", "/bildirishnomalar", "/biznes/bildirishnomalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
     test.slow(); // 8 ta sahifa — dev serverda birinchi kompilyatsiya uzoq
@@ -218,10 +226,10 @@ test.describe("rol himoyasi", () => {
 
   // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
   const MATRIX = {
-    student: { "/biznes/chegirma/yangi": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar" },
-    owner: { "/chegirmalar": "/biznes", "/profil": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
-    cashier: { "/kuponlar": "/biznes/skaner", "/biznes/profil": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner" },
-    admin: { "/tarix": "/admin/talabalar", "/chegirmalar": "/admin/talabalar", "/biznes": "/admin/talabalar", "/biznes/skaner": "/admin/talabalar", "/admin": "/admin/talabalar" },
+    student: { "/biznes/chegirma/yangi": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar", "/admin/tranzaksiyalar": "/chegirmalar", "/admin/bildirishnomalar": "/chegirmalar", "/admin/bloklanganlar": "/chegirmalar", "/biznes/bildirishnomalar": "/chegirmalar" },
+    owner: { "/chegirmalar": "/biznes", "/profil": "/biznes", "/bildirishnomalar": "/biznes", "/admin": "/biznes", "/admin/bildirishnomalar": "/biznes", "/admin/tranzaksiyalar": "/biznes", "/biznes/skaner": "/biznes/skaner" },
+    cashier: { "/kuponlar": "/biznes/skaner", "/biznes/profil": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner", "/admin/tranzaksiyalar": "/biznes/skaner", "/admin/bildirishnomalar": "/biznes/skaner", "/admin/bloklanganlar": "/biznes/skaner", "/bildirishnomalar": "/biznes/skaner", "/biznes/bildirishnomalar": "/biznes/skaner" },
+    admin: { "/tarix": "/admin", "/chegirmalar": "/admin", "/bildirishnomalar": "/admin", "/biznes": "/admin", "/biznes/bildirishnomalar": "/admin", "/biznes/skaner": "/admin" },
   } as const;
 
   for (const [role, routes] of Object.entries(MATRIX) as [keyof typeof MATRIX, Record<string, string>][]) {

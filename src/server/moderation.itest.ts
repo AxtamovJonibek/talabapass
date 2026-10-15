@@ -1,15 +1,18 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "./db";
-import { blockBusiness, blockUser } from "./moderation";
+import { blockBusiness, blockUser, unblockBusiness, unblockUser } from "./moderation";
 
 // Faqat shu test yaratadigan yozuvlar ("itest_" prefiksi)
 const IDS = { admin: "itest_admin", student: "itest_student", owner: "itest_owner", cashier: "itest_cashier", outsider: "itest_outsider" };
 const BUSINESS = "itest_business";
+const UNIVERSITY = "itest_mod_university";
 
 async function cleanup() {
   const users = Object.values(IDS);
   await db.auditLog.deleteMany({ where: { OR: [{ actorId: { in: users } }, { entityId: { in: [...users, BUSINESS] } }] } });
   await db.business.deleteMany({ where: { id: BUSINESS } });
+  await db.studentProfile.deleteMany({ where: { userId: IDS.student } });
+  await db.university.deleteMany({ where: { id: UNIVERSITY } });
   await db.user.deleteMany({ where: { id: { in: users } } });
 }
 
@@ -81,5 +84,59 @@ describe("bloklash sessiyalarni darhol yopadi", () => {
   it("bloklash yarim bajarilmaydi: mavjud bo'lmagan foydalanuvchida hech narsa o'zgarmaydi", async () => {
     await expect(blockUser("itest_yoq", "sabab", IDS.admin)).rejects.toThrow();
     expect(await db.auditLog.count({ where: { actorId: IDS.admin } })).toBe(0);
+  });
+});
+
+describe("blokdan chiqarish", () => {
+  const NOW = new Date("2026-10-15T09:00:00Z");
+  async function profile(data: { status: "APPROVED" | "BLOCKED"; cardNumber: string | null; cardExpiresAt: Date | null }) {
+    await db.university.create({ data: { id: UNIVERSITY, name: "itest_mod_universitet", shortName: "MOD" } });
+    await db.studentProfile.create({ data: { userId: IDS.student, universityId: UNIVERSITY, course: "C1", publicId: "itest_mod_pub", ...data } });
+  }
+
+  it("guvohnomasi amalda talaba: ACTIVE va APPROVED; sessiyalar qaytmaydi; audit yoziladi", async () => {
+    await profile({ status: "APPROVED", cardNumber: "ITEST-MOD-1", cardExpiresAt: new Date("2027-06-01") });
+    await blockUser(IDS.student, "sabab", IDS.admin);
+    expect(await unblockUser(IDS.student, IDS.admin, NOW)).toBe(true);
+
+    const user = await db.user.findUniqueOrThrow({ where: { id: IDS.student }, include: { student: true } });
+    expect(user).toMatchObject({ status: "ACTIVE", blockedReason: null });
+    expect(user.student?.status).toBe("APPROVED");
+    expect(await sessionsOf(IDS.student)).toBe(0);
+    expect(await db.auditLog.count({ where: { action: "user.unblock", entityId: IDS.student, actorId: IDS.admin } })).toBe(1);
+  });
+
+  it("guvohnoma muddati o'tgan talaba — EXPIRED; hech qachon tasdiqlanmagan — REJECTED", async () => {
+    await profile({ status: "APPROVED", cardNumber: "ITEST-MOD-2", cardExpiresAt: new Date("2026-09-01") });
+    await blockUser(IDS.student, "sabab", IDS.admin);
+    await unblockUser(IDS.student, IDS.admin, NOW);
+    expect((await db.studentProfile.findUniqueOrThrow({ where: { userId: IDS.student } })).status).toBe("EXPIRED");
+
+    await blockUser(IDS.student, "sabab", IDS.admin);
+    await db.studentProfile.update({ where: { userId: IDS.student }, data: { cardNumber: null, cardExpiresAt: null } });
+    await unblockUser(IDS.student, IDS.admin, NOW);
+    expect((await db.studentProfile.findUniqueOrThrow({ where: { userId: IDS.student } })).status).toBe("REJECTED");
+  });
+
+  it("bloklanmagan foydalanuvchida hech narsa o'zgarmaydi (audit ham yozilmaydi)", async () => {
+    expect(await unblockUser(IDS.student, IDS.admin, NOW)).toBe(false);
+    expect(await db.auditLog.count({ where: { action: "user.unblock", entityId: IDS.student } })).toBe(0);
+  });
+
+  it("biznes: ilgari tasdiqlangan — APPROVED, hech qachon ko'rilmagan — PENDING (navbatga qaytadi)", async () => {
+    await db.auditLog.create({ data: { actorId: IDS.admin, action: "business.approve", entity: "Business", entityId: BUSINESS } });
+    await blockBusiness(BUSINESS, "sabab", IDS.admin);
+    expect(await unblockBusiness(BUSINESS, IDS.admin)).toBe(true);
+    expect(await db.business.findUniqueOrThrow({ where: { id: BUSINESS } })).toMatchObject({ status: "APPROVED", rejectReason: null });
+
+    await db.auditLog.deleteMany({ where: { action: "business.approve", entityId: BUSINESS } });
+    await blockBusiness(BUSINESS, "sabab", IDS.admin);
+    expect(await unblockBusiness(BUSINESS, IDS.admin)).toBe(true);
+    expect((await db.business.findUniqueOrThrow({ where: { id: BUSINESS } })).status).toBe("PENDING");
+  });
+
+  it("bloklanmagan biznesni 'chiqarib' bo'lmaydi", async () => {
+    expect(await unblockBusiness(BUSINESS, IDS.admin)).toBe(false);
+    expect((await db.business.findUniqueOrThrow({ where: { id: BUSINESS } })).status).toBe("APPROVED");
   });
 });

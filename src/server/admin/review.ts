@@ -3,6 +3,7 @@ import { toTashkent, fromTashkent } from "@/lib/time";
 import { audit } from "../audit";
 import { db } from "../db";
 import { blockBusiness, blockUser } from "../moderation";
+import { notifyUser } from "../notifications/direct";
 import { checkCardExpiry, normalizeCardNumber, parseDateInput } from "./review-rules";
 
 /**
@@ -168,7 +169,7 @@ export async function approveStudent(
   if (holder && holder.userId !== verification.studentId) return { ok: false, error: "card_duplicate" };
 
   try {
-    return await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async (tx) => {
       const closed = await tx.verification.updateMany({
         where: { id: input.verificationId, status: "PENDING" },
         data: { status: "APPROVED", reviewedById: actorId, reviewedAt: new Date() },
@@ -179,9 +180,11 @@ export async function approveStudent(
         data: { status: "APPROVED", cardNumber, cardExpiresAt: expiresAt },
       });
       await audit({ actorId, action: "student.approve", entity: "Verification", entityId: input.verificationId, meta: { cardNumber, cardExpiresAt: input.cardExpiresAt } }, tx);
-      // TODO(10-bosqich): talabaga SMS va push ("Tasdiqlandi").
       return { ok: true as const };
     });
+    // Qaror saqlangandan keyin: ilova ichi + push + SMS (xato qarorga ta'sir qilmaydi)
+    if (result.ok) await notifyUser(verification.studentId, "studentApproved", {}, actorId);
+    return result;
   } catch (error) {
     // Ikki admin bir vaqtda bir xil raqam bilan tasdiqlasa — unique cheklov ushlab qoladi.
     if ((error as { code?: string }).code === "P2002") return { ok: false, error: "card_duplicate" };
@@ -193,7 +196,8 @@ export async function rejectStudent(
   input: { verificationId: string; reasonText: string; reasonKey: string },
   actorId: string,
 ): Promise<{ ok: true } | { ok: false; error: "not_pending" }> {
-  return db.$transaction(async (tx) => {
+  let studentId: string | null = null;
+  const result = await db.$transaction(async (tx) => {
     const verification = await tx.verification.findUnique({ where: { id: input.verificationId }, select: { studentId: true } });
     const closed = await tx.verification.updateMany({
       where: { id: input.verificationId, status: "PENDING" },
@@ -202,9 +206,11 @@ export async function rejectStudent(
     if (!verification || closed.count === 0) return { ok: false as const, error: "not_pending" as const };
     await tx.studentProfile.update({ where: { userId: verification.studentId }, data: { status: "REJECTED" } });
     await audit({ actorId, action: "student.reject", entity: "Verification", entityId: input.verificationId, meta: { reason: input.reasonKey } }, tx);
-    // TODO(10-bosqich): talabaga SMS va push (sababi bilan).
+    studentId = verification.studentId;
     return { ok: true as const };
   });
+  if (result.ok && studentId) await notifyUser(studentId, "studentRejected", { reason: input.reasonText }, actorId);
+  return result;
 }
 
 /** Talabani bloklash: hisob va barcha sessiyalar (moderation.blockUser), kutayotgan arizasi yopiladi. */
@@ -221,8 +227,11 @@ export async function blockStudent(input: { verificationId: string; reasonText: 
 
 // ───────── qarorlar: biznes ─────────
 
+/** Biznes egasi (xabar yuborish uchun) */
+const ownerOf = async (businessId: string) => (await db.business.findUnique({ where: { id: businessId }, select: { ownerId: true } }))?.ownerId ?? null;
+
 export async function approveBusiness(businessId: string, actorId: string): Promise<{ ok: true } | { ok: false; error: "not_pending" }> {
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const closed = await tx.business.updateMany({
       where: { id: businessId, ...BUSINESS_QUEUE },
       data: { status: "APPROVED", rejectReason: null, reviewedById: actorId, reviewedAt: new Date() },
@@ -231,10 +240,15 @@ export async function approveBusiness(businessId: string, actorId: string): Prom
     await audit({ actorId, action: "business.approve", entity: "Business", entityId: businessId }, tx);
     return { ok: true as const };
   });
+  if (result.ok) {
+    const ownerId = await ownerOf(businessId);
+    if (ownerId) await notifyUser(ownerId, "businessApproved", {}, actorId);
+  }
+  return result;
 }
 
 export async function rejectBusiness(input: { businessId: string; reasonText: string; reasonKey: string }, actorId: string) {
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const closed = await tx.business.updateMany({
       where: { id: input.businessId, ...BUSINESS_QUEUE },
       data: { status: "REJECTED", rejectReason: input.reasonText, reviewedById: actorId, reviewedAt: new Date() },
@@ -243,6 +257,11 @@ export async function rejectBusiness(input: { businessId: string; reasonText: st
     await audit({ actorId, action: "business.reject", entity: "Business", entityId: input.businessId, meta: { reason: input.reasonKey } }, tx);
     return { ok: true as const };
   });
+  if (result.ok) {
+    const ownerId = await ownerOf(input.businessId);
+    if (ownerId) await notifyUser(ownerId, "businessRejected", { reason: input.reasonText }, actorId);
+  }
+  return result;
 }
 
 export async function blockBusinessFromReview(input: { businessId: string; reasonKey: string }, actorId: string) {

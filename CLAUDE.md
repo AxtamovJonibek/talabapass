@@ -330,6 +330,32 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
   `AuditLog`: `admin.password.ok|fail`. Testlar: `admin-password.test.ts`, `e2e/admin-password.spec.ts`.
 - Lokal: `.env.development` dagi xesh, parol `dev-admin-parol` (`e2e/helpers.ts` → `signIn` o'zi kiritadi).
 
+## Admin: umumiy, tranzaksiyalar, bloklanganlar, bildirishnomalar (10-bosqich)
+- Yon panel to'liq: `/admin` (A1) · `/admin/talabalar` · `/admin/bizneslar` · `/admin/chegirmalar` · `/admin/tranzaksiyalar` ·
+  `/admin/bildirishnomalar` (A3) · `/admin/bloklanganlar`. Admin kirgach `/admin` ga tushadi (`homePathFor`). Reja: `docs/10-bosqich-reja.md`.
+- A1: `src/server/admin/overview.ts` (Toshkent kunlari, 30 kun), sof mantiq `src/lib/admin-stats.ts` (kategoriya ulushi yig'indisi aniq 100,
+  yumaloq o'q). Reytingdan "Bloklash" — mavjud `blockBusinessAction`. Qidiruv maydoni `/admin/tranzaksiyalar?q=` ga o'tadi.
+- Tranzaksiyalar: `Redemption` + rad etilgan `ScanAttempt` (natija ≠ OK) bitta ro'yxatda, filtr URL'da (`holat`, `davr`, `q`, `sahifa`,
+  `src/lib/admin-transactions.ts`); Excel — `/api/admin/tranzaksiyalar/eksport` (`getUnlockedAdmin`, audit `transactions.export`).
+- Bloklanganlar: `moderation.ts` da `unblockUser`/`unblockBusiness` (talaba: muddati o'tmagan → APPROVED, o'tgan → EXPIRED, hech
+  tasdiqlanmagan → REJECTED; biznes: ilgari tasdiqlangan → APPROVED, aks holda PENDING). Audit `user.unblock`, `business.unblock`.
+- Bildirishnomalar: `src/server/notifications/` — `audience.ts` (ALL_STUDENTS, UNIVERSITY, DISTRICT, BUSINESSES), `send.ts` (yaratish,
+  atom `SCHEDULED→SENDING`, `dispatchDue`), `push.ts` (Web Push, VAPID), `direct.ts` (tasdiq/rad xabari: ilova ichi + push + SMS),
+  `inbox.ts`. Qoidalar `src/lib/notifications.ts` (sarlavha ≤ 50, matn ≤ 150, vaqt Toshkent, ≤ 90 kun).
+  `Audience.USER` — tizim xabari, admin tarixida ko'rinmaydi. **DISTRICT**: talabaning tumani bazada yo'q — oxirgi 90 kunda shu tumandagi
+  biznesdan kupon olganlar. "Ochildi" — `UserNotification.readAt` dan hisoblanadi.
+- Talaba qo'ng'irog'i → `/bildirishnomalar`, biznes egasi → `/biznes/bildirishnomalar` (push yoqish tugmasi shu yerda, `public/sw.js`).
+- Rejalashtirilgan xabarlar: Vercel Hobby cron'i kuniga 1 marta — shuning uchun asosiy yo'l GitHub Actions (`.github/workflows/cron.yml`, har 5 daqiqa,
+  `/api/cron/bildirishnomalar`, `Authorization: Bearer CRON_SECRET`; repo secrets `CRON_SECRET`, `APP_URL`), zaxira — `vercel.json` kunlik cron va
+  admin sahifasi ochilganda `dispatchDue`. Endpoint idempotent.
+- Env: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`npm run push:keys`); uchalasi birga yoki hech biri (`env-check`). Kalitlarni
+  almashtirsangiz push obunalari ishlamaydi.
+- Dizayndan chetlanishlar: A1 dagi tranzaksiyalar jadvali alohida sahifada; "Bloklanganlar" sahifasi, `/bildirishnomalar` sahifalari dizaynda yo'q
+  (mavjud primitivlardan); A3 da "2-moderator tasdiqlaydi" izohi yo'q (bunday jarayon yo'q), "Ertaga 08:30" o'rniga "Rejalashtirish" + vaqt maydoni;
+  A1 qidiruvi tranzaksiyalarga olib boradi.
+- Testlar: `admin-stats.test.ts`, `admin-transactions.test.ts`, `notifications.test.ts`, `admin.itest.ts`, `notifications.itest.ts`,
+  `moderation.itest.ts` (blokdan chiqarish), `e2e/admin-overview.spec.ts`.
+
 ## Ishga tushishdan oldin (majburiy ro'yxat)
 Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilgan bo'lishi kerak:
 - [ ] **Admin uchun TOTP ikkinchi faktor** (authenticator ilova): hozir SMS + umumiy parol (`ADMIN_PASSWORD_HASH`);
@@ -339,6 +365,7 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - [ ] Ma'lumotlarni saqlash joyi va W3 matni ("O'zbekiston hududidagi serverlar") — yurist bilan kelishilgan.
 - [ ] Huquqiy matnlardagi `[EMAIL]`, `[STIR]`, `[TARIF MA'LUMOTI]`, `[N] kun` va h.k. to'ldirilgan.
 - [ ] Guvohnoma rasmlari tekshiruvdan keyin `[N]` kunda o'chiriladi (siyosatda va'da qilingan) — cron.
+- [ ] Web Push: `VAPID_*` o'rnatilgan; GitHub Actions secrets (`CRON_SECRET`, `APP_URL`) qo'yilgan — aks holda rejalashtirilgan xabarlar kuniga bir marta ketadi.
 - [ ] `pruneOtpData` cron'i ulangan. Kuponlar cron'i `vercel.json` da (kuniga 1 marta) — Vercel'da `CRON_SECRET` qo'yilsin.
 - [ ] PDF ichidagi rasmlarning EXIF'i tozalanmaydi — PDF'ni rasmga aylantirish yoki shu cheklovni qabul qilish.
 - [ ] Rate limit IP'si: hosting `x-forwarded-for` ni o'zi yozishini tekshirish (Vercel — ha).

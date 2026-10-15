@@ -60,6 +60,8 @@ export const ICONS = {
   keyboard: "M5 6h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM7 10h.01M11 10h.01M15 10h.01M7 14h10",
   /** B4 limit izohi */
   info: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16h.01",
+  /** A1 "Bloklanganlar" */
+  ban: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM5.6 5.6l12.8 12.8",
   /** B4 "QR haqiqiy" */
   checkCircle: "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM7.5 12.5l3 3 6-7",
   camera: "M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z",

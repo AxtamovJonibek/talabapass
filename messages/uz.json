@@ -100,7 +100,8 @@
     "sales": "Sotuvlar va cheklar",
     "cashiers": "Kassirlar",
     "scanner": "Skaner",
-    "profile": "Biznes profili"
+    "profile": "Biznes profili",
+    "notifications": "Bildirishnomalar"
   },
   "adminNav": {
     "label": "Admin menyu",
@@ -1111,6 +1112,215 @@
   },
   "admin": {
     "role": "Bosh moderator",
+    "overview": {
+      "title": "Platforma",
+      "realtime": "real vaqt",
+      "today": "bugun",
+      "search": "Qidiruv",
+      "searchPlaceholder": "Talaba, biznes, chek № yoki STIR",
+      "kpi": {
+        "label": "Ko'rsatkichlar",
+        "students": "Tasdiqlangan talabalar",
+        "studentsNote": "+{n} bugun",
+        "businesses": "Faol bizneslar",
+        "businessesNote": "{n} faol chegirma",
+        "sales": "Bugungi sotuvlar",
+        "salesNote": "{value}% o'tgan haftaga nisbatan",
+        "salesNoteNone": "o'tgan hafta bu kunda sotuv bo'lmagan",
+        "saved": "Talabalar bugun tejadi",
+        "savedNote": "so'm · {revenue} tushum",
+        "queue": "Tekshiruv navbati",
+        "queueNote": "talaba + biznes · ko'rish →"
+      },
+      "trend": {
+        "title": "Kunlik sotuvlar va yangi talabalar",
+        "sales": "sotuvlar",
+        "students": "yangi talabalar ×10",
+        "chartLabel": "So'nggi 30 kunlik sotuvlar",
+        "tip": "{n} sotuv"
+      },
+      "categories": {
+        "title": "Kategoriyalar",
+        "note": "sotuv ulushi, 30 kun",
+        "empty": "Oxirgi 30 kunda sotuv bo'lmagan.",
+        "chartLabel": "Kategoriyalar ulushi",
+        "other": "Boshqa",
+        "universities": "Universitetlar, tasdiqlangan talaba"
+      },
+      "rating": {
+        "title": "Bizneslar reytingi · 30 kun",
+        "all": "Barcha bizneslar",
+        "business": "Biznes",
+        "category": "Kategoriya",
+        "offers": "Chegirmalar",
+        "sales": "Sotuvlar",
+        "saved": "Talabalar tejadi",
+        "status": "Holat",
+        "action": "Amal",
+        "active": "Faol",
+        "warned": "Ogohlantirish",
+        "view": "Ko'rish",
+        "empty": "Tasdiqlangan biznes yo'q.",
+        "cancel": "Bekor",
+        "blockFailed": "Bloklab bo'lmadi"
+      }
+    },
+    "transactions": {
+      "title": "Tranzaksiyalar",
+      "sub": "Kim, qayerda, nima oldi",
+      "totals": {
+        "paid": "To'langan:",
+        "saved": "Talabalar tejadi:"
+      },
+      "status": {
+        "label": "Holat",
+        "all": "Hammasi",
+        "ok": "Muvaffaqiyatli",
+        "no": "Rad etilgan"
+      },
+      "period": {
+        "1": "Bugun",
+        "7": "7 kun",
+        "30": "30 kun",
+        "label": "Davr",
+        "all": "Hammasi"
+      },
+      "search": "Qidiruv",
+      "searchPlaceholder": "Chek №, talaba, biznes yoki STIR",
+      "exportButton": "Excel",
+      "columns": {
+        "time": "Vaqt",
+        "receipt": "Chek",
+        "student": "Talaba",
+        "business": "Biznes",
+        "item": "Mahsulot",
+        "original": "Asl narx",
+        "discount": "Chegirma",
+        "paid": "To'landi",
+        "status": "Holat"
+      },
+      "empty": "Bu filtr bo'yicha tranzaksiya yo'q.",
+      "cashier": "kassir: {name}",
+      "ok": "Muvaffaqiyatli",
+      "rejected": "Rad: {reason}",
+      "reason": {
+        "INVALID": "QR yaroqsiz",
+        "EXPIRED": "QR muddati o'tgan",
+        "REPLAYED": "Takror skan",
+        "OUT_OF_HOURS": "Vaqt tashqarisida",
+        "LIMIT": "Limit tugagan",
+        "WRONG_BUSINESS": "Boshqa biznes kuponi",
+        "BLOCKED": "Hisob bloklangan",
+        "MANUAL_LOCKED": "Qo'lda kiritish yopilgan"
+      },
+      "pager": {
+        "label": "Sahifalar",
+        "total": "Jami: {n}",
+        "page": "{page} / {pages}",
+        "prev": "Oldingi",
+        "next": "Keyingi"
+      },
+      "export": {
+        "sheet": "Tranzaksiyalar",
+        "date": "Sana",
+        "time": "Vaqt",
+        "receipt": "Chek №",
+        "student": "Talaba",
+        "university": "Universitet",
+        "business": "Biznes",
+        "cashier": "Kassir",
+        "item": "Mahsulot",
+        "original": "Asl narx",
+        "discount": "Chegirma",
+        "paid": "To'landi",
+        "status": "Holat",
+        "ok": "Muvaffaqiyatli",
+        "rejected": "Rad: {reason}",
+        "truncated": "Ro'yxat 5 000 qatorga qisqartirildi — filtrni toraytiring."
+      }
+    },
+    "blocked": {
+      "title": "Bloklanganlar",
+      "sub": "Bloklangan talabalar va bizneslar",
+      "students": "Talabalar",
+      "businesses": "Bizneslar",
+      "columns": {
+        "student": "Talaba",
+        "business": "Biznes",
+        "reason": "Sabab",
+        "when": "Qachon",
+        "action": "Amal"
+      },
+      "by": "{name}",
+      "view": "Ko'rish",
+      "unblock": "Blokdan chiqarish",
+      "confirmStudent": "Talaba blokdan chiqarilsinmi? Hisobi qaytadi, lekin sessiyalar tiklanmaydi — qaytadan SMS bilan kiradi.",
+      "confirmBusiness": "Biznes blokdan chiqarilsinmi? Ilgari tasdiqlangan bo'lsa faol bo'ladi, aks holda tekshiruv navbatiga qaytadi.",
+      "failed": "Amal bajarilmadi",
+      "empty": "Bloklanganlar yo'q.",
+      "note": "Blokdan chiqarilgan talabaning guvohnomasi muddati o'tgan bo'lsa, u yangi guvohnoma yuklashi kerak bo'ladi."
+    },
+    "notifications": {
+      "title": "Bildirishnoma yuborish",
+      "sub": "Push va ilova ichidagi xabar",
+      "whom": "Kimga",
+      "audience": {
+        "ALL_STUDENTS": "Barcha talabalar",
+        "UNIVERSITY": "Universitet bo'yicha",
+        "DISTRICT": "Hudud bo'yicha",
+        "BUSINESSES": "Bizneslar",
+        "USER": "Shaxsiy xabar"
+      },
+      "universities": "Universitetlar:",
+      "districts": "Hududlar:",
+      "districtHint": "Hudud: oxirgi 90 kunda shu tumandagi biznesdan chegirma olgan talabalar.",
+      "reach": "Qamrov:",
+      "unitStudent": "talaba",
+      "unitBusiness": "biznes",
+      "titleLabel": "Sarlavha",
+      "titlePlaceholder": "Masalan: Imtihon oldidan kino kechasi",
+      "bodyLabel": "Matn",
+      "bodyPlaceholder": "Xabar matni",
+      "link": "Bosilganda ochiladi",
+      "linkHome": "Asosiy sahifa",
+      "linkCategory": "Kategoriya: {name}",
+      "linkDiscount": "Chegirma: {name}",
+      "when": "Qachon",
+      "whenNow": "Hozir",
+      "whenLater": "Rejalashtirish",
+      "scheduledAt": "Yuborish vaqti",
+      "tashkent": "Toshkent vaqti",
+      "send": "Yuborish",
+      "schedule": "Rejalashtirish",
+      "sentNow": "Yuborilmoqda — natija pastdagi ro'yxatda.",
+      "sentLater": "Rejalashtirildi.",
+      "errors": {
+        "invalid": "Ma'lumotlarni tekshiring: sarlavha, matn va auditoriya to'ldirilishi kerak.",
+        "past": "Vaqt kelajakda bo'lishi kerak (kamida 2 daqiqa keyin).",
+        "far": "Vaqt 90 kundan uzoq bo'lmasligi kerak.",
+        "audience_empty": "Kamida bitta universitet yoki hudud tanlang."
+      },
+      "preview": "TELEFONDA KO'RINISHI",
+      "history": {
+        "title": "Yuborilganlar",
+        "time": "Vaqt",
+        "name": "Sarlavha",
+        "audience": "Auditoriya",
+        "delivered": "Yetkazildi",
+        "opened": "Ochildi",
+        "status": "Holat",
+        "empty": "Hali bildirishnoma yuborilmagan.",
+        "district": "Hudud: {names}",
+        "cancel": "Bekor qilish",
+        "confirmCancel": "Rejalashtirilgan xabar bekor qilinsinmi?",
+        "state": {
+          "SCHEDULED": "Rejalashtirilgan",
+          "SENDING": "Yuborilmoqda",
+          "SENT": "Yetkazildi",
+          "FAILED": "Xato"
+        }
+      }
+    },
     "nav": {
       "overview": "Umumiy",
       "students": "Talabalar tekshiruvi",
@@ -1118,7 +1328,8 @@
       "discounts": "Chegirmalar",
       "transactions": "Tranzaksiyalar",
       "notifications": "Bildirishnomalar",
-      "label": "Admin menyu"
+      "label": "Admin menyu",
+      "blocked": "Bloklanganlar"
     },
     "review": {
       "studentsTitle": "Talabalar tekshiruvi",
@@ -1252,6 +1463,42 @@
       "discountsSub": "Narx, foiz va shartlar talabani chalg'itmasligini tekshiring",
       "hintDiscounts": "Tasdiqlangan chegirma biznes ham tasdiqlangan bo'lsa darhol talabalarga ko'rinadi. Rad etish sababi biznesga ko'rinadi.",
       "preview": "Talaba shunday ko'radi"
+    }
+  },
+  "notifications": {
+    "inbox": {
+      "title": "Bildirishnomalar",
+      "back": "Orqaga",
+      "empty": "Hozircha xabar yo'q.",
+      "unread": "Yangi",
+      "pushTitle": "Push xabarlar",
+      "pushEnable": "Yoqish",
+      "pushDisable": "O'chirish",
+      "push": {
+        "unsupported": "Bu qurilmada push xabarlar ishlamaydi. Ilova ichidagi xabarlar baribir keladi.",
+        "denied": "Brauzer sozlamalarida bildirishnomalar taqiqlangan.",
+        "off": "Yangi chegirmalar haqida telefonga xabar keladi.",
+        "on": "Yoqilgan: xabarlar shu qurilmaga keladi."
+      }
+    },
+    "direct": {
+      "studentApproved": {
+        "title": "Guvohnoma tasdiqlandi",
+        "body": "Endi talaba chegirmalaridan foydalanishingiz mumkin."
+      },
+      "studentRejected": {
+        "title": "Guvohnoma rad etildi",
+        "body": "Sabab: {reason}. Yangi rasm yuklab, qayta yuboring."
+      },
+      "businessApproved": {
+        "title": "Biznesingiz tasdiqlandi",
+        "body": "Endi chegirma qo'shib, talabalarga ko'rinishingiz mumkin."
+      },
+      "businessRejected": {
+        "title": "Ariza rad etildi",
+        "body": "Sabab: {reason}. Ma'lumotlarni tuzatib, qayta yuboring."
+      },
+      "sms": "talabaPass: {body}"
     }
   },
   "month": {

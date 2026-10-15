@@ -15,6 +15,7 @@ const hash = (token: string) => createHash("sha256").update(token).digest("hex")
 
 async function cleanup() {
   await withDb(async (db) => {
+    await db.query(`DELETE FROM "Notification" WHERE audience = 'USER' AND "audienceIds" && $1`, [USERS.map((u) => u.id)]);
     await db.query(`DELETE FROM "Business" WHERE id = $1`, [BUSINESS]);
     await db.query(`DELETE FROM "User" WHERE id = ANY($1)`, [USERS.map((u) => u.id)]);
     await db.query(`DELETE FROM "OtpCode" WHERE phone = ANY($1)`, [USERS.map((u) => u.phone)]);
@@ -38,13 +39,18 @@ async function pendingStudent(request: APIRequestContext, s: typeof S1): Promise
   return (await response.json()).verificationId as string;
 }
 
+/** Tizim xabari (tasdiq/rad): shu foydalanuvchining ilova ichi xabarlari */
+async function inbox(userId: string) {
+  return withDb(async (db) => (await db.query(`SELECT n.title, n.body FROM "UserNotification" u JOIN "Notification" n ON n.id = u."notificationId" WHERE u."userId" = $1 ORDER BY u."createdAt"`, [userId])).rows as { title: string; body: string }[]);
+}
+
 async function sessionCount(userId: string) {
   return withDb(async (db) => (await db.query(`SELECT count(*)::int AS n FROM "Session" WHERE "userId" = $1`, [userId])).rows[0].n as number);
 }
 
 async function asAdmin(page: Page) {
   await signIn(page, (await seedPhones()).admin);
-  await expect(page).toHaveURL("/admin/talabalar");
+  await expect(page).toHaveURL("/admin");
 }
 
 async function loggedIn(context: BrowserContext, token: string, baseURL: string) {
@@ -139,6 +145,10 @@ test.describe("talaba arizasi", () => {
     const studentPage = await student.newPage();
     await studentPage.goto("/chegirmalar");
     await expect(studentPage).toHaveURL("/chegirmalar");
+    // Tasdiq xabari: ilova ichi (qo'ng'iroq → ro'yxat)
+    expect(await inbox(S1.id)).toEqual([{ title: "Guvohnoma tasdiqlandi", body: "Endi talaba chegirmalaridan foydalanishingiz mumkin." }]);
+    await studentPage.goto("/bildirishnomalar");
+    await expect(studentPage.getByText("Guvohnoma tasdiqlandi")).toBeVisible();
     await student.close();
   });
 
@@ -156,6 +166,11 @@ test.describe("talaba arizasi", () => {
     await studentPage.goto("/talaba/tekshiruv");
     await expect(studentPage.getByTestId("status-stamp")).toHaveText("RAD ETILDI");
     await expect(studentPage.getByText("Rasm aniq emas").locator("visible=true")).toBeVisible();
+    // Rad xabari sababi bilan
+    const [message] = await inbox(S1.id);
+    expect(message).toEqual({ title: "Guvohnoma rad etildi", body: "Sabab: Rasm aniq emas. Yangi rasm yuklab, qayta yuboring." });
+    await studentPage.goto("/bildirishnomalar");
+    await expect(studentPage.getByText("Sabab: Rasm aniq emas")).toBeVisible();
     await student.close();
   });
 
@@ -229,6 +244,7 @@ test.describe("biznes arizasi", () => {
     await expect(page).not.toHaveURL(new RegExp(BUSINESS));
     const status = await withDb(async (db) => (await db.query(`SELECT status FROM "Business" WHERE id = $1`, [BUSINESS])).rows[0].status);
     expect(status).toBe("APPROVED");
+    expect((await inbox(OWNER.id)).map((m) => m.title)).toEqual(["Biznesingiz tasdiqlandi"]);
   });
 
   test("rad etish sabab bilan", async ({ page }) => {
@@ -240,6 +256,7 @@ test.describe("biznes arizasi", () => {
     await expect(page).not.toHaveURL(new RegExp(BUSINESS));
     const row = await withDb(async (db) => (await db.query(`SELECT status, "rejectReason" FROM "Business" WHERE id = $1`, [BUSINESS])).rows[0]);
     expect(row).toEqual({ status: "REJECTED", rejectReason: "Hujjatlar to'liq emas" });
+    expect(await inbox(OWNER.id)).toEqual([{ title: "Ariza rad etildi", body: "Sabab: Hujjatlar to'liq emas. Ma'lumotlarni tuzatib, qayta yuboring." }]);
   });
 
   test("bloklash: egasi va kassirining sessiyalari darhol yopiladi", async ({ page }) => {

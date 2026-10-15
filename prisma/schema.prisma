@@ -547,6 +547,8 @@ enum Audience {
   UNIVERSITY
   DISTRICT
   BUSINESSES
+  /// Bitta foydalanuvchiga tizim xabari (audienceIds = [userId]); admin tarixida ko'rinmaydi
+  USER
 }
 
 enum NotificationStatus {
@@ -596,6 +598,7 @@ model UserNotification {
 
   @@unique([notificationId, userId])
   @@index([userId, createdAt])
+  @@index([notificationId, readAt])
 }
 
 model PushSubscription {

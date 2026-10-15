@@ -5,7 +5,7 @@ import { Logo } from "@/components/ui/logo";
 import { Sidebar } from "@/components/ui/sidebar";
 import { logoutAction } from "@/server/actions/auth";
 
-export type BusinessSection = "stats" | "discounts" | "sales" | "cashiers" | "scanner" | "profile";
+export type BusinessSection = "stats" | "discounts" | "sales" | "cashiers" | "scanner" | "profile" | "notifications";
 
 const ITEMS = [
   { key: "stats", href: "/biznes", icon: "chart" },
@@ -14,6 +14,7 @@ const ITEMS = [
   { key: "cashiers", href: "/biznes/kassirlar", icon: "users" },
   { key: "scanner", href: "/biznes/skaner", icon: "scan" },
   { key: "profile", href: "/biznes/profil", icon: "store" },
+  { key: "notifications", href: "/biznes/bildirishnomalar", icon: "bell" },
 ] as const;
 
 /**

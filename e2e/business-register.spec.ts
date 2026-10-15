@@ -88,7 +88,7 @@ test.describe("veb (WB1)", () => {
     const admin = await withDb(async (db) => (await db.query(`SELECT phone FROM "User" WHERE role = 'ADMIN' LIMIT 1`)).rows[0].phone as string);
     await page.context().clearCookies();
     await signIn(page, admin);
-    await expect(page).toHaveURL("/admin/talabalar");
+    await expect(page).toHaveURL("/admin");
     await page.goto("/admin/bizneslar");
     await expect(page.getByText("Sinov Kafesi").first()).toBeVisible();
   });

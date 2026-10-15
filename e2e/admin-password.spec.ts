@@ -26,7 +26,7 @@ test("SMS koddan keyin parol so'raladi; parolsiz admin sahifalari va API ochilma
   await expect(page).toHaveURL("/kirish/admin");
   await expect(page.getByRole("heading", { name: "Admin paroli" })).toBeVisible();
 
-  for (const path of ["/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/chegirmalar", "/biznes", "/kirish"]) {
+  for (const path of ["/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/admin/tranzaksiyalar", "/admin/bildirishnomalar", "/admin/bloklanganlar", "/chegirmalar", "/biznes", "/kirish"]) {
     await page.goto(path);
     await expect(page, path).toHaveURL("/kirish/admin");
   }
@@ -35,8 +35,8 @@ test("SMS koddan keyin parol so'raladi; parolsiz admin sahifalari va API ochilma
   expect(api.status()).toBe(404);
 
   await enterAdminPassword(page);
-  await expect(page).toHaveURL("/admin/talabalar");
-  await expect(page.getByRole("heading", { name: "Talabalar tekshiruvi" })).toBeVisible();
+  await expect(page).toHaveURL("/admin");
+  await expect(page.getByRole("heading", { name: "Platforma" })).toBeVisible();
   if (verificationId) expect((await page.request.get(`/api/admin/fayl/guvohnoma/${verificationId}`)).status()).toBe(200);
 });
 
@@ -47,7 +47,7 @@ test("noto'g'ri parol rad etiladi va audit'ga yoziladi", async ({ page }) => {
   await expect(page).toHaveURL("/kirish/admin");
   await expect.poll(failCount).toBe(1);
   await enterAdminPassword(page);
-  await expect(page).toHaveURL("/admin/talabalar");
+  await expect(page).toHaveURL("/admin");
 });
 
 test("5 ta xato: sessiya yopiladi, 15 daqiqa to'g'ri parol ham qabul qilinmaydi", async ({ page }) => {
@@ -72,7 +72,7 @@ test("5 ta xato: sessiya yopiladi, 15 daqiqa to'g'ri parol ham qabul qilinmaydi"
 
 test("parol boshqa sessiyaga o'tmaydi: chiqib qayta kirganda yana so'raladi", async ({ page }) => {
   await signIn(page, admin.phone);
-  await expect(page).toHaveURL("/admin/talabalar");
+  await expect(page).toHaveURL("/admin");
   await page.getByRole("button", { name: "Hisobdan chiqish" }).click();
   await expect(page).toHaveURL("/");
   await signIn(page, admin.phone, { adminPassword: false });

@@ -11,6 +11,14 @@ const SAFE = {
 };
 
 describe("production muhit tekshiruvi", () => {
+  it("Web Push: uchala VAPID o'zgaruvchisi birga yoki hech biri", () => {
+    const full = { VAPID_PUBLIC_KEY: "pub", VAPID_PRIVATE_KEY: "priv", VAPID_SUBJECT: "mailto:admin@example.uz" };
+    expect(productionEnvProblems({ ...SAFE, ...full })).toEqual([]);
+    expect(productionEnvProblems({ ...SAFE, VAPID_PUBLIC_KEY: "pub" }).join()).toMatch(/VAPID_PRIVATE_KEY, VAPID_SUBJECT/);
+    expect(productionEnvProblems({ ...SAFE, ...full, VAPID_SUBJECT: "admin@example.uz" }).join()).toMatch(/mailto/);
+    expect(productionEnvProblems({ ...SAFE, ...full, VAPID_SUBJECT: "https://talabapass.vercel.app" })).toEqual([]);
+  });
+
   it("xavfsiz sozlamada muammo yo'q", () => {
     expect(productionEnvProblems(SAFE)).toEqual([]);
     expect(() => assertProductionEnv(SAFE)).not.toThrow();

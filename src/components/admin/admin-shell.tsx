@@ -5,20 +5,21 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { Icon } from "@/components/ui/icon";
 import { initials } from "@/lib/format";
 import { logoutAction } from "@/server/actions/auth";
+import { blockedCounts } from "@/server/admin/overview";
 import { pendingCounts } from "@/server/admin/review";
 import type { CurrentUser } from "@/server/auth/session";
 
-export type AdminSection = "overview" | "students" | "businesses" | "discounts" | "transactions" | "notifications";
+export type AdminSection = "overview" | "students" | "businesses" | "discounts" | "transactions" | "notifications" | "blocked";
 
-// ready: false — bo'lim keyingi bosqichlarda quriladi (10-bosqich); panelda xira ko'rinadi.
 const ITEMS = [
-  { key: "overview", href: "/admin", icon: "grid", ready: false },
-  { key: "students", href: "/admin/talabalar", icon: "idCard", ready: true },
-  { key: "businesses", href: "/admin/bizneslar", icon: "store", ready: true },
+  { key: "overview", href: "/admin", icon: "grid" },
+  { key: "students", href: "/admin/talabalar", icon: "idCard" },
+  { key: "businesses", href: "/admin/bizneslar", icon: "store" },
   // Dizaynda yo'q — A2 andozasidagi uchinchi navbat
-  { key: "discounts", href: "/admin/chegirmalar", icon: "ticket", ready: true },
-  { key: "transactions", href: "/admin/tranzaksiyalar", icon: "receipt", ready: false },
-  { key: "notifications", href: "/admin/bildirishnomalar", icon: "bell", ready: false },
+  { key: "discounts", href: "/admin/chegirmalar", icon: "ticket" },
+  { key: "transactions", href: "/admin/tranzaksiyalar", icon: "receipt" },
+  { key: "notifications", href: "/admin/bildirishnomalar", icon: "bell" },
+  { key: "blocked", href: "/admin/bloklanganlar", icon: "ban" },
 ] as const;
 
 /** Admin paneli qobig'i (A1–A3): qora yon panel + asosiy maydon. Tor ekranda panel tepaga o'raladi. */
@@ -26,7 +27,7 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
   const t = await getTranslations("admin");
   const brand = await getTranslations("brand");
   const common = await getTranslations("common");
-  const counts = await pendingCounts();
+  const [counts, blocked] = await Promise.all([pendingCounts(), blockedCounts()]);
   const badge = { students: counts.students, businesses: counts.businesses, discounts: counts.discounts } as Partial<Record<AdminSection, number>>;
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
@@ -42,7 +43,7 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
           label: t(`nav.${item.key}`),
           active: item.key === active,
           badge: badge[item.key],
-          disabled: !item.ready,
+          count: item.key === "blocked" ? blocked.total : undefined,
         }))}
         footer={
           <div className="flex items-center gap-2.5 px-1.5">

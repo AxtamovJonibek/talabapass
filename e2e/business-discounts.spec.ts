@@ -100,7 +100,7 @@ test.describe("admin chegirmalar navbati", () => {
     const b = await pending(`${TITLE} B`);
     const { admin, owner } = await seedPhones();
     await signIn(page, admin);
-    await expect(page).toHaveURL("/admin/talabalar");
+    await expect(page).toHaveURL("/admin");
 
     await page.goto(`/admin/chegirmalar?id=${a}`);
     await expect(page.getByRole("heading", { name: `${TITLE} A` })).toBeVisible();

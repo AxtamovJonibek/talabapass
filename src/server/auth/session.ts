@@ -78,8 +78,7 @@ export function homePathFor(role: Role): string {
     case "CASHIER":
       return "/biznes/skaner";
     case "ADMIN":
-      // TODO(10-bosqich): A1 umumiy ko'rinish tayyor bo'lgach "/admin" ga qaytariladi.
-      return "/admin/talabalar";
+      return "/admin";
   }
 }
 
