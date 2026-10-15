@@ -83,3 +83,40 @@ export function openWindowStart(schedule: Schedule, instant: Date): Date | null 
 export function isOpenAt(schedule: Schedule, instant: Date): boolean {
   return openWindowStart(schedule, instant) !== null;
 }
+
+/** Toshkent sanasining hafta kuni: 1 = dushanba … 7 = yakshanba. */
+export const weekdayOf = (date: Date) => (date.getUTCDay() === 0 ? 7 : date.getUTCDay());
+
+/** Shu kuni boshlangan oraliq qachon yopiladi (yarim tundan o'tsa — ertasi kuni). */
+export function windowEnd(schedule: Pick<Schedule, "fromMinute" | "toMinute">, windowDate: Date): Date {
+  return fromTashkent(windowDate, schedule.toMinute + (crossesMidnight(schedule) ? 1440 : 0));
+}
+
+/**
+ * Keyingi oraliq boshlanadigan kun (Toshkent sanasi): shu lahzadan KEYIN boshlanadigan birinchi oraliq.
+ * Muddat (endsOn) ichida bunday kun bo'lmasa null.
+ */
+export function nextWindowStart(schedule: Schedule, instant: Date): Date | null {
+  const today = toTashkent(instant).date;
+  let date = today < schedule.startsOn ? schedule.startsOn : today;
+  // Hafta kunlari takrorlanadi: 8 kun ichida topilmasa — umuman yo'q
+  for (let i = 0; i < 8; i++, date = new Date(date.getTime() + DAY_MS)) {
+    if (date > schedule.endsOn) return null;
+    if (schedule.weekdays.includes(weekdayOf(date)) && fromTashkent(date, schedule.fromMinute) > instant) return date;
+  }
+  return null;
+}
+
+export type DealTiming =
+  /** Hozir ochiq: oraliq boshlangan kun (kunlik limit shu sanaga yoziladi) va yopilish lahzasi */
+  | { live: true; windowDate: Date; closesAt: Date }
+  /** Hozir yopiq: keyingi oraliq kuni va ochilish lahzasi */
+  | { live: false; windowDate: Date; opensAt: Date };
+
+/** Lentadagi holat: hozir ochiqmi, bo'lmasa qachon ochiladi. Muddat tugagan (boshqa oraliq yo'q) — null. */
+export function dealTiming(schedule: Schedule, instant: Date): DealTiming | null {
+  const open = openWindowStart(schedule, instant);
+  if (open) return { live: true, windowDate: open, closesAt: windowEnd(schedule, open) };
+  const next = nextWindowStart(schedule, instant);
+  return next ? { live: false, windowDate: next, opensAt: fromTashkent(next, schedule.fromMinute) } : null;
+}

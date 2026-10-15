@@ -114,10 +114,19 @@ qaysi biri yutishi kafolatlanmagan. Buning o'rniga primitivga variant/prop qo'sh
 Telefon va veb uchun alohida chizilgan ekranlar (T1–T3 ↔ WT1): holat bitta hook'da, ko'rinish ikkita,
 `PhoneOrWeb` 700px da almashtiradi. Ikkalasi DOM'da turadi — `id` lar farqli bo'lsin, testlarda `visible=true`.
 
-Landing'dagi ma'lumotlar (7-bosqichda ulanadi, kodda `TODO(7-bosqich)` bilan belgilangan):
-- Statistika raqamlari bazadan hisoblanadi; belgilangan chegaradan kichik bo'lsa bo'lim yashiriladi.
-- Hamkorlar faqat bazadagi tasdiqlangan (`APPROVED`) bizneslardan chiqadi.
-- "Hozir Toshkentda ochiq" — bazadagi faol chegirmalar.
+Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspense>` ida):
+- Statistika — `STATS_MIN` (`src/lib/landing.ts`) dan kichik bo'lsa bo'lim yashiriladi.
+- Hamkorlar — tasdiqlangan bizneslar (APPROVED/WARNED); oliygohlar — tasdiqlangan talabasi borlari.
+- "Hozir Toshkentda ochiq" — talabaga ko'rinadigan chegirmalar (avval ochiqlari).
+
+## Talaba lentasi (T4 / WT2, T5 / WT3)
+- Ko'rinish qoidasi bitta joyda: `visibleDiscountWhere` (`src/server/student/feed.ts`) — `ACTIVE`, biznes APPROVED/WARNED,
+  egasi bloklanmagan, muddat tugamagan. Holat/keyingi ochilish — `dealTiming` (`src/lib/time.ts`), qoldiq — oraliq kunidagi
+  `DiscountDay.claimed`. Filtr/saralash brauzerda (`src/lib/feed.ts`), URL'da saqlanadi; sahifa har daqiqa yangilanadi.
+- Joy (`tp_loc` cookie): tuman markazi yoki geolokatsiya (~100 m); masofa shundan. Xarita — MapLibre + OpenFreeMap (kalitsiz).
+- Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan); rasm hisoblagichi va WT3 kichik rasmlari yo'q
+  (chegirma rasmlari hali yo'q); "Chegirmani olish" QR bosqichigacha nofaol; qo'ng'iroq faqat belgi;
+  `/kuponlar`, `/tarix`, `/profil` — vaqtinchalik sahifalar.
 
 ## Dizayndan ekran ko'chirish (faqat marketing sahifalari)
 1. `npm run design:gen -- <ID> <namespace> --messages=messages/uz.json` — `design/screens/<ID>.html` dan komponentlar

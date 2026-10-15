@@ -1,29 +1,25 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { Fragment } from "react";
 import { useTranslations } from "next-intl";
-import { ICONS } from "@/components/ui/icons";
+import { ICONS, isIconName } from "@/components/ui/icons";
+import { useDealText } from "@/components/student/feed/labels";
+import type { FeedDeal } from "@/lib/feed";
 import { Link } from "@/i18n/navigation";
-import { MINUS } from "@/lib/format";
+import { formatSom } from "@/lib/format";
 
-// TODO(7-bosqich): dizayndagi namunalar. Lenta so'rovi tayyor bo'lgach (7-bosqich) bazadagi faol chegirmalar bilan almashtiriladi.
-const DEALS = [
-  { id: "osh", badge: `${MINUS}30%`, tile: "var(--color-tile-taom)", ink: "var(--color-tint-taom)", icon: ICONS.bowl },
-  { id: "kino", badge: `${MINUS}44%`, tile: "var(--color-tile-kino)", ink: "var(--color-tint-kino)", icon: ICONS.film },
-  { id: "lavash", badge: "1+1", tile: "var(--color-tile-bogo)", ink: "var(--color-tint-bogo)", icon: ICONS.wrap },
-  { id: "kitob", badge: `${MINUS}15%`, tile: "var(--color-tile-kitob)", ink: "var(--color-tint-kitob)", icon: ICONS.book },
-] as const;
-
-export function LiveDeals() {
+/** "Hozir Toshkentda ochiq" — bazadagi faol chegirmalar (`landingDeals`). Bo'sh bo'lsa bo'lim chiqmaydi. */
+export function LiveDeals({ items, now }: { items: FeedDeal[]; now: Date }) {
   const t = useTranslations("landing.deals");
-  const deals = DEALS.map((d) => ({
+  const text = useDealText();
+  const deals = items.map((d) => ({
     ...d,
-    store: t(`items.${d.id}.store`),
-    title: t(`items.${d.id}.title`),
-    price: t(`items.${d.id}.price`),
-    old: t(`items.${d.id}.old`),
-    when: t(`items.${d.id}.when`),
-    dist: t(`items.${d.id}.dist`),
+    icon: ICONS[isIconName(d.icon) ? d.icon : "bowl"],
+    store: [d.store, d.district].filter(Boolean).join(" · "),
+    price: d.price ? `${formatSom(d.price.now)} ${text.currency}` : text.note(d, true),
+    old: d.price?.old ? formatSom(d.price.old) : "",
+    when: text.webStatus(d, now),
   }));
+  if (deals.length === 0) return null;
   return (
     <section style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(64px, 9cqw, 120px) clamp(16px, 4cqw, 48px) 0" }}>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", gap: "12px" }}>
@@ -35,9 +31,9 @@ export function LiveDeals() {
         </Link>
       </div>
       <div style={{ marginTop: "22px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: "12px" }}>
-        {deals.map((d, i) => (
-          <Fragment key={i}>
-            <Link href="/chegirmalar" style={{ display: "block", background: "var(--color-white)", borderRadius: "18px", textDecoration: "none", color: "var(--color-ink)", position: "relative" }}>
+        {deals.map((d) => (
+          <Fragment key={d.id}>
+            <Link href={`/chegirmalar/${d.id}`} style={{ display: "block", background: "var(--color-white)", borderRadius: "18px", textDecoration: "none", color: "var(--color-ink)", position: "relative" }}>
               <div style={{ height: "150px", margin: "10px 10px 0", borderRadius: "12px", background: d.tile, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg aria-hidden="true" width="74" height="74" viewBox="0 0 24 24" fill="none" stroke={d.ink} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
                   <path d={d.icon} />
@@ -58,11 +54,13 @@ export function LiveDeals() {
               </div>
               <div style={{ margin: "0 14px", borderTop: "1.5px dashed var(--color-dash)" }} />
               <div style={{ padding: "10px 16px 14px", display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, color: "var(--color-green)" }}>
-                  <span style={{ width: "7px", height: "7px", borderRadius: "4px", background: "var(--color-green-live)" }} />
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, color: d.live ? "var(--color-green)" : "var(--color-muted)" }}>
+                  <span style={{ width: "7px", height: "7px", borderRadius: "4px", background: d.live ? "var(--color-green-live)" : "var(--color-fog-3)" }} />
                   {d.when}
                 </span>
-                <span style={{ fontFamily: "var(--font-mono)", color: "var(--color-muted)" }}>{d.dist}</span>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--color-muted)" }}>
+                  {d.left}/{d.total}
+                </span>
               </div>
             </Link>
           </Fragment>

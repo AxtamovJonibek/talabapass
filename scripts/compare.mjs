@@ -44,10 +44,10 @@ const designUrl = `http://127.0.0.1:${server.address().port}/${id}.html`;
 const browser = await chromium.launch({ channel: "chromium" });
 async function shoot(url, isDesign) {
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
-  // --cookie=nom=qiymat — ilovaga tayyor sessiya bilan kirish (scripts/compare-fixtures.mjs)
+  // --cookie=nom=qiymat[;;nom2=qiymat2] — ilovaga tayyor sessiya (va joy) bilan kirish (scripts/compare-fixtures.mjs)
   if (opts.cookie && !isDesign) {
-    const [name, value] = opts.cookie.split(/=(.*)/s);
-    await context.addCookies([{ name, value, url: base }]);
+    const cookies = opts.cookie.split(";;").map((pair) => pair.split(/=(.*)/s)).map(([name, value]) => ({ name, value, url: base }));
+    await context.addCookies(cookies);
   }
   const page = await context.newPage();
   await page.goto(url, { waitUntil: "networkidle" });

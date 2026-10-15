@@ -8,7 +8,7 @@ test.beforeAll(async () => {
 });
 
 const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin/talabalar" } as const;
-const AREA = { student: "Talaba ilovasi", owner: "Biznes kabineti", cashier: "Kassir skaneri", admin: "Admin panel" } as const;
+const AREA = { owner: "Biznes kabineti", cashier: "Kassir skaneri", admin: "Admin panel" } as const;
 
 test.describe("kirish", () => {
   for (const role of ["student", "owner", "cashier", "admin"] as const) {
@@ -16,7 +16,9 @@ test.describe("kirish", () => {
       await signIn(page, phones[role]);
       await expect(page).toHaveURL(HOME[role]);
       if (role === "admin") await expect(page.getByRole("heading", { name: "Talabalar tekshiruvi" })).toBeVisible();
-      else await expect(page.getByTestId("area")).toHaveText(AREA[role]);
+      // Talaba bosh sahifasi — lenta (T4)
+      else if (role === "student") await expect(page.locator("#t4-search")).toBeVisible();
+      else await expect(page.getByTestId("area")).toHaveText(AREA[role as keyof typeof AREA]);
     });
   }
 
@@ -192,6 +194,8 @@ test.describe("kirish", () => {
   test("chiqish sessiyani yopadi", async ({ page }) => {
     await signIn(page, phones.student);
     await expect(page).toHaveURL(HOME.student);
+    // Chiqish talaba profilida
+    await page.goto("/profil");
     await page.getByRole("button", { name: "Hisobdan chiqish" }).click();
     await expect(page).toHaveURL("/");
     await page.goto("/chegirmalar");
@@ -200,7 +204,7 @@ test.describe("kirish", () => {
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/chegirmalar", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
+  const PROTECTED = ["/chegirmalar", "/kuponlar", "/tarix", "/profil", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
     test.slow(); // 8 ta sahifa — dev serverda birinchi kompilyatsiya uzoq
@@ -213,9 +217,9 @@ test.describe("rol himoyasi", () => {
   // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
   const MATRIX = {
     student: { "/biznes/chegirma/yangi": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar" },
-    owner: { "/chegirmalar": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
-    cashier: { "/biznes/profil": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner" },
-    admin: { "/chegirmalar": "/admin/talabalar", "/biznes": "/admin/talabalar", "/biznes/skaner": "/admin/talabalar", "/admin": "/admin/talabalar" },
+    owner: { "/chegirmalar": "/biznes", "/profil": "/biznes", "/admin": "/biznes", "/biznes/skaner": "/biznes/skaner" },
+    cashier: { "/kuponlar": "/biznes/skaner", "/biznes/profil": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner" },
+    admin: { "/tarix": "/admin/talabalar", "/chegirmalar": "/admin/talabalar", "/biznes": "/admin/talabalar", "/biznes/skaner": "/admin/talabalar", "/admin": "/admin/talabalar" },
   } as const;
 
   for (const [role, routes] of Object.entries(MATRIX) as [keyof typeof MATRIX, Record<string, string>][]) {

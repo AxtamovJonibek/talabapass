@@ -169,3 +169,23 @@ export function Textarea({ className, invalid, resizable = false, ...props }: Te
     />
   );
 }
+
+const SEARCH_SIZES = {
+  /** T4: 48px */
+  md: "h-12",
+  /** WT2 sarlavhasi: 46px, kengligi qatorga moslashadi */
+  sm: "h-[46px] flex-[1_1_200px]",
+} as const;
+
+type SearchFieldProps = Omit<ComponentProps<"input">, "size" | "type"> & { label: string; size?: keyof typeof SEARCH_SIZES };
+
+/** Qidiruv maydoni: oq fon, chapda lupa (T4, WT2). */
+export function SearchField({ label, size = "md", className, ...props }: SearchFieldProps) {
+  return (
+    <label className={cn("box-border flex min-w-0 items-center gap-2.5 rounded-14 bg-white px-3.5", size === "md" && "flex-1", SEARCH_SIZES[size], className)}>
+      <Icon name="search" size={18} className="shrink-0 text-muted" />
+      <span className="sr-only">{label}</span>
+      <input type="search" className="min-w-0 flex-1 border-0 bg-transparent p-0 font-sans text-15 text-ink outline-none placeholder:text-placeholder-2" {...props} />
+    </label>
+  );
+}

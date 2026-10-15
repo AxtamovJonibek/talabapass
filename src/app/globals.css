@@ -32,6 +32,10 @@
   --color-dash-2: #c9c6bc;
   --color-line-strong: #b9b6ad;
 
+  /* WT2 xarita kartasi: yer, bog' */
+  --color-map: #e4e2da;
+  --color-map-park: #cfe6d6;
+
   /* urg'u */
   --color-blue: #2433d6;
   --color-blue-2: #3646e4;
@@ -128,6 +132,7 @@
   --text-40: 40px;
   --text-44: 44px;
   --text-64: 64px;
+  --text-76: 76px;
 
   --radius-*: initial;
   --radius-2: 2px;

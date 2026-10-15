@@ -41,7 +41,16 @@
       "6": "Sh",
       "7": "Ya"
     },
-    "everyDay": "Har kuni"
+    "everyDay": "Har kuni",
+    "long": {
+      "1": "Dushanba",
+      "2": "Seshanba",
+      "3": "Chorshanba",
+      "4": "Payshanba",
+      "5": "Juma",
+      "6": "Shanba",
+      "7": "Yakshanba"
+    }
   },
   "category": {
     "all": "Hammasi",
@@ -106,7 +115,12 @@
     "now": "Hozir",
     "tomorrow": "Ertaga",
     "until": "{time} gacha",
-    "saves": "{amount} tejaysiz"
+    "saves": "{amount} tejaysiz",
+    "today": "Bugun",
+    "ofCheck": "Chek summasidan {badge}",
+    "ofCheckShort": "Chekdan {badge}",
+    "bogo": "Ikkinchisi bepul",
+    "fromDate": "{date} dan"
   },
   "receipt": {
     "confirmed": "Sotuv tasdiqlandi",
@@ -324,41 +338,7 @@
     },
     "deals": {
       "hozir_toshkentda_ochiq": "Hozir Toshkentda ochiq",
-      "barcha_chegirmalar": "Barcha chegirmalar →",
-      "items": {
-        "osh": {
-          "store": "Bodom Choyxonasi · Chilonzor",
-          "title": "Osh 0.5 porsiya + choy",
-          "price": "26 600 so'm",
-          "old": "38 000",
-          "when": "15:00 gacha",
-          "dist": "0.6 km"
-        },
-        "kino": {
-          "store": "Kadr Kinoteatri · Olmazor",
-          "title": "Kino chiptasi, 2D seans",
-          "price": "25 000 so'm",
-          "old": "45 000",
-          "when": "faqat seshanba",
-          "dist": "3.0 km"
-        },
-        "lavash": {
-          "store": "Lavash Point · Chilonzor",
-          "title": "Lavash + ayron",
-          "price": "Ikkinchisi bepul",
-          "old": "",
-          "when": "17:00 gacha",
-          "dist": "0.9 km"
-        },
-        "kitob": {
-          "store": "Sahifa Kitob Do'koni · Yunusobod",
-          "title": "Barcha badiiy kitoblar",
-          "price": "Chekdan −15%",
-          "old": "",
-          "when": "20:00 gacha",
-          "dist": "1.4 km"
-        }
-      }
+      "barcha_chegirmalar": "Barcha chegirmalar →"
     },
     "business": {
       "biznes_egalariga": "BIZNES EGALARIGA",
@@ -386,30 +366,13 @@
     "partners": {
       "hamkorlarimiz": "Hamkorlarimiz",
       "choyxonadan_sport_zalgacha_talabalarni": "Choyxonadan sport zalgacha — talabalarni kutib oladigan joylar.",
-      "bodom": "BODOM",
-      "qahva_bekati": "qahva bekati",
-      "kadr": "KADR",
-      "forma_fitnes": "forma fitnes",
-      "sahifa_kitob": "Sahifa/kitob",
-      "nusxa": "NUSXA",
-      "m": "M",
-      "usta_barber": "USTA·BARBER",
-      "lavash": "Lavash",
-      "point": "Point",
-      "talabalarimiz_oqiydigan_oliygohlar": "Talabalarimiz o'qiydigan oliygohlar:",
-      "tatu": "TATU",
-      "ozmu": "O'zMU",
-      "tdiu": "TDIU",
-      "tdyu": "TDYU",
-      "westminster": "Westminster",
-      "inha": "Inha"
+      "talabalarimiz_oqiydigan_oliygohlar": "Talabalarimiz o'qiydigan oliygohlar:"
     },
     "stats": {
       "raqamlarda": "Raqamlarda",
       "tasdiqlangan_talaba": "tasdiqlangan talaba",
       "hamkor_biznes": "hamkor biznes",
       "faol_chegirma": "faol chegirma",
-      "41_7_mln": "41.7 mln",
       "som_bugun_talabalar_tejadi": "so'm — bugun talabalar tejadi"
     },
     "faq": {
@@ -1153,5 +1116,123 @@
       "hintDiscounts": "Tasdiqlangan chegirma biznes ham tasdiqlangan bo'lsa darhol talabalarga ko'rinadi. Rad etish sababi biznesga ko'rinadi.",
       "preview": "Talaba shunday ko'radi"
     }
+  },
+  "month": {
+    "in": {
+      "1": "Yanvarda",
+      "2": "Fevralda",
+      "3": "Martda",
+      "4": "Aprelda",
+      "5": "Mayda",
+      "6": "Iyunda",
+      "7": "Iyulda",
+      "8": "Avgustda",
+      "9": "Sentabrda",
+      "10": "Oktabrda",
+      "11": "Noyabrda",
+      "12": "Dekabrda"
+    },
+    "name": {
+      "1": "yanvar",
+      "2": "fevral",
+      "3": "mart",
+      "4": "aprel",
+      "5": "may",
+      "6": "iyun",
+      "7": "iyul",
+      "8": "avgust",
+      "9": "sentabr",
+      "10": "oktabr",
+      "11": "noyabr",
+      "12": "dekabr"
+    }
+  },
+  "feed": {
+    "searchPlaceholder": "Kafe, kitob, sport zal...",
+    "notifications": "Bildirishnomalar",
+    "showMap": "Xaritada ko'rish",
+    "endingSoon": "Tez tugaydi",
+    "today": "bugun",
+    "empty": "Bu bo'limda hozircha chegirma yo'q",
+    "emptyFilter": "Bu filtr bo'yicha hozircha chegirma yo'q",
+    "urgency": {
+      "closing": "{time} gacha · {minutes} daq",
+      "closingLong": "{time} gacha · {minutes} daqiqa qoldi",
+      "lowStock": "Faqat {left} ta qoldi",
+      "lastDay": "Bugun oxirgi kun · {left} ta qoldi"
+    },
+    "nav": "Kabinet",
+    "navDeals": "Chegirmalar",
+    "navCoupons": "Kuponlarim",
+    "navHistory": "Tarix",
+    "profile": "Profil",
+    "greeting": "Salom, {name}",
+    "headline": "{weekday}, {time} · {place}",
+    "savedMonth": "{month} tejading",
+    "filters": "Filtrlar",
+    "category": "KATEGORIYA",
+    "liveOnly": "Faqat hozir ochiq",
+    "liveOnlyHint": "Vaqti kelmaganlarni yashirish",
+    "miniMap": "Yaqin atrofdagi chegirmalar xaritasi",
+    "openMap": "Xaritada ochish",
+    "count": "{count} ta chegirma",
+    "sortLabel": "Saralash",
+    "sort": {
+      "near": "Eng yaqin",
+      "biggest": "Eng katta chegirma",
+      "ending": "Tez tugaydi",
+      "new": "Yangi"
+    },
+    "sortHint": {
+      "near": "· yaqinidan uzoqqa",
+      "biggest": "· kattasidan boshlab",
+      "ending": "· tez tugaydiganlari oldin",
+      "new": "· yangilari oldin"
+    },
+    "location": {
+      "label": "Joy",
+      "city": "Toshkent",
+      "gps": "Mening joylashuvim",
+      "here": "Joylashuvim",
+      "failed": "Joylashuvni aniqlab bo'lmadi"
+    },
+    "map": {
+      "title": "Xaritada",
+      "close": "Yopish",
+      "nothing": "Xaritada ko'rsatadigan joy yo'q"
+    }
+  },
+  "dealPage": {
+    "back": "Orqaga",
+    "share": "Ulashish",
+    "save": "Saqlash",
+    "unsave": "Saqlanganlardan olib tashlash",
+    "copied": "Havola nusxalandi",
+    "verified": "Tasdiqlangan biznes",
+    "verifiedPartner": "Tasdiqlangan hamkor",
+    "when": "Qachon",
+    "leftToday": "Bugun qoldi",
+    "leftNext": "Qoldiq",
+    "leftValue": "{left} ta / {total}",
+    "limit": "Limit",
+    "limits": {
+      "DAILY": "Kuniga 1 marta",
+      "WEEKLY": "Haftasiga 1 marta",
+      "UNLIMITED": "Cheklanmagan"
+    },
+    "until": "Aksiya muddati",
+    "untilValue": "{day}-{month}gacha",
+    "open": "Ochiq · {hours}",
+    "openWeb": "· ochiq {hours}",
+    "route": "Yo'l",
+    "routeWeb": "Yo'nalish",
+    "claim": "Chegirmani olish",
+    "claimHint": "QR kod 10 daqiqa amal qiladi — kassada ko'rsating",
+    "claimHintWeb": "QR kod 10 daqiqa amal qiladi va telefoningizdagi ilovaga ham tushadi.",
+    "liveUntil": "Hozir ochiq · {time} gacha",
+    "opensAt": "{when} ochiladi",
+    "allDeals": "Barcha chegirmalar",
+    "nearby": "Yaqin atrofda",
+    "tomorrow": "· ertaga"
   }
 }

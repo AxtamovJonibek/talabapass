@@ -44,6 +44,16 @@ export const ICONS = {
   /** B1 manzil maydoni */
   pin: "M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM14.5 9.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z",
   /** WB1 joy fotolari */
+  /** T4 qidiruv */
+  search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4",
+  /** T4 "Xaritada ko'rish" */
+  map: "M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14",
+  /** T5 "Ulashish", "Saqlash", "Chegirmani olish" */
+  share: "M12 3v13M7 8l5-5 5 5M5 14v6h14v-6",
+  bookmark: "M6 3h12v18l-6-4-6 4z",
+  qr: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM18 18h3v3h-3z",
+  /** WT3 "Barcha chegirmalar" */
+  arrowLeft: "M19 12H5M11 6l-6 6 6 6",
   camera: "M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z",
 } as const;
 

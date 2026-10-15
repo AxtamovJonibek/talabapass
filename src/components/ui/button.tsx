@@ -17,6 +17,10 @@ const SIZES = {
   "tall-link": "h-13.5 rounded-14 px-[22px] text-15",
   /** Karta ichidagi CTA (50px): WB1 "Chegirma yaratish" */
   card: "h-12.5 rounded-14 px-[18px] text-15",
+  /** T5 pastki CTA (58px): "Chegirmani olish" */
+  cta: "h-[58px] rounded-16 px-5 text-17",
+  /** WT3 yon panelidagi CTA (60px) */
+  "cta-lg": "h-15 rounded-16 px-5 text-18",
   /** Admin harakatlari: A2 "Tasdiqlash" */
   md: "h-12 rounded-12 px-4 text-15",
   /** WB2 sarlavhasidagi asosiy tugma: "E'lon qilish" */

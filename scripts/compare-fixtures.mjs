@@ -65,4 +65,12 @@ if (owners[0]) {
   await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ('cmp_owner_s', $1, $2, now() + interval '30 days')`, [owners[0].id, hash("cmp-owner")]);
   console.log("BIZNES    --cookie=tp_session=cmp-owner (Bodom Choyxonasi egasi)");
 }
+// Tasdiqlangan talaba (Dilnoza, T4–T5 / WT2–WT3) va joy: Chilonzor
+const { rows: dilnoza } = await db.query(`SELECT id FROM "User" WHERE phone = '+998904123785'`);
+const { rows: chilonzor } = await db.query(`SELECT id FROM "District" WHERE name = 'Chilonzor'`);
+if (dilnoza[0]) {
+  await db.query(`DELETE FROM "Session" WHERE id = 'cmp_student_s'`);
+  await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ('cmp_student_s', $1, $2, now() + interval '30 days')`, [dilnoza[0].id, hash("cmp-student")]);
+  console.log(`TALABA    --cookie="tp_session=cmp-student;;tp_loc=d:${chilonzor[0]?.id ?? ""}" (Dilnoza, Chilonzor)`);
+}
 await db.end();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMinute, fromTashkent, isOpenAt, openWindowStart, parseMinute, toTashkent, type Schedule } from "./time";
+import { dealTiming, formatMinute, fromTashkent, isOpenAt, nextWindowStart, openWindowStart, parseMinute, toTashkent, windowEnd, type Schedule } from "./time";
 
 const utc = (iso: string) => new Date(iso);
 const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
@@ -135,5 +135,49 @@ describe("yarim tundan o'tadigan oraliq (22:00–02:00)", () => {
     const evening: Schedule = { ...night, weekdays: [1], fromMinute: 18 * 60, toMinute: 1440 };
     expect(isOpenAt(evening, at("2026-10-12", "23:59"))).toBe(true);
     expect(isOpenAt(evening, at("2026-10-13", "00:00"))).toBe(false);
+  });
+});
+
+describe("keyingi oraliq va lenta holati", () => {
+  // Du–Ju 12:00–15:00, 01.10–31.10.2026. 13.10.2026 — seshanba.
+  const lunch: Schedule = { weekdays: [1, 2, 3, 4, 5], fromMinute: 720, toMinute: 900, startsOn: day("2026-10-01"), endsOn: day("2026-10-31") };
+
+  it("ochiq paytda: oraliq kuni va yopilish vaqti", () => {
+    const timing = dealTiming(lunch, utc("2026-10-13T09:20:00Z")); // 14:20
+    expect(timing).toEqual({ live: true, windowDate: day("2026-10-13"), closesAt: fromTashkent(day("2026-10-13"), 900) });
+  });
+
+  it("oraliqdan oldin — bugun ochiladi", () => {
+    const timing = dealTiming(lunch, utc("2026-10-13T04:00:00Z")); // 09:00
+    expect(timing).toEqual({ live: false, windowDate: day("2026-10-13"), opensAt: fromTashkent(day("2026-10-13"), 720) });
+  });
+
+  it("oraliqdan keyin — ertaga ochiladi", () => {
+    expect(nextWindowStart(lunch, utc("2026-10-13T10:00:00Z"))).toEqual(day("2026-10-14")); // 15:00 — yopildi
+  });
+
+  it("juma kechqurun — dushanba ochiladi", () => {
+    expect(nextWindowStart(lunch, utc("2026-10-16T12:00:00Z"))).toEqual(day("2026-10-19"));
+  });
+
+  it("muddat boshlanmagan — boshlanish kunidan", () => {
+    const later = { ...lunch, startsOn: day("2026-11-02"), endsOn: day("2026-11-30") };
+    expect(nextWindowStart(later, utc("2026-10-13T09:20:00Z"))).toEqual(day("2026-11-02"));
+  });
+
+  it("muddat tugagan — boshqa oraliq yo'q", () => {
+    expect(dealTiming(lunch, utc("2026-10-30T11:00:00Z"))).toBeNull(); // juma 16:00, keyingi ish kuni — 02.11
+  });
+
+  it("faqat seshanba: keyingi seshanbagacha 7 kun", () => {
+    const kino = { ...lunch, weekdays: [2], fromMinute: 600, toMinute: 1380 };
+    expect(nextWindowStart(kino, utc("2026-10-13T19:00:00Z"))).toEqual(day("2026-10-20")); // seshanba 24:00
+  });
+
+  it("yarim tundan o'tadigan oraliq ertasi kuni yopiladi", () => {
+    const night = { ...lunch, weekdays: [1, 2, 3, 4, 5, 6, 7], fromMinute: 1320, toMinute: 120 };
+    expect(windowEnd(night, day("2026-10-13"))).toEqual(fromTashkent(day("2026-10-14"), 120));
+    const timing = dealTiming(night, utc("2026-10-13T20:30:00Z")); // 14-oktabr 01:30
+    expect(timing).toEqual({ live: true, windowDate: day("2026-10-13"), closesAt: fromTashkent(day("2026-10-14"), 120) });
   });
 });
