@@ -118,3 +118,32 @@ test.describe("veb (WT3 QR paneli)", () => {
     await expect(page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true")).toBeEnabled();
   });
 });
+
+// Kichik bizneslarda egasi o'zi kassada turadi: egasi ham skanerlaydi va sotadi (pastki navigatsiya bilan)
+test("biznes egasi skanerda qo'lda kiritib sotuvni tasdiqlaydi", async ({ browser }) => {
+  const phones = await seedPhones();
+  const studentContext = await browser.newContext();
+  const ownerContext = await browser.newContext();
+  const student = await studentContext.newPage();
+  const owner = await ownerContext.newPage();
+
+  await signIn(student, phones.student);
+  await student.goto(`/chegirmalar/${DISCOUNT_ID}`);
+  await student.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
+  await expect(student.getByTestId("coupon-totp")).toHaveText(/^\d{3} \d{3}$/);
+  const code = (await student.getByTestId("coupon-code").textContent())!.trim();
+  const totp = (await student.getByTestId("coupon-totp").textContent())!.replace(/\s/g, "");
+
+  await signIn(owner, phones.owner);
+  await owner.goto("/biznes/skaner");
+  await expect(owner.getByTestId("cashier-business")).toBeVisible();
+  await expect(owner.getByRole("navigation").getByRole("link", { name: "Skaner" })).toHaveAttribute("aria-current", "page");
+  await owner.getByRole("button", { name: "Kodni kiritish" }).click();
+  await owner.locator("#manual-code").fill(code);
+  await owner.locator("#manual-totp").fill(totp);
+  await owner.getByRole("button", { name: "Tekshirish" }).click();
+  await owner.getByRole("button", { name: "Sotuvni tasdiqlash" }).click();
+  await expect(owner.getByText("Chek chiqarildi")).toBeVisible();
+  await studentContext.close();
+  await ownerContext.close();
+});

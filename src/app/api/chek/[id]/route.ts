@@ -21,7 +21,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/chek
     date: t("date"),
     student: t("student"),
     cashier: t("cashier"),
-    discount: t("discount"),
+    discount: t("discountPlain"),
     total: t("total"),
     payment: t("payment"),
     paymentType: pay(data.paymentType),
