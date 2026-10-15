@@ -15,6 +15,8 @@ export type FeedDeal = {
   /** Kategoriya slug'i: taom, kofe, ... */
   category: string;
   icon: string;
+  /** Chegirma rasmlari (himoyalangan manzillar), tartib bilan; bo'lmasa — kategoriya ikonkasi */
+  images: string[];
   tile: string;
   ink: string;
   /** "−30%", "1+1" */
@@ -43,6 +45,9 @@ export type FeedDeal = {
   /** ISO */
   createdAt: string;
 };
+
+/** Chegirma rasmi manzili (ruxsatni o'zi tekshiradi). id — saqlash kaliti emas: kalit tashqariga chiqmaydi. */
+export const discountImageUrl = (id: string) => `/api/chegirma/rasm/${id}`;
 
 export const SORTS = ["near", "biggest", "ending", "new"] as const;
 export type FeedSort = (typeof SORTS)[number];

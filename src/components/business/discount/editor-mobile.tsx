@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Link } from "@/i18n/navigation";
-import { CategoryTile, DayPicker, EditorNotes, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueErrors, type Category } from "./editor-parts";
+import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueErrors, type Category } from "./editor-parts";
 import type { DiscountEditor } from "./use-discount-editor";
 
 export type EditorViewProps = {
@@ -40,7 +40,7 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-3 rounded-16 bg-white p-2.5">
-            <CategoryTile category={category} size={64} plus />
+            <CategoryTile category={category} size={64} plus image={e.images[0]?.url} />
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <label htmlFor="b2-title" className="text-12 text-muted">
                 {t("product")}
@@ -56,6 +56,8 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
           </div>
           {e.errorOf("title") ? <p className="m-0 text-12 font-semibold text-danger">{e.errorOf("title")}</p> : null}
         </div>
+
+        <ImagePicker e={e} id="b2-images" size="phone" />
 
         <div className="flex flex-col gap-2">
           <span className="text-13 font-semibold">{t("type")}</span>
@@ -121,7 +123,7 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
         <div className="flex flex-col gap-2 rounded-16 border-hair border-dashed border-line-strong p-3">
           <span className="text-12 font-bold tracking-[0.05em] text-muted">{t("previewMobile")}</span>
           <div className="flex items-center gap-2.5 rounded-12 bg-white p-2.5">
-            <CategoryTile category={category} size={52}>
+            <CategoryTile category={category} size={52} image={e.images[0]?.url}>
               <span className="absolute -top-1.5 -left-1 -rotate-6 rounded-5 bg-orange px-[5px] py-[3px] text-13 font-black text-ink font-stretch-70%">{e.badge}</span>
             </CategoryTile>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">

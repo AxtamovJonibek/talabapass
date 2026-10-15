@@ -13,6 +13,7 @@ function deal(over: Partial<FeedDeal> & { id: string }): FeedDeal {
     district: "Chilonzor",
     category: "taom",
     icon: "bowl",
+    images: [],
     tile: "#F4DCCB",
     ink: "#8A3410",
     badge: "−30%",

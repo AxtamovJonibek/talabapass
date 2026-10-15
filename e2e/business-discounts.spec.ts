@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { seedPhones, signIn, withDb } from "./helpers";
+import { sampleJpeg, seedPhones, signIn, withDb } from "./helpers";
 
 // B2 / WB2 — chegirma yaratish va moderatsiyaga tushishi (seed: Bodom Choyxonasi egasi)
 const TITLE = "E2E sinov chegirmasi";
@@ -37,6 +37,15 @@ test.describe("veb (WB2)", () => {
     await page.getByRole("button", { name: "Oshirish" }).locator("visible=true").click();
     await expect(page.getByTestId("discount-value").locator("visible=true")).toHaveText("−35%");
 
+    // Rasmlar (4 tagacha): ikkitasi tanlanadi, biri olib tashlanadi — saqlashda bittasi yuklanadi
+    const jpeg = await sampleJpeg();
+    await page.locator("#wb2-images").setInputFiles([
+      { name: "a.jpg", mimeType: "image/jpeg", buffer: jpeg },
+      { name: "b.jpg", mimeType: "image/jpeg", buffer: jpeg },
+    ]);
+    await page.getByRole("button", { name: "2-rasmni olib tashlash" }).locator("visible=true").click();
+    await expect(page.getByRole("img", { name: "1-rasm" }).locator("visible=true")).toBeVisible();
+
     await page.getByRole("button", { name: "E'lon qilish" }).locator("visible=true").click();
     await expect(page).toHaveURL("/biznes/chegirmalar");
     const row = page.getByTestId("discount-row").locator("visible=true").filter({ hasText: TITLE });
@@ -44,6 +53,13 @@ test.describe("veb (WB2)", () => {
 
     const saved = await withDb(async (db) => (await db.query(`SELECT status, percent, "fromMinute", "toMinute", "dailyLimit" FROM "Discount" WHERE title = $1`, [TITLE])).rows[0]);
     expect(saved).toEqual({ status: "PENDING_REVIEW", percent: 35, fromMinute: 1320, toMinute: 120, dailyLimit: 25 });
+    const images = await withDb(async (db) => (await db.query(`SELECT i."fileKey" FROM "DiscountImage" i JOIN "Discount" d ON d.id = i."discountId" WHERE d.title = $1`, [TITLE])).rows);
+    expect(images).toHaveLength(1);
+
+    // Tekshiruvdagi chegirma rasmi begonaga ochilmaydi
+    const id = (await withDb((db) => db.query(`SELECT i.id FROM "DiscountImage" i JOIN "Discount" d ON d.id = i."discountId" WHERE d.title = $1`, [TITLE]))).rows[0].id;
+    expect((await page.request.get(`/api/chegirma/rasm/${id}`)).status()).toBe(200);
+    expect((await page.context().browser()!.newContext().then((c) => c.request.get(`http://localhost:${new URL(page.url()).port}/api/chegirma/rasm/${id}`))).status()).toBe(404);
   });
 });
 

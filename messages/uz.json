@@ -374,7 +374,7 @@
       "tasdiqlangan_talaba": "tasdiqlangan talaba",
       "hamkor_biznes": "hamkor biznes",
       "faol_chegirma": "faol chegirma",
-      "som_bugun_talabalar_tejadi": "so'm — bugun talabalar tejadi"
+      "som_talabalar_tejadi": "so'm — talabalar jami tejadi"
     },
     "faq": {
       "kop_soraladigan_savollar": "Ko'p so'raladigan savollar",
@@ -901,6 +901,18 @@
       "noBusiness": "Chegirma qo'shish uchun biznes arizasi yuborilgan bo'lishi kerak.",
       "notFound": "Chegirma topilmadi.",
       "notEditable": "Bu chegirmani o'zgartirib bo'lmaydi."
+    },
+    "images": "Rasmlar",
+    "imagesHint": "{count}/4",
+    "imageAlt": "{n}-rasm",
+    "addImage": "Rasm qo'shish",
+    "removeImage": "{n}-rasmni olib tashlash",
+    "imageErrors": {
+      "too_large": "Rasm 10 MB dan katta.",
+      "bad_type": "Faqat JPG, PNG yoki HEIC rasm.",
+      "too_many": "Ko'pi bilan 4 ta rasm.",
+      "daily_limit": "Bugun juda ko'p rasm yuklandi. Ertaga urinib ko'ring.",
+      "failed": "Rasm yuklanmadi. Chegirma saqlandi — qayta urinib ko'ring."
     }
   },
   "discountList": {
@@ -1234,6 +1246,9 @@
     "opensAt": "{when} ochiladi",
     "allDeals": "Barcha chegirmalar",
     "nearby": "Yaqin atrofda",
-    "tomorrow": "· ertaga"
+    "tomorrow": "· ertaga",
+    "photo": "{n}-rasm",
+    "photoCount": "{n} / {total} rasm",
+    "showPhoto": "{n}-rasmni ko'rsatish"
   }
 }

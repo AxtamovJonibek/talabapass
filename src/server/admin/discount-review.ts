@@ -62,6 +62,7 @@ export function discountDetail(discountId: string) {
       reviewedAt: true,
       category: { select: { icon: true, tileColor: true, inkColor: true } },
       business: { select: { name: true, status: true, address: true } },
+      images: { select: { id: true }, orderBy: { sort: "asc" } },
     },
   });
 }

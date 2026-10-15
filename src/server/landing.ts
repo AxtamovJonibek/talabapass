@@ -1,19 +1,18 @@
 import "server-only";
 import type { FeedDeal } from "@/lib/feed";
 import type { LandingStats } from "@/lib/landing";
-import { fromTashkent, toTashkent } from "@/lib/time";
 import { db } from "./db";
 import { LIVE_BUSINESS_STATUSES, feedDeals, visibleDiscountWhere } from "./student/feed";
 
-/** "Raqamlarda": tasdiqlangan talabalar, hamkorlar, faol chegirmalar, bugun tejalgan summa. */
+/** "Raqamlarda": tasdiqlangan talabalar, hamkorlar, faol chegirmalar, jami tejalgan summa (barcha cheklar). */
 export async function landingStats(now: Date): Promise<LandingStats> {
   const [students, businesses, discounts, saved] = await Promise.all([
     db.studentProfile.count({ where: { status: "APPROVED", user: { status: "ACTIVE" } } }),
     db.business.count({ where: { status: { in: LIVE_BUSINESS_STATUSES } } }),
     db.discount.count({ where: visibleDiscountWhere(now) }),
-    db.redemption.aggregate({ where: { createdAt: { gte: fromTashkent(toTashkent(now).date) } }, _sum: { discountAmount: true } }),
+    db.redemption.aggregate({ _sum: { discountAmount: true } }),
   ]);
-  return { students, businesses, discounts, savedToday: saved._sum.discountAmount ?? 0 };
+  return { students, businesses, discounts, savedTotal: saved._sum.discountAmount ?? 0 };
 }
 
 const PARTNERS_SHOWN = 8;

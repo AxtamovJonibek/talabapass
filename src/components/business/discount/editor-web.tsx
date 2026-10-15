@@ -6,7 +6,7 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { BusinessShell } from "../business-shell";
-import { CategoryTile, DayPicker, EditorNotes, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueErrors } from "./editor-parts";
+import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueErrors } from "./editor-parts";
 import type { EditorViewProps } from "./editor-mobile";
 
 /** "Talabalar qachon keladi" issiqlik xaritasi: ikki qator (ish kunlari, dam olish), 08–22 ikki soatlik ustunlar. */
@@ -77,7 +77,7 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
           <section className="flex flex-col gap-3.5 rounded-18 bg-white p-5">
             <h2 className="m-0 text-17 font-extrabold">{t("sectionWhat")}</h2>
             <div className="flex flex-wrap items-center gap-3.5">
-              <CategoryTile category={category} size={96} />
+              <CategoryTile category={category} size={96} image={e.images[0]?.url} />
               <div className="grid flex-[1_1_260px] grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))] gap-2.5">
                 <Field label={t("product")} htmlFor="wb2-title" error={e.errorOf("title")} className="col-span-full">
                   <Input id="wb2-title" compact placeholder={t("productPlaceholder")} value={e.title} onChange={(x) => e.setTitle(x.target.value)} invalid={Boolean(e.errorOf("title"))} />
@@ -95,6 +95,7 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
                 </Field>
               </div>
             </div>
+            <ImagePicker e={e} id="wb2-images" size="web" />
           </section>
 
           <section className="flex flex-col gap-3.5 rounded-18 bg-white p-5">
@@ -148,7 +149,12 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
             <span className="text-12 font-extrabold tracking-[0.06em] text-muted">{t("previewWeb")}</span>
             <div className="rounded-18 bg-white">
               <div className="relative mx-2.5 mt-2.5 flex h-35 items-center justify-center rounded-12" style={{ background: category.tileColor, color: category.inkColor }}>
-                <Icon name={category.icon} size={64} strokeWidth={1.1} />
+                {e.images[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- blob: va himoyalangan API manzillari
+                  <img src={e.images[0].url} alt="" className="absolute inset-0 size-full rounded-12 object-cover" />
+                ) : (
+                  <Icon name={category.icon} size={64} strokeWidth={1.1} />
+                )}
                 <span className="absolute -top-1.5 -left-1 -rotate-5 rounded-8 bg-orange px-2 pt-[5px] pb-[3px] text-24 leading-none font-black text-ink font-stretch-65%">
                   {e.badge}
                 </span>

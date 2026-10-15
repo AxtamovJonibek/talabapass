@@ -1,8 +1,6 @@
 "use server";
 
-import { getLocale } from "next-intl/server";
 import { z } from "zod";
-import { redirect } from "@/i18n/navigation";
 import type { DiscountField, DiscountProblem } from "@/lib/discount";
 import { requireRole } from "../auth/session";
 import { saveDiscount, setDiscountActive } from "../business/discounts";
@@ -25,10 +23,11 @@ const draftSchema = z.object({
 });
 
 export type SaveDiscountActionResult =
+  | { ok: true; id: string }
   | { ok: false; error: "noBusiness" | "notFound" | "notEditable" }
   | { ok: false; errors: Partial<Record<DiscountField, DiscountProblem>> };
 
-/** B2 / WB2 — "Qoralama" yoki "E'lon qilish". Muvaffaqiyatda chegirmalar ro'yxatiga qaytadi. */
+/** B2 / WB2 — "Qoralama" yoki "E'lon qilish". Muvaffaqiyatda id qaytadi: klient rasmlarni yuklab, ro'yxatga o'tadi. */
 export async function saveDiscountAction(discountId: string | null, raw: unknown, intent: "draft" | "publish"): Promise<SaveDiscountActionResult> {
   const user = await requireRole("BUSINESS_OWNER");
   const draft = draftSchema.safeParse(raw);
@@ -36,7 +35,7 @@ export async function saveDiscountAction(discountId: string | null, raw: unknown
   const id = discountId === null ? null : z.string().max(40).parse(discountId);
   const result = await saveDiscount(user.id, id, draft.data, intent === "publish" ? "publish" : "draft");
   if (!result.ok) return result;
-  return redirect({ href: "/biznes/chegirmalar", locale: await getLocale() });
+  return { ok: true, id: result.id };
 }
 
 /** B5 — chegirma yonidagi switch: faolni to'xtatish / to'xtatilganni yoqish. */

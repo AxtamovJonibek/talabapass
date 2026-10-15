@@ -35,9 +35,14 @@ export function LiveDeals({ items, now }: { items: FeedDeal[]; now: Date }) {
           <Fragment key={d.id}>
             <Link href={`/chegirmalar/${d.id}`} style={{ display: "block", background: "var(--color-white)", borderRadius: "18px", textDecoration: "none", color: "var(--color-ink)", position: "relative" }}>
               <div style={{ height: "150px", margin: "10px 10px 0", borderRadius: "12px", background: d.tile, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg aria-hidden="true" width="74" height="74" viewBox="0 0 24 24" fill="none" stroke={d.ink} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={d.icon} />
-                </svg>
+                {d.images[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili
+                  <img src={d.images[0]} alt="" loading="lazy" style={{ position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px" }} />
+                ) : (
+                  <svg aria-hidden="true" width="74" height="74" viewBox="0 0 24 24" fill="none" stroke={d.ink} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={d.icon} />
+                  </svg>
+                )}
                 <span style={{ position: "absolute", left: "-4px", top: "-6px", background: "var(--color-orange)", fontWeight: 900, fontStretch: "65%", fontSize: "26px", lineHeight: 1, padding: "5px 9px 3px", borderRadius: "8px", transform: "rotate(-5deg)" }}>
                   {d.badge}
                 </span>

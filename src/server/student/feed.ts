@@ -1,6 +1,6 @@
 import "server-only";
 import { discountTerms } from "@/lib/discount";
-import type { FeedDeal } from "@/lib/feed";
+import { discountImageUrl, type FeedDeal } from "@/lib/feed";
 import { distanceKm, type Point } from "@/lib/geo";
 import { dealTiming, fromTashkent, toTashkent, type DealTiming } from "@/lib/time";
 import type { BusinessStatus, Prisma } from "@/generated/prisma/client";
@@ -47,6 +47,7 @@ const DEAL_SELECT = {
   endsOn: true,
   terms: true,
   createdAt: true,
+  images: { select: { id: true }, orderBy: { sort: "asc" } },
   category: { select: { slug: true, icon: true, tileColor: true, inkColor: true } },
   business: {
     select: {
@@ -80,6 +81,7 @@ function toFeedDeal(row: DealRow, timing: DealTiming, claimed: number, origin: P
     district: row.business.district?.name ?? null,
     category: row.category.slug,
     icon: row.icon ?? row.category.icon,
+    images: row.images.map((i) => discountImageUrl(i.id)),
     tile: row.tileColor ?? row.category.tileColor,
     ink: row.inkColor ?? row.category.inkColor,
     badge: terms.badge,

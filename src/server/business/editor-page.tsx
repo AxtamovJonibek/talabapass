@@ -6,6 +6,7 @@ import type { IconName } from "@/components/ui/icons";
 import { redirect } from "@/i18n/navigation";
 import { requireRole } from "../auth/session";
 import { db } from "../db";
+import { discountImages } from "./discount-images";
 import { CATEGORY_BY_KIND, ownDiscount, ownerBusinessForDiscounts, todayInTashkent, visitHint } from "./discounts";
 
 /** /biznes/chegirma/yangi va /biznes/chegirma/[id] uchun umumiy server qismi. */
@@ -30,6 +31,7 @@ export async function DiscountEditorPage({ discountId }: { discountId: string | 
   return (
     <DiscountEditorScreen
       id={existing?.id ?? null}
+      images={existing ? await discountImages(existing.id) : []}
       initial={existing?.draft ?? null}
       today={todayInTashkent()}
       category={{ ...category, icon: category.icon as IconName }}

@@ -168,6 +168,7 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
                   left={deal.left}
                   total={deal.total}
                   icon={isIconName(deal.icon) ? deal.icon : "bowl"}
+                  image={deal.images[0]}
                   tileColor={deal.tile}
                   inkColor={deal.ink}
                 />

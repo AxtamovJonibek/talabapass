@@ -18,6 +18,7 @@ import {
 } from "@/lib/discount";
 import { formatSom, MINUS } from "@/lib/format";
 import { formatMinute, parseMinute } from "@/lib/time";
+import { useRouter } from "@/i18n/navigation";
 import { saveDiscountAction } from "@/server/actions/discounts";
 
 const PERCENT_STEP = 5;
@@ -25,8 +26,17 @@ const PRICE_STEP = 1000;
 const WORKDAYS = [1, 2, 3, 4, 5];
 const groupDigits = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
+/** Muharrirdagi rasm: saqlangani (id) yoki hali yuklanmagan yangi fayl */
+export type EditorImage = { key: string; url: string; id?: string; file?: File };
+export const IMAGES_MAX = 4;
+const IMAGE_BYTES_MAX = 10 * 1024 * 1024;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif"];
+type ImageError = "too_large" | "bad_type" | "too_many" | "daily_limit" | "failed";
+
 type Options = {
   id: string | null;
+  /** Saqlangan rasmlar (tahrirlashda) */
+  images: { id: string; url: string }[];
   initial: DiscountDraft | null;
   /** Toshkent sanasi "YYYY-MM-DD" (serverdan — soat mintaqasi farqi bo'lmasligi uchun) */
   today: string;
@@ -43,7 +53,7 @@ function addDays(iso: string, days: number) {
  * ("38 000", "60 ta", "13.10 – 31.10") — dizayndagidek; yuborishda `DiscountDraft` ga o'giriladi va
  * forma bilan server bir xil `validateDiscount` dan o'tadi.
  */
-export function useDiscountEditor({ id, initial, today }: Options) {
+export function useDiscountEditor({ id, initial, images: savedImages, today }: Options) {
   const t = useTranslations("discountEditor");
   const weekday = useTranslations("weekday");
   const common = useTranslations("common");
@@ -61,6 +71,55 @@ export function useDiscountEditor({ id, initial, today }: Options) {
   const [errors, setErrors] = useState<Partial<Record<DiscountField, DiscountProblem>>>({});
   const [failure, setFailure] = useState<"noBusiness" | "notFound" | "notEditable" | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  // Birinchi saqlashdan keyin id shu yerda: rasm yuklash xato bo'lsa, qayta bosish yangi chegirma ochmaydi
+  const [savedId, setSavedId] = useState(id);
+  const [images, setImages] = useState<EditorImage[]>(savedImages.map((i) => ({ key: i.id, url: i.url, id: i.id })));
+  const [removed, setRemoved] = useState<string[]>([]);
+  const [imageError, setImageError] = useState<ImageError | null>(null);
+
+  function addImages(files: FileList | null) {
+    if (!files) return;
+    setImageError(null);
+    const picked = [...files];
+    const room = IMAGES_MAX - images.length;
+    if (picked.length > room) setImageError("too_many");
+    const ok = picked.slice(0, Math.max(0, room)).filter((file) => {
+      // HEIC'ni ba'zi brauzerlar turisiz beradi — nom bo'yicha; server baribir mazmundan aniqlaydi
+      const typeOk = IMAGE_TYPES.includes(file.type) || /\.(heic|heif)$/i.test(file.name);
+      if (!typeOk) setImageError("bad_type");
+      else if (file.size > IMAGE_BYTES_MAX) setImageError("too_large");
+      return typeOk && file.size <= IMAGE_BYTES_MAX;
+    });
+    setImages((list) => [...list, ...ok.map((file) => ({ key: `${file.name}-${file.size}-${Math.random()}`, url: URL.createObjectURL(file), file }))]);
+  }
+
+  function removeImage(key: string) {
+    const image = images.find((i) => i.key === key);
+    if (image?.id) setRemoved((list) => [...list, image.id!]);
+    if (image?.file) URL.revokeObjectURL(image.url);
+    setImages((list) => list.filter((i) => i.key !== key));
+  }
+
+  /** Saqlangandan keyin: o'chirilganlar, keyin yangi fayllar ketma-ket. Xato bo'lsa — to'xtaydi va sababini ko'rsatadi. */
+  async function syncImages(discountId: string): Promise<boolean> {
+    for (const imageId of removed) {
+      await fetch(`/api/biznes/chegirma-rasm?rasm=${encodeURIComponent(imageId)}`, { method: "DELETE" });
+    }
+    setRemoved([]);
+    for (const image of images.filter((i) => i.file)) {
+      const response = await fetch(`/api/biznes/chegirma-rasm?chegirma=${encodeURIComponent(discountId)}`, { method: "POST", body: image.file });
+      const body = (await response.json().catch(() => null)) as { ok: boolean; id?: string; problem?: string } | null;
+      if (!body?.ok || !body.id) {
+        const problem = body?.problem;
+        setImageError(problem === "too_large" || problem === "bad_type" || problem === "too_many" || problem === "daily_limit" ? problem : "failed");
+        return false;
+      }
+      const uploaded = body.id;
+      setImages((list) => list.map((i) => (i.key === image.key ? { ...i, id: uploaded, file: undefined } : i)));
+    }
+    return true;
+  }
 
   const originalPrice = parseAmount(original);
   // Yangi narx tanlanmagan bo'lsa — asl narxning 70% i (1000 ga yaxlitlab), dizayndagi 38 000 → 26 000 kabi
@@ -103,10 +162,11 @@ export function useDiscountEditor({ id, initial, today }: Options) {
     setFailure(null);
     if (Object.keys(found).length > 0) return;
     startTransition(async () => {
-      const result = await saveDiscountAction(id, draft, intent);
-      if (!result) return;
-      if ("errors" in result) setErrors(result.errors);
-      else setFailure(result.error);
+      const result = await saveDiscountAction(savedId, draft, intent);
+      if ("errors" in result) return setErrors(result.errors);
+      if (!result.ok) return setFailure(result.error);
+      setSavedId(result.id);
+      if (await syncImages(result.id)) router.push("/biznes/chegirmalar");
     });
   }
 
@@ -116,6 +176,11 @@ export function useDiscountEditor({ id, initial, today }: Options) {
   return {
     id,
     pending,
+    images,
+    addImages,
+    removeImage,
+    imageErrorText: imageError ? t(`imageErrors.${imageError}`) : null,
+    canAddImage: images.length < IMAGES_MAX,
     title,
     setTitle,
     type,

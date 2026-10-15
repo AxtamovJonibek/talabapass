@@ -15,6 +15,7 @@ import { useDealText } from "../feed/labels";
 import { PhoneOrWeb } from "../responsive";
 import { StudentWebHeader } from "../app-chrome";
 import { SaveButton, ShareButton } from "./deal-actions";
+import { PhoneGallery, WebGallery } from "./gallery";
 
 type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string };
 
@@ -98,17 +99,18 @@ function DealPhone({ detail, now, saved }: Props) {
   return (
     <div className="flex h-dvh flex-col bg-paper text-ink">
       <div className="relative flex h-[286px] shrink-0 items-center justify-center overflow-hidden" style={{ background: deal.tile, color: deal.ink }}>
-        <Icon name={x.icon} size={190} strokeWidth={0.7} className="mt-[30px]" />
-        <Link href="/chegirmalar" aria-label={t("dealPage.back")} className="absolute top-[54px] left-4 flex size-11 items-center justify-center rounded-full bg-white text-ink">
-          <Icon name="chevronLeft" size={20} />
-        </Link>
-        <div className="absolute top-[54px] right-4 flex gap-2">
-          <ShareButton title={deal.title} />
-          <SaveButton discountId={deal.id} saved={saved} />
-        </div>
-        <DealBadge size="xl" className="absolute right-[18px] bottom-[26px]">
-          {deal.badge}
-        </DealBadge>
+        <PhoneGallery images={deal.images} ink={deal.ink} fallback={<Icon name={x.icon} size={190} strokeWidth={0.7} className="mt-[30px]" />}>
+          <Link href="/chegirmalar" aria-label={t("dealPage.back")} className="absolute top-[54px] left-4 flex size-11 items-center justify-center rounded-full bg-white text-ink">
+            <Icon name="chevronLeft" size={20} />
+          </Link>
+          <div className="absolute top-[54px] right-4 flex gap-2">
+            <ShareButton title={deal.title} />
+            <SaveButton discountId={deal.id} saved={saved} />
+          </div>
+          <DealBadge size="xl" className="absolute right-[18px] bottom-[26px]">
+            {deal.badge}
+          </DealBadge>
+        </PhoneGallery>
       </div>
 
       <div className="relative -mt-[18px] flex-1 overflow-y-auto rounded-t-22 bg-paper px-5 pt-5">
@@ -193,12 +195,20 @@ function DealWeb({ detail, now, initials }: Props) {
 
       <div className="mx-auto flex max-w-[1360px] flex-wrap items-start gap-6 px-[clamp(16px,3cqw,40px)] pt-7 pb-[60px]">
         <div className="flex min-w-0 flex-[3_1_560px] flex-col gap-3">
-          <div className="relative flex h-[clamp(260px,30cqw,420px)] items-center justify-center overflow-hidden rounded-22" style={{ background: deal.tile, color: deal.ink }}>
-            <Icon name={x.icon} size={240} strokeWidth={0.6} />
-            <DealBadge size="2xl" className="absolute top-5 left-5">
-              {deal.badge}
-            </DealBadge>
-          </div>
+          {deal.images.length ? (
+            <WebGallery images={deal.images} tile={deal.tile}>
+              <DealBadge size="2xl" className="absolute top-5 left-5">
+                {deal.badge}
+              </DealBadge>
+            </WebGallery>
+          ) : (
+            <div className="relative flex h-[clamp(260px,30cqw,420px)] items-center justify-center overflow-hidden rounded-22" style={{ background: deal.tile, color: deal.ink }}>
+              <Icon name={x.icon} size={240} strokeWidth={0.6} />
+              <DealBadge size="2xl" className="absolute top-5 left-5">
+                {deal.badge}
+              </DealBadge>
+            </div>
+          )}
 
           <div className="rounded-22 bg-white p-[clamp(18px,2.5cqw,28px)]">
             <div className="flex items-center gap-3">

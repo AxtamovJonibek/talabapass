@@ -21,10 +21,19 @@ export type DealCardProps = {
   left: number;
   total: number;
   icon: IconName;
+  /** Chegirma rasmi (birinchisi); bo'lmasa kategoriya ikonkasi */
+  image?: string;
   /** Kategoriya ranglari DB'dan keladi (Category.tileColor / inkColor) */
   tileColor: string;
   inkColor: string;
 };
+
+/** Kartadagi rasm (kvadratni to'liq qoplaydi) yoki kategoriya ikonkasi. */
+function TileImage({ image, icon, size, strokeWidth }: { image?: string; icon: IconName; size: number; strokeWidth: number }) {
+  if (!image) return <Icon name={icon} size={size} strokeWidth={strokeWidth} />;
+  // eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili (next/image optimizatori orqali emas)
+  return <img src={image} alt="" loading="lazy" className="absolute inset-0 size-full rounded-12 object-cover" />;
+}
 
 /** Chegirma kartasi — "chipta" ko'rinishi (T4 lentasi). Ota fon: paper. */
 export function DealCard(props: DealCardProps) {
@@ -36,7 +45,7 @@ export function DealCard(props: DealCardProps) {
           className="relative flex size-[92px] shrink-0 items-center justify-center rounded-12"
           style={{ background: props.tileColor, color: props.inkColor }}
         >
-          <Icon name={props.icon} size={46} strokeWidth={1.3} />
+          <TileImage image={props.image} icon={props.icon} size={46} strokeWidth={1.3} />
           <DealBadge className="absolute -top-[7px] -left-[5px]">{props.badge}</DealBadge>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
@@ -97,7 +106,7 @@ export function DealTile(props: DealTileProps) {
         className="relative mx-2.5 mt-2.5 flex h-[150px] items-center justify-center rounded-12"
         style={{ background: props.tileColor, color: props.inkColor }}
       >
-        <Icon name={props.icon} size={70} strokeWidth={1.1} />
+        <TileImage image={props.image} icon={props.icon} size={70} strokeWidth={1.1} />
         <DealBadge size="lg" className="absolute -top-1.5 -left-1">
           {props.badge}
         </DealBadge>

@@ -17,15 +17,20 @@ const KINDS: DiscountKind[] = ["PERCENT", "FIXED_PRICE", "BOGO"];
 const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 /** Kategoriya rangidagi kvadrat (ranglar bazadan — Category.tileColor / inkColor). */
-export function CategoryTile({ category, size, plus = false, children }: { category: Category; size: number; plus?: boolean; children?: React.ReactNode }) {
+export function CategoryTile({ category, size, plus = false, image, children }: { category: Category; size: number; plus?: boolean; image?: string; children?: React.ReactNode }) {
   const radius = size >= 96 ? "rounded-14" : size >= 64 ? "rounded-12" : "rounded-10";
   return (
     <div
       className={cn("relative flex shrink-0 items-center justify-center", radius)}
       style={{ width: size, height: size, background: category.tileColor, color: category.inkColor }}
     >
-      {size > 52 ? <Icon name={category.icon} size={Math.round(size / 1.9)} strokeWidth={size >= 96 ? 1.3 : 1.4} /> : null}
-      {/* Rasm qo'shish belgisi (dizayndagidek). Chegirma rasmlari 7-bosqichda ulanadi. TODO(7-bosqich) */}
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element -- blob: va himoyalangan API manzillari
+        <img src={image} alt="" className={cn("absolute inset-0 size-full object-cover", radius)} />
+      ) : size > 52 ? (
+        <Icon name={category.icon} size={Math.round(size / 1.9)} strokeWidth={size >= 96 ? 1.3 : 1.4} />
+      ) : null}
+      {/* Rasm qo'shish belgisi (dizayndagidek); rasmlar pastdagi ImagePicker'da */}
       {plus ? (
         <span aria-hidden="true" className="absolute -right-1 -bottom-1 flex size-[22px] items-center justify-center rounded-11 bg-ink text-white">
           <Icon name="plus" size={12} strokeWidth={2.6} />
@@ -147,5 +152,56 @@ export function EditorNotes({ e, statusText, businessPending }: { e: DiscountEdi
         </p>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Chegirma rasmlari (4 tagacha): kichik rasmlar, "×" bilan olib tashlash, oxirida "+" (fayl tanlash).
+ * Dizaynda chizilmagan — B2 dagi "+" belgisi uslubida. Fayllar saqlash paytida yuklanadi (tozalash serverda).
+ */
+export function ImagePicker({ e, id, size }: { e: DiscountEditor; id: string; size: Size }) {
+  const t = useTranslations("discountEditor");
+  const box = size === "phone" ? "size-16 rounded-12" : "size-[72px] rounded-12";
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-13 font-semibold">{t("images")}</span>
+        <span className="font-mono text-11 text-muted">{t("imagesHint", { count: e.images.length })}</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {e.images.map((image, i) => (
+          <div key={image.key} className={cn("relative shrink-0 bg-surface", box)}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- blob: va himoyalangan API manzillari */}
+            <img src={image.url} alt={t("imageAlt", { n: i + 1 })} className="size-full rounded-12 object-cover" />
+            <button
+              type="button"
+              onClick={() => e.removeImage(image.key)}
+              aria-label={t("removeImage", { n: i + 1 })}
+              className="absolute -top-1.5 -right-1.5 flex size-[22px] items-center justify-center rounded-11 border-0 bg-ink p-0 text-white"
+            >
+              <Icon name="close" size={12} strokeWidth={2.6} />
+            </button>
+          </div>
+        ))}
+        {e.canAddImage ? (
+          <label htmlFor={id} className={cn("flex shrink-0 cursor-pointer items-center justify-center border-hair border-dashed border-line-strong bg-white text-ink", box)}>
+            <Icon name="plus" size={20} strokeWidth={2.4} />
+            <span className="sr-only">{t("addImage")}</span>
+          </label>
+        ) : null}
+        <input
+          id={id}
+          type="file"
+          accept="image/jpeg,image/png,image/heic,image/heif,.heic,.heif"
+          multiple
+          className="sr-only"
+          onChange={(x) => {
+            e.addImages(x.target.files);
+            x.target.value = "";
+          }}
+        />
+      </div>
+      {e.imageErrorText ? <p className="m-0 text-12 font-semibold text-danger">{e.imageErrorText}</p> : null}
+    </div>
   );
 }

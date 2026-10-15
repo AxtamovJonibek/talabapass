@@ -36,10 +36,10 @@ export function Stats({ stats }: { stats: LandingStats }) {
         </div>
         <div style={{ borderTop: "3px solid var(--color-orange)", paddingTop: "14px" }}>
           <div style={{ fontSize: "clamp(52px, 6cqw, 84px)", fontWeight: 900, fontStretch: "70%", lineHeight: 0.95, color: "var(--color-rust)" }}>
-            {formatMln(stats.savedToday)}
+            {formatMln(stats.savedTotal)}
           </div>
           <div style={{ fontSize: "15px", color: "var(--color-muted)", marginTop: "6px" }}>
-            {t("som_bugun_talabalar_tejadi")}
+            {t("som_talabalar_tejadi")}
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { DiscountReview } from "@/components/admin/discount-review";
+import { discountImageUrl } from "@/lib/feed";
 import { QueuePanel, ReviewHeader, type CheckRow, type QueueItem } from "@/components/admin/review-parts";
 import type { IconName } from "@/components/ui/icons";
 import { discountTerms, PERCENT_MAX, PERCENT_MIN, weekdaysLabel } from "@/lib/discount";
@@ -95,6 +96,7 @@ async function DiscountReviewPageContent({ searchParams }: PageProps<"/[locale]/
       badge: terms.badge,
       business: detail.business.name,
       price: detail.type === "BOGO" ? (detail.note ?? editor("bogoFree")) : som(terms.finalPrice),
+      images: detail.images.map((i) => discountImageUrl(i.id)),
     };
   }
 

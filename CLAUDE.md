@@ -115,7 +115,7 @@ Telefon va veb uchun alohida chizilgan ekranlar (T1–T3 ↔ WT1): holat bitta h
 `PhoneOrWeb` 700px da almashtiradi. Ikkalasi DOM'da turadi — `id` lar farqli bo'lsin, testlarda `visible=true`.
 
 Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspense>` ida):
-- Statistika — `STATS_MIN` (`src/lib/landing.ts`) dan kichik bo'lsa bo'lim yashiriladi.
+- Statistika (jami tejalgan summa bilan) — `STATS_MIN` (`src/lib/landing.ts`) dan kichik bo'lsa bo'lim yashiriladi.
 - Hamkorlar — tasdiqlangan bizneslar (APPROVED/WARNED); oliygohlar — tasdiqlangan talabasi borlari.
 - "Hozir Toshkentda ochiq" — talabaga ko'rinadigan chegirmalar (avval ochiqlari).
 
@@ -124,8 +124,8 @@ Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspen
   egasi bloklanmagan, muddat tugamagan. Holat/keyingi ochilish — `dealTiming` (`src/lib/time.ts`), qoldiq — oraliq kunidagi
   `DiscountDay.claimed`. Filtr/saralash brauzerda (`src/lib/feed.ts`), URL'da saqlanadi; sahifa har daqiqa yangilanadi.
 - Joy (`tp_loc` cookie): tuman markazi yoki geolokatsiya (~100 m); masofa shundan. Xarita — MapLibre + OpenFreeMap (kalitsiz).
-- Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan); rasm hisoblagichi va WT3 kichik rasmlari yo'q
-  (chegirma rasmlari hali yo'q); "Chegirmani olish" QR bosqichigacha nofaol; qo'ng'iroq faqat belgi;
+- Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan); rasm yo'q chegirmada — kategoriya ikonkasi;
+  qo'ng'iroq faqat belgi;
   `/kuponlar`, `/tarix`, `/profil` — vaqtinchalik sahifalar.
 
 ## Dizayndan ekran ko'chirish (faqat marketing sahifalari)
@@ -269,7 +269,11 @@ Server — `src/server/business/discounts.ts` (`saveDiscount`, `setDiscountActiv
 `validateDiscount`. Chegirma faqat arizasi yuborilgan (bloklanmagan/rad etilmagan) biznesda. Kategoriya biznes
 turidan (`CATEGORY_BY_KIND`). Forma matnlari dizayndagidek ("38 000", "60 ta", "13.10 – 31.10") — `parseAmount`,
 `parseDateRange`. WB2 maslahati — oxirgi 60 kunlik sotuvlardan (20 tadan kam bo'lsa ko'rsatilmaydi).
-Chetlanishlar: chegirma rasmi ("+" belgisi) 7-bosqichda; WB2 oldindan ko'rishda masofa yo'q; kabinetda "Chiqish".
+Chetlanishlar: WB2 oldindan ko'rishda masofa yo'q; kabinetda "Chiqish".
+Rasmlar (`discount-images.ts`): 4 tagacha, faqat rasm, `sanitizeDocument` dan; kalit `discounts/<id>/<uuid>.<ext>`.
+Muharrir fayllarni saqlashdan keyin yuklaydi (`POST /api/biznes/chegirma-rasm?chegirma=`, `DELETE ?rasm=`). Tasdiqlangan
+chegirmada rasm qo'shilsa/o'chirilsa — qayta `PENDING_REVIEW`. Ko'rish: `/api/chegirma/rasm/<id>` — talabaga ko'rinadigan
+chegirmaniki hammaga (landing ham), aks holda faqat egasi va admin (boshqalarga 404). Rasm qatori dizaynda chizilmagan.
 
 **Kassirlar.** Taklif — `/kassir/<token>`: tasodifiy token (bazada SHA-256), 48 soat, bir marta (`acceptedAt IS NULL`
 sharti bilan atom), faqat tasdiqlangan biznes taklif qiladi, ochiq takliflar ≤ 10. Bitta raqam — bitta rol, kassir bir

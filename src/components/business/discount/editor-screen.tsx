@@ -9,6 +9,7 @@ import { useDiscountEditor } from "./use-discount-editor";
 
 type Props = {
   id: string | null;
+  images: { id: string; url: string }[];
   initial: DiscountDraft | null;
   today: string;
   category: Category;
@@ -20,7 +21,7 @@ type Props = {
 };
 
 /** Chegirma muharriri: bitta holat, ikki ko'rinish (B2 telefon, WB2 veb). */
-export function DiscountEditorScreen({ id, initial, today, hint, ...view }: Props) {
-  const e = useDiscountEditor({ id, initial, today });
+export function DiscountEditorScreen({ id, images, initial, today, hint, ...view }: Props) {
+  const e = useDiscountEditor({ id, initial, images, today });
   return <PhoneOrWeb phone={<EditorMobile e={e} {...view} />} web={<EditorWeb e={e} hint={hint} {...view} />} />;
 }

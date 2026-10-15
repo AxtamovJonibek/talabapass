@@ -19,7 +19,7 @@ export type DiscountReviewData = {
   meta: string;
   pending: boolean;
   stateLabel: string;
-  preview: { icon: IconName; tileColor: string; inkColor: string; badge: string; business: string; price: string };
+  preview: { icon: IconName; tileColor: string; inkColor: string; badge: string; business: string; price: string; images: string[] };
   rows: CheckRow[];
   nextHref: string;
 };
@@ -54,7 +54,12 @@ export function DiscountReview(props: DiscountReviewData) {
           <span className="text-12 font-bold tracking-[0.05em] text-muted uppercase">{t("preview")}</span>
           <div className="flex items-center gap-3 rounded-16 bg-paper p-3">
             <div className="relative flex size-[92px] shrink-0 items-center justify-center rounded-12" style={{ background: p.tileColor, color: p.inkColor }}>
-              <Icon name={p.icon} size={46} strokeWidth={1.3} />
+              {p.images[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili (faqat admin/egasi)
+                <img src={p.images[0]} alt="" className="absolute inset-0 size-full rounded-12 object-cover" />
+              ) : (
+                <Icon name={p.icon} size={46} strokeWidth={1.3} />
+              )}
               <DealBadge className="absolute -top-[7px] -left-[5px]">{p.badge}</DealBadge>
             </div>
             <div className="flex min-w-0 flex-col gap-1">
@@ -63,6 +68,16 @@ export function DiscountReview(props: DiscountReviewData) {
               <span className="text-15 font-extrabold">{p.price}</span>
             </div>
           </div>
+          {p.images.length > 1 ? (
+            <div className="flex flex-wrap gap-2">
+              {p.images.slice(1).map((src) => (
+                <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="block size-16 overflow-hidden rounded-12 bg-paper">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili */}
+                  <img src={src} alt="" className="size-full object-cover" />
+                </a>
+              ))}
+            </div>
+          ) : null}
         </div>
       }
       right={<CheckTable rows={props.rows} />}
