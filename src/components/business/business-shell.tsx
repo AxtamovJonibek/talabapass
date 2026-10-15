@@ -5,15 +5,15 @@ import { Logo } from "@/components/ui/logo";
 import { Sidebar } from "@/components/ui/sidebar";
 import { logoutAction } from "@/server/actions/auth";
 
-export type BusinessSection = "stats" | "discounts" | "sales" | "cashiers" | "profile";
+export type BusinessSection = "stats" | "discounts" | "sales" | "cashiers" | "scanner" | "profile";
 
-// ready: false — bo'lim keyingi bosqichlarda (9-bosqich: statistika, sotuvlar); panelda xira.
 const ITEMS = [
-  { key: "stats", href: "/biznes", icon: "chart", ready: false },
-  { key: "discounts", href: "/biznes/chegirmalar", icon: "ticket", ready: true },
-  { key: "sales", href: "/biznes/sotuvlar", icon: "receipt", ready: false },
-  { key: "cashiers", href: "/biznes/kassirlar", icon: "users", ready: true },
-  { key: "profile", href: "/biznes/profil", icon: "store", ready: true },
+  { key: "stats", href: "/biznes", icon: "chart" },
+  { key: "discounts", href: "/biznes/chegirmalar", icon: "ticket" },
+  { key: "sales", href: "/biznes/sotuvlar", icon: "receipt" },
+  { key: "cashiers", href: "/biznes/kassirlar", icon: "users" },
+  { key: "scanner", href: "/biznes/skaner", icon: "scan" },
+  { key: "profile", href: "/biznes/profil", icon: "store" },
 ] as const;
 
 /**
@@ -31,7 +31,7 @@ export function BusinessShell({ active, children }: { active: BusinessSection; c
         accent="orange"
         navLabel={t("label")}
         header={<Logo size={17} chip="white" tag={brand("business")} className="px-2" />}
-        items={ITEMS.map((item) => ({ href: item.href, icon: item.icon, label: t(item.key), active: item.key === active, disabled: !item.ready }))}
+        items={ITEMS.map((item) => ({ href: item.href, icon: item.icon, label: t(item.key), active: item.key === active }))}
         footer={
           <form action={logoutAction} className="px-1.5">
             <button type="submit" className="flex h-10 items-center gap-2.5 rounded-10 border-0 bg-transparent px-1.5 font-sans text-14 font-semibold text-fog-3 hover:text-white">

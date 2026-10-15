@@ -1,9 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { getLocale } from "next-intl/server";
 import { z } from "zod";
-import { redirect } from "@/i18n/navigation";
 import type { BusinessField } from "@/lib/business";
 import { normalizePhone } from "@/lib/format";
 import { confirmPhone } from "../auth/phone-check";
@@ -80,14 +78,12 @@ export async function saveBusinessAction(raw: unknown): Promise<SaveResult> {
   return { ok: true, step: "saved" };
 }
 
-export type SubmitResult = { ok: false; problem: SubmitProblem };
+export type SubmitResult = { ok: true } | { ok: false; problem: SubmitProblem };
 
-/** Arizani tekshiruvga yuborish (WB1 "Tekshiruvga yuborish"). Muvaffaqiyatda — kabinetga (3-qadam: tekshiruvda). */
+/** Arizani tekshiruvga yuborish (WB1 "Tekshiruvga yuborish"). Muvaffaqiyatda klient /biznes ga o'tadi (3-qadam: tekshiruvda). */
 export async function submitBusinessAction(consent: boolean): Promise<SubmitResult> {
   const user = await requireRole("BUSINESS_OWNER");
-  const result = await submitBusiness(user.id, consent === true);
-  if (!result.ok) return result;
-  return redirect({ href: "/biznes", locale: await getLocale() });
+  return submitBusiness(user.id, consent === true);
 }
 
 export async function removeBusinessDocAction(docId: string): Promise<{ ok: boolean }> {

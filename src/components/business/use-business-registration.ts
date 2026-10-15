@@ -156,9 +156,10 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
         }
       }
       setProgress(null);
-      // Muvaffaqiyatda server kabinetga yo'naltiradi; bu yerga faqat xato qaytadi.
       const submitted = await submitBusinessAction(true);
-      if (submitted && !submitted.ok) setFailure({ kind: "save", error: submitted.problem === "notEditable" ? "notEditable" : submitted.problem });
+      // Muvaffaqiyatda bitta aniq o'tish: /biznes holatga qarab tekshiruv sahifasini ko'rsatadi
+      if (submitted.ok) return router.replace("/biznes");
+      setFailure({ kind: "save", error: submitted.problem });
     });
   }
 

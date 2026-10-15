@@ -99,6 +99,7 @@
     "discounts": "Chegirmalar",
     "sales": "Sotuvlar va cheklar",
     "cashiers": "Kassirlar",
+    "scanner": "Skaner",
     "profile": "Biznes profili"
   },
   "adminNav": {
@@ -922,6 +923,120 @@
       "too_many": "Ko'pi bilan 4 ta rasm.",
       "daily_limit": "Bugun juda ko'p rasm yuklandi. Ertaga urinib ko'ring.",
       "failed": "Rasm yuklanmadi. Chegirma saqlandi — qayta urinib ko'ring."
+    }
+  },
+  "businessStats": {
+    "title": "Statistika",
+    "dateLine": "{weekday}, {day}-{month} · {time}",
+    "periodLabel": "Davr",
+    "period": { "1": "Bugun", "7": "7 kun", "30": "30 kun" },
+    "periodName": { "1": "bugun", "7": "so'nggi 7 kun", "30": "so'nggi 30 kun" },
+    "excel": "Excel hisobot",
+    "kpiLabel": "Asosiy ko'rsatkichlar",
+    "sold": "Sotuvlar",
+    "deltaDay": "{value} kechagidan",
+    "deltaWeek": "{value}% oldingi haftaga",
+    "deltaMonth": "{value}% oldingi 30 kunga",
+    "revenue": "Talabalardan tushum",
+    "revenueNote": "so'm · o'rtacha chek {average}",
+    "given": "Berilgan chegirma",
+    "givenNote": "so'm · sizning sarmoyangiz",
+    "fresh": "Yangi mijozlar",
+    "freshNote": "birinchi marta kelgan talaba",
+    "returning": "Qayta kelganlar",
+    "chart": {
+      "1": "Bugun, soatlar bo'yicha",
+      "7": "So'nggi 7 kun, kunlik sotuvlar",
+      "30": "So'nggi 30 kun, kunlik sotuvlar"
+    },
+    "legendSales": "sotuvlar",
+    "legendHour": "hozirgi soat",
+    "legendDay": "bugun",
+    "barTip": "{label} — {count} ta",
+    "funnel": {
+      "title": "Voronka",
+      "views": "Chegirmani ko'rdi",
+      "qr": "QR kod oldi",
+      "sold": "Kassada sotib oldi",
+      "lost": "QR olgan {count} talaba kassaga kelmagan."
+    },
+    "heat": {
+      "title": "Talabalar qachon keladi",
+      "less": "kam",
+      "more": "ko'p",
+      "note": "so'nggi 30 kun",
+      "busiest": "Eng gavjum: <b>{day}, {from}–{to}</b>.",
+      "quietest": "{day} eng bo'sh kun — yangi chegirma uchun qulay vaqt.",
+      "empty": "Sotuvlar paydo bo'lgach, talabalar kelish vaqti shu yerda ko'rinadi.",
+      "tip": "{day} {hour}:00 — {count} ta"
+    },
+    "universities": { "title": "Universitetlar", "sub": "sotuvlar, {period}", "others": "Boshqalar", "empty": "Bu davrda sotuv yo'q." },
+    "offers": {
+      "title": "Chegirmalar samaradorligi",
+      "add": "+ Yangi chegirma",
+      "discount": "Chegirma",
+      "status": "Holat",
+      "views": "Ko'rildi",
+      "qr": "QR",
+      "sold": "Sotildi",
+      "conversion": "QR → sotuv",
+      "revenue": "Tushum",
+      "given": "Chegirma",
+      "total": "Jami",
+      "empty": "Hali chegirma yo'q.",
+      "state": {
+        "ACTIVE": "Faol",
+        "ENDED": "Tugagan",
+        "PENDING_REVIEW": "Tekshiruvda",
+        "PAUSED": "To'xtatilgan",
+        "REJECTED": "Rad etilgan"
+      }
+    },
+    "recent": {
+      "title": "Oxirgi sotuvlar",
+      "live": "jonli",
+      "all": "Barcha sotuvlar →",
+      "empty": "Hali sotuv yo'q. Kassir birinchi QR'ni skanerlaganda shu yerda paydo bo'ladi."
+    },
+    "cashiers": { "title": "Kassirlar, 30 kun", "rejected": "Rad etilgan QR", "empty": "Hali skan yo'q." },
+    "sales": {
+      "title": "Sotuvlar va cheklar",
+      "summary": "{count} ta sotuv · {sum} so'm",
+      "time": "Vaqt",
+      "date": "Sana",
+      "receipt": "Chek",
+      "student": "Talaba",
+      "item": "Mahsulot",
+      "cashier": "Kassir",
+      "paid": "To'landi",
+      "pdf": "PDF",
+      "pdfLabel": "{no}-chekni PDF qilib yuklab olish",
+      "empty": "Bu davrda sotuv yo'q.",
+      "prev": "← Oldingi",
+      "next": "Keyingi →",
+      "page": "{page}-sahifa, {pages} dan"
+    },
+    "export": {
+      "summary": "Umumiy",
+      "sales": "Sotuvlar",
+      "offers": "Chegirmalar",
+      "metric": "Ko'rsatkich",
+      "average": "O'rtacha chek",
+      "value": "Qiymat",
+      "period": "Davr",
+      "from": "Boshlanishi",
+      "to": "Tugashi",
+      "date": "Sana",
+      "time": "Vaqt",
+      "receipt": "Chek №",
+      "student": "Talaba",
+      "university": "Universitet",
+      "item": "Mahsulot",
+      "cashier": "Kassir",
+      "payment": "To'lov turi",
+      "original": "Asl narx",
+      "discount": "Chegirma",
+      "paid": "To'landi"
     }
   },
   "discountList": {

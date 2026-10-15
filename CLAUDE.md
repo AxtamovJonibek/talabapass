@@ -350,3 +350,14 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   `[TARIF MA'LUMOTI]`, `[N] kun` — egasidan kutilmoqda, o'ylab topilmaydi.
 - SMS: hozircha dev rejim (kod server log'iga chiqadi), provayder adapter orqali keyin ulanadi.
 - Admin'dagi "Chegirmalar" navbati va kupon ekranidagi 6 raqamli kod dizaynda chizilmagan — mavjud uslubda qo'shilgan.
+
+## Biznes statistikasi (B6, 9-bosqich)
+- `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).
+  Yuborishdan keyin klient `router.replace("/biznes")` qiladi (action ichida redirect emas).
+- Hisob: `src/server/business/stats.ts` (SQL, Toshkent vaqti), sof mantiq `src/lib/stats.ts`. Davr `?davr=1|7|30`.
+  "Qayta kelgan" = davrdagi talabalardan shu biznesda davr oxirigacha 2+ xaridi borlari; "yangi" = birinchi xaridi davr ichida.
+  Voronka: `DiscountView` (talaba tafsilotni ochganda) → `Coupon` → `Redemption`.
+- `/biznes/sotuvlar` (ro'yxat + PDF chek), `/api/biznes/hisobot` (Excel, exceljs, faqat egasi). Testlar: `e2e/business-stats.spec.ts`
+  (ko'rsatkichlar mustaqil SQL bilan solishtiriladi), `e2e/business-home.spec.ts`.
+- Dizayndan chetlanishlar: B6 telefon ko'rinishi chizilmagan (bloklar ustma-ust); voronkadagi "QR muddatini uzaytiring"
+  maslahati yo'q (muddat sozlanmaydi); yon panelda biznes kartasi va "Kassa ilovasi" bloki yo'q; "Skaner" bandi qo'shilgan.

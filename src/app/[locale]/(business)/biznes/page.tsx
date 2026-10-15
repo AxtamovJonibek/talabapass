@@ -1,20 +1,23 @@
 import { Suspense } from "react";
-import { PlaceholderHome } from "@/components/auth/placeholder-home";
 import { BusinessPendingScreen } from "@/components/business/pending-screen";
 import { BusinessRegisterScreen } from "@/components/business/register-screen";
+import { StatsScreen } from "@/components/business/stats/stats-screen";
 import { resolveLocale } from "@/i18n/locale";
+import { parsePeriod } from "@/lib/stats";
 import { requireRole } from "@/server/auth/session";
 import { ownBusiness } from "@/server/business/registration";
+import { businessStats } from "@/server/business/stats";
 
 /**
  * Biznes egasining bosh sahifasi — arizasi holatiga qarab:
  * hujjatlar hali yuborilmagan yoki rad etilgan → ariza formasi (B1/WB1); tekshiruvda → WB1 3-qadam;
- * tasdiqlangan → kabinet. Kassir bu yerga kira olmaydi (o'z skaneriga yo'naltiriladi).
+ * tasdiqlangan (APPROVED/WARNED) → B6 statistika. Kassir bu yerga kira olmaydi (o'z skaneriga yo'naltiriladi).
  */
-async function BusinessHome() {
+async function BusinessHome({ searchParams }: { searchParams: PageProps<"/[locale]/biznes">["searchParams"] }) {
   const user = await requireRole("BUSINESS_OWNER");
   const business = await ownBusiness(user.id);
-  if (!business) return <PlaceholderHome area="business" roles={["BUSINESS_OWNER"]} />;
+  // Egasi bor, biznesi yo'q (ariza hali boshlanmagan) — forma, bo'sh ma'lumot bilan
+  if (!business) return <BusinessRegisterScreen signedIn verifiedPhone={user.phone} />;
 
   const editable = (business.status === "PENDING" && !business.submittedAt) || business.status === "REJECTED";
   if (editable) {
@@ -38,15 +41,17 @@ async function BusinessHome() {
     );
   }
   if (business.status === "PENDING") return <BusinessPendingScreen />;
-  // 9-bosqichda: B6 — biznes statistikasi.
-  return <PlaceholderHome area="business" roles={["BUSINESS_OWNER"]} />;
+
+  const now = new Date();
+  const stats = await businessStats(business.id, parsePeriod((await searchParams).davr), now);
+  return <StatsScreen stats={stats} now={now} />;
 }
 
-export default async function BusinessHomePage({ params }: PageProps<"/[locale]/biznes">) {
+export default async function BusinessHomePage({ params, searchParams }: PageProps<"/[locale]/biznes">) {
   await resolveLocale(params);
   return (
     <Suspense fallback={null}>
-      <BusinessHome />
+      <BusinessHome searchParams={searchParams} />
     </Suspense>
   );
 }

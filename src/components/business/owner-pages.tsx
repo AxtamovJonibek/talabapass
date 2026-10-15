@@ -28,7 +28,7 @@ function DiscountsBlock({ discounts }: { discounts: OwnerDiscount[] }) {
 }
 
 /** Telefon: kontent + pastki navigatsiya; veb: biznes kabineti qobig'i. */
-function OwnerFrame({ tab, section, phone, web }: { tab: OwnerTab; section: BusinessSection; phone: ReactNode; web: ReactNode }) {
+export function OwnerFrame({ tab, section, phone, web }: { tab: OwnerTab; section: BusinessSection; phone: ReactNode; web: ReactNode }) {
   return (
     <PhoneOrWeb
       phone={
