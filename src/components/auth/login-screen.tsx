@@ -103,6 +103,13 @@ export function LoginScreen() {
           business ? "bg-ink text-paper" : "bg-blue text-white",
         )}
       >
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute -top-[120px] -right-[120px] size-[460px] rounded-[180px] border-[50px] border-solid",
+            business ? "border-ink-2" : "border-blue-2",
+          )}
+        />
         <Link href="/" className="relative self-start text-inherit no-underline">
           <Logo size={20} chip={business ? "white" : "white-blue"} tag={business ? "BIZNES" : undefined} />
         </Link>
@@ -122,13 +129,6 @@ export function LoginScreen() {
             </div>
           ))}
         </div>
-        <div
-          aria-hidden="true"
-          className={cn(
-            "absolute -top-[120px] -right-[120px] size-[460px] rounded-[180px] border-[50px] border-solid",
-            business ? "border-ink-2" : "border-blue-2",
-          )}
-        />
       </div>
 
       <main className="box-border flex min-w-0 flex-[1_1_460px] items-center justify-center px-[clamp(16px,4cqw,48px)] py-[clamp(24px,5cqw,64px)]">
