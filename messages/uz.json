@@ -616,6 +616,12 @@
       "lastNamePlaceholder": "Familiyangiz",
       "university": "Universitet",
       "universityPlaceholder": "Universitetni tanlang",
+      "universitySearchPlaceholder": "Nomi yoki qisqartmasini yozing",
+      "universityNotListed": "Ro'yxatda yo'q",
+      "universityOtherPlaceholder": "Universitet nomini yozing",
+      "universityOtherHint": "Moderator tekshirib, ro'yxatga qo'shadi. Guvohnomani baribir hozir yuklashingiz mumkin.",
+      "universityBack": "Ro'yxatdan tanlash",
+      "universityMore": "Yana {n} ta — qidiruvni aniqlashtiring",
       "submit": "Davom etish",
       "haveAccount": "Akkauntingiz bormi? <login>Kirish</login>",
       "confirm": "Tasdiqlash",
@@ -624,6 +630,7 @@
         "firstName": "Ismingizni kiriting.",
         "lastName": "Familiyangizni kiriting.",
         "universityId": "Universitetni tanlang.",
+        "universityOther": "Universitet nomini yozing (3–120 belgi).",
         "course": "Kursni tanlang."
       }
     },
@@ -1865,5 +1872,11 @@
       "empty": "Rasm topilmadi.",
       "network": "Yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring."
     }
+  },
+  "universityKind": {
+    "STATE": "Davlat",
+    "PRIVATE": "Nodavlat",
+    "FOREIGN": "Xorijiy",
+    "OTHER": "Boshqa"
   }
 }

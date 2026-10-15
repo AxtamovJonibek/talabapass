@@ -16,7 +16,7 @@ async function Register() {
     redirect({ href, locale: await getLocale() });
   }
   const [universities, verifiedPhone] = await Promise.all([
-    db.university.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.university.findMany({ where: { active: true, kind: { not: "OTHER" } }, orderBy: { name: "asc" }, select: { id: true, name: true, shortName: true, region: true, kind: true } }),
     getVerifiedPhone(),
   ]);
   return <RegisterScreen universities={universities} verifiedPhone={verifiedPhone} />;

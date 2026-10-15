@@ -30,7 +30,8 @@ async function registerOnWeb(page: Page) {
   await page.locator("#web-phone").fill(local(STUDENT));
   await page.locator("#web-first").fill("Veb");
   await page.locator("#web-last").fill("Sinovchi");
-  await page.locator("#web-uni").selectOption({ label: "O'zbekiston Milliy universiteti" });
+  await page.locator("#web-uni").fill("milliy universiteti");
+  await page.getByRole("option", { name: /^O'zbekiston Milliy universiteti/ }).first().click();
   await page.getByRole("button", { name: "Magistratura" }).click();
   await page.getByRole("button", { name: "Davom etish" }).click();
   await expect(codeBox(page)).toBeEnabled();

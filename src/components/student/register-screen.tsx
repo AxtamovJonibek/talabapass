@@ -1,12 +1,13 @@
 "use client";
 
+import type { UniversityOption } from "@/lib/universities";
 import { RegisterDesktop } from "./register-desktop";
 import { RegisterMobile } from "./register-form";
 import { PhoneOrWeb } from "./responsive";
 import { useRegistration } from "./use-registration";
 
 type Props = {
-  universities: { id: string; name: string }[];
+  universities: UniversityOption[];
   verifiedPhone: string | null;
 };
 

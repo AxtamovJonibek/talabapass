@@ -13,6 +13,7 @@ import { PrismaClient, type Prisma } from "../src/generated/prisma/client";
 import { discountTerms } from "../src/lib/discount";
 import { priceAfterPercent } from "../src/lib/format";
 import { fromTashkent, toTashkent } from "../src/lib/time";
+import { syncUniversities } from "../src/server/universities/sync";
 import { maintainStoredFiles } from "../src/server/storage/maintenance";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
@@ -309,6 +310,8 @@ async function main() {
     data: CATEGORIES.map(([slug, name, tileColor, inkColor, icon], sort) => ({ slug, name, tileColor, inkColor, icon, sort })),
   });
   const uniByShort = new Map((await db.university.findMany()).map((u) => [u.shortName, u]));
+  // Rasmiy OTM ro'yxati (seed OTMlari nomi/viloyati to'ldiriladi, qolganlari qo'shiladi)
+  await syncUniversities(db);
   const districtByName = new Map((await db.district.findMany()).map((d) => [d.name, d]));
   const categoryBySlug = new Map((await db.category.findMany()).map((c) => [c.slug, c]));
 

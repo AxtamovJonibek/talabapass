@@ -8,7 +8,7 @@ import { registerStudentAction, type RegisterField } from "@/server/actions/stud
 
 export const COURSES = ["C1", "C2", "C3", "C4", "MASTER"] as const;
 export type Course = (typeof COURSES)[number];
-export type RegistrationValues = { phone: string; firstName: string; lastName: string; universityId: string; course: string };
+export type RegistrationValues = { phone: string; firstName: string; lastName: string; universityId: string; universityOther: string; course: string };
 
 /**
  * Talaba ro'yxati holati va mantig'i — mobil (T1) va veb (WT1) ko'rinishlar uchun bitta.
@@ -72,6 +72,7 @@ export function useRegistration(verifiedPhone: string | null) {
         firstName: String(form.get("firstName") ?? ""),
         lastName: String(form.get("lastName") ?? ""),
         universityId: String(form.get("universityId") ?? ""),
+        universityOther: String(form.get("universityOther") ?? ""),
         course: String(form.get("course") ?? ""),
       });
     },

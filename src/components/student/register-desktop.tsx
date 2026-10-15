@@ -4,12 +4,13 @@ import { useTranslations } from "next-intl";
 import { CodeEntry, OTP_LENGTH } from "@/components/auth/code-entry";
 import { Button } from "@/components/ui/button";
 import { ToggleSquare } from "@/components/ui/chip";
-import { Field, Input, PhoneInput, Select } from "@/components/ui/field";
+import { Field, Input, PhoneInput } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { formatPhone } from "@/lib/format";
 import { OnboardingHeading, OnboardingShell } from "./onboarding-shell";
 import type { RegisterViewProps } from "./register-form";
 import { COURSES } from "./use-registration";
+import { UniversityPicker } from "./university-picker";
 
 const FORM_ID = "register-web";
 
@@ -75,14 +76,15 @@ export function RegisterDesktop({ registration: r, universities, verifiedPhone }
                 invalid={r.invalid.includes("phone")}
               />
             </Field>
-            <Field label={t("register.university")} htmlFor="web-uni" error={r.fieldError("universityId")}>
-              <Select id="web-uni" name="universityId" native defaultValue={r.values?.universityId ?? universities[0]?.id} invalid={r.invalid.includes("universityId")}>
-                {universities.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </Select>
+            <Field label={t("register.university")} htmlFor="web-uni" error={r.fieldError("universityId") ?? r.fieldError("universityOther")}>
+              <UniversityPicker
+                id="web-uni"
+                universities={universities}
+                defaultId={r.values?.universityId}
+                defaultOther={r.values?.universityOther}
+                invalid={r.invalid.includes("universityId")}
+                otherInvalid={r.invalid.includes("universityOther")}
+              />
             </Field>
             <Field label={t("register.firstName")} htmlFor="web-first" error={r.fieldError("firstName")}>
               <Input id="web-first" name="firstName" autoComplete="given-name" defaultValue={r.values?.firstName} invalid={r.invalid.includes("firstName")} />

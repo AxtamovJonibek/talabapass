@@ -21,7 +21,8 @@ async function fillRegistration(page: Page, phone: string | null) {
   if (phone) await page.locator("#reg-phone").fill(local(phone));
   await page.locator("#reg-first").fill("Sinov");
   await page.locator("#reg-last").fill("Talabayev");
-  await page.locator("#reg-uni").selectOption({ label: "Toshkent axborot texnologiyalari universiteti" });
+  await page.locator("#reg-uni").fill("tatu");
+  await page.getByRole("option", { name: /^Toshkent axborot texnologiyalari universiteti/ }).first().click();
   await page.getByRole("button", { name: "3", exact: true }).click();
   await page.getByRole("button", { name: "Davom etish" }).click();
 }
@@ -36,6 +37,36 @@ test.beforeEach(removeTestStudents);
 test.afterAll(removeTestStudents);
 
 test.describe("talaba ro'yxati", () => {
+  test("universitet qidiruvli tanlov; 'Ro'yxatda yo'q' — matn kiritiladi, admin uchun so'rov yoziladi", async ({ page }) => {
+    await page.goto("/talaba/royxat", { waitUntil: "networkidle" });
+    // Viloyat bo'yicha qidiruv
+    await page.locator("#reg-uni").fill("andijon tibbiyot");
+    await expect(page.getByRole("option", { name: /Andijon davlat tibbiyot instituti/ })).toBeVisible();
+    await expect(page.getByRole("option", { name: /Samarqand/ })).toHaveCount(0);
+
+    await page.locator("#reg-phone").fill(local(NEW_STUDENT));
+    await page.locator("#reg-first").fill("Sinov");
+    await page.locator("#reg-last").fill("Talabayev");
+    await page.locator("#reg-uni").fill("bunday oliygoh yo'q");
+    await page.getByRole("option", { name: "Ro'yxatda yo'q" }).click();
+    await page.getByRole("button", { name: "3", exact: true }).click();
+    // Qidiruvga yozilgan matn nom maydoniga o'tadi; bo'sh qoldirilsa — xato
+    await expect(page.locator("#reg-uni")).toHaveValue("bunday oliygoh yo'q");
+    await page.locator("#reg-uni").fill("");
+    await page.getByRole("button", { name: "Davom etish" }).click();
+    await expect(page.getByText("Universitet nomini yozing (3–120 belgi).").first()).toBeVisible();
+    await page.locator("#reg-uni").fill("Xayoliy Texnologiyalar Instituti");
+    await page.getByRole("button", { name: "Davom etish" }).click();
+    await expect(codeBox(page)).toBeEnabled();
+    await enterCode(page, FIXED_CODE);
+    await expect(page).toHaveURL("/talaba/guvohnoma");
+
+    const rows = await withDb(async (db) =>
+      (await db.query(`SELECT r.name, r.status, un.kind FROM "UniversityRequest" r JOIN "User" u ON u.id = r."userId" JOIN "StudentProfile" s ON s."userId" = u.id JOIN "University" un ON un.id = s."universityId" WHERE u.phone = $1`, [NEW_STUDENT])).rows,
+    );
+    expect(rows).toEqual([{ name: "Xayoliy Texnologiyalar Instituti", status: "PENDING", kind: "OTHER" }]);
+  });
+
   test("to'liq oqim: forma → SMS kod → guvohnoma yuklash → tekshiruvda", async ({ page }) => {
     await page.goto("/talaba/royxat", { waitUntil: "networkidle" });
     await fillRegistration(page, NEW_STUDENT);

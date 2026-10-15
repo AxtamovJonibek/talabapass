@@ -4,16 +4,18 @@ import { useTranslations } from "next-intl";
 import { CodeEntry, OTP_LENGTH } from "@/components/auth/code-entry";
 import { buttonClass } from "@/components/ui/button";
 import { ToggleSquare } from "@/components/ui/chip";
-import { Field, Input, PhoneInput, Select } from "@/components/ui/field";
+import { Field, Input, PhoneInput } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
 import { Link } from "@/i18n/navigation";
 import { formatPhone } from "@/lib/format";
+import type { UniversityOption } from "@/lib/universities";
 import { COURSES, type Registration } from "./use-registration";
+import { UniversityPicker } from "./university-picker";
 
 export type RegisterViewProps = {
   registration: Registration;
-  universities: { id: string; name: string }[];
+  universities: UniversityOption[];
   /** Kirish sahifasida SMS bilan tasdiqlangan raqam (bo'lsa — o'zgartirib bo'lmaydi, kod qayta so'ralmaydi) */
   verifiedPhone: string | null;
 };
@@ -99,14 +101,15 @@ export function RegisterMobile({ registration: r, universities, verifiedPhone }:
                 />
               </Field>
             </div>
-            <Field label={t("register.university")} htmlFor="reg-uni" error={r.fieldError("universityId")}>
-              <Select id="reg-uni" name="universityId" defaultValue={r.values?.universityId ?? universities[0]?.id} invalid={r.invalid.includes("universityId")}>
-                {universities.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </Select>
+            <Field label={t("register.university")} htmlFor="reg-uni" error={r.fieldError("universityId") ?? r.fieldError("universityOther")}>
+              <UniversityPicker
+                id="reg-uni"
+                universities={universities}
+                defaultId={r.values?.universityId}
+                defaultOther={r.values?.universityOther}
+                invalid={r.invalid.includes("universityId")}
+                otherInvalid={r.invalid.includes("universityOther")}
+              />
             </Field>
             <div className="flex flex-col gap-1.5">
               <span className="text-13 font-semibold">{course("label")}</span>

@@ -34,18 +34,19 @@ model User {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  sessions          Session[]
-  student           StudentProfile?
-  ownedBusinesses   Business[]         @relation("BusinessOwner")
-  memberships       BusinessMember[]
-  coupons           Coupon[]
-  redemptions       Redemption[]       @relation("RedemptionStudent")
-  cashierSales      Redemption[]       @relation("RedemptionCashier")
-  scanAttempts      ScanAttempt[]      @relation("ScanCashier")
-  savedDiscounts    SavedDiscount[]
-  notifications     UserNotification[]
-  pushSubscriptions PushSubscription[]
-  auditLogs         AuditLog[]
+  sessions           Session[]
+  student            StudentProfile?
+  ownedBusinesses    Business[]          @relation("BusinessOwner")
+  memberships        BusinessMember[]
+  coupons            Coupon[]
+  redemptions        Redemption[]        @relation("RedemptionStudent")
+  cashierSales       Redemption[]        @relation("RedemptionCashier")
+  scanAttempts       ScanAttempt[]       @relation("ScanCashier")
+  savedDiscounts     SavedDiscount[]
+  notifications      UserNotification[]
+  pushSubscriptions  PushSubscription[]
+  auditLogs          AuditLog[]
+  universityRequests UniversityRequest[]
 
   @@index([role, status])
 }
@@ -114,14 +115,61 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum UniversityKind {
+  /// davlat OTM
+  STATE
+  /// nodavlat (xususiy) OTM
+  PRIVATE
+  /// xorijiy OTM va uning filiallari
+  FOREIGN
+  /// "Ro'yxatda yo'q" — admin ko'rib chiqquncha talabalar shu yozuvga biriktiriladi (ro'yxatda ko'rinmaydi)
+  OTHER
+}
+
 model University {
-  id        String @id @default(cuid())
-  name      String @unique
+  id        String         @id @default(cuid())
+  name      String         @unique
   /// TATU, O'zMU, TDIU ...
   shortName String
-  city      String @default("Toshkent")
+  city      String         @default("Toshkent")
+  /// Viloyat (yoki "Toshkent shahri", "Qoraqalpog'iston Respublikasi")
+  region    String         @default("Toshkent shahri")
+  kind      UniversityKind @default(STATE)
+  /// false — ro'yxatdan olib tashlangan (mavjud talabalar saqlanadi)
+  active    Boolean        @default(true)
+  /// Ma'lumot manbasi: "infoedu.uz, 2026-10-16" yoki "admin"; null — qo'lda/seed
+  source    String?
+  createdAt DateTime       @default(now())
 
   students StudentProfile[]
+  requests UniversityRequest[]
+
+  @@index([region])
+}
+
+enum UniversityRequestStatus {
+  PENDING
+  /// admin ro'yxatga qo'shdi yoki mavjud OTMga biriktirdi
+  RESOLVED
+  REJECTED
+}
+
+/// Talaba ro'yxatdan o'tishda "Ro'yxatda yo'q" tanlab yozgan OTM nomi — admin ko'rib chiqadi.
+model UniversityRequest {
+  id           String                  @id @default(cuid())
+  userId       String
+  name         String                  @db.VarChar(120)
+  status       UniversityRequestStatus @default(PENDING)
+  universityId String?
+  resolvedById String?
+  resolvedAt   DateTime?
+  createdAt    DateTime                @default(now())
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([userId])
 }
 
 model StudentProfile {

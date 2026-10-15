@@ -23,7 +23,13 @@ function newPublicId(now: Date): string {
 }
 
 /** Tasdiqlangan raqam uchun talaba hisobini ochadi (holat: DRAFT — guvohnoma hali yuklanmagan). */
-export async function createStudent(phone: string, form: StudentForm): Promise<{ id: string }> {
+export async function createStudent(phone: string, form: StudentForm, otherUniversity: string | null = null): Promise<{ id: string }> {
+  // "Ro'yxatda yo'q": talaba vaqtincha tizim yozuviga biriktiriladi, nom admin uchun so'rov bo'lib yoziladi
+  let universityId = form.universityId;
+  if (otherUniversity) {
+    const placeholder = await db.university.findFirstOrThrow({ where: { kind: "OTHER" }, select: { id: true } });
+    universityId = placeholder.id;
+  }
   for (let attempt = 0; ; attempt++) {
     try {
       return await db.user.create({
@@ -32,7 +38,8 @@ export async function createStudent(phone: string, form: StudentForm): Promise<{
           role: "STUDENT",
           firstName: form.firstName,
           lastName: form.lastName,
-          student: { create: { universityId: form.universityId, course: form.course, publicId: newPublicId(new Date()) } },
+          student: { create: { universityId, course: form.course, publicId: newPublicId(new Date()) } },
+          ...(otherUniversity ? { universityRequests: { create: { name: otherUniversity } } } : {}),
         },
         select: { id: true },
       });
