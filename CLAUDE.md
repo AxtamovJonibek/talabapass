@@ -379,6 +379,8 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Landing pastki qismidagi ijtimoiy tarmoq belgilarining havolasi `#` — egasidan manzillar kutilmoqda.
 - Lokal e2e: `prisma dev` (PGlite) qotib qolsa ("Server has closed the connection", P1017, ECONNRESET, testlar ketma-ket yiqiladi) —
   `npm run db:dev` jarayonini to'xtatib qayta ishga tushiring (ma'lumot saqlanadi). Sinov serverining bazasida e2e yuritilmaydi.
+  Qayta ko'tarilmasa ("Lock file is already being held"): `%LOCALAPPDATA%prisma-dev-nodejsDatadurable-streams	alabapass-devserver.lock.lock` papkasini o'chiring. Shu papkadagi
+  `durable-streams.sqlite` (Prisma Streams logi, ilovaga kerak emas) ~2 GB gacha o'sib, qotishlarga sabab bo'ldi — `_backup` ga ko'chirib yangidan boshlandi; yana o'ssa shuni takrorlang.
 
 ## Ishga tushishdan oldin (majburiy ro'yxat)
 To'liq, tushuntirishlar bilan — `docs/ishga-tushirish.md`. Qisqacha:

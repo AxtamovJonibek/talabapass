@@ -50,6 +50,7 @@ next-env.d.ts
 /.compare
 /.design-gen
 /test-results
+/test-results-live
 /playwright-report
 
 # lokal private fayllar (guvohnoma rasmlari)
