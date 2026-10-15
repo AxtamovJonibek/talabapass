@@ -25,6 +25,7 @@ test.describe("kirish", () => {
   }
 
   test("admin: yon panelning barcha bandlari ochiladi — bo'sh sahifa yo'q", async ({ page }) => {
+    test.slow(); // dev serverda har bir sahifa birinchi marta kompilyatsiya qilinadi
     await signIn(page, phones.admin);
     await expect(page).toHaveURL(HOME.admin);
     const nav = page.getByRole("navigation", { name: "Admin menyu" });
@@ -37,6 +38,9 @@ test.describe("kirish", () => {
       ["Tranzaksiyalar", "/admin/tranzaksiyalar", "Tranzaksiyalar"],
       ["Bildirishnomalar", "/admin/bildirishnomalar", "Bildirishnoma yuborish"],
       ["Bloklanganlar", "/admin/bloklanganlar", "Bloklanganlar"],
+      ["Foydalanuvchilar", "/admin/foydalanuvchilar", "Foydalanuvchilar"],
+      ["Universitetlar", "/admin/universitetlar", "Universitetlar"],
+      ["Profil va adminlar", "/admin/profil", "Profil va adminlar"],
     ] as const;
     for (const [label, href, heading] of sections) {
       await nav.getByRole("link", { name: new RegExp(label) }).click();
