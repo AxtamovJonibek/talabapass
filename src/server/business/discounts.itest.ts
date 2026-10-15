@@ -66,8 +66,9 @@ describe("chegirma yaratish va moderatsiya", () => {
     expect(await db.auditLog.count({ where: { action: "discount.submit", entityId: saved.id } })).toBe(1);
   });
 
-  it("server ham tekshiradi: foiz 5–90, yangi narx < asl, limit > 0, oxiri > boshi", async () => {
-    expect(await saveDiscount(owner, null, { ...DRAFT, percent: 95 }, "publish")).toMatchObject({ ok: false, errors: { percent: "percentRange" } });
+  it("server ham tekshiradi: foiz 1–100, yangi narx < asl, limit > 0, oxiri > boshi", async () => {
+    expect(await saveDiscount(owner, null, { ...DRAFT, percent: 101 }, "publish")).toMatchObject({ ok: false, errors: { percent: "percentRange" } });
+    expect(await saveDiscount(owner, null, { ...DRAFT, percent: 0 }, "publish")).toMatchObject({ ok: false, errors: { percent: "percentRange" } });
     expect(await saveDiscount(owner, null, { ...DRAFT, type: "FIXED_PRICE", newPrice: 38000 }, "publish")).toMatchObject({
       ok: false,
       errors: { newPrice: "newPriceBelowOriginal" },
@@ -75,6 +76,14 @@ describe("chegirma yaratish va moderatsiya", () => {
     expect(await saveDiscount(owner, null, { ...DRAFT, dailyLimit: 0 }, "publish")).toMatchObject({ ok: false, errors: { dailyLimit: "dailyLimit" } });
     expect(await saveDiscount(owner, null, { ...DRAFT, endsOn: DRAFT.startsOn }, "publish")).toMatchObject({ ok: false, errors: { dates: "endAfterStart" } });
     expect(await db.discount.count({ where: { business: { ownerId: owner } } })).toBe(0);
+  });
+
+  it("1% va 100% (bepul) saqlanadi — bazadagi CHECK ham ruxsat beradi", async () => {
+    for (const percent of [1, 100]) {
+      const r = await saveDiscount(owner, null, { ...DRAFT, percent }, "draft");
+      expect(r).toMatchObject({ ok: true });
+      expect((await db.discount.findUniqueOrThrow({ where: { id: (r as { id: string }).id } })).percent).toBe(percent);
+    }
   });
 
   it("yarim tundan o'tadigan oraliq saqlanadi (22:00–02:00)", async () => {

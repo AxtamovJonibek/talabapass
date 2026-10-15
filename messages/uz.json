@@ -122,6 +122,7 @@
     "ofCheck": "Chek summasidan {badge}",
     "ofCheckShort": "Chekdan {badge}",
     "bogo": "Ikkinchisi bepul",
+    "free": "Bepul",
     "fromDate": "{date} dan"
   },
   "receipt": {
@@ -840,6 +841,7 @@
       "FIXED_PRICE": "Yangi narx",
       "BOGO": "Aksiya"
     },
+    "percentLabel": "Chegirma foizi (1–100)",
     "increase": "Oshirish",
     "decrease": "Kamaytirish",
     "days": "Qaysi kunlari",
@@ -888,7 +890,7 @@
     "errors": {
       "title": "Mahsulot nomini kiriting (3–80 belgi).",
       "originalPrice": "Asl narxni so'mda kiriting.",
-      "percentRange": "Foiz 5 dan 90 gacha bo'lsin.",
+      "percentRange": "Foiz 1 dan 100 gacha bo'lsin (100 — bepul).",
       "newPriceBelowOriginal": "Yangi narx asl narxdan kichik bo'lsin.",
       "weekdays": "Kamida bitta kunni tanlang.",
       "time": "Vaqtni kiriting.",

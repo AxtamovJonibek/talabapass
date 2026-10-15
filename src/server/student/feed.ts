@@ -68,7 +68,8 @@ type DealRow = Prisma.DiscountGetPayload<{ select: typeof DEAL_SELECT }>;
 
 function toFeedDeal(row: DealRow, timing: DealTiming, claimed: number, origin: Point | null, now: Date): FeedDeal {
   const terms = discountTerms(row);
-  const priced = row.type !== "BOGO" && terms.finalPrice !== null;
+  // 100% chegirmada narx 0 — narx o'rniga "Bepul" yozuvi (badge asosida)
+  const priced = row.type !== "BOGO" && terms.finalPrice !== null && terms.finalPrice > 0;
   const point = row.business.lat !== null && row.business.lng !== null ? { lat: row.business.lat, lng: row.business.lng } : null;
   const percent =
     row.type === "BOGO" ? 50 : row.type === "PERCENT" ? (row.percent ?? 0) : Math.round((1 - (row.newPrice ?? 0) / Math.max(1, row.originalPrice ?? 1)) * 100);

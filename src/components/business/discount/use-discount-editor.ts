@@ -60,7 +60,7 @@ export function useDiscountEditor({ id, initial, images: savedImages, today }: O
   const [title, setTitle] = useState(initial?.title ?? "");
   const [type, setType] = useState<DiscountKind>(initial?.type ?? "PERCENT");
   const [original, setOriginal] = useState(initial?.originalPrice != null ? groupDigits(initial.originalPrice) : "");
-  const [percent, setPercent] = useState(initial?.percent ?? 30);
+  const [percentText, setPercentText] = useState(String(initial?.percent ?? 30));
   const [newPrice, setNewPrice] = useState<number | null>(initial?.newPrice ?? null);
   const [weekdays, setWeekdays] = useState(initial?.weekdays ?? WORKDAYS);
   const [from, setFrom] = useState(formatMinute(initial?.fromMinute ?? 720));
@@ -121,6 +121,8 @@ export function useDiscountEditor({ id, initial, images: savedImages, today }: O
     return true;
   }
 
+  // Foiz qo'lda yoziladi: 1–100 oralig'idagi butun son (bo'sh yoki noto'g'ri bo'lsa — null, tekshiruv xato beradi)
+  const percent = /^\d{1,3}$/.test(percentText) ? Number(percentText) : null;
   const originalPrice = parseAmount(original);
   // Yangi narx tanlanmagan bo'lsa — asl narxning 70% i (1000 ga yaxlitlab), dizayndagi 38 000 → 26 000 kabi
   const price = newPrice ?? (originalPrice ? Math.max(PRICE_STEP, Math.floor((originalPrice * 0.7) / PRICE_STEP) * PRICE_STEP) : null);
@@ -143,11 +145,11 @@ export function useDiscountEditor({ id, initial, images: savedImages, today }: O
     endsOn: dates?.endsOn ?? "",
     terms: initial?.terms ?? "",
   };
-  const terms = discountTerms(draft);
+  const terms = discountTerms(type === "PERCENT" ? { ...draft, percent: draft.percent ?? 0 } : draft);
   const som = (n: number) => `${formatSom(n)} ${common("currency")}`;
 
   function step(direction: 1 | -1) {
-    if (type === "PERCENT") setPercent((p) => Math.min(PERCENT_MAX, Math.max(PERCENT_MIN, p + direction * PERCENT_STEP)));
+    if (type === "PERCENT") setPercentText(String(Math.min(PERCENT_MAX, Math.max(PERCENT_MIN, (percent ?? 0) + direction * PERCENT_STEP))));
     if (type === "FIXED_PRICE" && price !== null) {
       const ceiling = originalPrice ? originalPrice - PRICE_STEP : price;
       setNewPrice(Math.min(Math.max(PRICE_STEP, ceiling), Math.max(PRICE_STEP, price + direction * PRICE_STEP)));
@@ -200,6 +202,9 @@ export function useDiscountEditor({ id, initial, images: savedImages, today }: O
     setPerStudent,
     period,
     setPeriod,
+    percentText,
+    /** Faqat raqamlar, 3 tagacha (100 gacha tekshiruv `validateDiscount` da) */
+    setPercentText: (value: string) => setPercentText(value.replace(/\D/g, "").slice(0, 3)),
     increase: () => step(1),
     decrease: () => step(-1),
     draft: () => save("draft"),
@@ -207,7 +212,7 @@ export function useDiscountEditor({ id, initial, images: savedImages, today }: O
     errorOf: (field: DiscountField) => (errors[field] ? t(`errors.${errors[field]}`) : undefined),
     failureText: failure ? t(`errors.${failure}`) : null,
     /** Qora qutidagi katta qiymat: "−30%", "26 000", "1+1" */
-    valueText: type === "PERCENT" ? `${MINUS}${percent}%` : type === "FIXED_PRICE" ? (price !== null ? groupDigits(price) : "—") : "1+1",
+    valueText: type === "PERCENT" ? `${MINUS}${percentText || 0}%` : type === "FIXED_PRICE" ? (price !== null ? groupDigits(price) : "—") : "1+1",
     badge: terms.badge,
     /** B2: "26 600 so'm · 38 000 o'rniga"; WB2: "26 600 so'm" */
     previewPrice: type === "BOGO" ? t("bogoFree") : terms.finalPrice !== null ? som(terms.finalPrice) : "—",

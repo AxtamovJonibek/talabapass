@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import type { FeedDeal, Urgency } from "@/lib/feed";
-import { formatSom } from "@/lib/format";
+import { formatSom, FREE_BADGE } from "@/lib/format";
 import { formatMinute, toTashkent } from "@/lib/time";
 
 const DAY_MS = 86_400_000;
@@ -39,6 +39,7 @@ export function useDealText() {
     note(deal: FeedDeal, short = false): string {
       if (deal.note) return deal.note;
       if (deal.badge === "1+1") return t("deal.bogo");
+      if (deal.badge === FREE_BADGE) return t("deal.free");
       return t(short ? "deal.ofCheckShort" : "deal.ofCheck", { badge: deal.badge });
     },
     som: formatSom,

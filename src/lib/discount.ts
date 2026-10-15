@@ -6,8 +6,9 @@ import { crossesMidnight } from "./time";
  * Server baribir qayta tekshiradi; bazada ham CHECK cheklovlari bor.
  */
 
-export const PERCENT_MIN = 5;
-export const PERCENT_MAX = 90;
+export const PERCENT_MIN = 1;
+/** 100% — bepul */
+export const PERCENT_MAX = 100;
 export const DAILY_LIMIT_MAX = 10_000;
 export const PRICE_MAX = 100_000_000;
 
@@ -55,7 +56,7 @@ const isDate = (s: string) => {
 };
 
 /**
- * Tekshiruv: foiz 5–90; yangi narx asl narxdan kichik (va 0 dan katta); kunlik limit > 0;
+ * Tekshiruv: foiz 1–100 (100 — bepul); yangi narx asl narxdan kichik (va 0 dan katta); kunlik limit > 0;
  * muddat oxiri boshidan keyin; boshlanish o'tmishda emas; kamida bitta kun; boshlanish va tugash vaqti farqli.
  * `today` — Toshkent sanasi "YYYY-MM-DD".
  */

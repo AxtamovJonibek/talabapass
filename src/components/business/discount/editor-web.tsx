@@ -6,7 +6,7 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { BusinessShell } from "../business-shell";
-import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueErrors } from "./editor-parts";
+import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueDisplay, ValueErrors } from "./editor-parts";
 import type { EditorViewProps } from "./editor-mobile";
 
 /** "Talabalar qachon keladi" issiqlik xaritasi: ikki qator (ish kunlari, dam olish), 08–22 ikki soatlik ustunlar. */
@@ -107,9 +107,7 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
                   −
                 </button>
               )}
-              <span data-testid="discount-value" className="min-w-[140px] text-center text-64 leading-none font-black text-rust font-stretch-62%">
-                {e.valueText}
-              </span>
+              <ValueDisplay e={e} size="web" />
               {e.type === "BOGO" ? null : (
                 <button type="button" aria-label={t("increase")} onClick={e.increase} className="size-13 rounded-14 border-hair border-ink bg-white font-sans text-22 font-extrabold text-ink">
                   +

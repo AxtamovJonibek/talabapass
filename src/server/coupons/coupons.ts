@@ -216,7 +216,7 @@ export function snapshotBadge(c: Pick<CouponRow, "termsType" | "termsPercent" | 
 }
 
 function toView(c: CouponRow): CouponView {
-  const priced = c.termsType !== "BOGO" && c.termsFinalPrice !== null;
+  const priced = c.termsType !== "BOGO" && c.termsFinalPrice !== null && c.termsFinalPrice > 0;
   const first = c.student.firstName ?? "";
   const last = c.student.lastName ?? "";
   return {

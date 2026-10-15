@@ -33,6 +33,8 @@ describe("priceAfterPercent", () => {
 describe("dealBadge", () => {
   it("har bir tur uchun yorliq", () => {
     expect(dealBadge({ type: "PERCENT", percent: 30 })).toBe("−30%");
+    expect(dealBadge({ type: "PERCENT", percent: 100 })).toBe("BEPUL");
+    expect(dealBadge({ type: "PERCENT", percent: 99 })).toBe("−99%");
     expect(dealBadge({ type: "FIXED_PRICE", originalPrice: 45000, newPrice: 25000 })).toBe("−44%");
     expect(dealBadge({ type: "BOGO" })).toBe("1+1");
   });

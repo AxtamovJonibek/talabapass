@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Link } from "@/i18n/navigation";
-import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueErrors, type Category } from "./editor-parts";
+import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueDisplay, ValueErrors, type Category } from "./editor-parts";
 import type { DiscountEditor } from "./use-discount-editor";
 
 export type EditorViewProps = {
@@ -81,9 +81,7 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
             <div className="flex items-center justify-between rounded-14 bg-ink py-2.5 pr-2 pl-3.5 text-white">
               <div className="flex flex-col gap-0.5">
                 <span className="text-12 text-fog-2">{t(`valueLabel.${e.type}`)}</span>
-                <span data-testid="discount-value" className="text-30 leading-none font-black text-orange font-stretch-62%">
-                  {e.valueText}
-                </span>
+                <ValueDisplay e={e} size="phone" />
               </div>
               {e.type === "BOGO" ? null : (
                 <div className="flex flex-col gap-1">

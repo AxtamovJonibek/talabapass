@@ -36,7 +36,18 @@ test.describe("veb (WB2)", () => {
     await expect(page.getByText("Yarim tundan o'tadi").locator("visible=true")).toBeVisible();
     // Foiz: +5 → 35%
     await page.getByRole("button", { name: "Oshirish" }).locator("visible=true").click();
-    await expect(page.getByTestId("discount-value").locator("visible=true")).toHaveText("−35%");
+    await expect(page.getByTestId("discount-value").locator("visible=true")).toHaveValue("35");
+
+    // Foiz qo'lda yoziladi: 7 (5 ning ko'paytmasi emas) ham, 100 ham bo'ladi; 100 — "BEPUL"
+    const percent = page.getByTestId("discount-value").locator("visible=true");
+    await percent.fill("7");
+    await expect(page.getByText("−7%").locator("visible=true").first()).toBeVisible();
+    await percent.fill("100");
+    await expect(page.getByText("BEPUL").locator("visible=true").first()).toBeVisible();
+    await percent.fill("101");
+    await page.getByRole("button", { name: "E'lon qilish" }).locator("visible=true").click();
+    await expect(page.getByText("Foiz 1 dan 100 gacha bo'lsin (100 — bepul).").locator("visible=true")).toBeVisible();
+    await percent.fill("35");
 
     // Rasmlar (4 tagacha): ikkitasi tanlanadi, biri olib tashlanadi — saqlashda bittasi yuklanadi
     const jpeg = await sampleJpeg();

@@ -25,11 +25,14 @@ export type BadgeInput =
   | { type: "FIXED_PRICE"; originalPrice: number; newPrice: number }
   | { type: "BOGO" };
 
-/** Kartadagi yorliq: "−30%", "1+1". */
+/** 100% chegirma — narx emas, "bepul" deb ko'rsatiladi. */
+export const FREE_BADGE = "BEPUL";
+
+/** Kartadagi yorliq: "−30%", "1+1", "BEPUL" (100%). */
 export function dealBadge(input: BadgeInput): string {
   switch (input.type) {
     case "PERCENT":
-      return `${MINUS}${input.percent}%`;
+      return input.percent >= 100 ? FREE_BADGE : `${MINUS}${input.percent}%`;
     case "FIXED_PRICE":
       return `${MINUS}${Math.round((1 - input.newPrice / input.originalPrice) * 100)}%`;
     case "BOGO":

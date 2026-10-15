@@ -133,6 +133,38 @@ export function OvernightNote({ e }: { e: DiscountEditor }) {
   return e.overnightText ? <p className="m-0 font-mono text-12 text-muted">{e.overnightText}</p> : null;
 }
 
+/**
+ * Qiymat: foizda — "−[35]%" (raqam qo'lda yoziladi, 1–100), boshqa turlarda matn.
+ * 100% — "bepul" (talabaga "BEPUL" yorlig'i bilan chiqadi).
+ */
+export function ValueDisplay({ e, size }: { e: DiscountEditor; size: Size }) {
+  const t = useTranslations("discountEditor");
+  const look = size === "phone" ? "text-30 leading-none font-black text-orange font-stretch-62%" : "min-w-[140px] text-center text-64 leading-none font-black text-rust font-stretch-62%";
+  if (e.type !== "PERCENT") {
+    return (
+      <span data-testid="discount-value" className={look}>
+        {e.valueText}
+      </span>
+    );
+  }
+  return (
+    <span className={cn("inline-flex items-baseline justify-center", look)}>
+      <span aria-hidden="true">−</span>
+      <input
+        data-testid="discount-value"
+        aria-label={t("percentLabel")}
+        inputMode="numeric"
+        autoComplete="off"
+        value={e.percentText}
+        onChange={(x) => e.setPercentText(x.target.value)}
+        style={{ width: `${Math.max(1, e.percentText.length)}ch` }}
+        className="min-w-[1ch] border-0 bg-transparent p-0 text-center text-inherit outline-0"
+      />
+      <span aria-hidden="true">%</span>
+    </span>
+  );
+}
+
 /** Narx/foiz xatolari (qiymat qutisi ostida). */
 export function ValueErrors({ e }: { e: DiscountEditor }) {
   const error = e.errorOf("percent") ?? e.errorOf("newPrice");

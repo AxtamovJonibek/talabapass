@@ -24,11 +24,12 @@ describe("validateDiscount", () => {
     expect(check({})).toEqual({});
   });
 
-  it("foiz 5–90", () => {
-    expect(check({ percent: 5 })).toEqual({});
-    expect(check({ percent: 90 })).toEqual({});
-    expect(check({ percent: 4 }).percent).toBe("percentRange");
-    expect(check({ percent: 91 }).percent).toBe("percentRange");
+  it("foiz 1–100", () => {
+    expect(check({ percent: 1 })).toEqual({});
+    expect(check({ percent: 7 })).toEqual({});
+    expect(check({ percent: 100 })).toEqual({});
+    expect(check({ percent: 0 }).percent).toBe("percentRange");
+    expect(check({ percent: 101 }).percent).toBe("percentRange");
     expect(check({ percent: 30.5 }).percent).toBe("percentRange");
     expect(check({ percent: null }).percent).toBe("percentRange");
   });
