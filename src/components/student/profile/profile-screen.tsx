@@ -46,6 +46,12 @@ export function ProfileAside({ profile, totals }: { profile: ProfileData; totals
           <NotifyRow initial={profile.notify} className={row} />
         </li>
         <li>
+          <Link href="/yordam" className={row}>
+            {t("profile.help")}
+            <span className="ml-auto text-placeholder">›</span>
+          </Link>
+        </li>
+        <li>
           <Link href="/huquqiy/maxfiylik" className={row}>
             {t("history.menu.legal")}
             <span className="ml-auto text-placeholder">›</span>
@@ -151,7 +157,7 @@ function ProfilePhone({ profile, totals, coupons }: Common) {
             <span className="text-14 text-muted">{t("profile.languageValue")}</span>
           </li>
           <li>
-            <Link href="/#savollar" className={MENU_ROW}>
+            <Link href="/yordam" className={MENU_ROW}>
               <span className="flex-1 text-15 font-semibold">{t("profile.help")}</span>
               <Chevron />
             </Link>

@@ -76,7 +76,7 @@ async function crawl(page: Page, base: string, start: string, homeRoles: RegExp,
 
 const ROLE_PAGES: Record<Role, { start: string; areas: RegExp }> = {
   guest: { start: "/", areas: /^\/($|huquqiy|kirish|talaba\/royxat|biznes\/royxat|oflayn)/ },
-  student: { start: "/chegirmalar", areas: /^\/(chegirmalar|kuponlar|tarix|profil|bildirishnomalar|huquqiy|$)/ },
+  student: { start: "/chegirmalar", areas: /^\/(chegirmalar|kuponlar|tarix|profil|bildirishnomalar|yordam|huquqiy|$)/ },
   owner: { start: "/biznes", areas: /^\/(biznes|huquqiy|$)/ },
   cashier: { start: "/biznes/skaner", areas: /^\/(biznes\/skaner|huquqiy|$)/ },
   admin: { start: "/admin", areas: /^\/(admin|huquqiy|$)/ },

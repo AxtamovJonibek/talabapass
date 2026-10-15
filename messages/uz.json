@@ -1783,5 +1783,37 @@
     "cardNumber": "Guvohnoma raqami",
     "cardExpires": "Amal qilish muddati",
     "cardNote": "Muddat tugagach yangi guvohnoma yuklash so'raladi; chegirmalar tarixi saqlanadi."
+  },
+  "help": {
+    "title": "Yordam markazi",
+    "back": "Orqaga",
+    "faqTitle": "Ko'p so'raladigan savollar",
+    "contactTitle": "Bog'lanish",
+    "contactLead": "Javob topolmadingizmi? Yozing yoki qo'ng'iroq qiling.",
+    "telegram": "Telegram orqali yozish",
+    "phone": "Qo'ng'iroq qilish",
+    "items": {
+      "1": {
+        "q": "Kupon qanday ishlaydi?",
+        "a": "Chegirmani tanlab «Kupon olish» tugmasini bosasiz. Kupon 10 daqiqa amal qiladi: shu vaqt ichida kassada QR kodni ko'rsatasiz. Vaqt tugasa kupon bekor bo'ladi va chegirma qoldig'i qaytadi."
+      },
+      "2": {
+        "q": "Internet bo'lmasa QR ishlaydimi?",
+        "a": "Ha. Kupon olinganidan keyin QR kod telefoningizda o'zi yangilanib turadi — kassada internet shart emas. Kuponni olish uchun esa internet kerak."
+      },
+      "3": {
+        "q": "Guvohnomam muddati tugasa nima bo'ladi?",
+        "a": "Hisobingiz «muddati tugagan» holatiga o'tadi: yangi guvohnoma yuklaguningizcha chegirma ololmaysiz. Oldingi tarixingiz saqlanadi."
+      },
+      "4": {
+        "q": "Kuponni bekor qila olamanmi?",
+        "a": "Ha, «Kuponlar» bo'limidan faol kuponni bekor qilsangiz, chegirma boshqa talabalarga qaytadi. Sotib bo'lingan kupon qaytmaydi."
+      },
+      "5": {
+        "q": "Ma'lumotlarimni qanday o'zgartiraman?",
+        "a": "«Profil» → «Shaxsiy ma'lumotlar»: ism, kurs, fakultet va tumanni o'zgartirasiz. Universitet va guvohnoma ma'lumoti faqat qayta tasdiqlashda o'zgaradi."
+      }
+    },
+    "legal": "Maxfiylik siyosati"
   }
 }
