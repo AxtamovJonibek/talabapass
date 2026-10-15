@@ -2,6 +2,7 @@ import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { FeedScreen } from "@/components/student/feed/feed-screen";
 import { initials } from "@/lib/format";
+import { studentAvatarUrl } from "@/lib/profile-image";
 import { isFeedSort, type FeedSort } from "@/lib/feed";
 import { requireActiveStudent } from "@/server/auth/student";
 import { activeCouponCount } from "@/server/coupons/coupons";
@@ -49,7 +50,7 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
         label: origin ? (origin.kind === "gps" ? t("here") : origin.name) : t("city"),
         districts,
       }}
-      user={{ firstName: user.firstName ?? "", initials: initials(user.firstName, user.lastName), savedMonth, unread, coupons }}
+      user={{ firstName: user.firstName ?? "", initials: initials(user.firstName, user.lastName), avatarUrl: studentAvatarUrl(user.id, user.student.avatarKey), savedMonth, unread, coupons }}
     />
   );
 }

@@ -1,6 +1,7 @@
 import "server-only";
 import { discountTerms } from "@/lib/discount";
 import { discountImageUrl, type FeedDeal } from "@/lib/feed";
+import { businessLogoUrl } from "@/lib/profile-image";
 import { distanceKm, type Point } from "@/lib/geo";
 import { dealTiming, fromTashkent, toTashkent, type DealTiming } from "@/lib/time";
 import type { BusinessStatus, Prisma } from "@/generated/prisma/client";
@@ -52,6 +53,7 @@ const DEAL_SELECT = {
   business: {
     select: {
       id: true,
+      logoKey: true,
       name: true,
       typeLabel: true,
       address: true,
@@ -148,7 +150,7 @@ export type DealDetail = {
   perStudentLimit: DealRow["perStudentLimit"];
   /** "YYYY-MM-DD" */
   endsOn: string;
-  business: { name: string; typeLabel: string | null; district: string | null; address: string; landmark: string | null; workingHours: string; point: Point | null };
+  business: { name: string; logoUrl: string | null; typeLabel: string | null; district: string | null; address: string; landmark: string | null; workingHours: string; point: Point | null };
   /** Shu joyga yaqin boshqa chegirmalar (WT3 "Yaqin atrofda") */
   nearby: NearbyDeal[];
 };
@@ -181,6 +183,7 @@ export async function dealDetail(id: string, now: Date, origin: Point | null): P
     endsOn: row.endsOn.toISOString().slice(0, 10),
     business: {
       name: row.business.name,
+      logoUrl: businessLogoUrl(row.business.id, row.business.logoKey),
       typeLabel: row.business.typeLabel,
       district: row.business.district?.name ?? null,
       address: row.business.address,

@@ -5,6 +5,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { QueuePanel, ReviewHeader, type CheckRow, type QueueItem } from "@/components/admin/review-parts";
 import { StudentReview } from "@/components/admin/student-review";
 import { formatPhone, initials } from "@/lib/format";
+import { studentAvatarUrl } from "@/lib/profile-image";
 import { toTashkent } from "@/lib/time";
 import { reviewStats, studentDetail, studentQueue } from "@/server/admin/review";
 import { ageLabel, averageWait } from "@/server/admin/review-rules";
@@ -35,6 +36,7 @@ async function StudentReviewPageContent({ searchParams }: PageProps<"/[locale]/a
       id: v.id,
       href: `/admin/talabalar?id=${v.id}`,
       initials: initials(user.firstName, user.lastName),
+      photoUrl: studentAvatarUrl(v.student.userId, v.student.avatarKey),
       name: [user.firstName, user.lastName].filter(Boolean).join(" "),
       ago: agoText(v.createdAt),
       meta: [university.shortName, faculty, courseLabel(course)].filter(Boolean).join(" · "),
@@ -65,6 +67,8 @@ async function StudentReviewPageContent({ searchParams }: PageProps<"/[locale]/a
             verificationId={detail.id}
             code={t("sentAgo", { code: `ARIZA-T-${detail.id.slice(-6).toUpperCase()}`, ago: agoText(detail.createdAt) })}
             name={[detail.student.user.firstName, detail.student.user.lastName].filter(Boolean).join(" ")}
+            photoUrl={studentAvatarUrl(detail.student.userId, detail.student.avatarKey)}
+            initials={initials(detail.student.user.firstName, detail.student.user.lastName)}
             meta={[detail.student.university.name, detail.student.faculty, courseLabel(detail.student.course)].filter(Boolean).join(" · ")}
             state={detail.student.user.status === "BLOCKED" ? "BLOCKED" : detail.status}
             fileUrl={`/api/admin/fayl/guvohnoma/${detail.id}`}

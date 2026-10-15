@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
+import { AvatarEditor } from "@/components/profile-image/avatar-editor";
 import { COURSES, FACULTY_MAX } from "@/lib/profile";
 import { updateProfileAction, type ProfileFormState } from "@/server/actions/student-profile";
 import type { ProfileData } from "./profile-parts";
@@ -17,6 +18,8 @@ export function ProfileForm({ profile, districts, idPrefix }: { profile: Profile
   const bad = (field: string) => state.status === "error" && state.fields.includes(field);
   const id = (name: string) => `${idPrefix}-${name}`;
   return (
+    <div className="flex flex-col gap-4">
+    <AvatarEditor kind="student" url={profile.avatarUrl} fallback={profile.initials} idPrefix={idPrefix} />
     <form action={formAction} className="flex flex-col gap-3.5">
       <Field label={t("profile.firstName")} htmlFor={id("firstName")} error={bad("firstName") ? t("profile.errName") : null}>
         <Input id={id("firstName")} name="firstName" defaultValue={profile.firstName} autoComplete="given-name" invalid={bad("firstName")} maxLength={40} />
@@ -56,5 +59,6 @@ export function ProfileForm({ profile, districts, idPrefix }: { profile: Profile
         </p>
       ) : null}
     </form>
+    </div>
   );
 }

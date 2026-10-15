@@ -1817,5 +1817,36 @@
       }
     },
     "legal": "Maxfiylik siyosati"
+  },
+  "avatar": {
+    "change": "Rasmni almashtirish",
+    "remove": "Rasmni o'chirish",
+    "student": {
+      "choose": "Rasm tanlash",
+      "hint": "Profilingizda va ilovada ko'rinadi. JPG yoki PNG, 10 MB gacha."
+    },
+    "business": {
+      "choose": "Logotip tanlash",
+      "hint": "Talabalar chegirma sahifasida ko'radi. JPG yoki PNG, 10 MB gacha."
+    },
+    "cropTitle": "Rasmni joylashtiring",
+    "cropHint": "Surib joylashtiring",
+    "zoom": "Kattalashtirish",
+    "zoomIn": "Kattalashtirish",
+    "zoomOut": "Kichraytirish",
+    "rotateLeft": "Chapga",
+    "rotateRight": "O'ngga",
+    "save": "Saqlash",
+    "saving": "Yuklanmoqda…",
+    "cancel": "Bekor qilish",
+    "errors": {
+      "unreadable": "Bu rasmni ochib bo'lmadi. JPG yoki PNG tanlang.",
+      "bad_type": "Faqat JPG yoki PNG rasm yuklang.",
+      "too_large": "Rasm juda katta (10 MB gacha).",
+      "daily_limit": "Bugun juda ko'p urinish bo'ldi. Ertaga qayta urinib ko'ring.",
+      "not_allowed": "Rasmni hozir o'zgartirib bo'lmaydi.",
+      "empty": "Rasm topilmadi.",
+      "network": "Yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring."
+    }
   }
 }

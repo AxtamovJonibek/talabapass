@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { AvatarEditor } from "@/components/profile-image/avatar-editor";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { DESCRIPTION_MAX } from "@/lib/business";
 import { editBusinessAction, type BusinessEditState } from "@/server/actions/business-profile";
@@ -11,7 +12,7 @@ type Initial = { name: string; address: string; workingHours: string; descriptio
 const IDLE: BusinessEditState = { status: "idle" };
 
 /** B5 "Tahrirlash": nom, manzil, ish vaqti, tavsif. Nom/manzil o'zgarsa biznes qayta tekshiruvga tushadi. */
-export function BusinessEditForm({ initial, idPrefix }: { initial: Initial; idPrefix: string }) {
+export function BusinessEditForm({ initial, logoUrl, idPrefix }: { initial: Initial; logoUrl: string | null; idPrefix: string }) {
   const t = useTranslations("businessOnboarding");
   const e = useTranslations("businessProfile");
   const [state, formAction, pending] = useActionState(editBusinessAction, IDLE);
@@ -19,6 +20,8 @@ export function BusinessEditForm({ initial, idPrefix }: { initial: Initial; idPr
   const err = (field: "name" | "address" | "workingHours" | "description") => (bad(field) ? t(`errors.${field}`) : null);
   const id = (name: string) => `${idPrefix}-${name}`;
   return (
+    <div className="flex flex-col gap-4">
+    <AvatarEditor kind="business" url={logoUrl} fallback={initial.name.trim().charAt(0).toUpperCase()} idPrefix={idPrefix} />
     <form action={formAction} className="flex flex-col gap-3.5">
       <Field label={t("name")} htmlFor={id("name")} error={err("name")}>
         <Input id={id("name")} name="name" defaultValue={initial.name} maxLength={60} invalid={bad("name")} />
@@ -47,5 +50,6 @@ export function BusinessEditForm({ initial, idPrefix }: { initial: Initial; idPr
         </p>
       ) : null}
     </form>
+    </div>
   );
 }

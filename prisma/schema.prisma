@@ -138,6 +138,8 @@ model StudentProfile {
   notifyDeals   Boolean       @default(true)
   /// Ixtiyoriy: "Hudud" auditoriyasi (bildirishnomalar) shu maydondan olinadi
   districtId    String?
+  /// Profil rasmi (kesilgan, tozalangan) - private bucket kaliti; yo'q bo'lsa bosh harflar ko'rsatiladi
+  avatarKey     String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 

@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { PhotoOr } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { Link } from "@/i18n/navigation";
 import { formatMln } from "@/lib/format";
@@ -17,8 +18,8 @@ export function ProfileHeader({ p }: { p: OwnerProfile }) {
   return (
     <div className="bg-ink px-5 pt-14 pb-5 text-paper">
       <div className="flex items-center gap-3.5">
-        <div className="flex size-15 shrink-0 items-center justify-center rounded-16 bg-orange text-26 font-black text-ink font-stretch-125%">
-          {p.name.trim().charAt(0).toUpperCase()}
+        <div className="flex size-15 shrink-0 items-center justify-center overflow-hidden rounded-16 bg-orange text-26 font-black text-ink font-stretch-125%">
+          <PhotoOr src={p.logoUrl}>{p.name.trim().charAt(0).toUpperCase()}</PhotoOr>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
           <div className="text-20 font-extrabold tracking-[-0.01em]">{p.name}</div>

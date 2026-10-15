@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { DealDetailScreen } from "@/components/student/deal/deal-detail";
 import { initials } from "@/lib/format";
+import { studentAvatarUrl } from "@/lib/profile-image";
 import { requireActiveStudent } from "@/server/auth/student";
 import { getTranslations } from "next-intl/server";
 import { activeCouponFor } from "@/server/coupons/coupons";
@@ -33,7 +34,7 @@ async function DealPageContent({ params }: { params: PageProps<"/[locale]/chegir
     coupon,
     renderedAt: now.getTime(),
   };
-  return <DealDetailScreen detail={detail} now={now} saved={saved} claim={claim} initials={initials(user.firstName, user.lastName)} />;
+  return <DealDetailScreen detail={detail} now={now} saved={saved} claim={claim} initials={initials(user.firstName, user.lastName)} avatarUrl={studentAvatarUrl(user.id, user.student.avatarKey)} />;
 }
 
 export default function DealPage({ params }: PageProps<"/[locale]/chegirmalar/[id]">) {

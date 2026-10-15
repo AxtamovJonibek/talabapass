@@ -5,6 +5,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { BusinessReview } from "@/components/admin/business-review";
 import { QueuePanel, ReviewHeader, type CheckRow, type QueueItem } from "@/components/admin/review-parts";
 import { formatPhone } from "@/lib/format";
+import { businessLogoUrl } from "@/lib/profile-image";
 import { businessDetail, businessQueue, reviewStats } from "@/server/admin/review";
 import { ageLabel, averageWait } from "@/server/admin/review-rules";
 import { requireRole } from "@/server/auth/session";
@@ -37,6 +38,7 @@ async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/
       id: b.id,
       href: `/admin/bizneslar?id=${b.id}`,
       initials: initialsOf(b.name),
+      photoUrl: businessLogoUrl(b.id, b.logoKey),
       name: b.name,
       ago: agoText(b.submittedAt ?? b.createdAt),
       meta: [kinds(b.kind), b.district?.name, b.address].filter(Boolean).join(" · "),
@@ -89,6 +91,8 @@ async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/
             businessId={detail.id}
             code={t("sentAgo", { code: `ARIZA-B-${detail.id.slice(-5).toUpperCase()}`, ago: agoText(detail.submittedAt ?? detail.createdAt) })}
             name={detail.name}
+            photoUrl={businessLogoUrl(detail.id, detail.logoKey)}
+            initials={initialsOf(detail.name)}
             meta={[kinds(detail.kind), detail.district?.name, detail.address].filter(Boolean).join(" · ")}
             state={detail.owner.status === "BLOCKED" ? "BLOCKED" : detail.status}
             photos={detail.docs.filter((d) => d.kind === "PHOTO").map((d) => `/api/admin/fayl/hujjat/${d.id}`)}

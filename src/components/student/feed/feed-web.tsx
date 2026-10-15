@@ -24,7 +24,7 @@ type Props = {
   categories: string[];
   location: LocationProps & { label: string };
   origin: Point | null;
-  user: { firstName: string; initials: string; savedMonth: number; unread: boolean; coupons: number };
+  user: { firstName: string; initials: string; avatarUrl: string | null; savedMonth: number; unread: boolean; coupons: number };
 };
 
 /** WT2 — chegirmalar (veb). */
@@ -36,7 +36,7 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
-      <StudentWebHeader sticky initials={user.initials}>
+      <StudentWebHeader sticky initials={user.initials} avatarUrl={user.avatarUrl}>
         <nav aria-label={t("feed.nav")} className="hidden gap-0.5 whitespace-nowrap @min-[1000px]:flex">
           <Link href="/chegirmalar" aria-current="page" className="flex h-10 items-center rounded-10 bg-ink px-3 text-14 font-bold text-white no-underline">
             {t("feed.navDeals")}

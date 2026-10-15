@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { PhotoOr } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/ui/bottom-nav";
 import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
@@ -26,7 +27,7 @@ export function StudentBottomNav({ active, coupons = 0 }: { active: StudentTab; 
 }
 
 /** WT2 / WT3 sarlavhasi: logo + o'rtadagi bloklar + profil doirasi. Ota element `@container`. */
-export function StudentWebHeader({ sticky = false, initials, children }: { sticky?: boolean; initials: string; children?: ReactNode }) {
+export function StudentWebHeader({ sticky = false, initials, avatarUrl = null, children }: { sticky?: boolean; initials: string; avatarUrl?: string | null; children?: ReactNode }) {
   const t = useTranslations("feed");
   return (
     <header className={cn("border-0 border-b-[1.5px] border-solid border-ink bg-paper", sticky && "sticky top-0 z-10")}>
@@ -38,9 +39,9 @@ export function StudentWebHeader({ sticky = false, initials, children }: { stick
         <Link
           href="/profil"
           aria-label={t("profile")}
-          className="flex size-[46px] shrink-0 items-center justify-center rounded-full bg-blue text-14 font-extrabold text-white no-underline"
+          className="flex size-[46px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue text-14 font-extrabold text-white no-underline"
         >
-          {initials}
+          <PhotoOr src={avatarUrl}>{initials}</PhotoOr>
         </Link>
       </div>
     </header>

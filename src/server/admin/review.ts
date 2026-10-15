@@ -38,6 +38,8 @@ export async function studentQueue() {
         createdAt: true,
         student: {
           select: {
+            userId: true,
+            avatarKey: true,
             status: true,
             faculty: true,
             course: true,
@@ -70,6 +72,7 @@ export async function studentDetail(verificationId: string) {
       student: {
         select: {
           userId: true,
+          avatarKey: true,
           status: true,
           faculty: true,
           course: true,
@@ -89,7 +92,7 @@ export async function businessQueue() {
       where: BUSINESS_QUEUE,
       orderBy: { submittedAt: "asc" },
       take: QUEUE_PAGE,
-      select: { id: true, name: true, kind: true, address: true, createdAt: true, submittedAt: true, docs: { select: { kind: true } }, district: { select: { name: true } } },
+      select: { id: true, logoKey: true, name: true, kind: true, address: true, createdAt: true, submittedAt: true, docs: { select: { kind: true } }, district: { select: { name: true } } },
     }),
     db.business.count({ where: BUSINESS_QUEUE }),
   ]);
@@ -101,6 +104,7 @@ export async function businessDetail(businessId: string) {
     where: { id: businessId },
     select: {
       id: true,
+      logoKey: true,
       name: true,
       legalName: true,
       tin: true,

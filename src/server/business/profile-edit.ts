@@ -47,5 +47,5 @@ export const editableInfo = (ownerId: string) =>
   db.business.findFirst({
     where: { ownerId, submittedAt: { not: null }, status: { in: ["APPROVED", "WARNED", "PENDING"] } },
     orderBy: { createdAt: "asc" },
-    select: { name: true, address: true, workingHours: true, description: true, status: true },
+    select: { id: true, logoKey: true, name: true, address: true, workingHours: true, description: true, status: true },
   });

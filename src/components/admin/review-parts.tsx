@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { PhotoOr } from "@/components/ui/avatar";
 import { StatusPill } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
@@ -30,6 +31,8 @@ export type QueueItem = {
   id: string;
   href: string;
   initials: string;
+  /** Profil rasmi / logotip manzili (yo'q bo'lsa bosh harflar) */
+  photoUrl?: string | null;
   name: string;
   ago: string;
   meta: string;
@@ -62,7 +65,9 @@ export function QueuePanel({ items, selectedId, more }: { items: QueueItem[]; se
                   selected ? "border-l-blue bg-paper" : "border-l-transparent bg-white",
                 )}
               >
-                <span className="flex size-[38px] shrink-0 items-center justify-center rounded-10 bg-admin-bg text-13 font-extrabold">{q.initials}</span>
+                <span className="flex size-[38px] shrink-0 items-center justify-center overflow-hidden rounded-10 bg-admin-bg text-13 font-extrabold">
+                  <PhotoOr src={q.photoUrl}>{q.initials}</PhotoOr>
+                </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="flex justify-between gap-2">
                     <b className="text-14">{q.name}</b>
@@ -86,6 +91,8 @@ export function DetailCard({
   code,
   name,
   meta,
+  photoUrl,
+  initials,
   state,
   stateTone,
   left,
@@ -96,6 +103,8 @@ export function DetailCard({
   code: string;
   name: string;
   meta: string;
+  photoUrl?: string | null;
+  initials?: string;
   state: string;
   stateTone: "ok" | "warn" | "bad";
   left: ReactNode;
@@ -107,10 +116,17 @@ export function DetailCard({
   return (
     <section aria-label={t("detailLabel")} className="min-w-0 flex-[2_1_560px] rounded-16 bg-white p-[22px]">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="font-mono text-12 text-muted">{code}</div>
-          <h2 className="mt-1 mb-0 text-26 font-black tracking-[-0.02em]">{name}</h2>
-          <div className="mt-0.5 text-14 text-muted">{meta}</div>
+        <div className="flex items-center gap-3.5">
+          {photoUrl ? (
+            <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-14 bg-admin-bg text-20 font-black">
+              <PhotoOr src={photoUrl}>{initials}</PhotoOr>
+            </span>
+          ) : null}
+          <div>
+            <div className="font-mono text-12 text-muted">{code}</div>
+            <h2 className="mt-1 mb-0 text-26 font-black tracking-[-0.02em]">{name}</h2>
+            <div className="mt-0.5 text-14 text-muted">{meta}</div>
+          </div>
         </div>
         <StatusPill tone={stateTone} size="lg">
           {state}

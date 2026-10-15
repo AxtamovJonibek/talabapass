@@ -15,6 +15,8 @@ export type StudentReviewData = {
   code: string;
   name: string;
   meta: string;
+  photoUrl?: string | null;
+  initials?: string;
   state: "PENDING" | "APPROVED" | "REJECTED" | "BLOCKED";
   fileUrl: string;
   isPdf: boolean;
@@ -75,6 +77,8 @@ export function StudentReview(props: StudentReviewData) {
       code={props.code}
       name={props.name}
       meta={props.meta}
+      photoUrl={props.photoUrl}
+      initials={props.initials}
       state={t(`state.${props.state}`)}
       stateTone={props.state === "PENDING" ? "warn" : props.state === "APPROVED" ? "ok" : "bad"}
       left={

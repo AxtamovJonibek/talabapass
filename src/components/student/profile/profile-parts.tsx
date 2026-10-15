@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { PhotoOr } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/cn";
@@ -8,6 +9,8 @@ import { formatSom } from "@/lib/format";
 export type ProfileData = {
   name: string;
   initials: string;
+  /** Profil rasmi manzili (yo'q bo'lsa bosh harflar) */
+  avatarUrl: string | null;
   /** "TATU · Dasturiy injiniring · 2-kurs" */
   meta: string;
   publicId: string;
@@ -42,7 +45,9 @@ export function StudentIdCard({ profile, size }: { profile: ProfileData; size: "
         </span>
       </div>
       <div className={cn("relative flex items-center gap-3.5", web ? "mt-[22px]" : "mt-[18px]")}>
-        <div className={cn("flex items-center justify-center bg-white font-black text-blue", web ? "size-[70px] rounded-16 text-26" : "size-16 rounded-14 text-24 font-stretch-110%")}>{profile.initials}</div>
+        <div className={cn("flex items-center justify-center overflow-hidden bg-white font-black text-blue", web ? "size-[70px] rounded-16 text-26" : "size-16 rounded-14 text-24 font-stretch-110%")}>
+          <PhotoOr src={profile.avatarUrl}>{profile.initials}</PhotoOr>
+        </div>
         <div className={cn("flex min-w-0 flex-col", web ? "" : "gap-[3px]")}>
           <div className={cn("font-extrabold tracking-[-0.02em]", web ? "text-24" : "text-22 leading-[1.05]")}>{profile.name}</div>
           <div className={cn("text-blue-tint", web ? "text-14" : "text-13")}>{profile.meta}</div>

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { PhotoOr } from "@/components/ui/avatar";
 import { DealBadge } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
 import { isIconName, type IconName } from "@/components/ui/icons";
@@ -17,7 +18,7 @@ import { SaveButton, ShareButton } from "./deal-actions";
 import { PhoneGallery, WebGallery } from "./gallery";
 import { PhoneClaim, WebClaim, type ClaimState } from "./claim";
 
-type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string; claim: ClaimState };
+type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string; avatarUrl: string | null; claim: ClaimState };
 
 /** Yo'nalish: Yandex xaritasi (O'zbekistonda eng ko'p ishlatiladi); koordinata bo'lmasa — manzil bo'yicha qidiruv. */
 function routeUrl(detail: DealDetail) {
@@ -104,7 +105,9 @@ function DealPhone({ detail, now, saved, claim }: Props) {
 
       <div className="relative -mt-[18px] flex-1 overflow-y-auto rounded-t-22 bg-paper px-5 pt-5">
         <div className="flex items-center gap-2.5">
-          <div className="flex size-10 items-center justify-center rounded-10 bg-ink text-18 font-black text-paper font-stretch-125%">{x.letter}</div>
+          <div className="flex size-10 items-center justify-center overflow-hidden rounded-10 bg-ink text-18 font-black text-paper font-stretch-125%">
+            <PhotoOr src={business.logoUrl}>{x.letter}</PhotoOr>
+          </div>
           <div className="flex flex-1 flex-col gap-px">
             <div className="flex items-center gap-[5px] text-15 font-bold">
               {business.name}
@@ -169,13 +172,13 @@ function DealPhone({ detail, now, saved, claim }: Props) {
 }
 
 /** WT3 — chegirma tafsiloti (veb). */
-function DealWeb({ detail, now, initials, claim }: Props) {
+function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
   const x = useDetailText({ detail, now });
   const { t, text } = x;
   const { deal, business } = detail;
   return (
     <div className="min-h-dvh bg-paper text-ink">
-      <StudentWebHeader initials={initials}>
+      <StudentWebHeader initials={initials} avatarUrl={avatarUrl}>
         <Link href="/chegirmalar" className="ml-auto flex h-11 items-center gap-2 px-3.5 text-15 font-bold text-ink no-underline">
           <Icon name="arrowLeft" size={18} strokeWidth={2.2} />
           {t("dealPage.allDeals")}
@@ -201,7 +204,9 @@ function DealWeb({ detail, now, initials, claim }: Props) {
 
           <div className="rounded-22 bg-white p-[clamp(18px,2.5cqw,28px)]">
             <div className="flex items-center gap-3">
-              <div className="flex size-12 items-center justify-center rounded-12 bg-ink text-20 font-black text-paper font-stretch-125%">{x.letter}</div>
+              <div className="flex size-12 items-center justify-center overflow-hidden rounded-12 bg-ink text-20 font-black text-paper font-stretch-125%">
+                <PhotoOr src={business.logoUrl}>{x.letter}</PhotoOr>
+              </div>
               <div className="flex-1">
                 <div className="text-17 font-extrabold">{business.name}</div>
                 <div className="text-14 text-muted">{[business.typeLabel, business.district, t("dealPage.verifiedPartner")].filter(Boolean).join(" · ")}</div>
