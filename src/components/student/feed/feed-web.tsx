@@ -24,7 +24,7 @@ type Props = {
   categories: string[];
   location: LocationProps & { label: string };
   origin: Point | null;
-  user: { firstName: string; initials: string; savedMonth: number; unread: boolean };
+  user: { firstName: string; initials: string; savedMonth: number; unread: boolean; coupons: number };
 };
 
 /** WT2 — chegirmalar (veb). */

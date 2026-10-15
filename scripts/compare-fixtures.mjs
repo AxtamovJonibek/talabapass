@@ -73,4 +73,30 @@ if (dilnoza[0]) {
   await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ('cmp_student_s', $1, $2, now() + interval '30 days')`, [dilnoza[0].id, hash("cmp-student")]);
   console.log(`TALABA    --cookie="tp_session=cmp-student;;tp_loc=d:${chilonzor[0]?.id ?? ""}" (Dilnoza, Chilonzor)`);
 }
+// Kassir (B3/B4): seed'dagi birinchi kassir (Bodom Choyxonasi, Jasur T.)
+const { rows: cashiers } = await db.query(`SELECT id FROM "User" WHERE role = 'CASHIER' ORDER BY "createdAt" LIMIT 1`);
+if (cashiers[0]) {
+  await db.query(`DELETE FROM "Session" WHERE id = 'cmp_cashier_s'`);
+  await db.query(`INSERT INTO "Session" (id, "userId", "tokenHash", "expiresAt") VALUES ('cmp_cashier_s', $1, $2, now() + interval '30 days')`, [cashiers[0].id, hash("cmp-cashier")]);
+  console.log("KASSIR    --cookie=tp_session=cmp-cashier (Jasur T.)");
+}
+
+// T6: Dilnozaning faol kuponi (dizayndagi kod), 10 daqiqa. Kunlik hisob o'zgartirilmaydi — faqat ko'rinish uchun.
+if (dilnoza[0]) {
+  const { createCipheriv, randomBytes } = await import("node:crypto");
+  const key = createHash("sha256").update(`tp-coupon-secret:${process.env.AUTH_SECRET}`).digest();
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  // Secret aniq (sha256 dan 20 bayt) — B4 ni solishtirish skripti 6 raqamli kodni hisoblay olsin
+  const plain = createHash("sha256").update("cmp-coupon-secret").digest().subarray(0, 20);
+  const secret = Buffer.concat([iv, cipher.update(plain), cipher.final(), cipher.getAuthTag()]);
+  await db.query(`DELETE FROM "Coupon" WHERE id = 'cmp_coupon'`);
+  const { rows: osh } = await db.query(`SELECT id FROM "Discount" WHERE title = 'Osh 0.5 porsiya + ko''k choy'`);
+  await db.query(
+    `INSERT INTO "Coupon" (id, code, "discountId", "studentId", date, status, secret, "expiresAt", "termsTitle", "termsType", "termsPercent", "termsOriginalPrice", "termsDiscountAmount", "termsFinalPrice")
+     VALUES ('cmp_coupon', 'TP-7K3Q-92XD', $1, $2, (now() AT TIME ZONE 'Asia/Tashkent')::date, 'ACTIVE', $3, now() + interval '581 seconds', 'Osh 0.5 porsiya + choy', 'PERCENT', 30, 38000, 11400, 26600)`,
+    [osh[0].id, dilnoza[0].id, secret],
+  );
+  console.log("KUPON     /kuponlar/cmp_coupon (T6)");
+}
 await db.end();

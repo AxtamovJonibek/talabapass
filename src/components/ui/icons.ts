@@ -54,6 +54,14 @@ export const ICONS = {
   qr: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM18 18h3v3h-3z",
   /** WT3 "Barcha chegirmalar" */
   arrowLeft: "M19 12H5M11 6l-6 6 6 6",
+  /** T6 "Yorqinlik maksimal" */
+  sun: "M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
+  /** B3 "Kodni kiritish" */
+  keyboard: "M5 6h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM7 10h.01M11 10h.01M15 10h.01M7 14h10",
+  /** B4 limit izohi */
+  info: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16h.01",
+  /** B4 "QR haqiqiy" */
+  checkCircle: "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM7.5 12.5l3 3 6-7",
   camera: "M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z",
 } as const;
 

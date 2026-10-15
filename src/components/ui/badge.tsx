@@ -10,6 +10,12 @@ const DEAL_BADGE_SIZES = {
   xl: "-rotate-5 rounded-10 px-3 pt-2 pb-1.5 text-[54px] leading-[0.9] font-stretch-62%",
   /** WT3 rasm ustidagi katta yorliq */
   "2xl": "-rotate-5 rounded-12 px-3.5 pt-2 pb-1.5 text-64 leading-[0.9] font-stretch-62%",
+  /** T6 kupon chiptasi */
+  ticket: "-rotate-5 rounded-8 px-2 pt-1.5 pb-1 text-30 leading-none font-stretch-62%",
+  /** B4 chegirma kartasi */
+  scan: "-rotate-5 rounded-7 px-2 pt-[5px] pb-[3px] text-26 leading-none font-stretch-62%",
+  /** WT3 QR paneli */
+  "ticket-sm": "-rotate-5 rounded-6 px-[7px] pt-1 pb-0.5 text-24 leading-none font-stretch-62%",
   /** WT3 "Yaqin atrofda", xarita belgisi */
   sm: "min-w-12 rounded-5 px-1.5 py-[3px] text-center text-14 font-stretch-70%",
 } as const;

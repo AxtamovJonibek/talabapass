@@ -8,7 +8,7 @@ test.beforeAll(async () => {
 });
 
 const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin/talabalar" } as const;
-const AREA = { owner: "Biznes kabineti", cashier: "Kassir skaneri", admin: "Admin panel" } as const;
+const AREA = { owner: "Biznes kabineti", admin: "Admin panel" } as const;
 
 test.describe("kirish", () => {
   for (const role of ["student", "owner", "cashier", "admin"] as const) {
@@ -18,6 +18,8 @@ test.describe("kirish", () => {
       if (role === "admin") await expect(page.getByRole("heading", { name: "Talabalar tekshiruvi" })).toBeVisible();
       // Talaba bosh sahifasi — lenta (T4)
       else if (role === "student") await expect(page.locator("#t4-search")).toBeVisible();
+      // Kassir bosh sahifasi — skaner (B3), o'z biznesi bilan
+      else if (role === "cashier") await expect(page.getByTestId("cashier-business")).toBeVisible();
       else await expect(page.getByTestId("area")).toHaveText(AREA[role as keyof typeof AREA]);
     });
   }

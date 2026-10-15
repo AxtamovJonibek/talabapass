@@ -8,8 +8,8 @@ import { cn } from "@/lib/cn";
 
 export type StudentTab = "home" | "coupons" | "history" | "profile";
 
-/** T4 pastki navigatsiyasi (talaba, telefon). */
-export function StudentBottomNav({ active }: { active: StudentTab }) {
+/** T4 pastki navigatsiyasi (talaba, telefon). `coupons` — faol kuponlar soni (belgi). */
+export function StudentBottomNav({ active, coupons = 0 }: { active: StudentTab; coupons?: number }) {
   const t = useTranslations("studentNav");
   const feed = useTranslations("feed");
   return (
@@ -17,7 +17,7 @@ export function StudentBottomNav({ active }: { active: StudentTab }) {
       label={feed("nav")}
       items={[
         { href: "/chegirmalar", icon: "home", label: t("home"), active: active === "home" },
-        { href: "/kuponlar", icon: "ticket", label: t("coupons"), active: active === "coupons" },
+        { href: "/kuponlar", icon: "ticket", label: t("coupons"), active: active === "coupons", badge: coupons > 0 ? coupons : undefined },
         { href: "/tarix", icon: "clock", label: t("history"), active: active === "history" },
         { href: "/profil", icon: "user", label: t("profile"), active: active === "profile" },
       ]}

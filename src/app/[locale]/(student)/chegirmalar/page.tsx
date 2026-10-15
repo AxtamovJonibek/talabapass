@@ -3,6 +3,7 @@ import { FeedScreen } from "@/components/student/feed/feed-screen";
 import { initials } from "@/lib/format";
 import { isFeedSort, type FeedSort } from "@/lib/feed";
 import { requireActiveStudent } from "@/server/auth/student";
+import { activeCouponCount } from "@/server/coupons/coupons";
 import { db } from "@/server/db";
 import { feedDeals, hasUnreadNotifications, savedThisMonth } from "@/server/student/feed";
 import { currentOrigin, districtOptions } from "@/server/student/location";
@@ -15,12 +16,13 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
   const user = await requireActiveStudent();
   const now = new Date();
   const [params, origin, t] = await Promise.all([searchParams, currentOrigin(), getTranslations("feed.location")]);
-  const [deals, categories, districts, savedMonth, unread] = await Promise.all([
+  const [deals, categories, districts, savedMonth, unread, coupons] = await Promise.all([
     feedDeals(now, origin?.point ?? null),
     db.category.findMany({ orderBy: { sort: "asc" }, select: { slug: true } }),
     districtOptions(),
     savedThisMonth(user.id, now),
     hasUnreadNotifications(user.id),
+    activeCouponCount(user.id),
   ]);
 
   const slugs = categories.map((c) => c.slug);
@@ -46,7 +48,7 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
         label: origin ? (origin.kind === "gps" ? t("here") : origin.name) : t("city"),
         districts,
       }}
-      user={{ firstName: user.firstName ?? "", initials: initials(user.firstName, user.lastName), savedMonth, unread }}
+      user={{ firstName: user.firstName ?? "", initials: initials(user.firstName, user.lastName), savedMonth, unread, coupons }}
     />
   );
 }

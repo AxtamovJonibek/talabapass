@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { DealBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { isIconName, type IconName } from "@/components/ui/icons";
 import { Link } from "@/i18n/navigation";
@@ -16,8 +15,9 @@ import { PhoneOrWeb } from "../responsive";
 import { StudentWebHeader } from "../app-chrome";
 import { SaveButton, ShareButton } from "./deal-actions";
 import { PhoneGallery, WebGallery } from "./gallery";
+import { PhoneClaim, WebClaim, type ClaimState } from "./claim";
 
-type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string };
+type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string; claim: ClaimState };
 
 /** Yo'nalish: Yandex xaritasi (O'zbekistonda eng ko'p ishlatiladi); koordinata bo'lmasa — manzil bo'yicha qidiruv. */
 function routeUrl(detail: DealDetail) {
@@ -80,19 +80,8 @@ function VerifiedMark({ label }: { label: string }) {
   );
 }
 
-/** Kupon olish keyingi bosqichda (QR) ulanadi — tugma ko'rinadi, lekin hozircha faol emas. */
-function ClaimButton({ size }: { size: "cta" | "cta-lg" }) {
-  const t = useTranslations("dealPage");
-  return (
-    <Button size={size} strong block disabled>
-      <Icon name="qr" size={22} />
-      {t("claim")}
-    </Button>
-  );
-}
-
 /** T5 — chegirma tafsiloti (telefon). */
-function DealPhone({ detail, now, saved }: Props) {
+function DealPhone({ detail, now, saved, claim }: Props) {
   const x = useDetailText({ detail, now });
   const { t, text } = x;
   const { deal, business } = detail;
@@ -172,7 +161,7 @@ function DealPhone({ detail, now, saved }: Props) {
       </div>
 
       <div className="flex flex-col gap-2 border-0 border-t border-solid border-line-soft bg-paper px-4 pt-3 pb-[30px]">
-        <ClaimButton size="cta" />
+        <PhoneClaim state={claim} />
         <div className="text-center text-12 text-muted">{t("dealPage.claimHint")}</div>
       </div>
     </div>
@@ -180,7 +169,7 @@ function DealPhone({ detail, now, saved }: Props) {
 }
 
 /** WT3 — chegirma tafsiloti (veb). */
-function DealWeb({ detail, now, initials }: Props) {
+function DealWeb({ detail, now, initials, claim }: Props) {
   const x = useDetailText({ detail, now });
   const { t, text } = x;
   const { deal, business } = detail;
@@ -249,31 +238,37 @@ function DealWeb({ detail, now, initials }: Props) {
         </div>
 
         <aside className="sticky top-5 flex min-w-0 flex-[2_1_340px] flex-col gap-3">
-          <div className="flex flex-col gap-3.5 rounded-22 border-hair border-ink bg-white p-[22px]">
-            <div className="flex items-end justify-between">
-              {deal.price ? (
-                <div>
-                  {deal.price.old ? (
-                    <s className="font-mono text-14 text-muted-2">
-                      {formatSom(deal.price.old)} {text.currency}
-                    </s>
-                  ) : null}
-                  <div className="text-44 leading-none font-black tracking-[-0.02em]">
-                    {formatSom(deal.price.now)} <span className="text-18">{text.currency}</span>
-                  </div>
+          <WebClaim
+            state={claim}
+            top={
+              <>
+                <div className="flex items-end justify-between">
+                  {deal.price ? (
+                    <div>
+                      {deal.price.old ? (
+                        <s className="font-mono text-14 text-muted-2">
+                          {formatSom(deal.price.old)} {text.currency}
+                        </s>
+                      ) : null}
+                      <div className="text-44 leading-none font-black tracking-[-0.02em]">
+                        {formatSom(deal.price.now)} <span className="text-18">{text.currency}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-28 leading-[1.05] font-black tracking-[-0.02em]">{text.note(deal)}</div>
+                  )}
+                  {x.saves ? <span className="rounded-8 bg-green-bg px-2.5 py-2 text-14 font-bold text-green">{x.saves}</span> : null}
                 </div>
-              ) : (
-                <div className="text-28 leading-[1.05] font-black tracking-[-0.02em]">{text.note(deal)}</div>
-              )}
-              {x.saves ? <span className="rounded-8 bg-green-bg px-2.5 py-2 text-14 font-bold text-green">{x.saves}</span> : null}
-            </div>
-            <div className={cn("flex items-center gap-2 text-14 font-bold", deal.live ? "text-green-text" : "text-muted")}>
-              <span className={cn("size-2 rounded-4", deal.live ? "bg-green-live" : "bg-fog-3")} />
-              {x.state}
-            </div>
-            <ClaimButton size="cta-lg" />
-            <p className="m-0 text-13 leading-[1.5] text-muted">{[t("dealPage.claimHintWeb"), detail.terms].filter(Boolean).join(" ")}</p>
-          </div>
+                <div className={cn("flex items-center gap-2 text-14 font-bold", deal.live ? "text-green-text" : "text-muted")}>
+                  <span className={cn("size-2 rounded-4", deal.live ? "bg-green-live" : "bg-fog-3")} />
+                  {x.state}
+                </div>
+              </>
+            }
+            terms={
+  <p className="m-0 text-13 leading-[1.5] text-muted">{[t("dealPage.claimHintWeb"), detail.terms].filter(Boolean).join(" ")}</p>
+            }
+          />
 
           {detail.nearby.length > 0 ? (
             <div className="rounded-22 bg-white p-[18px]">

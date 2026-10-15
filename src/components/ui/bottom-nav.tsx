@@ -42,7 +42,8 @@ export function BottomNav({ items, tone = "light", label }: BottomNavProps) {
             dark ? (item.active ? "text-orange" : "text-fog-3") : item.active ? "text-ink" : "text-muted",
           )}
         >
-          <Icon name={item.icon} size={22} filled={item.active && !dark} />
+          {/* Dizaynda faqat "Asosiy" (uy) to'ldiriladi; boshqa faol ikonkalar qalinroq chiziq bilan (T7) */}
+          <Icon name={item.icon} size={22} filled={item.active && !dark && item.icon === "home"} strokeWidth={item.active && !dark && item.icon !== "home" ? 2.4 : 2} />
           {item.label}
           {item.badge != null ? (
             <span className="absolute top-2 left-[52%] flex h-4 min-w-4 items-center justify-center rounded-8 bg-orange text-10 font-extrabold text-ink">

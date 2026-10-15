@@ -40,6 +40,8 @@
   --color-blue: #2433d6;
   --color-blue-2: #3646e4;
   --color-blue-tint: #dce0ff;
+  /* WT4 talaba kartasidagi uzuq chiziq */
+  --color-blue-dash: #6a75f0;
   --color-orange: #ff5b1f;
   --color-rust: #b23a0c;
   --color-orange-ink: #d2410b;
@@ -49,6 +51,9 @@
   --color-green-live: #1e9e5a;
   --color-green-text: #0f7040;
   --color-green-bg: #e3f4ea;
+  /* B4 sarlavhasidagi tugma va kichik matn */
+  --color-green-2: #1b7448;
+  --color-mint-3: #c9ebd7;
   --color-mint: #6fd39c;
   --color-mint-2: #3fbf7f;
   --color-danger: #b4230c;
@@ -188,6 +193,31 @@
   background:
     linear-gradient(-45deg, transparent 6px, var(--color-white) 0) 0 0 / 12px 10px repeat-x,
     linear-gradient(45deg, transparent 6px, var(--color-white) 0) 0 0 / 12px 10px repeat-x;
+}
+
+/* B3 skaner chizig'i: ramka ichida yuqoridan pastga */
+@utility scan-line {
+  top: 18px;
+  box-shadow: 0 0 14px 2px var(--color-orange);
+  animation: tp-scan 2.4s ease-in-out infinite;
+}
+
+@keyframes tp-scan {
+  0%,
+  100% {
+    top: 18px;
+  }
+  50% {
+    top: 240px;
+  }
+}
+
+/* Katta chek (WT4): 14px tishlar */
+@utility receipt-edge-lg {
+  height: 12px;
+  background:
+    linear-gradient(-45deg, transparent 7px, var(--color-white) 0) 0 0 / 14px 12px repeat-x,
+    linear-gradient(45deg, transparent 7px, var(--color-white) 0) 0 0 / 14px 12px repeat-x;
 }
 
 @layer base {

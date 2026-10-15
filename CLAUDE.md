@@ -126,7 +126,7 @@ Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspen
 - Joy (`tp_loc` cookie): tuman markazi yoki geolokatsiya (~100 m); masofa shundan. Xarita — MapLibre + OpenFreeMap (kalitsiz).
 - Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan); rasm yo'q chegirmada — kategoriya ikonkasi;
   qo'ng'iroq faqat belgi;
-  `/kuponlar`, `/tarix`, `/profil` — vaqtinchalik sahifalar.
+  `/profil` — vaqtinchalik sahifa (T8 keyin).
 
 ## Dizayndan ekran ko'chirish (faqat marketing sahifalari)
 1. `npm run design:gen -- <ID> <namespace> --messages=messages/uz.json` — `design/screens/<ID>.html` dan komponentlar
@@ -148,7 +148,7 @@ Shrift oilalari `globals.css` da to'g'ridan-to'g'ri yozilgan (`"Archivo", system
 dev serverni qayta ishga tushirish kerak.
 
 Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` · `/talaba/royxat` · `/chegirmalar` ·
-`/profil` · `/biznes`, `/biznes/royxat`, `/biznes/chegirmalar/yangi` · `/admin`.
+`/profil` · `/kuponlar` · `/tarix` · `/biznes`, `/biznes/royxat`, `/biznes/chegirmalar/yangi`, `/biznes/skaner` · `/admin`.
 
 ## Kod qoidalari
 - Server Component — standart; `"use client"` faqat interaktivlik uchun.
@@ -259,6 +259,24 @@ ilova sahifalari `requireActiveStudent()`, ro'yxat qadamlari `requireStudent()` 
   kunlik/talaba limiti, parallel tasdiqlash, begona biznes kassiri, qo'lda kiritish (6 raqamsiz rad,
   5 xatoda yopilish), qoldiq qaytishi (bir marta, ikki marta emas, sotilgani qaytmaydi,
   eskirish↔tasdiqlash poygasi), klient va server tokenlari tengligi.
+  Joyi: `src/lib/totp.test.ts` (RFC 6238 vektorlari bilan), `src/server/coupons/coupons.itest.ts`,
+  `e2e/coupon.spec.ts`, `e2e/scanner-camera.spec.ts` (soxta kamera oqimidagi QR'ni skaner o'qiydi).
+
+**QR oqimi — kod xaritasi (8-bosqich).**
+- `src/lib/totp.ts` — QR va 6 raqamli kod (Web Crypto, klient=server). `src/server/coupons/coupons.ts` — olish,
+  `closeCoupon` (bekor/eskirish — yagona joy), `expireDueCoupons` (lazy + `/api/cron/kuponlar`, `CRON_SECRET`),
+  secret AES-256-GCM (kalit `AUTH_SECRET` dan). `scan.ts` — `scannerFor` (biznes faqat sessiyadan), `scanCoupon`
+  (har urinish `ScanAttempt`, OK ham), `confirmRedemption` (5 daqiqalik imzolangan "ticket" + atom UPDATE).
+  `receipts.ts` — chek ma'lumoti, tarix, PDF (pdf-lib standart shrift: `pdfSafe` "−", "ʻ", "№" ni almashtiradi).
+- Sahifalar: T6 `/kuponlar/<id>` (bitta faol bo'lsa `/kuponlar` shunga o'tadi), WT3 yon panelda QR, B3/B4
+  `/biznes/skaner` (egasi ham), T7/WT4 `/tarix?oy=&chek=`, PDF `/api/chek/<id>` (talaba, egasi, kassir, admin).
+- Talaba ekrani internet bo'lsa 4 s da sotilganini so'raydi va chekka o'tadi; QR internetsiz yangilanadi.
+  Sahifani internetsiz OCHISH uchun PWA (Serwist) kerak — hali yo'q.
+- Kamera: BarcodeDetector, bo'lmasa jsQR; chiroq (torch) qo'llansa tugma chiqadi.
+- Dizayndan chetlanishlar: QR ostida 6 raqamli kod; "Kodni kiritish" formasi; narxsiz chegirmada kassir chek summasini
+  (1+1 — bitta mahsulot narxini) kiritadi; kassirda pastki navigatsiya o'rniga "Hisobdan chiqish"; T7 da PDF havolasi;
+  bir nechta faol kupon ro'yxati; WT4 menyusida "Shaxsiy ma'lumotlar", "Talaba guvohnomasi" hozircha havolasiz;
+  skan xatolari qizil blokda.
 
 **Chegirma moderatsiyasi.** `DRAFT → PENDING_REVIEW → ACTIVE | REJECTED`. Talabaga faqat `ACTIVE`
 (va biznesi `APPROVED`) ko'rinadi. Tasdiqlangan chegirmada mazmun (nom, tur, narx/foiz, shartlar)
@@ -321,7 +339,7 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - [ ] Ma'lumotlarni saqlash joyi va W3 matni ("O'zbekiston hududidagi serverlar") — yurist bilan kelishilgan.
 - [ ] Huquqiy matnlardagi `[EMAIL]`, `[STIR]`, `[TARIF MA'LUMOTI]`, `[N] kun` va h.k. to'ldirilgan.
 - [ ] Guvohnoma rasmlari tekshiruvdan keyin `[N]` kunda o'chiriladi (siyosatda va'da qilingan) — cron.
-- [ ] `pruneOtpData` va eskirgan kuponlarni yopish cron'lari ulangan.
+- [ ] `pruneOtpData` cron'i ulangan. Kuponlar cron'i `vercel.json` da (kuniga 1 marta) — Vercel'da `CRON_SECRET` qo'yilsin.
 - [ ] PDF ichidagi rasmlarning EXIF'i tozalanmaydi — PDF'ni rasmga aylantirish yoki shu cheklovni qabul qilish.
 - [ ] Rate limit IP'si: hosting `x-forwarded-for` ni o'zi yozishini tekshirish (Vercel — ha).
 
@@ -331,4 +349,4 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - To'ldirilmagan joylar: `[EMAIL]`, `[TELEFON RAQAM]`, `[MANZIL]`, `[YURIDIK SHAXS NOMI]`, `[STIR]`,
   `[TARIF MA'LUMOTI]`, `[N] kun` — egasidan kutilmoqda, o'ylab topilmaydi.
 - SMS: hozircha dev rejim (kod server log'iga chiqadi), provayder adapter orqali keyin ulanadi.
-- 6 raqamli TOTP kod va admin'dagi "Chegirmalar" navbati dizaynda chizilmagan — mavjud uslubda qo'shiladi.
+- Admin'dagi "Chegirmalar" navbati va kupon ekranidagi 6 raqamli kod dizaynda chizilmagan — mavjud uslubda qo'shilgan.

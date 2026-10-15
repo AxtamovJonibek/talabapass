@@ -22,7 +22,7 @@ export type FeedScreenProps = {
   now: string;
   location: LocationProps & { label: string };
   origin: Point | null;
-  user: { firstName: string; initials: string; savedMonth: number; unread: boolean };
+  user: { firstName: string; initials: string; savedMonth: number; unread: boolean; coupons: number };
 };
 
 /** T4 / WT2: holat bitta hook'da, ko'rinish ikkita. */
@@ -31,7 +31,7 @@ export function FeedScreen({ deals, categories, initial, defaultSort, now, locat
   return (
     <>
       <PhoneOrWeb
-        phone={<FeedPhone feed={feed} categories={categories} location={location} unread={user.unread} />}
+        phone={<FeedPhone feed={feed} categories={categories} location={location} unread={user.unread} coupons={user.coupons} />}
         web={<FeedWeb feed={feed} categories={categories} location={location} origin={origin} user={user} />}
       />
       {feed.mapOpen ? <DealsMap deals={feed.items} origin={origin} now={feed.now} onClose={() => feed.setMapOpen(false)} /> : null}

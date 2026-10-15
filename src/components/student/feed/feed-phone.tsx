@@ -15,10 +15,10 @@ import type { Feed } from "./use-feed";
 
 export const HOT_TONES = ["blue", "orange", "ink"] as const;
 
-type Props = { feed: Feed; categories: string[]; location: LocationProps & { label: string }; unread: boolean };
+type Props = { feed: Feed; categories: string[]; location: LocationProps & { label: string }; unread: boolean; coupons: number };
 
 /** T4 — chegirmalar lentasi (telefon). */
-export function FeedPhone({ feed, categories, location, unread }: Props) {
+export function FeedPhone({ feed, categories, location, unread, coupons }: Props) {
   const t = useTranslations();
   const text = useDealText();
   const now = toTashkent(feed.now);
@@ -118,7 +118,7 @@ export function FeedPhone({ feed, categories, location, unread }: Props) {
         </div>
       </div>
 
-      <StudentBottomNav active="home" />
+      <StudentBottomNav active="home" coupons={coupons} />
     </div>
   );
 }
