@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { logoutAction } from "@/server/actions/auth";
 import type { OwnerCashiers } from "@/server/business/cashiers";
 import type { OwnerDiscount } from "@/server/business/discounts";
 import type { OwnerProfile } from "@/server/business/profile";
@@ -24,6 +25,18 @@ function DiscountsBlock({ discounts }: { discounts: OwnerDiscount[] }) {
       </div>
       <DiscountList discounts={discounts} />
     </div>
+  );
+}
+
+/** Telefon: profil sahifasi oxirida (veb'da — yon paneldagi "Hisobdan chiqish"). */
+function PhoneLogout() {
+  const t = useTranslations("common");
+  return (
+    <form action={logoutAction}>
+      <button type="submit" className="mt-3 h-[50px] w-full rounded-14 border-0 bg-transparent font-sans text-15 font-bold text-danger">
+        {t("logout")}
+      </button>
+    </form>
   );
 }
 
@@ -56,6 +69,7 @@ export function ProfilePage({ profile, discounts, cashiers }: { profile: OwnerPr
             <div className="pt-[18px]">
               <CashierList data={cashiers} />
             </div>
+            <PhoneLogout />
           </div>
         </>
       }

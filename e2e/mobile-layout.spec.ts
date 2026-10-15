@@ -59,3 +59,15 @@ for (const width of WIDTHS) {
     }
   });
 }
+
+test("biznes telefon profilida 'Hisobdan chiqish' bor va ishlaydi", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page, phones.owner);
+  await page.goto("/biznes/profil", { waitUntil: "networkidle" });
+  const logout = page.getByRole("button", { name: "Hisobdan chiqish" }).locator("visible=true");
+  await logout.scrollIntoViewIfNeeded();
+  await logout.click();
+  await page.waitForURL((url) => url.pathname === "/" || url.pathname === "/kirish");
+  await page.goto("/biznes");
+  await expect(page).toHaveURL(/\/kirish/);
+});
