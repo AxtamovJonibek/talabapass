@@ -415,3 +415,19 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   (ko'rsatkichlar mustaqil SQL bilan solishtiriladi), `e2e/business-home.spec.ts`.
 - Dizayndan chetlanishlar: B6 telefon ko'rinishi chizilmagan (bloklar ustma-ust); voronkadagi "QR muddatini uzaytiring"
   maslahati yo'q (muddat sozlanmaydi); yon panelda biznes kartasi va "Kassa ilovasi" bloki yo'q; "Skaner" bandi qo'shilgan.
+
+## Sayqal bosqichi (profil rasmi, aloqa, OTM, admin boshqaruvi)
+- Profil rasmi: talaba `StudentProfile.avatarKey`, biznes `Business.logoKey`. Mijoz kesadi (`ImageCropper`, `src/lib/crop.ts`) va 512×512 JPEG yuboradi;
+  server baribir `sanitizeDocument` dan o'tkazadi (`src/server/profile-image.ts`). `POST/DELETE /api/talaba/avatar`, `/api/biznes/logo`; ko'rish:
+  `/api/avatar/<id>` (faqat o'zi va admin), `/api/biznes/logo/<id>` (tasdiqlangan biznesniki hammaga). Ko'rsatish — `PhotoOr` (rasm yo'q bo'lsa bosh harflar).
+- Biznes aloqasi talabaga: `Business.publicPhone|telegram|instagram` (ixtiyoriy, egasi `/biznes/profil/tahrir` da, `validateContacts`); `contactPhone` — mas'ul
+  shaxsning kirish raqami, talabaga ko'rsatilmaydi.
+- Chegirma foizi 1–100 (bazada CHECK ham); 100% — `FREE_BADGE` ("BEPUL"), narx o'rniga "Bepul" yozuvi.
+- Yordam: `/yordam` (talaba, ilova ichida). Aloqa env'dan: `SUPPORT_TELEGRAM`, `SUPPORT_PHONE` (egasidan kutilmoqda; yo'q bo'lsa blok chiqmaydi).
+- Universitetlar: `src/server/universities/data.ts` (204 ta, manba InfoEdu.uz 2026-10-16; oliygoh.uz 2023-yilda 209 ta), `syncUniversities` (idempotent, `vercel-build`
+  va `npm run universities:sync`; admin tahrirlaganlariga tegmaydi). "Ro'yxatda yo'q" → `UniversityRequest` + talaba `kind=OTHER` yozuviga biriktiriladi;
+  admin `/admin/universitetlar` da qo'shadi yoki mavjudiga biriktiradi.
+- Admin boshqaruvi (`src/server/admin/manage.ts`, hammasi `AuditLog` da, o'zgargan maydonlar oldin→keyin): `/admin/profil` (o'z ismi, yangi admin —
+  SMS + umumiy admin paroli bilan kiradi), `/admin/foydalanuvchilar` (talaba/biznes/kassir: telefon va barcha ma'lumotlar; telefon o'zgarsa sessiyalar yopiladi),
+  `/admin/universitetlar`. Adminning o'zi bu yerda tahrirlanmaydi.
+- Telefon ko'rinishi testi: `e2e/mobile-layout.spec.ts` (360/390/430, skrinshotlar `e2e/mobile-layout.spec.ts-snapshots`).
