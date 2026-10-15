@@ -50,6 +50,18 @@ export function productionEnvProblems(env: Env): string[] {
   return problems;
 }
 
+/**
+ * Deploy (build) vaqtidagi qo'shimcha tekshiruv: admin paroli xeshi. Server start'da emas — xesh yo'qligi saytning
+ * qolganini to'xtatmasligi kerak, lekin deploy'da aniq ko'rinsin (aks holda admin "Parol noto'g'ri" ni ko'radi).
+ */
+export function buildEnvProblems(env: Env, isHash: (value: string | undefined) => boolean): string[] {
+  const problems = productionEnvProblems(env);
+  if (env.NODE_ENV === "production" && !isHash(env.ADMIN_PASSWORD_HASH)) {
+    problems.push("ADMIN_PASSWORD_HASH o'rnatilmagan yoki formati buzilgan (scrypt:N:r:p:salt:hash) — `npm run admin:hash`.");
+  }
+  return problems;
+}
+
 /** Muammo bo'lsa xato tashlaydi — server start'da chaqiriladi (src/instrumentation.ts). */
 export function assertProductionEnv(env: Env = process.env): void {
   const problems = productionEnvProblems(env);

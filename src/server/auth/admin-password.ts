@@ -23,14 +23,28 @@ export function hashAdminPassword(password: string, salt: Buffer = randomBytes(1
   return ["scrypt", N, R, P, salt.toString("base64url"), hash.toString("base64url")].join(":");
 }
 
-export function isAdminPasswordHash(stored: string | undefined): stored is string {
-  return /^scrypt:\d+:\d+:\d+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$/.test(stored?.trim() ?? "");
+/**
+ * Env qiymatini tozalash: Vercel/terminaldan nusxalashda tez-tez qo'shilib qoladigan narsalar —
+ * `ADMIN_PASSWORD_HASH=` prefiksi, qo'shtirnoq, terminal satr bo'linishidan qolgan bo'shliq va yangi qatorlar.
+ * (Xeshda bo'shliq bo'lishi mumkin emas, shuning uchun ularni olib tashlash xavfsiz.)
+ */
+export function normalizeAdminHash(raw: string | undefined): string {
+  return (raw ?? "")
+    .replace(/\s+/g, "")
+    .replace(/^(["'`])(.*)\1$/, "$2")
+    .replace(/^ADMIN_PASSWORD_HASH=/, "")
+    .replace(/^(["'`])(.*)\1$/, "$2");
 }
 
-/** Xesh yo'q yoki buzilgan bo'lsa — hech qanday parol to'g'ri emas. */
-export function verifyAdminPassword(password: string, stored: string | undefined): boolean {
+export function isAdminPasswordHash(stored: string | undefined): boolean {
+  return /^scrypt:\d+:\d+:\d+:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$/.test(normalizeAdminHash(stored));
+}
+
+/** Xesh yo'q yoki buzilgan bo'lsa — hech qanday parol to'g'ri emas. Parol chetidagi bo'shliqlar hisobga olinmaydi (xesh skripti ham kesadi). */
+export function verifyAdminPassword(rawPassword: string, stored: string | undefined): boolean {
+  const password = rawPassword.trim();
   if (!password || !isAdminPasswordHash(stored)) return false;
-  const [, n, r, p, salt, hash] = stored.trim().split(":");
+  const [, n, r, p, salt, hash] = normalizeAdminHash(stored).split(":");
   const expected = Buffer.from(hash!, "base64url");
   if (expected.length !== KEY_LENGTH) return false;
   const actual = scryptSync(password, Buffer.from(salt!, "base64url"), KEY_LENGTH, {

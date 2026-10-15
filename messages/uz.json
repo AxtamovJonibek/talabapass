@@ -228,6 +228,7 @@
       "checking": "Tekshirilmoqda…",
       "errors": {
         "wrong": "Parol noto'g'ri",
+        "notConfigured": "Admin paroli serverda sozlanmagan (ADMIN_PASSWORD_HASH). Administratorga murojaat qiling.",
         "locked": "Juda ko'p xato urinish. {minutes} daqiqadan keyin SMS kod bilan qayta kiring."
       }
     }

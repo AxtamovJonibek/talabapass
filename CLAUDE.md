@@ -299,6 +299,8 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 ## Admin paroli (ikkinchi qadam, production'da ham)
 - Admin: telefon → SMS kod → `/kirish/admin` da parol. Xesh `ADMIN_PASSWORD_HASH` env'da (`npm run admin:hash`,
   scrypt, `scrypt:N:r:p:salt:hash`); xesh yo'q/buzilgan bo'lsa admin umuman kira olmaydi.
+  Env qiymati tozalanadi (`normalizeAdminHash`: prefiks, qo'shtirnoq, satr bo'linishi); xesh yaroqsiz bo'lsa formada
+  "sozlanmagan" xabari (urinish hisoblanmaydi) va `vercel-build` deploy'ni to'xtatadi (`buildEnvProblems`).
 - To'g'ri parol → `tp_admin` cookie: HMAC, joriy sessiya tokeniga bog'langan, 12 soat. Chiqish/bloklash bilan o'ladi.
 - `requireRole` parolsiz adminni `/kirish/admin` ga yuboradi (barcha sahifa, layout, action); API — `getUnlockedAdmin()`
   (parolsiz 404). Yangi admin API shu funksiya bilan yoziladi.

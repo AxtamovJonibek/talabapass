@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ADMIN_UNLOCK_TTL_MS, checkAdminUnlock, hashAdminPassword, isAdminPasswordHash, signAdminUnlock, verifyAdminPassword } from "./admin-password";
+import { ADMIN_UNLOCK_TTL_MS, checkAdminUnlock, hashAdminPassword, isAdminPasswordHash, normalizeAdminHash, signAdminUnlock, verifyAdminPassword } from "./admin-password";
 
 const SECRET = "s".repeat(43);
 const SESSION = "a".repeat(64);
@@ -15,7 +15,7 @@ describe("admin paroli (xesh)", () => {
 
   it("faqat to'g'ri parol qabul qilinadi", () => {
     expect(verifyAdminPassword("to'g'ri-parol-2026", stored)).toBe(true);
-    for (const wrong of ["", "to'g'ri-parol-2027", "TO'G'RI-PAROL-2026", "to'g'ri-parol-2026 "]) {
+    for (const wrong of ["", "   ", "to'g'ri-parol-2027", "TO'G'RI-PAROL-2026"]) {
       expect(verifyAdminPassword(wrong, stored), wrong).toBe(false);
     }
   });
@@ -23,6 +23,19 @@ describe("admin paroli (xesh)", () => {
   it("xesh yo'q yoki buzilgan bo'lsa hech qanday parol o'tmaydi (yopiq holat)", () => {
     for (const bad of [undefined, "", "parol", stored.replace(/^scrypt/, "bcrypt"), stored.slice(0, -5), stored.replaceAll(":", "$")]) {
       expect(verifyAdminPassword("to'g'ri-parol-2026", bad), String(bad)).toBe(false);
+    }
+  });
+
+  it("parol chetidagi bo'shliq hisobga olinmaydi (xesh skripti ham kesadi)", () => {
+    expect(verifyAdminPassword(" to'g'ri-parol-2026\n", stored)).toBe(true);
+  });
+
+  // Staging'dagi "Parol noto'g'ri": Vercel/terminaldan nusxalangan qiymat (prefiks, qo'shtirnoq, satr bo'linishi)
+  it("env qiymatidagi nusxalash qoldiqlari tozalanadi", () => {
+    const wrapped = `${stored.slice(0, 40)}\r\n  ${stored.slice(40)}`;
+    for (const raw of [`ADMIN_PASSWORD_HASH=${stored}`, `"${stored}"`, `'${stored}'`, ` ${stored}\n`, wrapped, `ADMIN_PASSWORD_HASH="${stored}"`, `"ADMIN_PASSWORD_HASH=${stored}"`]) {
+      expect(normalizeAdminHash(raw), raw).toBe(stored);
+      expect(verifyAdminPassword("to'g'ri-parol-2026", raw), raw).toBe(true);
     }
   });
 

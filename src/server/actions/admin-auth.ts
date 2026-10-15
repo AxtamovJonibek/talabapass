@@ -3,12 +3,12 @@
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
-import { ADMIN_LOCK_MS, ADMIN_MAX_FAILS, verifyAdminPassword } from "../auth/admin-password";
+import { ADMIN_LOCK_MS, ADMIN_MAX_FAILS, isAdminPasswordHash, verifyAdminPassword } from "../auth/admin-password";
 import { getCurrentUser, homePathFor, revokeUserSessions, unlockAdmin } from "../auth/session";
 import { audit } from "../audit";
 import { db } from "../db";
 
-export type AdminPasswordResult = { ok: false; error: "wrong" | "locked"; retryInSeconds?: number };
+export type AdminPasswordResult = { ok: false; error: "wrong" | "locked" | "notConfigured"; retryInSeconds?: number };
 
 /** Oxirgi muvaffaqiyatdan (yoki 15 daqiqadan) beri xato urinishlar — AuditLog'dan. */
 async function recentFailures(userId: string, now: Date) {
@@ -35,6 +35,12 @@ export async function verifyAdminPasswordAction(rawPassword: string): Promise<Ad
   const user = await getCurrentUser();
   if (!user) return redirect({ href: "/kirish", locale });
   if (user.role !== "ADMIN") return redirect({ href: homePathFor(user.role), locale });
+
+  // Xesh sozlanmagan/buzilgan — bu admin xatosi emas: urinish hisoblanmaydi, sabab aniq aytiladi
+  if (!isAdminPasswordHash(process.env.ADMIN_PASSWORD_HASH)) {
+    console.error("ADMIN_PASSWORD_HASH o'rnatilmagan yoki formati buzilgan (kutilgan: scrypt:N:r:p:salt:hash). `npm run admin:hash`.");
+    return { ok: false, error: "notConfigured" };
+  }
 
   const password = z.string().max(256).catch("").parse(rawPassword);
   const now = new Date();

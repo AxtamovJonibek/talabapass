@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { register } from "@/instrumentation";
-import { assertProductionEnv, devShortcutsAllowed, isStaging, productionEnvProblems } from "./env-check";
+import { hashAdminPassword, isAdminPasswordHash } from "./auth/admin-password";
+import { assertProductionEnv, buildEnvProblems, devShortcutsAllowed, isStaging, productionEnvProblems } from "./env-check";
 
 const SAFE = {
   NODE_ENV: "production",
@@ -130,5 +131,18 @@ describe("server start (instrumentation.register)", () => {
 
   it("development'da start o'tadi", async () => {
     await expect(registerWith({ NODE_ENV: "development", OTP_FIXED_CODE: "000000" })).resolves.toBeUndefined();
+  });
+});
+
+describe("deploy tekshiruvi: admin paroli xeshi", () => {
+  it("xesh yo'q yoki buzilgan bo'lsa deploy to'xtaydi, server start'i esa yo'q (sayt ishlayveradi)", () => {
+    expect(buildEnvProblems(SAFE, isAdminPasswordHash).join()).toContain("ADMIN_PASSWORD_HASH");
+    expect(buildEnvProblems({ ...SAFE, ADMIN_PASSWORD_HASH: "scrypt:bad" }, isAdminPasswordHash)).toHaveLength(1);
+    expect(() => assertProductionEnv(SAFE)).not.toThrow();
+  });
+
+  it("to'g'ri xesh (qo'shtirnoq bilan ham) — muammo yo'q", () => {
+    const hash = hashAdminPassword("uzun-admin-paroli-1");
+    expect(buildEnvProblems({ ...SAFE, ADMIN_PASSWORD_HASH: `"${hash}"` }, isAdminPasswordHash)).toEqual([]);
   });
 });
