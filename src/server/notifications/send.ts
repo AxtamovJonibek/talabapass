@@ -57,7 +57,7 @@ export async function dispatchNotification(id: string, now = new Date()): Promis
   try {
     const n = await db.notification.findUniqueOrThrow({ where: { id } });
     if (n.audience === "USER") throw new Error("USER xabari admin orqali yuborilmaydi");
-    const userIds = await audienceUserIds(n.audience, n.audienceIds, now);
+    const userIds = await audienceUserIds(n.audience, n.audienceIds);
 
     for (let i = 0; i < userIds.length; i += CHUNK) {
       await db.userNotification.createMany({ data: userIds.slice(i, i + CHUNK).map((userId) => ({ notificationId: id, userId })), skipDuplicates: true });

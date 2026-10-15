@@ -46,7 +46,7 @@ export function cleanBusinessInfo(info: BusinessInfo): { ok: true; info: CleanIn
 }
 
 /** Manzilda tuman nomi bo'lsa ("…, Chilonzor") — o'sha tuman. Aniq bo'lmasa admin keyin belgilaydi. */
-async function districtFromAddress(address: string): Promise<string | null> {
+export async function districtFromAddress(address: string): Promise<string | null> {
   const districts = await db.district.findMany({ select: { id: true, name: true } });
   const lower = address.toLocaleLowerCase("uz");
   const found = districts.filter((d) => lower.includes(d.name.toLocaleLowerCase("uz")));

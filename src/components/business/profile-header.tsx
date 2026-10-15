@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/icon";
+import { Link } from "@/i18n/navigation";
 import { formatMln } from "@/lib/format";
 import type { OwnerProfile } from "@/server/business/profile";
 
@@ -27,10 +28,9 @@ export function ProfileHeader({ p }: { p: OwnerProfile }) {
             {p.status === "WARNED" ? t("warned") : live ? t("approved") : t("pending")}
           </div>
         </div>
-        {/* Biznes ma'lumotlarini tahrirlash keyingi bosqichda (o'zgarish qayta tekshiruvga tushadi) */}
-        <button type="button" aria-label={t("edit")} disabled className="flex size-11 shrink-0 items-center justify-center rounded-22 border-0 bg-ink-3 text-paper">
+        <Link href="/biznes/profil/tahrir" aria-label={t("edit")} className="flex size-11 shrink-0 items-center justify-center rounded-22 bg-ink-3 text-paper no-underline">
           <Icon name="edit" size={18} />
-        </button>
+        </Link>
       </div>
       <div className="mt-[18px] grid grid-cols-3 border-t border-solid border-ink-4 pt-3.5">
         {stats.map((s) => (

@@ -86,48 +86,31 @@ const mine = (ids: string[]) => ids.filter((id) => id.startsWith(P));
 
 describe("auditoriya", () => {
   it("barcha talabalar: faqat tasdiqlangan va bloklanmagan", async () => {
-    const ids = mine(await audienceUserIds("ALL_STUDENTS", [], now));
+    const ids = mine(await audienceUserIds("ALL_STUDENTS", []));
     expect(ids.sort()).toEqual([students.a1, students.a2, students.b1].sort());
   });
 
   it("universitet bo'yicha: faqat tanlangan universitet(lar)", async () => {
-    expect(mine(await audienceUserIds("UNIVERSITY", [UNI_A], now)).sort()).toEqual([students.a1, students.a2].sort());
-    expect(mine(await audienceUserIds("UNIVERSITY", [UNI_A, UNI_B], now)).sort()).toEqual([students.a1, students.a2, students.b1].sort());
-    expect(await audienceReach("UNIVERSITY", [UNI_B], now)).toBe(1);
+    expect(mine(await audienceUserIds("UNIVERSITY", [UNI_A])).sort()).toEqual([students.a1, students.a2].sort());
+    expect(mine(await audienceUserIds("UNIVERSITY", [UNI_A, UNI_B])).sort()).toEqual([students.a1, students.a2, students.b1].sort());
+    expect(await audienceReach("UNIVERSITY", [UNI_B])).toBe(1);
   });
 
   it("bizneslar: faqat tasdiqlangan biznes egalari", async () => {
-    const ids = mine(await audienceUserIds("BUSINESSES", [], now));
+    const ids = mine(await audienceUserIds("BUSINESSES", []));
     expect(ids).toEqual([OWNER]);
   });
 
-  it("hudud: shu tumandagi biznesdan oxirgi 90 kunda kupon olgan talabalar", async () => {
-    const discount = await db.discount.create({
-      data: {
-        business: { connect: { id: BIZ } },
-        category: { connectOrCreate: { where: { slug: "taom" }, create: { slug: "taom", name: "Taomlar", tileColor: "#F4DCCB", inkColor: "#8A3410", icon: "bowl" } } },
-        title: "test",
-        type: "PERCENT",
-        percent: 10,
-        status: "ACTIVE",
-        weekdays: [1, 2, 3, 4, 5, 6, 7],
-        fromMinute: 0,
-        toMinute: 1439,
-        startsOn: new Date("2026-01-01"),
-        endsOn: new Date("2027-01-01"),
-        dailyLimit: 10,
-      },
-    });
-    const coupon = (studentId: string, code: string, createdAt: Date) =>
-      db.coupon.create({
-        data: { code, discountId: discount.id, studentId, date: new Date("2026-10-01"), secret: Buffer.from("x"), expiresAt: createdAt, createdAt, termsTitle: "test", termsType: "PERCENT" },
-      });
-    await coupon(students.a1, `${P}c1`, new Date("2026-10-01T09:00:00Z"));
-    // 90 kundan eski kupon hisobga olinmaydi
-    await coupon(students.a2, `${P}c2`, new Date("2026-05-01T09:00:00Z"));
+  it("hudud: profilida shu tuman ko'rsatilgan, tasdiqlangan talabalar", async () => {
+    await db.studentProfile.update({ where: { userId: students.a1 }, data: { districtId: DIST_A } });
+    await db.studentProfile.update({ where: { userId: students.b1 }, data: { districtId: DIST_B } });
+    // tasdiqlanmagan talaba tumani bor bo'lsa ham kirmaydi; tumani yo'q talaba hech bir hududga kirmaydi
+    await db.studentProfile.update({ where: { userId: students.pending }, data: { districtId: DIST_A } });
 
-    expect(mine(await audienceUserIds("DISTRICT", [DIST_A], now))).toEqual([students.a1]);
-    expect(mine(await audienceUserIds("DISTRICT", [DIST_B], now))).toEqual([]);
+    expect(mine(await audienceUserIds("DISTRICT", [DIST_A]))).toEqual([students.a1]);
+    expect(mine(await audienceUserIds("DISTRICT", [DIST_B]))).toEqual([students.b1]);
+    expect(mine(await audienceUserIds("DISTRICT", [DIST_A, DIST_B])).sort()).toEqual([students.a1, students.b1].sort());
+    expect(await audienceReach("DISTRICT", [DIST_A])).toBeGreaterThanOrEqual(1);
   });
 });
 

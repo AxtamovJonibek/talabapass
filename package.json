@@ -25,6 +25,7 @@
     "design:compare": "node scripts/compare.mjs",
     "design:probe": "node scripts/probe.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:live": "node scripts/e2e-live.mjs",
     "test:db": "vitest run --config vitest.db.config.mts",
     "files:sanitize": "tsx --conditions=react-server scripts/files.mts",
     "dev:tunnel": "node scripts/dev-tunnel.mjs"

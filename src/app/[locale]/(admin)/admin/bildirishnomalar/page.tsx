@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -22,7 +23,7 @@ async function NotificationsContent() {
   const now = new Date();
   // Zaxira yo'l: tashqi cron ishlamay qolsa ham admin sahifasini ochganda muddati kelganlar yuboriladi
   await dispatchDue(now);
-  const [t, options, history] = await Promise.all([getTranslations("admin.notifications"), audienceOptions(now), notificationHistory()]);
+  const [t, options, history] = await Promise.all([getTranslations("admin.notifications"), audienceOptions(), notificationHistory()]);
 
   const rows: HistoryRow[] = history.map((h) => ({
     id: h.id,
@@ -52,7 +53,7 @@ async function NotificationsContent() {
 
 export default function AdminNotificationsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <NotificationsContent />
     </Suspense>
   );

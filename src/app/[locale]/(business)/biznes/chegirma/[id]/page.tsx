@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { resolveLocale } from "@/i18n/locale";
 import { DiscountEditorPage } from "@/server/business/editor-page";
@@ -12,7 +13,7 @@ async function Editor({ params }: { params: Promise<{ locale: string; id: string
 // B2 / WB2 — chegirmani tahrirlash
 export default function EditDiscountPage({ params }: PageProps<"/[locale]/biznes/chegirma/[id]">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <Editor params={params} />
     </Suspense>
   );

@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -91,7 +92,7 @@ async function StudentReviewPageContent({ searchParams }: PageProps<"/[locale]/a
 // umumiy layout'dagi chegara ishlamaydi.
 export default function StudentReviewPage(props: PageProps<"/[locale]/admin/talabalar">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <StudentReviewPageContent {...props} />
     </Suspense>
   );

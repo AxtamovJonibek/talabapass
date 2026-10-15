@@ -63,3 +63,26 @@ export function BellButton({ unread, size = "md" }: { unread: boolean; size?: "m
     </Link>
   );
 }
+
+/** WT4 (tarix) va profil sahifalari sarlavhasi: logo + "Chegirmalar" / "Profil va tarix" navigatsiyasi. Ota element `@container`. */
+export function StudentWebNav({ active }: { active: "deals" | "profile" }) {
+  const t = useTranslations();
+  const base = "flex h-10 items-center rounded-10 px-3 text-14 whitespace-nowrap no-underline";
+  return (
+    <header className="border-0 border-b-[1.5px] border-solid border-ink">
+      <div className="mx-auto flex h-[72px] max-w-[1360px] items-center gap-3.5 px-[clamp(16px,3cqw,40px)]">
+        <Link href="/chegirmalar" className="shrink-0 text-ink no-underline">
+          <Logo size={20} />
+        </Link>
+        <nav aria-label={t("feed.nav")} className="ml-auto flex gap-0.5 overflow-x-auto">
+          <Link href="/chegirmalar" aria-current={active === "deals" ? "page" : undefined} className={cn(base, active === "deals" ? "bg-ink font-bold text-white" : "font-semibold text-ink")}>
+            {t("feed.navDeals")}
+          </Link>
+          <Link href="/tarix" aria-current={active === "profile" ? "page" : undefined} className={cn(base, active === "profile" ? "bg-ink font-bold text-white" : "font-semibold text-ink")}>
+            {t("history.navProfile")}
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+}

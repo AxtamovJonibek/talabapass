@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
@@ -5,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { resolveLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
 import { StagingBadge } from "@/components/StagingBadge";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { isStaging } from "@/server/env-check";
 import "../globals.css";
 
@@ -34,6 +36,9 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   return {
     title: t("title"),
     description: t("description"),
+    manifest: "/manifest.webmanifest",
+    icons: { apple: "/icons/apple-touch-icon.png" },
+    appleWebApp: { capable: true, title: "talabaPass", statusBarStyle: "default" },
     ...(isStaging() && { robots: { index: false, follow: false } }),
   };
 }
@@ -49,7 +54,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   return (
     <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          {children}
+          <Suspense fallback={null}>
+            <ServiceWorkerRegister />
+          </Suspense>
+        </NextIntlClientProvider>
         {isStaging() && <StagingBadge label={t("stagingBadge")} />}
       </body>
     </html>

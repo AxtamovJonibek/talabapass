@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { BusinessPendingScreen } from "@/components/business/pending-screen";
 import { BusinessRegisterScreen } from "@/components/business/register-screen";
@@ -50,7 +51,7 @@ async function BusinessHome({ searchParams }: { searchParams: PageProps<"/[local
 export default async function BusinessHomePage({ params, searchParams }: PageProps<"/[locale]/biznes">) {
   await resolveLocale(params);
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <BusinessHome searchParams={searchParams} />
     </Suspense>
   );

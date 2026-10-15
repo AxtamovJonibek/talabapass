@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
 import { ProfilePage } from "@/components/business/owner-pages";
@@ -21,7 +22,7 @@ async function Profile() {
 export default async function BusinessProfilePage({ params }: PageProps<"/[locale]/biznes/profil">) {
   await resolveLocale(params);
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <Profile />
     </Suspense>
   );

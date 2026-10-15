@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -47,7 +48,7 @@ async function TransactionsContent({ searchParams }: { searchParams: PageProps<"
 
 export default function TransactionsPage({ searchParams }: PageProps<"/[locale]/admin/tranzaksiyalar">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <TransactionsContent searchParams={searchParams} />
     </Suspense>
   );

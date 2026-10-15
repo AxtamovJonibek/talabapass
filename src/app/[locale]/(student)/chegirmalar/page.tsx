@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { FeedScreen } from "@/components/student/feed/feed-screen";
 import { initials } from "@/lib/format";
@@ -55,7 +56,7 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
 
 export default function StudentFeedPage({ searchParams }: PageProps<"/[locale]/chegirmalar">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <FeedPageContent searchParams={searchParams} />
     </Suspense>
   );

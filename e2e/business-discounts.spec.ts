@@ -14,6 +14,7 @@ test.describe("veb (WB2)", () => {
   test.use({ viewport: { width: 1440, height: 1000 } });
 
   test("noto'g'ri qiymatlar formada to'xtaydi; e'lon qilingan chegirma tekshiruvga tushadi", async ({ page }) => {
+    test.slow(); // dev serverda birinchi kompilyatsiya uzoq
     const { owner } = await seedPhones();
     await signIn(page, owner);
     await expect(page).toHaveURL("/biznes");

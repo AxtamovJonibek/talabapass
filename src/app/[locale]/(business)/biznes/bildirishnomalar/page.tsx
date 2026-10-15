@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { BusinessShell } from "@/components/business/business-shell";
 import { Inbox } from "@/components/notifications/inbox";
@@ -20,7 +21,7 @@ async function OwnerInbox() {
 export default async function BusinessNotificationsPage({ params }: PageProps<"/[locale]/biznes/bildirishnomalar">) {
   await resolveLocale(params);
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <OwnerInbox />
     </Suspense>
   );

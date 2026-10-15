@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { getTranslations } from "next-intl/server";
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { HistoryScreen } from "@/components/student/history/history-screen";
-import { initials } from "@/lib/format";
 import { requireActiveStudent } from "@/server/auth/student";
 import { activeCouponCount } from "@/server/coupons/coupons";
 import { receipt, studentHistory } from "@/server/coupons/receipts";
+import { profileData } from "@/server/student/profile-data";
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? null;
 
@@ -16,7 +16,7 @@ async function HistoryPageContent({ searchParams }: { searchParams: PageProps<"/
   const params = await searchParams;
   const now = new Date();
   const chek = first(params.chek);
-  const [history, coupons, t] = await Promise.all([studentHistory(user.id, first(params.oy), now), activeCouponCount(user.id), getTranslations()]);
+  const [history, coupons, profile] = await Promise.all([studentHistory(user.id, first(params.oy), now), activeCouponCount(user.id), profileData(user)]);
 
   // Tanlangan chek boshqa oyda bo'lishi mumkin — faqat o'ziniki
   let selected = history.receipts.find((r) => r.id === chek) ?? null;
@@ -26,29 +26,12 @@ async function HistoryPageContent({ searchParams }: { searchParams: PageProps<"/
   }
   selected ??= history.receipts[0] ?? null;
 
-  const s = user.student;
-  const course = s.course === "MASTER" ? t("coupon.master") : t("coupon.course", { n: s.course.slice(1) });
-  return (
-    <HistoryScreen
-      history={history}
-      selected={selected}
-      coupons={coupons}
-      now={now}
-      profile={{
-        name: [user.firstName, user.lastName].filter(Boolean).join(" "),
-        initials: initials(user.firstName, user.lastName),
-        meta: [s.university.shortName, s.faculty, course].filter(Boolean).join(" · "),
-        publicId: s.publicId,
-        cardExpiresAt: s.cardExpiresAt?.toISOString() ?? null,
-        notify: s.notifyDeals,
-      }}
-    />
-  );
+  return <HistoryScreen history={history} selected={selected} coupons={coupons} now={now} profile={profile} />;
 }
 
 export default function StudentHistoryPage({ searchParams }: PageProps<"/[locale]/tarix">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <HistoryPageContent searchParams={searchParams} />
     </Suspense>
   );

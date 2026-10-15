@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
 import { CouponList } from "@/components/student/coupon/coupon-list";
@@ -15,7 +16,7 @@ async function CouponsPageContent() {
 
 export default function StudentCouponsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <CouponsPageContent />
     </Suspense>
   );

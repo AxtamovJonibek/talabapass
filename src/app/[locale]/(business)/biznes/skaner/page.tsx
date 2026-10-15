@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { OwnerBottomNav } from "@/components/business/owner-nav";
@@ -65,7 +66,7 @@ async function ScannerContent() {
 
 export default function ScannerPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <ScannerContent />
     </Suspense>
   );

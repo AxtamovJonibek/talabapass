@@ -244,17 +244,6 @@
       }
     }
   },
-  "placeholder": {
-    "signedInAs": "{name} sifatida kirdingiz",
-    "comingSoon": "Bu bo'lim keyingi bosqichlarda quriladi.",
-    "student": "Talaba ilovasi",
-    "business": "Biznes kabineti",
-    "cashier": "Kassir skaneri",
-    "admin": "Admin panel",
-    "studentRegister": "Talaba ro'yxati",
-    "businessRegister": "Biznes ro'yxati",
-    "verifiedPhone": "Tasdiqlangan raqam: {phone}"
-  },
   "landing": {
     "header": {
       "talabapass_bosh_sahifa": "talabaPass bosh sahifa",
@@ -1102,6 +1091,12 @@
   },
   "businessProfile": {
     "edit": "Tahrirlash",
+    "editTitle": "Biznes ma'lumotlari",
+    "editSave": "Saqlash",
+    "editNote": "Nom yoki manzil o'zgarsa, biznes qayta tekshiriladi (odatda bir necha soat) — shu vaqt chegirmalar talabalarga ko'rinmaydi. Ish vaqti va tavsif darhol o'zgaradi.",
+    "saved": "Saqlandi",
+    "savedRereview": "Saqlandi. Nom yoki manzil o'zgargani uchun biznes qayta tekshiruvga yuborildi.",
+    "notEditable": "Bu biznesni hozir tahrirlab bo'lmaydi.",
     "approved": "Tasdiqlangan hamkor",
     "pending": "Tekshiruvda",
     "warned": "Ogohlantirilgan hamkor",
@@ -1273,7 +1268,7 @@
       },
       "universities": "Universitetlar:",
       "districts": "Hududlar:",
-      "districtHint": "Hudud: oxirgi 90 kunda shu tumandagi biznesdan chegirma olgan talabalar.",
+      "districtHint": "Hudud: profilida shu tumanni ko'rsatgan talabalar (tuman — ixtiyoriy maydon).",
       "reach": "Qamrov:",
       "unitStudent": "talaba",
       "unitBusiness": "biznes",
@@ -1747,5 +1742,46 @@
       "off": "o'chirilgan",
       "legal": "Maxfiylik va shartlar"
     }
+  },
+  "state": {
+    "retry": "Qayta urinib ko'rish",
+    "home": "Bosh sahifa",
+    "offlineTitle": "Internet yo'q",
+    "offlineLead": "Ulanish tiklangach sahifa o'zi ochiladi. Avval ochilgan kupon internetsiz ham ko'rinadi — kuponlar bo'limiga o'ting.",
+    "errorTitle": "Nimadir xato ketdi",
+    "errorLead": "Sahifani ochib bo'lmadi. Bir ozdan keyin qayta urinib ko'ring — muammo takrorlansa, bizga xabar bering.",
+    "notFoundTitle": "Sahifa topilmadi",
+    "notFoundLead": "Havola eskirgan yoki manzil noto'g'ri yozilgan bo'lishi mumkin.",
+    "loading": "Yuklanmoqda…"
+  },
+  "profile": {
+    "title": "Profil",
+    "settings": "Sozlamalar",
+    "personalTitle": "Shaxsiy ma'lumotlar",
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "faculty": "Fakultet yoki yo'nalish",
+    "district": "Tuman",
+    "optional": "ixtiyoriy",
+    "districtNone": "Ko'rsatmayman",
+    "districtHint": "Tumanni ko'rsatsangiz, yaqin atrofdagi yangi chegirmalar haqida xabar olasiz. Boshqalarga ko'rinmaydi.",
+    "errName": "Harflardan iborat 2–40 belgi kiriting.",
+    "errFaculty": "Eng ko'pi bilan 80 belgi.",
+    "errDistrict": "Bunday tuman topilmadi.",
+    "save": "Saqlash",
+    "saved": "Saqlandi",
+    "notify": "Yangi chegirmalar haqida xabar",
+    "language": "Til",
+    "languageValue": "O'zbekcha",
+    "help": "Yordam markazi",
+    "nextCheck": "Keyingi tasdiq: {year}-yil {month}",
+    "countPlaces": "ta · {count} joyda",
+    "cardTitle": "Talaba guvohnomasi",
+    "cardStatus": "Holat",
+    "cardStatusValue": "Tasdiqlangan",
+    "cardId": "talabaPass ID",
+    "cardNumber": "Guvohnoma raqami",
+    "cardExpires": "Amal qilish muddati",
+    "cardNote": "Muddat tugagach yangi guvohnoma yuklash so'raladi; chegirmalar tarixi saqlanadi."
   }
 }

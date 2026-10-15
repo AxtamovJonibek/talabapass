@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
 import { CashiersPage } from "@/components/business/owner-pages";
@@ -17,7 +18,7 @@ async function Cashiers() {
 export default async function BusinessCashiersPage({ params }: PageProps<"/[locale]/biznes/kassirlar">) {
   await resolveLocale(params);
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <Cashiers />
     </Suspense>
   );

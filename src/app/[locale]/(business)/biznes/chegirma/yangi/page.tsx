@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { resolveLocale } from "@/i18n/locale";
 import { DiscountEditorPage } from "@/server/business/editor-page";
@@ -6,7 +7,7 @@ import { DiscountEditorPage } from "@/server/business/editor-page";
 export default async function NewDiscountPage({ params }: PageProps<"/[locale]/biznes/chegirma/yangi">) {
   await resolveLocale(params);
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <DiscountEditorPage discountId={null} />
     </Suspense>
   );

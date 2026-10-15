@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { Inbox } from "@/components/notifications/inbox";
 import { resolveLocale } from "@/i18n/locale";
@@ -19,7 +20,7 @@ async function StudentInbox() {
 export default async function StudentNotificationsPage({ params }: PageProps<"/[locale]/bildirishnomalar">) {
   await resolveLocale(params);
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <StudentInbox />
     </Suspense>
   );

@@ -94,6 +94,7 @@ test.describe("veb (WB1)", () => {
   });
 
   test("yarim yo'lda qolgan ariza navbatga chiqmaydi va /biznes da davom etadi", async ({ page }) => {
+    test.slow(); // dev serverda birinchi kompilyatsiya uzoq
     await page.goto("/biznes/royxat", { waitUntil: "networkidle" });
     await fillInfo(page, "wb");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();

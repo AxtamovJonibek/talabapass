@@ -1,11 +1,11 @@
 import "server-only";
 import { randomInt } from "node:crypto";
 import { z } from "zod";
+import { NAME } from "@/lib/profile";
 import { toTashkent } from "@/lib/time";
 import { db } from "../db";
 import { isUniqueViolation } from "../db-errors";
 
-const NAME = /^[\p{L}][\p{L}'ʻʼ’` -]{1,39}$/u;
 
 export const studentFormSchema = z.object({
   firstName: z.string().trim().regex(NAME),

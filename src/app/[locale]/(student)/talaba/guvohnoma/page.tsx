@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
@@ -45,7 +46,7 @@ async function StudentCardPageContent() {
 // umumiy layout'dagi chegara ishlamaydi.
 export default function StudentCardPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <StudentCardPageContent />
     </Suspense>
   );

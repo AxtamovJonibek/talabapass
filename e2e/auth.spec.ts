@@ -214,10 +214,10 @@ test.describe("kirish", () => {
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/chegirmalar", "/kuponlar", "/tarix", "/profil", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/admin/tranzaksiyalar", "/admin/bildirishnomalar", "/admin/bloklanganlar", "/bildirishnomalar", "/biznes/bildirishnomalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
+  const PROTECTED = ["/chegirmalar", "/kuponlar", "/tarix", "/profil", "/profil/tahrir", "/profil/guvohnoma", "/biznes/profil/tahrir", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/admin/tranzaksiyalar", "/admin/bildirishnomalar", "/admin/bloklanganlar", "/bildirishnomalar", "/biznes/bildirishnomalar", "/talaba/guvohnoma", "/talaba/tekshiruv"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
-    test.slow(); // 8 ta sahifa — dev serverda birinchi kompilyatsiya uzoq
+    test.setTimeout(180_000); // ko'p sahifa — dev serverda birinchi kompilyatsiya uzoq
     for (const path of PROTECTED) {
       await page.goto(path);
       await expect(page, path).toHaveURL("/kirish");
@@ -226,14 +226,15 @@ test.describe("rol himoyasi", () => {
 
   // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
   const MATRIX = {
-    student: { "/biznes/chegirma/yangi": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar", "/admin/tranzaksiyalar": "/chegirmalar", "/admin/bildirishnomalar": "/chegirmalar", "/admin/bloklanganlar": "/chegirmalar", "/biznes/bildirishnomalar": "/chegirmalar" },
-    owner: { "/chegirmalar": "/biznes", "/profil": "/biznes", "/bildirishnomalar": "/biznes", "/admin": "/biznes", "/admin/bildirishnomalar": "/biznes", "/admin/tranzaksiyalar": "/biznes", "/biznes/skaner": "/biznes/skaner" },
-    cashier: { "/kuponlar": "/biznes/skaner", "/biznes/profil": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner", "/admin/tranzaksiyalar": "/biznes/skaner", "/admin/bildirishnomalar": "/biznes/skaner", "/admin/bloklanganlar": "/biznes/skaner", "/bildirishnomalar": "/biznes/skaner", "/biznes/bildirishnomalar": "/biznes/skaner" },
-    admin: { "/tarix": "/admin", "/chegirmalar": "/admin", "/bildirishnomalar": "/admin", "/biznes": "/admin", "/biznes/bildirishnomalar": "/admin", "/biznes/skaner": "/admin" },
+    student: { "/biznes/chegirma/yangi": "/chegirmalar", "/biznes/profil/tahrir": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar", "/admin/tranzaksiyalar": "/chegirmalar", "/admin/bildirishnomalar": "/chegirmalar", "/admin/bloklanganlar": "/chegirmalar", "/biznes/bildirishnomalar": "/chegirmalar" },
+    owner: { "/chegirmalar": "/biznes", "/profil": "/biznes", "/profil/tahrir": "/biznes", "/profil/guvohnoma": "/biznes", "/bildirishnomalar": "/biznes", "/admin": "/biznes", "/admin/bildirishnomalar": "/biznes", "/admin/tranzaksiyalar": "/biznes", "/biznes/skaner": "/biznes/skaner" },
+    cashier: { "/kuponlar": "/biznes/skaner", "/profil/tahrir": "/biznes/skaner", "/biznes/profil": "/biznes/skaner", "/biznes/profil/tahrir": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner", "/admin/tranzaksiyalar": "/biznes/skaner", "/admin/bildirishnomalar": "/biznes/skaner", "/admin/bloklanganlar": "/biznes/skaner", "/bildirishnomalar": "/biznes/skaner", "/biznes/bildirishnomalar": "/biznes/skaner" },
+    admin: { "/profil": "/admin", "/profil/guvohnoma": "/admin", "/biznes/profil/tahrir": "/admin", "/tarix": "/admin", "/chegirmalar": "/admin", "/bildirishnomalar": "/admin", "/biznes": "/admin", "/biznes/bildirishnomalar": "/admin", "/biznes/skaner": "/admin" },
   } as const;
 
   for (const [role, routes] of Object.entries(MATRIX) as [keyof typeof MATRIX, Record<string, string>][]) {
     test(`${role} faqat o'z sahifalarini ko'radi`, async ({ page }) => {
+      test.slow(); // dev serverda birinchi kompilyatsiya uzoq
       await signIn(page, phones[role]);
       await expect(page).toHaveURL(HOME[role]);
       for (const [path, landsOn] of Object.entries(routes)) {

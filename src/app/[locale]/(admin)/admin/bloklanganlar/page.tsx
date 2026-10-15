@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -139,7 +140,7 @@ async function BlockedContent({ searchParams }: { searchParams: PageProps<"/[loc
 
 export default function BlockedPage({ searchParams }: PageProps<"/[locale]/admin/bloklanganlar">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <BlockedContent searchParams={searchParams} />
     </Suspense>
   );

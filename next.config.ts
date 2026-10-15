@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
+  // Noma'lum manzillar uchun o'zbekcha 404 (ildiz layout [locale] dinamik bo'lgani uchun oddiy not-found yetmaydi)
+  experimental: { globalNotFound: true },
   turbopack: {
     rules: {
       "*.css": {

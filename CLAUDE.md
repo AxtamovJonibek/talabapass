@@ -27,6 +27,7 @@ npm run typecheck    tsc --noEmit
 npm test             Vitest (sof mantiq)
 npm run test:db      baza bilan testlar (*.itest.ts) — lokal baza kerak
 npm run test:e2e     Playwright (kamera testlari to'liq Chromium bilan: `npx playwright install chromium`)
+npm run test:e2e:live  navigatsiya testi jonli havolada (`.env.staging` bazasi + E2E_BASE_URL; faqat GET, `E2E_ADMIN_PASSWORD` bo'lsa admin ham)
 npm run db:dev       lokal Postgres (prisma dev, Docker kerak emas) — alohida terminalda ishlab turadi;
                      kompyuter qayta yoqilgach o'zi ko'tarilmaydi (baza xatosi chiqsa birinchi shuni tekshiring)
 npm run db:migrate   migratsiyalarni qo'llash
@@ -126,7 +127,7 @@ Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspen
 - Joy (`tp_loc` cookie): tuman markazi yoki geolokatsiya (~100 m); masofa shundan. Xarita — MapLibre + OpenFreeMap (kalitsiz).
 - Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan); rasm yo'q chegirmada — kategoriya ikonkasi;
   qo'ng'iroq faqat belgi;
-  `/profil` — vaqtinchalik sahifa (T8 keyin).
+  `/profil` — T8/WT4 (pastdagi "Profil" bo'limi).
 
 ## Dizayndan ekran ko'chirish (faqat marketing sahifalari)
 1. `npm run design:gen -- <ID> <namespace> --messages=messages/uz.json` — `design/screens/<ID>.html` dan komponentlar
@@ -271,7 +272,7 @@ ilova sahifalari `requireActiveStudent()`, ro'yxat qadamlari `requireStudent()` 
 - Sahifalar: T6 `/kuponlar/<id>` (bitta faol bo'lsa `/kuponlar` shunga o'tadi), WT3 yon panelda QR, B3/B4
   `/biznes/skaner` (egasi ham), T7/WT4 `/tarix?oy=&chek=`, PDF `/api/chek/<id>` (talaba, egasi, kassir, admin).
 - Talaba ekrani internet bo'lsa 4 s da sotilganini so'raydi va chekka o'tadi; QR internetsiz yangilanadi.
-  Sahifani internetsiz OCHISH uchun PWA (Serwist) kerak — hali yo'q.
+  Sahifani internetsiz ochish — PWA (pastdagi "PWA" bo'limi).
 - Kamera: BarcodeDetector, bo'lmasa jsQR; chiroq (torch) qo'llansa tugma chiqadi.
 - Dizayndan chetlanishlar: QR ostida 6 raqamli kod; "Kodni kiritish" formasi; narxsiz chegirmada kassir chek summasini
   (1+1 — bitta mahsulot narxini) kiritadi; kassirda pastki navigatsiya o'rniga "Hisobdan chiqish"; T7 da PDF havolasi;
@@ -342,8 +343,8 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Bildirishnomalar: `src/server/notifications/` — `audience.ts` (ALL_STUDENTS, UNIVERSITY, DISTRICT, BUSINESSES), `send.ts` (yaratish,
   atom `SCHEDULED→SENDING`, `dispatchDue`), `push.ts` (Web Push, VAPID), `direct.ts` (tasdiq/rad xabari: ilova ichi + push + SMS),
   `inbox.ts`. Qoidalar `src/lib/notifications.ts` (sarlavha ≤ 50, matn ≤ 150, vaqt Toshkent, ≤ 90 kun).
-  `Audience.USER` — tizim xabari, admin tarixida ko'rinmaydi. **DISTRICT**: talabaning tumani bazada yo'q — oxirgi 90 kunda shu tumandagi
-  biznesdan kupon olganlar. "Ochildi" — `UserNotification.readAt` dan hisoblanadi.
+  `Audience.USER` — tizim xabari, admin tarixida ko'rinmaydi. **DISTRICT**: talabaning profilidagi ixtiyoriy `StudentProfile.districtId`
+  (tumanni ko'rsatmagan talaba hech bir hududga kirmaydi). "Ochildi" — `UserNotification.readAt` dan hisoblanadi.
 - Talaba qo'ng'irog'i → `/bildirishnomalar`, biznes egasi → `/biznes/bildirishnomalar` (push yoqish tugmasi shu yerda, `public/sw.js`).
 - Rejalashtirilgan xabarlar: Vercel Hobby cron'i kuniga 1 marta — shuning uchun asosiy yo'l GitHub Actions (`.github/workflows/cron.yml`, har 5 daqiqa,
   `/api/cron/bildirishnomalar`, `Authorization: Bearer CRON_SECRET`; repo secrets `CRON_SECRET`, `APP_URL`), zaxira — `vercel.json` kunlik cron va
@@ -356,7 +357,31 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Testlar: `admin-stats.test.ts`, `admin-transactions.test.ts`, `notifications.test.ts`, `admin.itest.ts`, `notifications.itest.ts`,
   `moderation.itest.ts` (blokdan chiqarish), `e2e/admin-overview.spec.ts`.
 
+## Profil, PWA, holatlar, navigatsiya testi (11-bosqich)
+- Profil: `/profil` (T8 telefon; veb — WT4 yon paneli + "Shaxsiy ma'lumotlar" formasi), `/profil/tahrir`, `/profil/guvohnoma` (faqat ko'rish).
+  Umumiy qismlar `src/components/student/profile/` (`StudentIdCard`, `TotalsGrid`, `ProfileAside` — `/tarix` vebida ham shu), server —
+  `src/server/student/profile.ts` (+ `profile-data.ts`), action `student-profile.ts`, qoidalar `src/lib/profile.ts` (forma va server bitta, ro'yxat bilan bir xil `NAME`).
+  Tahrirlanadi: ism, familiya, kurs, fakultet, tuman (ixtiyoriy, `StudentProfile.districtId`); universitet va guvohnoma ma'lumoti — yo'q.
+  Til qatori faqat "O'zbekcha" ko'rsatadi (ru/en tarjimasi yo'q — yolg'on tanlov qo'shilmagan). "Yordam markazi" → landing `/#savollar`.
+- Biznes ma'lumotlarini tahrirlash (B5 "Tahrirlash"): `/biznes/profil/tahrir`, `src/server/business/profile-edit.ts`. Nom yoki manzil o'zgarsa
+  tasdiqlangan biznes `PENDING` ga qaytadi (chegirmalar talabaga ko'rinmay qoladi, audit `business.edit`); ish vaqti va tavsif — tekshiruvsiz.
+- PWA: `public/manifest.webmanifest`, `public/icons/` (`node scripts/pwa-icons.mjs` — "ticket" ikonkasidan), qo'lda yozilgan `public/sw.js`
+  (Serwist emas: Next 16/Turbopack da `@serwist/next` ishlamaydi; push mantiqi shu faylda). Faqat production'da ro'yxatdan o'tadi
+  (`ServiceWorkerRegister`). `/_next/static` — cache-first; navigatsiya tarmoqsiz bo'lsa `/oflayn`; ochilgan kupon sahifasi (`/kuponlar/<id>`)
+  va fayllari keshlanadi (internetsiz ochiladi; QR kliyentda hisoblanadi), `/kuponlar` — eng so'nggi keshlangani. `/kirish` ochilganda kesh
+  tozalanadi. SW o'zgarsa `VERSION` ni oshiring. Tekshiruv: faqat `next build && next start` + DevTools → Offline.
+- Holatlar: `src/app/[locale]/error.tsx`, `not-found.tsx`, `/oflayn` (`StatePage`), yuklanish — `PageSkeleton` (ilova sahifalarining `<Suspense>` fallback'i;
+  landing/kirish'da `null` qoldi). Skelet `animate-pulse` ishlatadi — dizaynda chizilmagan holat.
+- `e2e/navigation.spec.ts`: 4 rol + mehmon × 390/1440, ko'rinadigan havolalar 2 qadam chuqurlikda; xato/404, bo'sh, "tez orada" matni, begona bo'limga
+  yo'naltirish — xato. Yangi sahifa havola bilan bog'lansa o'zi tekshiriladi. `e2e/profile.spec.ts`, `e2e/business-edit.spec.ts`.
+- Dizayndan chetlanishlar: T8 dagi sozlamalar tugmasi "Sozlamalar" ro'yxatiga o'tadi (`#sozlamalar`); WT4 yon panelida "Bildirishnomalar" qatori bosilsa
+  almashadi; `/profil/tahrir`, `/profil/guvohnoma`, `/biznes/profil/tahrir`, `/oflayn`, xato/404 ekranlari dizaynda yo'q (mavjud primitivlardan).
+- Landing pastki qismidagi ijtimoiy tarmoq belgilarining havolasi `#` — egasidan manzillar kutilmoqda.
+- Lokal e2e: `prisma dev` (PGlite) qotib qolsa ("Server has closed the connection", P1017, ECONNRESET, testlar ketma-ket yiqiladi) —
+  `npm run db:dev` jarayonini to'xtatib qayta ishga tushiring (ma'lumot saqlanadi). Sinov serverining bazasida e2e yuritilmaydi.
+
 ## Ishga tushishdan oldin (majburiy ro'yxat)
+To'liq, tushuntirishlar bilan — `docs/ishga-tushirish.md`. Qisqacha:
 Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilgan bo'lishi kerak:
 - [ ] **Admin uchun TOTP ikkinchi faktor** (authenticator ilova): hozir SMS + umumiy parol (`ADMIN_PASSWORD_HASH`);
       har admin uchun alohida TOTP va zaxira kodlar — keyin.

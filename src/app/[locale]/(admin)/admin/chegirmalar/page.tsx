@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
@@ -126,7 +127,7 @@ async function DiscountReviewPageContent({ searchParams }: PageProps<"/[locale]/
 
 export default function DiscountReviewPage(props: PageProps<"/[locale]/admin/chegirmalar">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <DiscountReviewPageContent {...props} />
     </Suspense>
   );

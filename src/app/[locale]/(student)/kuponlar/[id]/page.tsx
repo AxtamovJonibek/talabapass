@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { getLocale } from "next-intl/server";
@@ -24,7 +25,7 @@ async function CouponPageContent({ params }: { params: PageProps<"/[locale]/kupo
 
 export default function CouponPage({ params }: PageProps<"/[locale]/kuponlar/[id]">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <CouponPageContent params={params} />
     </Suspense>
   );

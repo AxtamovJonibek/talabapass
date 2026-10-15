@@ -64,7 +64,7 @@ test.describe("telefon (T4 / T5)", () => {
     await signIn(page, student);
     // Sahifa oqim bilan beriladi — holat kodi emas, 404 sahifasi tekshiriladi
     await page.goto(`/chegirmalar/${PENDING_ID}`);
-    await expect(page.getByText("This page could not be found.")).toBeVisible();
+    await expect(page.getByTestId("not-found-page")).toBeVisible();
     await expect(page.getByText(PENDING_TITLE)).toHaveCount(0);
   });
 });

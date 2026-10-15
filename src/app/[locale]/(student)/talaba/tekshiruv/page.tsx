@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PhoneOrWeb } from "@/components/student/responsive";
@@ -58,7 +59,7 @@ async function StudentReviewPageContent() {
 // umumiy layout'dagi chegara ishlamaydi.
 export default function StudentReviewPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <StudentReviewPageContent />
     </Suspense>
   );

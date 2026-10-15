@@ -136,16 +136,20 @@ model StudentProfile {
   cardNumber    String?       @unique
   cardExpiresAt DateTime?     @db.Date
   notifyDeals   Boolean       @default(true)
+  /// Ixtiyoriy: "Hudud" auditoriyasi (bildirishnomalar) shu maydondan olinadi
+  districtId    String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   university    University     @relation(fields: [universityId], references: [id])
+  district      District?      @relation(fields: [districtId], references: [id], onDelete: SetNull)
   verifications Verification[]
 
   @@index([status])
   @@index([universityId])
   @@index([cardExpiresAt])
+  @@index([districtId])
 }
 
 /// Har bir guvohnoma yuklash — alohida yozuv (tarix saqlanadi)
@@ -207,6 +211,7 @@ model District {
   lng  Float
 
   businesses Business[]
+  students   StudentProfile[]
 }
 
 model Business {

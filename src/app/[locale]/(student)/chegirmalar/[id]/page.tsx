@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { DealDetailScreen } from "@/components/student/deal/deal-detail";
@@ -37,7 +38,7 @@ async function DealPageContent({ params }: { params: PageProps<"/[locale]/chegir
 
 export default function DealPage({ params }: PageProps<"/[locale]/chegirmalar/[id]">) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <DealPageContent params={params} />
     </Suspense>
   );

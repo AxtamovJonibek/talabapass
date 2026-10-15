@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
 import { SalesScreen } from "@/components/business/stats/sales-screen";
@@ -24,7 +25,7 @@ async function Sales({ searchParams }: { searchParams: PageProps<"/[locale]/bizn
 export default async function SalesPage({ params, searchParams }: PageProps<"/[locale]/biznes/sotuvlar">) {
   await resolveLocale(params);
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageSkeleton />}>
       <Sales searchParams={searchParams} />
     </Suspense>
   );
