@@ -392,7 +392,7 @@ async function main() {
         districtId: district.id, address: b.address, landmark: b.landmark,
         lat: district.lat + b.shift[0], lng: district.lng + b.shift[1],
         workingHours: b.workingHours, description: b.description,
-        contactName: b.owner.join(" "), contactPhone: b.contactPhone,
+        contactName: b.owner.join(" "), contactPhone: b.contactPhone, publicPhone: b.contactPhone,
         status: b.status ?? "APPROVED", reviewedById: admin.id, reviewedAt: dayOffset(-40),
         createdAt: dayOffset(-45), submittedAt: dayOffset(-45),
         members: { create: { userId: owner.id, role: "OWNER" } },

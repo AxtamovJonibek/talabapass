@@ -237,6 +237,10 @@ model Business {
   logoKey      String?
   contactName  String?
   contactPhone String?
+  /// Talabalarga ko'rinadigan aloqa (ixtiyoriy): telefon (E.164), Telegram va Instagram foydalanuvchi nomlari
+  publicPhone  String?
+  telegram     String?
+  instagram    String?
   status       BusinessStatus @default(PENDING)
   rejectReason String?
   reviewedById String?

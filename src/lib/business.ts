@@ -3,6 +3,8 @@
  * Server baribir qayta tekshiradi; STIR yagonaligi faqat serverda (bazada unique).
  */
 
+import { normalizePhone } from "./format";
+
 export const BUSINESS_KINDS = ["CAFE", "SHOP", "SERVICE", "SPORT", "BEAUTY", "EDUCATION", "ENTERTAINMENT"] as const;
 export type BusinessKindValue = (typeof BUSINESS_KINDS)[number];
 
@@ -50,3 +52,38 @@ export function validateBusiness(d: BusinessInfo, only?: readonly BusinessField[
   };
   return (only ?? (Object.keys(checks) as BusinessField[])).filter((field) => !checks[field]);
 }
+
+// ───────── talabaga ko'rinadigan aloqa (ixtiyoriy maydonlar) ─────────
+
+export type ContactField = "phone" | "telegram" | "instagram";
+export type ContactInput = Record<ContactField, string>;
+export type Contacts = { phone: string | null; telegram: string | null; instagram: string | null };
+
+const HANDLE: Record<"telegram" | "instagram", { host: RegExp; valid: RegExp }> = {
+  telegram: { host: /^(https?:\/\/)?(www\.)?(t\.me|telegram\.me)\//i, valid: /^[A-Za-z][A-Za-z0-9_]{4,31}$/ },
+  instagram: { host: /^(https?:\/\/)?(www\.)?instagram\.com\//i, valid: /^(?!.*\.\.)[A-Za-z0-9._]{1,30}$/ },
+};
+
+/** "@nom", "t.me/nom", "https://instagram.com/nom/" → "nom"; bo'sh → null; noto'g'ri → undefined. */
+export function normalizeHandle(kind: "telegram" | "instagram", value: string): string | null | undefined {
+  const raw = value.trim();
+  if (!raw) return null;
+  const handle = raw.replace(HANDLE[kind].host, "").replace(/^@/, "").replace(/[/?#].*$/, "");
+  return HANDLE[kind].valid.test(handle) ? handle : undefined;
+}
+
+/** Aloqa maydonlarini tekshiradi va tozalaydi: bo'sh maydon — null (ko'rsatilmaydi). */
+export function validateContacts(input: ContactInput): { ok: true; value: Contacts } | { ok: false; fields: ContactField[] } {
+  const phoneRaw = input.phone.trim();
+  const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
+  const telegram = normalizeHandle("telegram", input.telegram);
+  const instagram = normalizeHandle("instagram", input.instagram);
+  const fields: ContactField[] = [];
+  if (phoneRaw && !phone) fields.push("phone");
+  if (telegram === undefined) fields.push("telegram");
+  if (instagram === undefined) fields.push("instagram");
+  return fields.length ? { ok: false, fields } : { ok: true, value: { phone, telegram: telegram ?? null, instagram: instagram ?? null } };
+}
+
+export const telegramUrl = (handle: string) => `https://t.me/${handle}`;
+export const instagramUrl = (handle: string) => `https://instagram.com/${handle}`;

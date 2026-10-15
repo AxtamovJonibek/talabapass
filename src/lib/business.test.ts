@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatTin, normalizeTin, validateBusiness, type BusinessInfo } from "./business";
+import { formatTin, normalizeHandle, normalizeTin, validateBusiness, validateContacts, type BusinessInfo } from "./business";
 
 const base: BusinessInfo = {
   name: "Bodom Choyxonasi",
@@ -56,5 +56,27 @@ describe("STIR formati", () => {
     expect(normalizeTin("307-482-915")).toBe("307482915");
     expect(normalizeTin("3074829150")).toBeNull();
     expect(formatTin("307482915")).toBe("307 482 915");
+  });
+});
+
+describe("aloqa maydonlari (talabaga ko'rinadigan)", () => {
+  const input = { phone: "", telegram: "", instagram: "" };
+
+  it("bo'sh maydonlar — null, xato yo'q", () => {
+    expect(validateContacts(input)).toEqual({ ok: true, value: { phone: null, telegram: null, instagram: null } });
+  });
+
+  it("telefon E.164 ga, nomlar havola va @ dan tozalanadi", () => {
+    expect(validateContacts({ phone: "90 123 45 67", telegram: "https://t.me/choyxona_bahor", instagram: "@choyxona.bahor" })).toEqual({
+      ok: true,
+      value: { phone: "+998901234567", telegram: "choyxona_bahor", instagram: "choyxona.bahor" },
+    });
+    expect(normalizeHandle("instagram", "https://www.instagram.com/choyxona/?hl=uz")).toBe("choyxona");
+  });
+
+  it("noto'g'ri qiymatlar maydon nomi bilan qaytadi", () => {
+    expect(validateContacts({ phone: "+7 900 123 45 67", telegram: "ab", instagram: "a b" })).toEqual({ ok: false, fields: ["phone", "telegram", "instagram"] });
+    expect(normalizeHandle("telegram", "1abcde")).toBeUndefined();
+    expect(normalizeHandle("instagram", "a..b")).toBeUndefined();
   });
 });

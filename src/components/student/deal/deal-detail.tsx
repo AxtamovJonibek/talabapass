@@ -16,6 +16,7 @@ import { PhoneOrWeb } from "../responsive";
 import { StudentWebHeader } from "../app-chrome";
 import { SaveButton, ShareButton } from "./deal-actions";
 import { PhoneGallery, WebGallery } from "./gallery";
+import { BusinessContact } from "./business-contact";
 import { PhoneClaim, WebClaim, type ClaimState } from "./claim";
 
 type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string; avatarUrl: string | null; claim: ClaimState };
@@ -160,6 +161,7 @@ function DealPhone({ detail, now, saved, claim }: Props) {
             {t("dealPage.route")}
           </a>
         </div>
+        <BusinessContact business={business} className="mt-2" />
         <p className="mx-0.5 mt-3.5 mb-6 text-13 leading-[1.5] text-muted">{detail.terms}</p>
       </div>
 
@@ -239,6 +241,7 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
                 {t("dealPage.routeWeb")}
               </a>
             </div>
+            <BusinessContact business={business} className="mt-3" />
           </div>
         </div>
 

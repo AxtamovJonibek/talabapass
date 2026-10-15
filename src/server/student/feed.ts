@@ -54,6 +54,9 @@ const DEAL_SELECT = {
     select: {
       id: true,
       logoKey: true,
+      publicPhone: true,
+      telegram: true,
+      instagram: true,
       name: true,
       typeLabel: true,
       address: true,
@@ -150,7 +153,7 @@ export type DealDetail = {
   perStudentLimit: DealRow["perStudentLimit"];
   /** "YYYY-MM-DD" */
   endsOn: string;
-  business: { name: string; logoUrl: string | null; typeLabel: string | null; district: string | null; address: string; landmark: string | null; workingHours: string; point: Point | null };
+  business: { name: string; logoUrl: string | null; phone: string | null; telegram: string | null; instagram: string | null; typeLabel: string | null; district: string | null; address: string; landmark: string | null; workingHours: string; point: Point | null };
   /** Shu joyga yaqin boshqa chegirmalar (WT3 "Yaqin atrofda") */
   nearby: NearbyDeal[];
 };
@@ -184,6 +187,9 @@ export async function dealDetail(id: string, now: Date, origin: Point | null): P
     business: {
       name: row.business.name,
       logoUrl: businessLogoUrl(row.business.id, row.business.logoKey),
+      phone: row.business.publicPhone,
+      telegram: row.business.telegram,
+      instagram: row.business.instagram,
       typeLabel: row.business.typeLabel,
       district: row.business.district?.name ?? null,
       address: row.business.address,

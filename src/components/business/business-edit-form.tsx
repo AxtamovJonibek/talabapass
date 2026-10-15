@@ -8,7 +8,7 @@ import { Field, Input, Textarea } from "@/components/ui/field";
 import { DESCRIPTION_MAX } from "@/lib/business";
 import { editBusinessAction, type BusinessEditState } from "@/server/actions/business-profile";
 
-type Initial = { name: string; address: string; workingHours: string; description: string };
+type Initial = { name: string; address: string; workingHours: string; description: string; phone: string; telegram: string; instagram: string };
 const IDLE: BusinessEditState = { status: "idle" };
 
 /** B5 "Tahrirlash": nom, manzil, ish vaqti, tavsif. Nom/manzil o'zgarsa biznes qayta tekshiruvga tushadi. */
@@ -35,6 +35,19 @@ export function BusinessEditForm({ initial, logoUrl, idPrefix }: { initial: Init
       <Field label={t("description")} htmlFor={id("desc")} error={err("description")}>
         <Textarea id={id("desc")} name="description" rows={3} maxLength={DESCRIPTION_MAX} defaultValue={initial.description} invalid={bad("description")} />
       </Field>
+      <fieldset className="m-0 flex flex-col gap-3.5 border-0 p-0">
+        <legend className="mb-1 p-0 text-15 font-extrabold">{e("contactTitle")}</legend>
+        <p className="m-0 text-12 leading-[1.45] text-muted">{e("contactHint")}</p>
+        <Field label={e("phone")} htmlFor={id("phone")} error={bad("phone") ? e("errors.phone") : null}>
+          <Input id={id("phone")} name="phone" type="tel" inputMode="tel" autoComplete="off" mono={14} defaultValue={initial.phone} placeholder={e("phonePlaceholder")} invalid={bad("phone")} />
+        </Field>
+        <Field label={e("telegram")} htmlFor={id("telegram")} error={bad("telegram") ? e("errors.telegram") : null}>
+          <Input id={id("telegram")} name="telegram" autoComplete="off" autoCapitalize="none" defaultValue={initial.telegram} placeholder={e("telegramPlaceholder")} invalid={bad("telegram")} />
+        </Field>
+        <Field label={e("instagram")} htmlFor={id("instagram")} error={bad("instagram") ? e("errors.instagram") : null}>
+          <Input id={id("instagram")} name="instagram" autoComplete="off" autoCapitalize="none" defaultValue={initial.instagram} placeholder={e("instagramPlaceholder")} invalid={bad("instagram")} />
+        </Field>
+      </fieldset>
       <p className="m-0 text-12 leading-[1.45] text-muted">{e("editNote")}</p>
       <Button type="submit" variant="orange" size="lg" disabled={pending}>
         {e("editSave")}

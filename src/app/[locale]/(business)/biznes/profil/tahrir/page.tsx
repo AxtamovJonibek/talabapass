@@ -5,6 +5,7 @@ import { PageSkeleton } from "@/components/state/page-skeleton";
 import { BusinessEditForm } from "@/components/business/business-edit-form";
 import { OwnerFrame } from "@/components/business/owner-pages";
 import { Link } from "@/i18n/navigation";
+import { formatPhone } from "@/lib/format";
 import { businessLogoUrl } from "@/lib/profile-image";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/locale";
@@ -16,7 +17,11 @@ async function EditContent() {
   const info = await editableInfo(user.id);
   if (!info) return redirect({ href: "/biznes", locale: await getLocale() });
   const t = await getTranslations("businessProfile");
-  const initial = { name: info.name, address: info.address, workingHours: info.workingHours, description: info.description ?? "" };
+  const initial = { name: info.name, address: info.address, workingHours: info.workingHours, description: info.description ?? "",
+    phone: info.publicPhone ? formatPhone(info.publicPhone) : "",
+    telegram: info.telegram ? `@${info.telegram}` : "",
+    instagram: info.instagram ? `@${info.instagram}` : "",
+  };
   const logoUrl = businessLogoUrl(info.id, info.logoKey);
   const head = (
     <>

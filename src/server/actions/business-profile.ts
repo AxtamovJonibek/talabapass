@@ -10,7 +10,7 @@ const text = (formData: FormData, key: string) => {
   return typeof v === "string" ? v.slice(0, 400) : "";
 };
 
-/** B5 "Tahrirlash": nom, manzil, ish vaqti, tavsif. Nom/manzil o'zgarsa biznes qayta tekshiriladi. */
+/** B5 "Tahrirlash": nom, manzil, ish vaqti, tavsif, aloqa (telefon, Telegram, Instagram). Nom/manzil o'zgarsa biznes qayta tekshiriladi. */
 export async function editBusinessAction(_prev: BusinessEditState, formData: FormData): Promise<BusinessEditState> {
   const user = await requireRole("BUSINESS_OWNER");
   const result = await editBusinessInfo(user.id, {
@@ -18,6 +18,9 @@ export async function editBusinessAction(_prev: BusinessEditState, formData: For
     address: text(formData, "address"),
     workingHours: text(formData, "workingHours"),
     description: text(formData, "description"),
+    phone: text(formData, "phone"),
+    telegram: text(formData, "telegram"),
+    instagram: text(formData, "instagram"),
   });
   if (result.ok) return { status: "saved", rereview: result.rereview };
   return "fields" in result ? { status: "error", fields: result.fields } : { status: "notEditable" };
