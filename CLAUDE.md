@@ -132,6 +132,9 @@ Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspen
   (yorliq o'rnini bosadi), vebda qoldi; sarlavhada xarita va qo'ng'iroq tugmalari, sana yonida vaqt; "Yaqinidan" o'rniga saralashga mos yozuv;
   rasmsiz kartadagi bosh harf kategoriya siyohining 14% shaffofligi (alohida "plita" rangi yo'q); tafsilotda yorliq rasmning yuqori chap burchagida,
   foiz — pastki o'ngda (telefon) / yuqori o'ngda (veb); narx bloki o'zgarmagan.
+- Kategoriya chiplari — karusel (`student/feed/category-chips.tsx`): o'zi sekin aylanadi (24 px/s, chiplar nusxasi bilan cheksiz); tegish, hover, g'ildirak, fokus,
+  sahifa/lenta siljishi yoki surish — to'xtaydi va qayta aylanmaydi (nusxa olib tashlanadi, oddiy surish qoladi); kursorli qurilmada ← → tugmalari;
+  `prefers-reduced-motion` da aylanmaydi. Vebda (WT2) yon paneldagi kategoriya ro'yxati o'rniga shu karusel (dizaynda chizilmagan).
 - Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan);
   qo'ng'iroq faqat belgi;
   `/profil` — T8/WT4 (pastdagi "Profil" bo'limi).

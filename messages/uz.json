@@ -1586,6 +1586,8 @@
       "new": "Yangisidan"
     },
     "categories": "Kategoriyalar",
+    "chipsPrev": "Oldingi kategoriyalar",
+    "chipsNext": "Keyingi kategoriyalar",
     "notifications": "Bildirishnomalar",
     "showMap": "Xaritada ko'rish",
     "endingSoon": "Tez tugaydi",

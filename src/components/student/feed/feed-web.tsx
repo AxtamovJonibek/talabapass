@@ -7,7 +7,6 @@ import { Icon } from "@/components/ui/icon";
 import { isIconName } from "@/components/ui/icons";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/cn";
 import { SORTS, isFeedSort } from "@/lib/feed";
 import { formatSom } from "@/lib/format";
 import { formatKm, type Point } from "@/lib/geo";
@@ -16,6 +15,7 @@ import { BellButton, StudentWebHeader } from "../app-chrome";
 import { HOT_TONES } from "./feed-phone";
 import { useDealText } from "./labels";
 import { LocationSelect, type LocationProps } from "./location-select";
+import { CategoryChips } from "./category-chips";
 import { FeedDealCard } from "./feed-deal-card";
 import { MiniMap } from "./mini-map";
 import type { FeedCategory } from "@/lib/feed";
@@ -99,30 +99,6 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
 
         <div className="mt-7 flex flex-wrap items-start gap-6">
           <aside aria-label={t("feed.filters")} className="flex min-w-0 flex-[1_1_250px] flex-col gap-3">
-            <div className="rounded-18 bg-white p-4">
-              <div className="text-12 font-extrabold tracking-[0.08em] text-muted">{t("feed.category")}</div>
-              <ul className="m-0 mt-2 flex list-none flex-col gap-0.5 p-0">
-                {["all", ...categories.map((c) => c.slug)].map((slug) => {
-                  const on = feed.category === slug;
-                  return (
-                    <li key={slug}>
-                      <button
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => feed.setCategory(slug)}
-                        className={cn(
-                          "flex h-[42px] w-full items-center justify-between rounded-10 border-0 px-3 font-sans text-15 font-semibold",
-                          on ? "bg-ink text-white" : "bg-transparent text-ink",
-                        )}
-                      >
-                        <span>{text.category(slug)}</span>
-                        <span className="font-mono text-12 opacity-75">{feed.counts[slug] ?? 0}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
             <div className="flex items-center justify-between gap-3 rounded-18 bg-white p-4">
               <span className="flex flex-col gap-0.5">
                 <b className="text-15">{t("feed.liveOnly")}</b>
@@ -134,7 +110,8 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
           </aside>
 
           <section className="min-w-0 flex-[4_1_600px]">
-            <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <CategoryChips categories={categories} value={feed.category} onChange={feed.setCategory} inset="px-0" />
+            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2.5">
               <h2 className="m-0 text-22 font-extrabold">
                 {t("feed.count", { count: feed.items.length })} <span className="font-medium text-muted">{t(`feed.sortHint.${feed.sort}`)}</span>
               </h2>
