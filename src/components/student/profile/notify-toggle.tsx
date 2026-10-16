@@ -3,15 +3,21 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { setNotifyDealsAction } from "@/server/actions/student-profile";
 
 function useNotify(initial: boolean) {
+  const t = useTranslations("profile");
   const [on, setOn] = useState(initial);
   const [pending, start] = useTransition();
   const change = (next: boolean) => {
     setOn(next);
-    start(async () => setOn(await setNotifyDealsAction(next)));
+    start(async () => {
+      const saved = await setNotifyDealsAction(next);
+      setOn(saved);
+      toast(saved ? t("notifyOnToast") : t("notifyOffToast"), saved ? "ok" : "info");
+    });
   };
   return { on, change, pending };
 }

@@ -9,11 +9,11 @@ import type { CouponView } from "@/server/coupons/coupons";
 import type { QrMatrix } from "./use-coupon-token";
 
 /** QR matritsasi — SVG (piksel aniq, har qanday o'lchamda keskin). Oq hoshiya bilan. */
-export function QrImage({ qr, cell, label }: { qr: QrMatrix | null; cell: number; label: string }) {
+export function QrImage({ qr, cell, label, className }: { qr: QrMatrix | null; cell: number; label: string; className?: string }) {
   const size = qr?.size ?? 29;
   const px = size * cell;
   return (
-    <div role="img" aria-label={label} className="bg-white p-1.5">
+    <div role="img" aria-label={label} className={cn("bg-white p-1.5", className)}>
       <svg width={px} height={px} viewBox={`0 0 ${size} ${size}`} shapeRendering="crispEdges" aria-hidden="true">
         {qr
           ? qr.cells.map((on, i) => (on ? <rect key={i} x={i % size} y={Math.floor(i / size)} width="1" height="1" className="fill-ink" /> : null))
@@ -58,7 +58,7 @@ export function CouponTicket({ coupon, qr, totp }: { coupon: CouponView; qr: QrM
       <div className="absolute top-[107px] -right-[11px] size-[22px] rounded-full bg-ink" />
 
       <div className="flex flex-col items-center gap-3 pt-[22px] pb-2.5">
-        <QrImage qr={qr} cell={7} label={t("qrLabel")} />
+        <QrImage qr={qr} cell={7} label={t("qrLabel")} className="enter-focus [animation-delay:200ms]" />
         <div className="font-mono text-17 font-semibold tracking-[0.12em]" data-testid="coupon-code">
           {coupon.code}
         </div>
@@ -105,7 +105,8 @@ export function CouponPanel({
 }) {
   const t = useTranslations("coupon");
   return (
-    <div className="rounded-22 bg-ink p-[18px]">
+    // Kupon olingach yon panel shu joyda taklif kartasidan QR'ga almashadi — pastdan ko'tariladi
+    <div className="enter-rise rounded-22 bg-ink p-[18px]">
       <div className="relative rounded-16 bg-white text-ink">
         <div className="flex items-center justify-between px-[18px] py-4">
           <div>
@@ -118,7 +119,7 @@ export function CouponPanel({
         <div className="absolute top-[66px] -left-[11px] size-[22px] rounded-full bg-ink" />
         <div className="absolute top-[66px] -right-[11px] size-[22px] rounded-full bg-ink" />
         <div className="flex flex-col items-center gap-2.5 p-[18px]">
-          <QrImage qr={qr} cell={7} label={t("qrLabel")} />
+          <QrImage qr={qr} cell={7} label={t("qrLabel")} className="enter-focus [animation-delay:200ms]" />
           <div className="font-mono text-17 font-semibold tracking-[0.12em]">{coupon.code}</div>
           <div className="flex items-center gap-2 text-12 text-muted">
             {t("manualCode")}
@@ -134,7 +135,7 @@ export function CouponPanel({
         type="button"
         onClick={onCancel}
         disabled={cancelling}
-        className={cn("mt-3 h-[46px] w-full rounded-12 border-hair border-ink-7 bg-transparent font-sans text-14 font-semibold text-paper disabled:opacity-50")}
+        className="mt-3 h-[46px] w-full rounded-12 border-hair border-ink-7 bg-transparent font-sans text-14 font-semibold text-paper transition-[scale] duration-150 ease-out active:scale-[0.97] disabled:opacity-50"
       >
         {t("cancel")}
       </button>

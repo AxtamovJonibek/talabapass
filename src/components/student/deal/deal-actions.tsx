@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/icon";
+import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { toggleSavedAction } from "@/server/actions/student-feed";
 
-const ROUND = "flex size-11 items-center justify-center rounded-full border-0 bg-white text-ink";
+const ROUND = "flex size-11 items-center justify-center rounded-full border-0 bg-white text-ink transition-[scale] duration-150 ease-out active:scale-90";
 
 /** T5 "Ulashish": tizim oynasi, bo'lmasa havolani nusxalash. */
 export function ShareButton({ title }: { title: string }) {
@@ -20,6 +21,7 @@ export function ShareButton({ title }: { title: string }) {
     }
     await navigator.clipboard?.writeText(url);
     setCopied(true);
+    toast(t("copied"));
     setTimeout(() => setCopied(false), 2000);
   };
   return (
@@ -37,7 +39,9 @@ export function SaveButton({ discountId, saved: initial }: { discountId: string;
   const toggle = () =>
     startTransition(async () => {
       setSaved(!saved);
-      setSaved((await toggleSavedAction(discountId)).saved);
+      const result = await toggleSavedAction(discountId);
+      setSaved(result.saved);
+      toast(result.saved ? t("savedToast") : t("unsavedToast"));
     });
   return (
     <button type="button" aria-label={saved ? t("unsave") : t("save")} aria-pressed={saved} disabled={pending} onClick={toggle} className={cn(ROUND, "disabled:opacity-100")}>

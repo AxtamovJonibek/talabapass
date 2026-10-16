@@ -43,6 +43,8 @@ const VARIANTS = {
   "danger-outline": ["border-hair border-danger-line bg-white text-danger", "font-bold"],
   "danger-ghost": ["border-0 bg-transparent text-danger", "font-bold"],
   ghost: ["border-0 bg-transparent", "font-semibold"],
+  /** Hozir bosib bo'lmaydigan asosiy harakat (chegirma hali ochilmagan): o'qiladigan kulrang, xira ko'k emas */
+  idle: ["border-0 bg-track text-muted", "font-bold"],
 } as const;
 
 export type ButtonStyle = {
@@ -60,8 +62,12 @@ export function buttonClass(
   extra?: string,
 ) {
   const [look, weight] = VARIANTS[variant];
+  // idle o'zi "nofaol" ko'rinishda — ustiga yana xiralashtirilmaydi
+  const idle = variant === "idle";
   return cn(
-    "flex items-center gap-2 font-sans no-underline disabled:opacity-50",
+    // Bosilganda 0.97 ga kichrayadi (150ms) — interfeys "eshitdi" degan javob
+    "flex items-center gap-2 font-sans no-underline transition-[scale,opacity] duration-150 ease-out active:scale-[0.97] disabled:scale-100",
+    !idle && "disabled:opacity-50",
     spread ? "justify-between" : "justify-center",
     block && "w-full",
     SIZES[size],

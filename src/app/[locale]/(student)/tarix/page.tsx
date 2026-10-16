@@ -9,7 +9,7 @@ import { profileData } from "@/server/student/profile-data";
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? null;
 
-// T7 / WT4 — xaridlar tarixi va cheklar (PDF bilan). `?oy=YYYY-MM`, `?chek=<id>`.
+// T7 / WT4 — xaridlar tarixi va cheklar (PDF bilan). `?oy=YYYY-MM`, `?chek=<id>`, `&yangi=1`.
 async function HistoryPageContent({ searchParams }: { searchParams: PageProps<"/[locale]/tarix">["searchParams"] }) {
   await connection();
   const user = await requireActiveStudent();
@@ -26,7 +26,9 @@ async function HistoryPageContent({ searchParams }: { searchParams: PageProps<"/
   }
   selected ??= history.receipts[0] ?? null;
 
-  return <HistoryScreen history={history} selected={selected} coupons={coupons} now={now} profile={profile} />;
+  // `yangi=1` — kupon ekranidan sotuv tasdiqlangach kelindi (faqat shu chek uchun)
+  const fresh = first(params.yangi) === "1" && selected?.id === chek;
+  return <HistoryScreen history={history} selected={selected} coupons={coupons} now={now} profile={profile} fresh={fresh} />;
 }
 
 export default function StudentHistoryPage({ searchParams }: PageProps<"/[locale]/tarix">) {

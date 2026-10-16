@@ -168,7 +168,15 @@ function DealPhone({ detail, now, saved, claim }: Props) {
 
       <div className="flex flex-col gap-2 border-0 border-t border-solid border-line-soft bg-paper px-4 pt-3 pb-[30px]">
         <PhoneClaim state={claim} />
-        <div className="text-center text-12 text-muted">{t("dealPage.claimHint")}</div>
+        {/* Yopiq chegirma: kulrang tugma ostida nega — "Dushanba 12:00 ochiladi" (tugaganda xato matni o'zi chiqadi) */}
+        {claim.available || claim.coupon ? (
+          <div className="text-center text-12 text-muted">{t("dealPage.claimHint")}</div>
+        ) : claim.unavailableText ? null : (
+          <div className="flex items-center justify-center gap-1.5 text-13 font-bold text-ink" data-testid="claim-closed">
+            <Icon name="clock" size={15} strokeWidth={2.4} />
+            {x.state}
+          </div>
+        )}
       </div>
     </div>
   );

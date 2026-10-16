@@ -117,10 +117,10 @@ export function CategoryChips({ categories, value, onChange, inset = "px-4" }: P
   const nudge = (dir: 1 | -1) => {
     stopRef.current();
     // Nusxa olib tashlangach (keyingi kadr) siljitiladi
-    requestAnimationFrame(() => scroller.current?.scrollBy({ left: dir * STEP, behavior: "smooth" }));
+    requestAnimationFrame(() => scroller.current?.scrollBy({ left: dir * STEP, behavior: reduced ? "auto" : "smooth" }));
   };
 
-  const arrow = "absolute top-1/2 z-[1] hidden size-9 -translate-y-1/2 items-center justify-center rounded-full border-hair border-line bg-white text-ink disabled:opacity-0 [@media(pointer:fine)]:flex";
+  const arrow = "absolute top-1/2 z-[1] hidden size-9 -translate-y-1/2 items-center justify-center rounded-full border-hair border-line bg-white text-ink transition-[opacity,scale] duration-150 ease-out active:scale-90 disabled:opacity-0 [@media(pointer:fine)]:flex";
 
   return (
     <div className="relative">

@@ -68,8 +68,8 @@ test("kupon: olish → kassir qo'lda kiritadi → tasdiqlash → chek tarixda; t
   await expect(cashier.getByText("26 600").first()).toBeVisible();
 
   // Talaba ekrani o'zi tarixga o'tadi (kassir tasdiqlagani so'rov bilan bilinadi)
-  await expect(student).toHaveURL(/\/tarix\?chek=/, { timeout: 20_000 });
-  await expect(student.getByText("Sotuv tasdiqlandi").locator("visible=true")).toBeVisible();
+  await expect(student).toHaveURL(/\/tarix\?chek=[a-z0-9]+&yangi=1/, { timeout: 20_000 });
+  await expect(student.getByTestId("redeemed").locator("visible=true")).toContainText("Sotuv tasdiqlandi");
   const pdfHref = await student.getByRole("link", { name: "PDF yuklab olish" }).locator("visible=true").getAttribute("href");
   const pdf = await student.request.get(pdfHref!);
   expect(pdf.headers()["content-type"]).toBe("application/pdf");
@@ -98,7 +98,13 @@ test("kuponni bekor qilish qoldiqni qaytaradi", async ({ page }) => {
   await page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
   await expect(page).toHaveURL(/\/kuponlar\/[a-z0-9]+$/);
   const before = await withDb(async (db) => (await db.query(`SELECT claimed FROM "DiscountDay" WHERE "discountId" = $1`, [DISCOUNT_ID])).rows[0].claimed);
+  // Rad etilgan tasdiq — kupon joyida qoladi
+  page.once("dialog", (d) => d.dismiss());
   await page.getByRole("button", { name: "Kuponni bekor qilish" }).click();
+  await expect(page.getByTestId("coupon-code")).toBeVisible();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Kuponni bekor qilish" }).click();
+  await expect(page.getByTestId("toast")).toHaveText("Kupon bekor qilindi");
   await expect(page).toHaveURL(`/chegirmalar/${DISCOUNT_ID}`);
   const after = await withDb(async (db) => (await db.query(`SELECT claimed FROM "DiscountDay" WHERE "discountId" = $1`, [DISCOUNT_ID])).rows[0].claimed);
   expect(after).toBe(before - 1);
@@ -114,6 +120,7 @@ test.describe("veb (WT3 QR paneli)", () => {
     await page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
     await expect(page.getByRole("img", { name: "Chegirma QR kodi" }).locator("visible=true")).toBeVisible();
     await expect(page.getByText("Amal qiladi").locator("visible=true")).toBeVisible();
+    page.once("dialog", (d) => d.accept());
     await page.getByRole("button", { name: "Kuponni bekor qilish" }).locator("visible=true").click();
     await expect(page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true")).toBeEnabled();
   });

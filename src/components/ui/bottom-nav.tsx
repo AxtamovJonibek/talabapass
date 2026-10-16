@@ -37,7 +37,8 @@ export function BottomNav({ items, tone = "light", label }: BottomNavProps) {
           href={item.href}
           aria-current={item.active ? "page" : undefined}
           className={cn(
-            "relative flex flex-col items-center justify-center gap-1 text-11 no-underline",
+            // Bosilganda ikonka biroz kichrayadi
+            "relative flex flex-col items-center justify-center gap-1 text-11 no-underline [&>svg]:transition-[scale] [&>svg]:duration-150 [&>svg]:ease-out active:[&>svg]:scale-[0.88]",
             item.active ? "font-bold" : "font-semibold",
             dark ? (item.active ? "text-orange" : "text-fog-3") : item.active ? "text-ink" : "text-muted",
           )}

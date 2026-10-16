@@ -60,7 +60,7 @@ export function FeedCard({ href, badge, store, where, title, price, note, saves,
   return (
     <Link
       href={href}
-      className="relative block overflow-hidden rounded-4 bg-white text-ink no-underline shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-card-hover"
+      className="relative block overflow-hidden rounded-4 bg-white text-ink no-underline shadow-card transition-[translate,scale,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.985] active:duration-100"
     >
       <span aria-hidden="true" className="absolute top-[199px] -left-[11px] z-[2] size-[22px] rounded-11 bg-paper" />
       <span aria-hidden="true" className="absolute top-[199px] -right-[11px] z-[2] size-[22px] rounded-11 bg-paper" />

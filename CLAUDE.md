@@ -374,6 +374,18 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Testlar: `admin-stats.test.ts`, `admin-transactions.test.ts`, `notifications.test.ts`, `admin.itest.ts`, `notifications.itest.ts`,
   `moderation.itest.ts` (blokdan chiqarish), `e2e/admin-overview.spec.ts`.
 
+## Harakat (animatsiya) va toast
+- Tokenlar `globals.css`: `--ease-out` (0.23,1,0.32,1), `--ease-in-out`, `--ease-drawer`; kirish utilitalari `enter-page` (talaba `template.tsx`, 220ms),
+  `enter-rise` (kupon chiptasi/paneli, tasdiq bloki), `enter-focus` (QR — xiralikdan), `enter-print` (chek yuqoridan ochiladi), `skeleton-breathe` (`PageSkeleton`).
+  Faqat transform/opacity/clip-path/filter. `prefers-reduced-motion` — global qoida: siljish yo'q, `enter-*` faqat shaffoflik bilan.
+- Bosilish: `Button`/`ButtonLink` `active:scale-[0.97]`, `FeedCard` 0.985, `CategoryPill` 0.96, pastki nav ikonkasi. Tailwind v4 da `translate`/`scale` —
+  alohida xususiyat: `transition-[transform]` ularni qamramaydi, `transition-[translate,scale,…]` yozing.
+- `Button variant="idle"` — hozir bosib bo'lmaydigan asosiy harakat (`track` fon, `muted` matn; `opacity-50` emas — kontrast).
+- Toast: `ui/toast.tsx` — `toast(text, "ok"|"info")`, `<Toaster/>` talaba layout'ida. Ulashish, saqlash, bildirishnoma kaliti, kupon bekor qilish.
+- Kupon: bekor qilish `confirm` so'raydi; QR ekranida Screen Wake Lock (`useWakeLock`); sotilganda tebranish va `/tarix?chek=<id>&yangi=1` —
+  "Sotuv tasdiqlandi" bloki (`data-testid="redeemed"`) va chek animatsiyasi. Yopiq chegirmada telefon CTA ostida ochilish vaqti.
+- Dizaynda chizilmagan: toast, tasdiq bloki, `/kuponlar` bo'sh holati (chipta), `/kuponlar` veb ko'rinishi (WT4 sarlavhasi).
+
 ## Profil, PWA, holatlar, navigatsiya testi (11-bosqich)
 - Profil: `/profil` (T8 telefon; veb — WT4 yon paneli + "Shaxsiy ma'lumotlar" formasi), `/profil/tahrir`, `/profil/guvohnoma` (faqat ko'rish).
   Umumiy qismlar `src/components/student/profile/` (`StudentIdCard`, `TotalsGrid`, `ProfileAside` — `/tarix` vebida ham shu), server —

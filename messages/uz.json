@@ -1681,7 +1681,10 @@
     "photoCount": "{n} / {total} rasm",
     "showPhoto": "{n}-rasmni ko'rsatish",
     "showCoupon": "Kuponni ko'rsatish",
-    "soldOut": "Bugungi chegirmalar tugadi"
+    "soldOut": "Bugungi chegirmalar tugadi",
+    "savedToast": "Saqlanganlarga qo'shildi",
+    "unsavedToast": "Saqlanganlardan olib tashlandi",
+    "claiming": "Olinmoqda…"
   },
   "coupon": {
     "close": "Yopish",
@@ -1702,6 +1705,9 @@
     "emptyText": "Chegirmani tanlab \"Chegirmani olish\" ni bosing — QR kod 10 daqiqa amal qiladi.",
     "toDeals": "Chegirmalarga",
     "until": "{time} gacha",
+    "cancelConfirm": "Kuponni bekor qilasizmi? QR kod ishlamay qoladi, chegirma qoldig'i qaytariladi.",
+    "cancelledToast": "Kupon bekor qilindi",
+    "timerLeft": "{min} daqiqa qoldi",
     "claimErrors": {
       "notAvailable": "Bu chegirma hozir mavjud emas.",
       "closed": "Chegirma hozir yopiq — ochilish vaqtini kuting.",
@@ -1765,6 +1771,8 @@
   },
   "history": {
     "title": "Tarix",
+    "redeemedTitle": "Sotuv tasdiqlandi",
+    "redeemedSaved": "{amount} so'm tejadingiz",
     "month": "Oy",
     "saved": "Tejadingiz",
     "purchases": "Xaridlar",
@@ -1806,6 +1814,8 @@
   },
   "profile": {
     "title": "Profil",
+    "notifyOnToast": "Yangi chegirmalar haqida xabar beramiz",
+    "notifyOffToast": "Xabarlar o'chirildi",
     "settings": "Sozlamalar",
     "personalTitle": "Shaxsiy ma'lumotlar",
     "firstName": "Ism",

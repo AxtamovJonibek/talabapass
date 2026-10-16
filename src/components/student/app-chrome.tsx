@@ -66,7 +66,7 @@ export function BellButton({ unread, size = "md" }: { unread: boolean; size?: "m
 }
 
 /** WT4 (tarix) va profil sahifalari sarlavhasi: logo + "Chegirmalar" / "Profil va tarix" navigatsiyasi. Ota element `@container`. */
-export function StudentWebNav({ active }: { active: "deals" | "profile" }) {
+export function StudentWebNav({ active }: { active?: "deals" | "profile" }) {
   const t = useTranslations();
   const base = "flex h-10 items-center rounded-10 px-3 text-14 whitespace-nowrap no-underline";
   return (

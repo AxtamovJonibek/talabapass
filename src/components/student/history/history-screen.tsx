@@ -21,6 +21,8 @@ type Props = {
   profile: ProfileData;
   coupons: number;
   now: Date;
+  /** Kassir hozirgina tasdiqladi (`?yangi=1`): tejov sarlavhasi va chek "bosilib chiqishi" */
+  fresh?: boolean;
 };
 
 type T = ReturnType<typeof useTranslations>;
@@ -70,8 +72,27 @@ function PdfLink({ r, t, web }: { r: ReceiptData; t: T; web?: boolean }) {
   );
 }
 
+/**
+ * Sotuvdan keyingi cho'qqi lahza: "Sotuv tasdiqlandi" + tejalgan summa siqiq raqamda. Dizaynda chizilmagan —
+ * mavjud holat juftligi (green-bg / green) va Numeral uslubidan. Ostidagi chek kassa apparatidan chiqqandek ochiladi.
+ */
+function RedeemedBanner({ r }: { r: ReceiptData }) {
+  const t = useTranslations("history");
+  return (
+    <div role="status" data-testid="redeemed" className="enter-rise flex items-center gap-3 rounded-16 bg-green-bg px-4 py-3.5 text-green">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-green text-white">
+        <Icon name="check" size={20} strokeWidth={3} />
+      </span>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <b className="text-13">{t("redeemedTitle")}</b>
+        <span className="text-26 leading-none font-black tracking-[-0.02em] font-stretch-75%">{t("redeemedSaved", { amount: formatSom(r.discountAmount) })}</span>
+      </span>
+    </div>
+  );
+}
+
 /** T7 — tarix (telefon). */
-function HistoryPhone({ history, selected, coupons, now }: Props) {
+function HistoryPhone({ history, selected, coupons, now, fresh }: Props) {
   const { t, monthName, shortDate, sectionLabel } = useLabels(now);
   const others = history.receipts.filter((r) => r.id !== selected?.id);
   return (
@@ -103,8 +124,13 @@ function HistoryPhone({ history, selected, coupons, now }: Props) {
       <div className="flex-1 overflow-y-auto px-5 pt-[18px] pb-5">
         {selected ? (
           <>
+            {fresh ? (
+              <div className="mb-3.5">
+                <RedeemedBanner r={selected} />
+              </div>
+            ) : null}
             <div className="text-12 font-bold tracking-[0.06em] text-muted">{sectionLabel(selected.createdAt)}</div>
-            <div className="mt-2">
+            <div className={cn("mt-2", fresh && "enter-print [animation-delay:180ms]")}>
               <HistoryReceipt r={selected} />
             </div>
             <PdfLink r={selected} t={t} />
@@ -149,7 +175,7 @@ function HistoryPhone({ history, selected, coupons, now }: Props) {
 }
 
 /** WT4 — profil va tarix (veb). */
-function HistoryWeb({ history, selected, profile, now }: Props) {
+function HistoryWeb({ history, selected, profile, now, fresh }: Props) {
   const { t, monthName, shortDate } = useLabels(now);
   return (
     <div className="min-h-dvh bg-paper text-ink">
@@ -198,8 +224,15 @@ function HistoryWeb({ history, selected, profile, now }: Props) {
             </ul>
           </section>
           {selected ? (
-            <section aria-label={t("history.receipt")} className="min-w-0 flex-[2_1_280px]">
-              <HistoryReceipt r={selected} web />
+            <section aria-label={t("history.receipt")} className="flex min-w-0 flex-[2_1_280px] flex-col">
+              {fresh ? (
+                <div className="mb-3">
+                  <RedeemedBanner r={selected} />
+                </div>
+              ) : null}
+              <div className={cn(fresh && "enter-print [animation-delay:180ms]")}>
+                <HistoryReceipt r={selected} web />
+              </div>
               <PdfLink r={selected} t={t} web />
             </section>
           ) : null}

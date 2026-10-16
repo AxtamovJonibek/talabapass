@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { toast } from "@/components/ui/toast";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cancelCouponAction, couponStateAction } from "@/server/actions/coupons";
 import type { CouponView } from "@/server/coupons/coupons";
@@ -34,6 +35,42 @@ export function useRedeemWatch(couponId: string, enabled: boolean, onRedeemed: (
   }, [couponId, enabled]);
 }
 
+/** Sotuv tasdiqlangach chek sahifasi: `yangi=1` — chek "bosilib chiqadi" va tejov sarlavhasi ko'rinadi. */
+export const receiptHref = (redemptionId?: string) => (redemptionId ? `/tarix?chek=${redemptionId}&yangi=1` : "/tarix");
+
+/** Sotuv tasdiqlanganda qisqa tebranish (qo'llaydigan telefonlarda) — kassada ekranga qaramasdan ham sezilsin. */
+export const buzz = () => navigator.vibrate?.([30, 60, 30]);
+
+/**
+ * QR ko'rsatilayotganda ekran o'chib qolmasin (Screen Wake Lock). Ilova fonga o'tsa qulf o'zi tushadi —
+ * qaytganda qayta so'raladi. Qo'llamaydigan brauzerda jim.
+ */
+export function useWakeLock(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    let alive = true;
+    const request = () =>
+      navigator.wakeLock
+        .request("screen")
+        .then((l) => {
+          if (alive) lock = l;
+          else void l.release();
+        })
+        .catch(() => undefined);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void request();
+    };
+    void request();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      alive = false;
+      document.removeEventListener("visibilitychange", onVisible);
+      void lock?.release();
+    };
+  }, [enabled]);
+}
+
 /** T6 — kupon QR ekrani (qora fon). */
 export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponView; renderedAt: number; backHref: string }) {
   const t = useTranslations("coupon");
@@ -42,14 +79,23 @@ export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponV
   const [cancelling, startCancel] = useTransition();
   const [cancelled, setCancelled] = useState(false);
 
-  useRedeemWatch(coupon.id, !token.expired && !cancelled, (redemptionId) => router.replace(redemptionId ? `/tarix?chek=${redemptionId}` : "/tarix"));
+  useRedeemWatch(coupon.id, !token.expired && !cancelled, (redemptionId) => {
+    buzz();
+    router.replace(receiptHref(redemptionId));
+  });
+  useWakeLock(!token.expired && !cancelled);
+  const minutesLeft = Math.ceil(token.msLeft / 60_000);
 
-  const cancel = () =>
+  // Pastdagi tugma bosh barmoq ostida — tasodifiy bosishdan tasdiq so'raladi
+  const cancel = () => {
+    if (!window.confirm(t("cancelConfirm"))) return;
     startCancel(async () => {
       await cancelCouponAction(coupon.id);
       setCancelled(true);
+      toast(t("cancelledToast"), "info");
       router.replace(backHref);
     });
+  };
 
   return (
     <div className="flex min-h-dvh flex-col bg-ink text-paper">
@@ -74,21 +120,27 @@ export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponV
         </div>
       ) : (
         <>
-          <div className="mx-5 mt-[18px]">
+          {/* Chipta pastdan ko'tarilib chiqadi, QR esa xiralikdan aniqlashadi (coupon-ticket.tsx) */}
+          <div className="enter-rise mx-5 mt-[18px]">
             <CouponTicket coupon={coupon} qr={token.qr} totp={token.totp} />
           </div>
-          <div className="mx-5 mt-[18px] flex items-center justify-between">
+          <div className="enter-rise mx-5 mt-[18px] flex items-center justify-between [animation-delay:120ms]">
             <div className="flex flex-col gap-0.5">
               <div className="text-13 text-fog-2">{t("validFor")}</div>
-              <div className="font-mono text-30 font-semibold text-white" data-testid="coupon-timer">
+              <div className="font-mono text-30 font-semibold text-white tabular-nums" data-testid="coupon-timer" aria-hidden="true">
                 {formatTimer(token.msLeft)}
               </div>
+              {/* Ekran o'quvchiga har soniya emas, daqiqada bir marta */}
+              <span className="sr-only" aria-live="polite">
+                {t("timerLeft", { min: minutesLeft })}
+              </span>
             </div>
+            {/* Qolgan vaqt yo'lagi: kenglik emas, scaleX — har soniyalik qadam silliq (1s, linear) */}
             <div className="h-1.5 w-[150px] overflow-hidden rounded-3 bg-ink-4">
-              <div className="h-1.5 bg-orange" style={{ width: `${Math.round((token.msLeft / TTL_MS) * 100)}%` }} />
+              <div className="h-1.5 origin-left bg-orange transition-[scale] duration-1000 ease-linear" style={{ scale: `${Math.max(token.msLeft / TTL_MS, 0)} 1` }} />
             </div>
           </div>
-          <p className="mx-5 mt-4 mb-0 text-14 leading-[1.45] text-fog-0">
+          <p className="enter-rise mx-5 mt-4 mb-0 text-14 leading-[1.45] text-fog-0 [animation-delay:180ms]">
             {t.rich("hint", { link: (chunks) => <Link href="/tarix" className="font-bold text-white underline">{chunks}</Link> })}
           </p>
         </>
@@ -100,7 +152,7 @@ export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponV
             type="button"
             onClick={cancel}
             disabled={cancelling}
-            className="h-[50px] w-full rounded-14 border-hair border-ink-7 bg-transparent font-sans text-15 font-semibold text-paper disabled:opacity-50"
+            className="h-[50px] w-full rounded-14 border-hair border-ink-7 bg-transparent font-sans text-15 font-semibold text-paper transition-[scale] duration-150 ease-out active:scale-[0.97] disabled:opacity-50"
           >
             {t("cancel")}
           </button>
