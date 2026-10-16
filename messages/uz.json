@@ -123,7 +123,15 @@
     "ofCheckShort": "Chekdan {badge}",
     "bogo": "Ikkinchisi bepul",
     "free": "Bepul",
-    "fromDate": "{date} dan"
+    "fromDate": "{date} dan",
+    "card": {
+      "open": "Hozir ochiq · {left}/{total}",
+      "openLow": "Hozir ochiq · {left}/{total} qoldi",
+      "later": "{when} · {left}/{total}",
+      "hot": "Tez tugaydi · {left}/{total}",
+      "hotClosing": "Tez tugaydi · {minutes} daq",
+      "pending": "Rasm kutilmoqda"
+    }
   },
   "receipt": {
     "confirmed": "Sotuv tasdiqlandi",
@@ -1567,6 +1575,17 @@
   },
   "feed": {
     "searchPlaceholder": "Kafe, kitob, sport zal...",
+    "searchPhone": "Nima qidiryapsan?",
+    "titleTop": "Bugun",
+    "titleBottom": "arzon",
+    "countLine": "{count} ta taklif · {open} tasi ochiq",
+    "sortTag": {
+      "near": "Yaqinidan",
+      "biggest": "Kattasidan",
+      "ending": "Tezroq",
+      "new": "Yangisidan"
+    },
+    "categories": "Kategoriyalar",
     "notifications": "Bildirishnomalar",
     "showMap": "Xaritada ko'rish",
     "endingSoon": "Tez tugaydi",

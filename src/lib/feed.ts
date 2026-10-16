@@ -46,6 +46,9 @@ export type FeedDeal = {
   createdAt: string;
 };
 
+/** Lentadagi kategoriya chipi: DB'dagi Category (rang va ikonka) */
+export type FeedCategory = { slug: string; icon: string; tile: string; ink: string };
+
 /** Chegirma rasmi manzili (ruxsatni o'zi tekshiradi). id — saqlash kaliti emas: kalit tashqariga chiqmaydi. */
 export const discountImageUrl = (id: string) => `/api/chegirma/rasm/${id}`;
 

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { PhotoOr } from "@/components/ui/avatar";
 import { DealBadge } from "@/components/ui/badge";
+import { PctBadge } from "@/components/ui/feed-card";
 import { Icon } from "@/components/ui/icon";
 import { isIconName, type IconName } from "@/components/ui/icons";
 import { Link } from "@/i18n/navigation";
@@ -11,6 +12,7 @@ import { formatSom } from "@/lib/format";
 import { formatKm } from "@/lib/geo";
 import { formatMinute, toTashkent } from "@/lib/time";
 import type { DealDetail } from "@/server/student/feed";
+import { DealHeroTag } from "../feed/feed-deal-card";
 import { useDealText } from "../feed/labels";
 import { PhoneOrWeb } from "../responsive";
 import { StudentWebHeader } from "../app-chrome";
@@ -98,9 +100,8 @@ function DealPhone({ detail, now, saved, claim }: Props) {
             <ShareButton title={deal.title} />
             <SaveButton discountId={deal.id} saved={saved} />
           </div>
-          <DealBadge size="xl" className="absolute right-[18px] bottom-[26px]">
-            {deal.badge}
-          </DealBadge>
+          <PctBadge className="absolute right-3 bottom-[26px]">{deal.badge}</PctBadge>
+          <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
         </PhoneGallery>
       </div>
 
@@ -191,16 +192,14 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
         <div className="flex min-w-0 flex-[3_1_560px] flex-col gap-3">
           {deal.images.length ? (
             <WebGallery images={deal.images} tile={deal.tile}>
-              <DealBadge size="2xl" className="absolute top-5 left-5">
-                {deal.badge}
-              </DealBadge>
+              <PctBadge size="lg" className="absolute top-5 right-5">{deal.badge}</PctBadge>
+              <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
             </WebGallery>
           ) : (
             <div className="relative flex h-[clamp(260px,30cqw,420px)] items-center justify-center overflow-hidden rounded-22" style={{ background: deal.tile, color: deal.ink }}>
               <Icon name={x.icon} size={240} strokeWidth={0.6} />
-              <DealBadge size="2xl" className="absolute top-5 left-5">
-                {deal.badge}
-              </DealBadge>
+              <PctBadge size="lg" className="absolute top-5 right-5">{deal.badge}</PctBadge>
+              <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
             </div>
           )}
 

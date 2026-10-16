@@ -20,7 +20,7 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
   const [params, origin, t] = await Promise.all([searchParams, currentOrigin(), getTranslations("feed.location")]);
   const [deals, categories, districts, savedMonth, unread, coupons] = await Promise.all([
     feedDeals(now, origin?.point ?? null),
-    db.category.findMany({ orderBy: { sort: "asc" }, select: { slug: true } }),
+    db.category.findMany({ orderBy: { sort: "asc" }, select: { slug: true, icon: true, tileColor: true, inkColor: true } }),
     districtOptions(),
     savedThisMonth(user.id, now),
     hasUnreadNotifications(user.id),
@@ -28,6 +28,7 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
   ]);
 
   const slugs = categories.map((c) => c.slug);
+  const chips = categories.map((c) => ({ slug: c.slug, icon: c.icon, tile: c.tileColor, ink: c.inkColor }));
   const defaultSort: FeedSort = origin ? "near" : "ending";
   const sort = first(params.saralash);
   const category = first(params.kategoriya);
@@ -35,7 +36,7 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
   return (
     <FeedScreen
       deals={deals}
-      categories={slugs}
+      categories={chips}
       now={now.toISOString()}
       defaultSort={defaultSort}
       initial={{

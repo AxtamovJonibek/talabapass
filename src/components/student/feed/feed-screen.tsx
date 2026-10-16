@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { FeedDeal, FeedSort } from "@/lib/feed";
+import type { FeedCategory, FeedDeal, FeedSort } from "@/lib/feed";
 import type { Point } from "@/lib/geo";
 import { PhoneOrWeb } from "../responsive";
 import { FeedPhone } from "./feed-phone";
@@ -15,7 +15,7 @@ const DealsMap = dynamic(() => import("./deals-map"), { ssr: false });
 export type FeedScreenProps = {
   deals: FeedDeal[];
   /** Kategoriya slug'lari, tartib bilan */
-  categories: string[];
+  categories: FeedCategory[];
   initial: FeedState;
   defaultSort: FeedSort;
   /** Server vaqti (ISO) — sahifa yangilanganda o'zgaradi */

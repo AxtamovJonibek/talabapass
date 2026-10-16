@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { DealTile, HotDealCard } from "@/components/ui/deal-card";
+import { HotDealCard } from "@/components/ui/deal-card";
 import { SearchField } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { isIconName } from "@/components/ui/icons";
@@ -16,12 +16,14 @@ import { BellButton, StudentWebHeader } from "../app-chrome";
 import { HOT_TONES } from "./feed-phone";
 import { useDealText } from "./labels";
 import { LocationSelect, type LocationProps } from "./location-select";
+import { FeedDealCard } from "./feed-deal-card";
 import { MiniMap } from "./mini-map";
+import type { FeedCategory } from "@/lib/feed";
 import type { Feed } from "./use-feed";
 
 type Props = {
   feed: Feed;
-  categories: string[];
+  categories: FeedCategory[];
   location: LocationProps & { label: string };
   origin: Point | null;
   user: { firstName: string; initials: string; avatarUrl: string | null; savedMonth: number; unread: boolean; coupons: number };
@@ -100,7 +102,7 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
             <div className="rounded-18 bg-white p-4">
               <div className="text-12 font-extrabold tracking-[0.08em] text-muted">{t("feed.category")}</div>
               <ul className="m-0 mt-2 flex list-none flex-col gap-0.5 p-0">
-                {["all", ...categories].map((slug) => {
+                {["all", ...categories.map((c) => c.slug)].map((slug) => {
                   const on = feed.category === slug;
                   return (
                     <li key={slug}>
@@ -152,26 +154,9 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
                 </select>
               </label>
             </div>
-            <div className="mt-3.5 grid grid-cols-[repeat(auto-fill,minmax(min(250px,100%),1fr))] gap-3">
+            <div className="mt-3.5 grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-3">
               {feed.items.map((deal) => (
-                <DealTile
-                  key={deal.id}
-                  href={`/chegirmalar/${deal.id}`}
-                  badge={deal.badge}
-                  store={deal.store}
-                  distance={dist(deal.distanceKm)}
-                  title={deal.title}
-                  price={deal.price ? `${text.som(deal.price.now)} ${text.currency}` : text.note(deal, true)}
-                  old={deal.price?.old ? text.som(deal.price.old) : null}
-                  live={deal.live}
-                  status={text.webStatus(deal, feed.now)}
-                  left={deal.left}
-                  total={deal.total}
-                  icon={isIconName(deal.icon) ? deal.icon : "bowl"}
-                  image={deal.images[0]}
-                  tileColor={deal.tile}
-                  inkColor={deal.ink}
-                />
+                <FeedDealCard key={deal.id} deal={deal} now={feed.now} />
               ))}
             </div>
             {feed.items.length === 0 ? <div className="mt-3.5 rounded-18 bg-white p-10 text-center text-muted">{t("feed.emptyFilter")}</div> : null}

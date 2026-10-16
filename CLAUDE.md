@@ -125,7 +125,14 @@ Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspen
   egasi bloklanmagan, muddat tugamagan. Holat/keyingi ochilish — `dealTiming` (`src/lib/time.ts`), qoldiq — oraliq kunidagi
   `DiscountDay.claimed`. Filtr/saralash brauzerda (`src/lib/feed.ts`), URL'da saqlanadi; sahifa har daqiqa yangilanadi.
 - Joy (`tp_loc` cookie): tuman markazi yoki geolokatsiya (~100 m); masofa shundan. Xarita — MapLibre + OpenFreeMap (kalitsiz).
-- Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan); rasm yo'q chegirmada — kategoriya ikonkasi;
+- **Lenta B · Jurnal** (`design/talabaPass – Lenta B · Jurnal (1).html`, T4/WT2 kartalari va T5/WT3 rasm qismi): `FeedCard` (`ui/feed-card.tsx`) — 210px rasm,
+  tepada yorliq (`DealTag`: "Tez tugaydi · 2/20" qora fonda, "Ertaga 08:00" oq fonda), o'ngda foiz (`PctBadge`: −30%, 1+1), pastda narx plitkasi;
+  holatlar `useDealMarks` da. Rasmsiz karta — katta bosh harf + "Rasm kutilmoqda" (dizayndagi noImg). Telefon lentasi sarlavhasi
+  "Bugun arzon.", tagchiziqli qidiruv, `CategoryPill` chiplari. Dizayndan chetlanishlar (ruxsat berilgan): "Tez tugaydi" gorizontal qatori telefonda yo'q
+  (yorliq o'rnini bosadi), vebda qoldi; sarlavhada xarita va qo'ng'iroq tugmalari, sana yonida vaqt; "Yaqinidan" o'rniga saralashga mos yozuv;
+  rasmsiz kartadagi bosh harf kategoriya siyohining 14% shaffofligi (alohida "plita" rangi yo'q); tafsilotda yorliq rasmning yuqori chap burchagida,
+  foiz — pastki o'ngda (telefon) / yuqori o'ngda (veb); narx bloki o'zgarmagan.
+- Dizayndan chetlanishlar: xarita ekrani chizilmagan (primitivlardan);
   qo'ng'iroq faqat belgi;
   `/profil` — T8/WT4 (pastdagi "Profil" bo'limi).
 

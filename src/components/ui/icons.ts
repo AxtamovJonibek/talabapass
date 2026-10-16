@@ -1,6 +1,7 @@
 /** Dizayndagi ikonkalar — 24×24 viewBox, chiziqli. Kalitlar DB'dagi Category.icon / Discount.icon bilan mos. */
 export const ICONS = {
   // kategoriya / chegirma
+  all: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   bowl: "M3 11h18a9 9 0 0 1-18 0zM8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4M5 20h14",
   cup: "M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8zM16 10h2a2 2 0 0 1 0 4h-2M8 2.5v3M12 2.5v3",
   book: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM4 21a2 2 0 0 1 2-2h13M9 7h6",

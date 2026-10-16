@@ -161,8 +161,14 @@
   --radius-18: 18px;
   --radius-19: 19px;
   --radius-20: 20px;
+  --radius-21: 21px;
   --radius-22: 22px;
   --radius-24: 24px;
+
+  /* Lenta kartasi (Lenta B · Jurnal) */
+  --shadow-card: 0 1px 0 var(--color-line), 0 14px 24px -18px rgb(20 20 20 / 0.55);
+  --shadow-card-hover: 0 0 0 1.5px var(--color-ink), 0 22px 32px -18px rgb(20 20 20 / 0.6);
+  --shadow-chip-hover: 0 6px 12px -8px rgb(20 20 20 / 0.5);
 }
 
 /* Dizayndagi standart chegara qalinligi */
