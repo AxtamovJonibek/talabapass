@@ -18,7 +18,8 @@ test("talaba: profildagi 'Yordam markazi' ilova ichidagi /yordam ga olib boradi 
   await q.click();
   await expect(page.getByText("Kupon 10 daqiqa amal qiladi").locator("visible=true")).toBeVisible();
 
-  // Aloqa: Telegram va telefon (.env.development dagi sinov qiymatlari)
-  await expect(page.getByRole("link", { name: /Telegram orqali yozish/ }).locator("visible=true")).toHaveAttribute("href", "https://t.me/talabapass_sinov");
-  await expect(page.getByRole("link", { name: /Qo'ng'iroq qilish/ }).locator("visible=true")).toHaveAttribute("href", "tel:+998901234567");
+  // Aloqa: admin Telegrami, pochta, kanal; telefon hali yo'q (egasidan kutilmoqda)
+  await expect(page.getByRole("link", { name: /Telegram orqali yozish/ }).locator("visible=true")).toHaveAttribute("href", "https://t.me/axtamovjonibek");
+  await expect(page.getByRole("link", { name: /Elektron pochta/ }).locator("visible=true")).toHaveAttribute("href", "mailto:talabapass@gmail.com");
+  await expect(page.getByRole("link", { name: /Qo'ng'iroq qilish/ })).toHaveCount(0);
 });

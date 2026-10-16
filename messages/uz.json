@@ -436,7 +436,7 @@
       "biznes_hamkorlik_shartlari": "Biznes hamkorlik shartlari",
       "aloqa": "Aloqa",
       "telefon_raqam": "[TELEFON RAQAM]",
-      "email": "[EMAIL]",
+      "email": "talabapass@gmail.com",
       "toshkent_manzil": "Toshkent, [MANZIL]",
       "2026_talabapass_barcha_huquqlar": "© 2026 talabaPass. Barcha huquqlar himoyalangan.",
       "ozbekcha": "O'zbekcha",
@@ -459,7 +459,7 @@
       "mundarija": "Mundarija",
       "mundarija_2": "MUNDARIJA",
       "savol_bormi": "Savol bormi?",
-      "email": "[EMAIL]",
+      "email": "talabapass@gmail.com",
       "xizmat_korsatuvchi_yuridik_shaxs": "Xizmat ko'rsatuvchi: [YURIDIK SHAXS NOMI], STIR [STIR], manzil: [YURIDIK MANZIL]."
     },
     "footer": {
@@ -508,7 +508,7 @@
           "p": [
             "Ma'lumotlaringizni ko'rish, tuzatish va hisobni o'chirishni so'rash.",
             "Bildirishnomalardan istalgan vaqtda voz kechish.",
-            "Murojaatlarga [N] ish kuni ichida javob beramiz: [EMAIL]."
+            "Murojaatlarga [N] ish kuni ichida javob beramiz: talabapass@gmail.com."
           ]
         },
         {
@@ -1841,6 +1841,8 @@
     "contactTitle": "Bog'lanish",
     "contactLead": "Javob topolmadingizmi? Yozing yoki qo'ng'iroq qiling.",
     "telegram": "Telegram orqali yozish",
+    "email": "Elektron pochta",
+    "channel": "Telegram kanal",
     "phone": "Qo'ng'iroq qilish",
     "items": {
       "1": {

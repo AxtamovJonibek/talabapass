@@ -33,19 +33,28 @@ function Faq() {
 
 function Contacts({ contacts }: { contacts: SupportContacts }) {
   const t = useTranslations("help");
-  if (!contacts.telegram && !contacts.phone) return null;
   const row = "flex h-14 items-center gap-3 border-0 border-b border-solid border-surface px-4 text-ink no-underline last:border-b-0";
   return (
     <section aria-labelledby="help-contact">
       <h2 id="help-contact" className="m-0 mb-1 text-18 font-extrabold font-stretch-110%">{t("contactTitle")}</h2>
       <p className="m-0 mb-3 text-14 text-muted">{t("contactLead")}</p>
       <div className="overflow-hidden rounded-16 bg-white">
-        {contacts.telegram ? (
-          <a href={`https://t.me/${contacts.telegram}`} target="_blank" rel="noopener noreferrer" className={row}>
-            <span className="flex-1 text-15 font-semibold">{t("telegram")}</span>
-            <span className="text-13 text-muted">@{contacts.telegram}</span>
-          </a>
-        ) : null}
+        <a href={`https://t.me/${contacts.telegram}`} target="_blank" rel="noopener noreferrer" className={row}>
+          <span className="flex-1 text-15 font-semibold">{t("telegram")}</span>
+          <span className="text-13 text-muted">@{contacts.telegram}</span>
+        </a>
+        <a href={`mailto:${contacts.email}`} className={row}>
+          <span className="flex-1 text-15 font-semibold">{t("email")}</span>
+          <span className="text-13 text-muted">{contacts.email}</span>
+        </a>
+        <a href={contacts.channel} target="_blank" rel="noopener noreferrer" className={row}>
+          <span className="flex-1 text-15 font-semibold">{t("channel")}</span>
+          <span className="text-13 text-muted">@talabapass</span>
+        </a>
+        <a href={contacts.instagram} target="_blank" rel="noopener noreferrer" className={row}>
+          <span className="flex-1 text-15 font-semibold">Instagram</span>
+          <span className="text-13 text-muted">{contacts.instagramHandle}</span>
+        </a>
         {contacts.phone ? (
           <a href={`tel:${contacts.phone}`} className={row}>
             <span className="flex-1 text-15 font-semibold">{t("phone")}</span>

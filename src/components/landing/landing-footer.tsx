@@ -1,6 +1,7 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { CONTACTS } from "@/lib/contacts";
 
 export function LandingFooter() {
   const t = useTranslations("landing.footer");
@@ -18,13 +19,13 @@ export function LandingFooter() {
             {t("ozbekiston_talabalari_va_mahalliy")}
           </p>
           <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-            <a href="#" aria-label={t("telegram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <a href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" aria-label={t("telegram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 4L3 11l6 2 2 6 3-4 5 4z" />
                 <path d="M9 13l12-9" />
               </svg>
             </a>
-            <a href="#" aria-label={t("instagram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <a href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" aria-label={t("instagram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <rect x="3" y="3" width="18" height="18" rx="5" />
                 <circle cx="12" cy="12" r="4" />

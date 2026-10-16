@@ -417,7 +417,7 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 ## Ochiq masalalar
 - W3 matnida "ma'lumotlar O'zbekiston hududidagi serverlarda saqlanadi" deyilgan, hosting esa
   Vercel/Neon/R2. Production'gacha yurist bilan hal qilinadi; matn o'zboshimchalik bilan o'zgartirilmaydi.
-- To'ldirilmagan joylar: `[EMAIL]`, `[TELEFON RAQAM]`, `[MANZIL]`, `[YURIDIK SHAXS NOMI]`, `[STIR]`,
+- To'ldirilmagan joylar (`[EMAIL]` — talabapass@gmail.com bilan to'ldirilgan): `[TELEFON RAQAM]`, `[MANZIL]`, `[YURIDIK SHAXS NOMI]`, `[STIR]`,
   `[TARIF MA'LUMOTI]`, `[N] kun` — egasidan kutilmoqda, o'ylab topilmaydi.
 - SMS: hozircha dev rejim (kod server log'iga chiqadi), provayder adapter orqali keyin ulanadi.
 - Admin'dagi "Chegirmalar" navbati va kupon ekranidagi 6 raqamli kod dizaynda chizilmagan — mavjud uslubda qo'shilgan.
@@ -440,7 +440,8 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - Biznes aloqasi talabaga: `Business.publicPhone|telegram|instagram` (ixtiyoriy, egasi `/biznes/profil/tahrir` da, `validateContacts`); `contactPhone` — mas'ul
   shaxsning kirish raqami, talabaga ko'rsatilmaydi.
 - Chegirma foizi 1–100 (bazada CHECK ham); 100% — `FREE_BADGE` ("BEPUL"), narx o'rniga "Bepul" yozuvi.
-- Yordam: `/yordam` (talaba, ilova ichida). Aloqa env'dan: `SUPPORT_TELEGRAM`, `SUPPORT_PHONE` (egasidan kutilmoqda; yo'q bo'lsa blok chiqmaydi).
+- Yordam: `/yordam` (talaba, ilova ichida). Aloqa `src/lib/contacts.ts` da (pochta talabapass@gmail.com, Telegram kanal t.me/talabapass, Instagram @talabapass,
+  admin t.me/axtamovjonibek); `SUPPORT_TELEGRAM` berilsa admin o'rniga shu. Telefon (`SUPPORT_PHONE`) egasidan kutilmoqda — yo'q bo'lsa qator chiqmaydi. Landing footer: Telegram va Instagram; YouTube/LinkedIn havolasi `#` (manzil berilmagan).
 - Universitetlar: `src/server/universities/data.ts` (204 ta, manba InfoEdu.uz 2026-10-16; oliygoh.uz 2023-yilda 209 ta), `syncUniversities` (idempotent, `vercel-build`
   va `npm run universities:sync`; admin tahrirlaganlariga tegmaydi). "Ro'yxatda yo'q" → `UniversityRequest` + talaba `kind=OTHER` yozuviga biriktiriladi;
   admin `/admin/universitetlar` da qo'shadi yoki mavjudiga biriktiradi.
