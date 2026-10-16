@@ -27,8 +27,7 @@ export function RegisterDesktop({ registration: r, universities, verifiedPhone }
       showLogin
       footer={
         <>
-          {/* 1-qadamda ortga yo'l yo'q (dizayndagidek xira); kod qadamida — formaga qaytaradi */}
-          <Button variant={inCode ? "outline-soft" : "outline-idle"} size="wide-quiet" aria-disabled={!inCode} onClick={inCode ? r.backToForm : undefined}>
+          <Button variant="outline-soft" size="wide-quiet" onClick={r.backToForm}>
             {t("web.back")}
           </Button>
           <Button type="submit" form={FORM_ID} variant="blue" size="wide" strong disabled={r.pending} className="gap-2.5">

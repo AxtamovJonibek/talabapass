@@ -1,5 +1,7 @@
 "use client";
 
+import { BackButton } from "@/components/ui/back-button";
+import { useStepHistory } from "@/lib/use-step-history";
 import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { buttonClass } from "@/components/ui/button";
@@ -47,6 +49,12 @@ export function LoginScreen() {
   const [failure, setFailure] = useState<Failure | null>(null);
   const [resendIn, setResendIn] = useState(0);
   const [pending, startTransition] = useTransition();
+
+  // Kod qadamida telefon "orqaga" raqam qadamiga qaytaradi; raqam qadamida — bosh sahifaga
+  const goBack = useStepHistory(step === "code" ? 1 : 0, () => {
+    setStep("phone");
+    setFailure(null);
+  });
 
   const business = role === "business";
   const cta = business ? "orange" : "blue";
@@ -133,6 +141,7 @@ export function LoginScreen() {
 
       <main className="box-border flex min-w-0 flex-[1_1_460px] items-center justify-center px-[clamp(16px,4cqw,48px)] py-[clamp(24px,5cqw,64px)]">
         <div className="flex w-full max-w-[440px] flex-col gap-5">
+          <BackButton variant="text" onClick={goBack} className="-mb-3 self-start" />
           <Segmented
             size="lg"
             label={t("roleLabel")}
@@ -184,10 +193,7 @@ export function LoginScreen() {
                 onCode={setCode}
                 onComplete={verify}
                 onResend={() => sendCode()}
-                onChangePhone={() => {
-                  setStep("phone");
-                  setFailure(null);
-                }}
+                onChangePhone={goBack}
                 resendIn={resendIn}
                 pending={pending}
                 invalid={failure?.error === "wrongCode"}

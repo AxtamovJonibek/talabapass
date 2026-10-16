@@ -1,5 +1,7 @@
 "use client";
 
+import { BackLink } from "@/components/ui/back-button";
+
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { buttonClass } from "@/components/ui/button";
@@ -26,6 +28,7 @@ export function AdminPasswordScreen() {
   return (
     <main className="box-border flex min-h-screen items-center justify-center bg-admin-bg px-[clamp(16px,4cqw,48px)] py-[clamp(24px,5cqw,64px)] text-ink">
       <div className="flex w-full max-w-[440px] flex-col gap-5">
+        <BackLink href="/kirish" variant="text" className="-mb-3 self-start" />
         <Logo size={20} tag={brand("admin")} />
         <div>
           <h1 className="m-0 text-32 font-black tracking-[-0.03em] font-stretch-110%">{t("title")}</h1>

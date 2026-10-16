@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { RESEND_SECONDS } from "@/components/auth/code-entry";
 import type { AuthError } from "@/server/actions/auth";
+import { useStepHistory } from "@/lib/use-step-history";
 import { registerStudentAction, type RegisterField } from "@/server/actions/student-register";
 
 export const COURSES = ["C1", "C2", "C3", "C4", "MASTER"] as const;
@@ -26,6 +27,13 @@ export function useRegistration(verifiedPhone: string | null) {
   const [code, setCode] = useState("");
   const [resendIn, setResendIn] = useState(0);
   const [pending, startTransition] = useTransition();
+
+  function backToForm() {
+    setCodePhone(null);
+    setFailure(null);
+  }
+  // Telefondagi "orqaga": kod qadamidan formaga, formadan bosh sahifaga
+  const goBack = useStepHistory(values && codePhone ? 1 : 0, backToForm);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -82,10 +90,7 @@ export function useRegistration(verifiedPhone: string | null) {
     resend() {
       if (values) submit(values);
     },
-    backToForm() {
-      setCodePhone(null);
-      setFailure(null);
-    },
+    backToForm: goBack,
     errorText: failure
       ? auth(`errors.${failure.error}`, { seconds: failure.retryInSeconds ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
       : null,

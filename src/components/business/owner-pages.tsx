@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/ui/back-button";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -100,6 +101,7 @@ export function CashiersPage({ cashiers }: { cashiers: OwnerCashiers }) {
       section="cashiers"
       phone={
         <div className="px-4 pt-14 pb-5">
+          <BackLink href="/biznes/profil" variant="text" className="mb-1" />
           <CashierList data={cashiers} />
         </div>
       }

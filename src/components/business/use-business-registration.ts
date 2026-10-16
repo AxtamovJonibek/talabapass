@@ -1,5 +1,6 @@
 "use client";
 
+import { useStepHistory } from "@/lib/use-step-history";
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { RESEND_SECONDS } from "@/components/auth/code-entry";
@@ -70,6 +71,14 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
   const [resendIn, setResendIn] = useState(0);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [pending, startTransition] = useTransition();
+  /** Bir qadam orqaga: kod → 2-qadam → 1-qadam (holat; tarix yozuvini `goBack` boshqaradi) */
+  function stepBack() {
+    setFailure(null);
+    if (codePhone) setCodePhone(null);
+    else setStep(1);
+  }
+  // Telefondagi "orqaga" ham shu qadamlar bo'ylab yuradi; 1-qadamda — bosh sahifaga
+  const goBack = useStepHistory((step === 2 ? 1 : 0) + (codePhone ? 1 : 0), stepBack);
   // Hisob shu sahifada ochilgan bo'lsa — keyingi urinishlarda kod qayta so'ralmaydi
   const [hasAccount, setHasAccount] = useState(signedIn);
 
@@ -225,15 +234,7 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
       setFailure(null);
       if (wrong.length === 0) setStep(2);
     },
-    back() {
-      if (codePhone) {
-        setCodePhone(null);
-        setFailure(null);
-        return;
-      }
-      setStep(1);
-      setFailure(null);
-    },
+    back: goBack,
     submit(form: FormData, view: View) {
       const info = read(form);
       const wrong: SaveField[] = validateBusiness(info);

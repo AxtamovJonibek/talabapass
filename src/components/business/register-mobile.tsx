@@ -1,5 +1,6 @@
 "use client";
 
+import { BackButton } from "@/components/ui/back-button";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { CodeEntry, OTP_LENGTH } from "@/components/auth/code-entry";
@@ -24,13 +25,16 @@ export function RejectedNote({ reason }: { reason: string }) {
 }
 
 /** B1 sarlavhasi: logotip + BIZNES, qadam, katta sarlavha. */
-function Header({ step }: { step: 1 | 2 }) {
+function Header({ step, onBack }: { step: 1 | 2; onBack: () => void }) {
   const t = useTranslations("businessOnboarding");
   const brand = useTranslations("brand");
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-14">
-        <Logo size={17} chip="ink" tag={brand("business")} tagSize="md" />
+        <div className="flex items-center gap-2.5">
+          <BackButton onClick={onBack} />
+          <Logo size={17} chip="ink" tag={brand("business")} tagSize="md" />
+        </div>
         <div className="font-mono text-12 text-muted">{t("step", { n: step })}</div>
       </div>
       <div className="px-5 pt-[18px]">
@@ -62,7 +66,7 @@ export function RegisterMobile({ r, rejectReason }: { r: BusinessRegistration; r
           if (r.code.length === OTP_LENGTH) r.submitCode(r.code, "phone");
         }}
       >
-        <Header step={2} />
+        <Header step={2} onBack={r.back} />
         <div className="flex-1 px-5 pt-5">
           <CodeEntry
             phone={r.codePhone}
@@ -90,7 +94,7 @@ export function RegisterMobile({ r, rejectReason }: { r: BusinessRegistration; r
   if (r.step === 1) {
     return (
       <form className="flex min-h-dvh flex-col bg-paper text-ink" action={(form) => r.next(form, "phone")}>
-        <Header step={1} />
+        <Header step={1} onBack={r.back} />
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 pt-4 pb-4">
           {rejectReason ? <RejectedNote reason={rejectReason} /> : null}
           <div className="flex items-end gap-3">
@@ -159,7 +163,7 @@ export function RegisterMobile({ r, rejectReason }: { r: BusinessRegistration; r
 
   return (
     <form className="flex min-h-dvh flex-col bg-paper text-ink" action={(form) => r.submit(form, "phone")}>
-      <Header step={2} />
+      <Header step={2} onBack={r.back} />
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 pt-4 pb-4">
         <h2 className="m-0 text-20 font-black tracking-[-0.02em] font-stretch-110%">{t("docsTitle")}</h2>
         <Field label={t("contactName")} htmlFor="b1-contact" error={r.fieldError("contactName")}>

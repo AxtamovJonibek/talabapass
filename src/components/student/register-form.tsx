@@ -1,5 +1,6 @@
 "use client";
 
+import { BackButton } from "@/components/ui/back-button";
 import { useTranslations } from "next-intl";
 import { CodeEntry, OTP_LENGTH } from "@/components/auth/code-entry";
 import { buttonClass } from "@/components/ui/button";
@@ -31,7 +32,10 @@ export function RegisterMobile({ registration: r, universities, verifiedPhone }:
     <div className="flex min-h-dvh flex-col bg-paper text-ink">
       <div className="relative bg-ink px-6 pt-14 text-paper">
         <div className="flex items-center justify-between">
-          <Logo size={18} />
+          <div className="flex items-center gap-3">
+            <BackButton tone="dark" onClick={r.backToForm} />
+            <Logo size={18} />
+          </div>
           <div className="font-mono text-12 text-fog-2">{t("step", { n: 1 })}</div>
         </div>
         <h1 className="mt-7 mb-0 text-40 leading-[0.98] font-black tracking-[-0.035em] font-stretch-112%">

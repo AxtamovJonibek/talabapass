@@ -245,6 +245,13 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
   "Ko'ngilochar" ham bor; B1 2-qadami va mobil "tekshiruvda" ekrani chizilmagan (WB1 bloklaridan); WB1 3-qadamda
   muhr sarlavha qatorida (dizayndagi mutlaq joylashuv tor kenglikda matnni yopardi), "Orqaga" nofaol.
 
+## Orqaga (navigatsiya)
+- `ui/back-button.tsx`: `BackLink` (ota sahifaga) va `BackButton` (holat qadamiga); `round` (telefon sarlavhasi) va `text` ("← Orqaga") ko'rinishlari. Dizaynda chizilmagan joylarga qo'shilgan.
+- Qadamlar holatda bo'lgan formalar (kirish, talaba va biznes ro'yxati — kod qadami ham) `useStepHistory` (`src/lib/use-step-history.ts`) dan foydalanadi:
+  har yangi qadam brauzer tarixiga yoziladi, telefon/brauzer "orqaga" oldingi qadamga qaytaradi; 1-qadamda ← bosh sahifaga. Hook holat hook'ida chaqiriladi (telefon va veb ko'rinishi DOM'da ikkalasi turadi — bir marta).
+- Sahifa tuzilmasi ← : sotuvlar/kassirlar (telefon), chegirma muharriri (veb), profil tahriri/guvohnomasi (veb), admin paroli. Mavjud "orqaga"li ekranlar o'zgarmagan.
+- Test: `e2e/back-navigation.spec.ts`.
+
 ## Talaba holatlari
 `DRAFT → PENDING → APPROVED | REJECTED`, `APPROVED → EXPIRED` (muddat). Yo'naltirish `studentPathFor` da;
 ilova sahifalari `requireActiveStudent()`, ro'yxat qadamlari `requireStudent()` chaqiradi.

@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/ui/back-button";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
@@ -16,6 +17,7 @@ function Content({ period, sales, phone }: { period: Period; sales: Sales; phone
   const pager = "flex h-11 items-center rounded-12 border-hair px-4 text-14 font-bold no-underline";
   return (
     <div className={cn("flex flex-col gap-4", phone && "px-4 pt-14 pb-6")}>
+      {phone ? <BackLink href="/biznes" variant="text" className="-mb-2 self-start" /> : null}
       <header className="flex flex-wrap items-end justify-between gap-3.5">
         <div>
           <div className="text-13 text-muted" data-testid="sales-summary">

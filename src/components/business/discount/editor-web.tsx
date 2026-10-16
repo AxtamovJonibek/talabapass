@@ -1,5 +1,7 @@
 "use client";
 
+import { BackLink } from "@/components/ui/back-button";
+
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
@@ -53,6 +55,7 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
 
   return (
     <BusinessShell active="discounts">
+      <BackLink href="/biznes/chegirmalar" variant="text" className="-mb-3 self-start" />
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-13 text-muted">{e.id ? t("crumbEdit") : t("crumbNew")}</div>

@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/ui/back-button";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/icon";
@@ -85,6 +86,7 @@ function ProfileWebShell({ profile, totals, children }: Pick<Common, "profile" |
 function WebCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="max-w-[560px] rounded-22 bg-white p-5">
+      <BackLink href="/profil" variant="text" className="-mt-2 mb-1" />
       <h1 className="m-0 mb-4 text-28 font-black tracking-[-0.03em] font-stretch-110%">{title}</h1>
       {children}
     </section>

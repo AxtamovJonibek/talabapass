@@ -29,7 +29,7 @@ export function RegisterWeb({ r, rejectReason }: { r: BusinessRegistration; reje
       showLogin={!r.signedIn}
       footer={
         <>
-          <Button variant={first ? "outline-idle" : "outline-soft"} size="tall-quiet" aria-disabled={first} onClick={first ? undefined : r.back}>
+          <Button variant="outline-soft" size="tall-quiet" onClick={r.back}>
             {t("back")}
           </Button>
           <Button type="submit" form={FORM_ID} variant="orange" size="tall" disabled={r.pending}>
