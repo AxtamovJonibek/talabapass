@@ -1,5 +1,5 @@
 /* talabaPass service worker: (1) oflayn rejim — statik fayllar keshi, /oflayn sahifasi, ochilgan kupon sahifasi; (2) Web Push. */
-const VERSION = "tp-v2";
+const VERSION = "tp-v3";
 const STATIC = VERSION + "-static";
 const PAGES = VERSION + "-pages";
 const OFFLINE = "/oflayn";
@@ -9,7 +9,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(STATIC)
-      .then((cache) => cache.addAll([OFFLINE, "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"]))
+      .then((cache) => cache.addAll([OFFLINE, "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"].map((u) => new Request(u, { cache: "reload" }))))
       .then(() => self.skipWaiting()),
   );
 });
