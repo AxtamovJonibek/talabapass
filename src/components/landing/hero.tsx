@@ -7,22 +7,18 @@ import { miniQr } from "./mini-qr";
 export function Hero() {
   const t = useTranslations("landing.hero");
   return (
-    <section style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(36px, 6cqw, 80px) clamp(16px, 4cqw, 48px) clamp(40px, 6cqw, 90px)", display: "flex", flexWrap: "wrap", gap: "clamp(32px, 5cqw, 64px)", alignItems: "center" }}>
+    <section style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(20px, min(6cqw, 6vh), 80px) clamp(16px, 4cqw, 48px) clamp(40px, 6cqw, 90px)", display: "flex", flexWrap: "wrap", gap: "clamp(32px, 5cqw, 64px)", alignItems: "center" }}>
       <div style={{ flex: "1 1 480px", minWidth: "0" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", height: "34px", padding: "0 12px", borderRadius: "17px", background: "var(--color-white)", border: "1.5px solid var(--color-ink)", fontSize: "13px", fontWeight: 700 }}>
-          <span style={{ width: "8px", height: "8px", borderRadius: "4px", background: "var(--color-green-live)" }} />
-          {t("ozbekiston_talabalari_uchun")}
-        </div>
-        <h1 style={{ margin: "22px 0 0", fontSize: "clamp(46px, 7.6cqw, 108px)", lineHeight: 0.92, fontWeight: 900, fontStretch: "112%", letterSpacing: "-0.045em" }}>
+        <h1 style={{ margin: "0", fontSize: "clamp(40px, min(7.6cqw, 10.5vh), 108px)", lineHeight: 0.92, fontWeight: 900, fontStretch: "112%", letterSpacing: "-0.045em" }}>
           {t("talaba_bolish_endi")}{" "}
           <span style={{ background: "var(--color-orange)", padding: "0 0.12em", borderRadius: "0.12em", display: "inline-block", transform: "rotate(-2deg)" }}>
             {t("arzonroq")}
           </span>
         </h1>
-        <p style={{ margin: "24px 0 0", fontSize: "clamp(17px, 1.6cqw, 21px)", lineHeight: 1.5, color: "var(--color-ink-5)", maxWidth: "560px", textWrap: "pretty" }}>
+        <p style={{ margin: "clamp(14px, 2.4vh, 24px) 0 0", fontSize: "clamp(16px, min(1.6cqw, 2.6vh), 21px)", lineHeight: 1.5, color: "var(--color-ink-5)", maxWidth: "560px", textWrap: "pretty" }}>
           {t("kafe_kitob_dokoni_sport")}
         </p>
-        <div style={{ marginTop: "30px", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+        <div style={{ marginTop: "clamp(18px, 3.2vh, 30px)", display: "flex", flexWrap: "wrap", gap: "10px" }}>
           <Link href="/talaba/royxat" style={{ height: "58px", padding: "0 24px", borderRadius: "16px", background: "var(--color-blue)", color: "var(--color-white)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
             {t("talaba_sifatida_boshlash")}
             <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -33,26 +29,7 @@ export function Hero() {
             {t("men_biznes_egasiman")}
           </a>
         </div>
-        <div style={{ marginTop: "22px", display: "flex", flexWrap: "wrap", gap: "8px 18px", fontSize: "14px", color: "var(--color-muted)" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5F37" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12l5 5 9-10" />
-            </svg>
-            {t("talabalar_uchun_bepul")}
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5F37" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12l5 5 9-10" />
-            </svg>
-            {t("obuna_yoq")}
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F5F37" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12l5 5 9-10" />
-            </svg>
-            {t("2_daqiqada_royxat")}
-          </span>
-        </div>
+        <div style={{ marginTop: "clamp(14px, 2.4vh, 22px)", fontSize: "14px", color: "var(--color-muted)" }}>{t("cta_note")}</div>
       </div>
       <div role="img" aria-label={t("talabapass_ilovasi_chegirmalar_lentasi")} style={{ flex: "1 1 400px", minWidth: "0", position: "relative", height: "600px", display: "flex", justifyContent: "center" }}>
         <div aria-hidden="true" style={{ position: "absolute", left: "50%", top: "40px", width: "460px", height: "460px", marginLeft: "-230px", borderRadius: "230px", border: "2px dashed var(--color-dash-2)" }} />
@@ -67,7 +44,7 @@ export function Hero() {
             <div style={{ height: "104px", borderRadius: "14px", background: "var(--color-blue)", color: "var(--color-white)", padding: "10px 12px", boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: "10px", opacity: 0.85 }}>{t("bodom_choyxonasi_0_6")}</span>
               <span style={{ fontSize: "44px", lineHeight: 0.9, fontWeight: 900, fontStretch: "62%", marginTop: "4px" }}>
-                −30%
+                −25%
               </span>
               <span style={{ fontSize: "12px", fontWeight: 700, marginTop: "2px" }}>{t("osh_0_5_porsiya")}</span>
             </div>
@@ -152,7 +129,7 @@ export function Hero() {
         </div>
         <div style={{ position: "absolute", right: "max(0px, calc(50% - 250px))", bottom: "120px", background: "var(--color-ink)", color: "var(--color-paper)", borderRadius: "14px", padding: "12px 14px", transform: "rotate(4deg)", display: "flex", flexDirection: "column", gap: "2px" }}>
           <span style={{ fontSize: "11px", color: "var(--color-fog-2)" }}>{t("oktabrda_tejading")}</span>
-          <span style={{ fontSize: "24px", fontWeight: 900, fontStretch: "85%" }}>{t("206_400_som")}</span>
+          <span style={{ fontSize: "17px", fontWeight: 900, fontStretch: "85%" }}>{t("206_400_som")}</span>
         </div>
       </div>
     </section>

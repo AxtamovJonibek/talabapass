@@ -4,6 +4,7 @@ export const CONTACTS = {
   telegramChannel: "https://t.me/talabapass",
   instagram: "https://instagram.com/talabapass",
   instagramHandle: "@talabapass",
+  x: "https://x.com/talabapass",
   /** Qo'llab-quvvatlash (admin) — Telegram foydalanuvchi nomi */
   adminTelegram: "axtamovjonibek",
 } as const;

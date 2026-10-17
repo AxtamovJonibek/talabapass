@@ -172,7 +172,7 @@
       "business": "Biznes"
     },
     "student": {
-      "headline": "Qaytganingdan xursandmiz.",
+      "headline": "Qaytganingizdan xursandmiz.",
       "lead": "Bugun yangi chegirmalar qo'shildi. Kirib, yoningdagilarini ko'r.",
       "title": "Hisobga kirish",
       "subtitle": "Ro'yxatdan o'tgan telefon raqaming bilan",
@@ -270,20 +270,20 @@
       "biznesni_ulash": "Biznesni ulash"
     },
     "hero": {
-      "ozbekiston_talabalari_uchun": "O'zbekiston talabalari uchun",
       "talaba_bolish_endi": "Talaba bo'lish endi",
       "arzonroq": "arzonroq.",
-      "kafe_kitob_dokoni_sport": "Kafe, kitob do'koni, sport zal, sartaroshxona — shahar bo'ylab hamkor joylarda talaba narxi. Guvohnomangni bir marta tasdiqlatasan, keyin kassada faqat QR ko'rsatasan.",
+      "kafe_kitob_dokoni_sport": "Kafe, kitob do'koni, sport zali, sartaroshxona — shahar bo'ylab hamkor joylarda talabalar uchun maxsus narx. Guvohnomangizni bir marta tasdiqlatasiz, keyin kassada QR kodni ko'rsatasiz.",
       "talaba_sifatida_boshlash": "Talaba sifatida boshlash",
       "men_biznes_egasiman": "Men biznes egasiman",
+      "cta_note": "Ro'yxatdan o'tish — 2 daqiqa · Guvohnomangiz faqat tekshiruv uchun ishlatiladi",
       "talabalar_uchun_bepul": "Talabalar uchun bepul",
       "obuna_yoq": "Obuna yo'q",
       "2_daqiqada_royxat": "2 daqiqada ro'yxat",
       "talabapass_ilovasi_chegirmalar_lentasi": "talabaPass ilovasi: chegirmalar lentasi va QR kupon",
       "chilonzor": "Chilonzor",
       "se_14_20": "Se · 14:20",
-      "bodom_choyxonasi_0_6": "Bodom Choyxonasi · 0.6 km",
-      "osh_0_5_porsiya": "Osh 0.5 porsiya + choy",
+      "bodom_choyxonasi_0_6": "Kitob do'koni · universitet yonida",
+      "osh_0_5_porsiya": "Darsliklar va daftarlar",
       "hammasi": "Hammasi",
       "kofe": "Kofe",
       "kitob": "Kitob",
@@ -297,8 +297,8 @@
       "oylik_abonement": "Oylik abonement",
       "290_000_som": "290 000 so'm",
       "tp_7k3q_92xd": "TP-7K3Q-92XD",
-      "oktabrda_tejading": "Oktabrda tejading",
-      "206_400_som": "206 400 so'm"
+      "oktabrda_tejading": "TALABA ID · TASDIQLANGAN",
+      "206_400_som": "Guvohnoma — bir marta"
     },
     "ticker": {
       "osh_30": "OSH −30%",
@@ -313,25 +313,25 @@
     "how": {
       "uch_qadam": "Uch qadam.",
       "hammasi_shu": "Hammasi shu.",
-      "plastik_karta_qogoz_kupon": "Plastik karta, qog'oz kupon yoki promokod kerak emas. Telefoning — sening talaba chiptang.",
-      "royxatdan_ot": "Ro'yxatdan o't",
+      "plastik_karta_qogoz_kupon": "Plastik karta, qog'oz kupon yoki promokod kerak emas. Telefoningiz — sizning talaba chiptangiz.",
+      "royxatdan_ot": "Ro'yxatdan o'ting",
       "ism_familiya_va_universitet": "Ism, familiya va universitet. Ikki daqiqa ham ketmaydi.",
-      "guvohnomani_tasdiqlat": "Guvohnomani tasdiqlat",
-      "rasmga_ol_yoki_fayl": "Rasmga ol yoki fayl yukla. Moderator odatda bir necha soatda tekshiradi.",
+      "guvohnomani_tasdiqlat": "Guvohnomani tasdiqlating",
+      "rasmga_ol_yoki_fayl": "Rasmga oling yoki fayl yuklang. Moderator odatda bir necha soatda tekshiradi.",
       "tasdiqlandi": "TASDIQLANDI",
-      "qr_korsat_teja": "QR ko'rsat — teja",
-      "chegirmani_tanla_kassada_qr": "Chegirmani tanla, kassada QR ko'rsat. Chek o'zi tarixingga tushadi."
+      "qr_korsat_teja": "QR ko'rsating — tejang",
+      "chegirmani_tanla_kassada_qr": "Chegirmani tanlang, kassada QR ko'rsating. Chek tarixingizga o'zi tushadi."
     },
     "students": {
       "talabalarga": "TALABALARGA",
       "stipendiya_oy_oxirigacha_yetsin": "Stipendiya oy oxirigacha yetsin.",
-      "har_kuni_ishlatadigan_narsalaring": "Har kuni ishlatadigan narsalaring — tushlik, kofe, nusxa, kino — endi talaba narxida. Faqat sen va sendek talabalar uchun.",
-      "yoningdagi_chegirmalar": "Yoningdagi chegirmalar",
-      "xarita_va_masofa_bilan": "Xarita va masofa bilan. Darsdan chiqding — 300 metrda kofe.",
-      "vaqtini_bilib_tur": "Vaqtini bilib tur",
-      "qaysi_chegirma_hozir_ishlayapti": "Qaysi chegirma hozir ishlayapti, qachon tugaydi, nechtasi qoldi — hammasi ko'z oldingda.",
-      "tejaganing_hisoblanadi": "Tejaganing hisoblanadi",
-      "har_bir_xarid_chek": "Har bir xarid chek bilan saqlanadi. Oy oxirida qancha tejaganingni ko'rasan.",
+      "har_kuni_ishlatadigan_narsalaring": "Har kuni ishlatadigan narsalaringiz — tushlik, kofe, nusxa, kino — endi talaba narxida. Faqat siz kabi talabalar uchun.",
+      "yoningdagi_chegirmalar": "Yoningizdagi chegirmalar",
+      "xarita_va_masofa_bilan": "Xarita va masofa bilan. Darsdan chiqdingiz — 300 metrda kofe.",
+      "vaqtini_bilib_tur": "Vaqtini bilib turing",
+      "qaysi_chegirma_hozir_ishlayapti": "Qaysi chegirma hozir ishlayapti, qachon tugaydi, nechtasi qoldi — hammasi ko'z oldingizda.",
+      "tejaganing_hisoblanadi": "Tejaganingiz hisoblanadi",
+      "har_bir_xarid_chek": "Har bir xarid chek bilan saqlanadi. Oy oxirida qancha tejaganingizni ko'rasiz.",
       "faqat_talabalar_uchun": "Faqat talabalar uchun",
       "har_bir_foydalanuvchi_guvohnomasi": "Har bir foydalanuvchi guvohnomasi bilan tasdiqlangan. Chegirmalar haqiqiy va adolatli.",
       "oylik_tejash_cheki": "Oylik tejash cheki",
@@ -395,7 +395,7 @@
         },
         "2": {
           "q": "Bu pullikmi?",
-          "a": "Talabalar uchun to'liq bepul. Obuna ham, yashirin to'lov ham yo'q — faqat chegirmali narxni to'laysan."
+          "a": "Talabalar uchun to'liq bepul. Obuna ham, yashirin to'lov ham yo'q — faqat chegirmali narxni to'laysiz."
         },
         "3": {
           "q": "Guvohnoma qancha vaqtda tekshiriladi?",
@@ -412,7 +412,7 @@
       }
     },
     "cta": {
-      "bugungi_chegirmang_seni_kutyapti": "Bugungi chegirmang seni kutyapti.",
+      "bugungi_chegirmang_seni_kutyapti": "Bugungi chegirmangiz sizni kutmoqda.",
       "talaba_sifatida_boshlash": "Talaba sifatida boshlash",
       "biznesni_ulash": "Biznesni ulash"
     },
@@ -421,7 +421,7 @@
       "telegram": "Telegram",
       "instagram": "Instagram",
       "youtube": "YouTube",
-      "linkedin": "LinkedIn",
+      "x": "X",
       "loyiha": "Loyiha",
       "qanday_ishlaydi": "Qanday ishlaydi",
       "hamkorlar": "Hamkorlar",
@@ -435,9 +435,7 @@
       "foydalanish_shartlari": "Foydalanish shartlari",
       "biznes_hamkorlik_shartlari": "Biznes hamkorlik shartlari",
       "aloqa": "Aloqa",
-      "telefon_raqam": "[TELEFON RAQAM]",
       "email": "talabapass@gmail.com",
-      "toshkent_manzil": "Toshkent, [MANZIL]",
       "2026_talabapass_barcha_huquqlar": "© 2026 talabaPass. Barcha huquqlar himoyalangan.",
       "ozbekcha": "O'zbekcha",
       "русский": "Русский",
@@ -616,7 +614,7 @@
   "onboarding": {
     "step": "QADAM {n}/3",
     "register": {
-      "title": "Talabamisan?<br></br>Arzonroq<br></br>to'laysan.",
+      "title": "Talabamisiz?<br></br>Arzonroq<br></br>to'laysiz.",
       "lead": "Kafe, kitob, sport zal, sartaroshxona — hammasi talaba narxida. Guvohnomang yetarli.",
       "phone": "Telefon raqam",
       "firstName": "Ism",
@@ -1575,7 +1573,7 @@
   },
   "feed": {
     "searchPlaceholder": "Kafe, kitob, sport zal...",
-    "searchPhone": "Nima qidiryapsan?",
+    "searchPhone": "Nima qidiryapsiz?",
     "titleTop": "Bugun",
     "titleBottom": "arzon",
     "countLine": "{count} ta taklif · {open} tasi ochiq",
@@ -1605,7 +1603,7 @@
     "profile": "Profil",
     "greeting": "Salom, {name}",
     "headline": "{weekday}, {time} · {place}",
-    "savedMonth": "{month} tejading",
+    "savedMonth": "{month} tejadingiz",
     "filters": "Filtrlar",
     "category": "KATEGORIYA",
     "liveOnly": "Faqat hozir ochiq",

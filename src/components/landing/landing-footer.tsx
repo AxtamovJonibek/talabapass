@@ -38,10 +38,9 @@ export function LandingFooter() {
                 <path d="M10 9l5 3-5 3z" />
               </svg>
             </a>
-            <a href="#" aria-label={t("linkedin")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <rect x="3" y="3" width="18" height="18" rx="3" />
-                <path d="M8 10v7M8 7h.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7" />
+            <a href={CONTACTS.x} target="_blank" rel="noopener noreferrer" aria-label={t("x")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
             </a>
           </div>
@@ -84,9 +83,7 @@ export function LandingFooter() {
         </div>
         <div style={{ flex: "1 1 180px", display: "flex", flexDirection: "column", gap: "4px" }}>
           <b style={{ color: "var(--color-white)", fontSize: "14px", marginBottom: "6px" }}>{t("aloqa")}</b>
-          <span style={{ fontSize: "15px", padding: "6px 0" }}>{t("telefon_raqam")}</span>
           <span style={{ fontSize: "15px", padding: "6px 0" }}>{t("email")}</span>
-          <span style={{ fontSize: "15px", padding: "6px 0" }}>{t("toshkent_manzil")}</span>
         </div>
       </div>
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "18px clamp(16px, 4cqw, 48px) 28px", borderTop: "1px solid var(--color-ink-4)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "10px", fontSize: "13px", color: "var(--color-fog-3)" }}>
