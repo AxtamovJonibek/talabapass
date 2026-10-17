@@ -166,8 +166,8 @@
   --radius-24: 24px;
 
   /* Lenta kartasi (Lenta B · Jurnal) */
-  --shadow-card: 0 1px 0 var(--color-line), 0 14px 24px -18px rgb(20 20 20 / 0.55);
-  --shadow-card-hover: 0 1px 0 var(--color-line), 0 18px 40px -8px color-mix(in srgb, var(--color-ink) 12%, transparent), 0 6px 16px -4px color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --shadow-card: 0 14px 24px -18px rgb(20 20 20 / 0.55);
+  --shadow-card-hover: 0 18px 40px -8px color-mix(in srgb, var(--color-ink) 12%, transparent), 0 6px 16px -4px color-mix(in srgb, var(--color-ink) 8%, transparent);
   --shadow-chip-hover: 0 6px 12px -8px rgb(20 20 20 / 0.5);
 }
 

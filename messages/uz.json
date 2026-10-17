@@ -1610,7 +1610,8 @@
     "category": "KATEGORIYA",
     "liveOnly": "Faqat hozir ochiq",
     "liveOnlyHint": "Vaqti kelmaganlarni yashirish",
-    "mapChip": "Xarita",
+    "miniMap": "Yaqin atrofdagi chegirmalar xaritasi",
+    "openMap": "Xaritada ochish",
     "count": "{count} ta chegirma",
     "sortLabel": "Saralash",
     "sort": {

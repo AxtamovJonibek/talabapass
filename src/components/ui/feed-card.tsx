@@ -60,7 +60,7 @@ export function FeedCard({ href, badge, store, where, title, price, note, saves,
   return (
     <Link
       href={href}
-      className="relative block rounded-4 text-ink no-underline shadow-card transition-[translate,scale,box-shadow] duration-[180ms] ease-out hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.985] active:duration-100"
+      className="relative block rounded-4 border-0 text-ink no-underline outline-none shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue transition-[translate,scale,box-shadow] duration-[180ms] ease-out hover:-translate-y-1 hover:shadow-card-hover focus-visible:-translate-y-1 focus-visible:shadow-card-hover active:scale-[0.985] active:duration-100"
     >
       {/* Foiz yorlig'i kartadan sal chiqib turadi — shuning uchun kesuvchi qatlam ichida emas */}
       <PctBadge className="absolute -top-2.5 -right-2.5 z-[3]">{badge}</PctBadge>
