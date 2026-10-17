@@ -6,20 +6,22 @@ import { Icon } from "@/components/ui/icon";
 import { formatMinute, toTashkent } from "@/lib/time";
 import { BellButton, StudentBottomNav } from "../app-chrome";
 import { CategoryChips } from "./category-chips";
+import { FeedControls } from "./feed-controls";
+import { FeedMap } from "./feed-map";
 import { FeedDealCard } from "./feed-deal-card";
 import { LocationSelect, type LocationProps } from "./location-select";
 import type { Feed } from "./use-feed";
 import type { FeedCategory } from "@/lib/feed";
+import type { Point } from "@/lib/geo";
 
 export const HOT_TONES = ["blue", "orange", "ink"] as const;
 
-type Props = { feed: Feed; categories: FeedCategory[]; location: LocationProps & { label: string }; unread: boolean; coupons: number };
+type Props = { feed: Feed; categories: FeedCategory[]; location: LocationProps & { label: string }; origin: Point | null; unread: boolean; coupons: number };
 
 /** T4 — chegirmalar lentasi (telefon), "Lenta B · Jurnal". */
-export function FeedPhone({ feed, categories, location, unread, coupons }: Props) {
+export function FeedPhone({ feed, categories, location, origin, unread, coupons }: Props) {
   const t = useTranslations();
   const now = toTashkent(feed.now);
-  const open = feed.items.filter((d) => d.live).length;
 
   return (
     <div className="flex h-dvh flex-col bg-paper text-ink">
@@ -44,14 +46,6 @@ export function FeedPhone({ feed, categories, location, unread, coupons }: Props
               <span className="text-orange">.</span>
             </h1>
             <div className="flex items-center gap-2 pb-1">
-              <button
-                type="button"
-                aria-label={t("feed.showMap")}
-                onClick={() => feed.setMapOpen(true)}
-                className="flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-ink text-white"
-              >
-                <Icon name="map" size={20} />
-              </button>
               <BellButton unread={unread} />
             </div>
           </div>
@@ -64,18 +58,30 @@ export function FeedPhone({ feed, categories, location, unread, coupons }: Props
           <CategoryChips categories={categories} value={feed.category} onChange={feed.setCategory} />
         </div>
 
-        <div className="flex justify-between px-4 pt-3 font-mono text-11 tracking-[0.08em] text-muted uppercase">
-          <span>{t("feed.countLine", { count: feed.items.length, open })}</span>
-          <span>{t(`feed.sortTag.${feed.sort}`)}</span>
-        </div>
+        <FeedControls feed={feed} hasOrigin={origin !== null} idPrefix="t4" className="mt-2 px-4" />
 
-        <div className="flex flex-col gap-[18px] px-4 pt-3 pb-7">
-          {feed.items.map((deal) => (
-            <FeedDealCard key={deal.id} deal={deal} now={feed.now} />
-          ))}
-          {feed.items.length === 0 ? <div className="px-5 py-10 text-center text-14 text-muted">{t("feed.empty")}</div> : null}
-        </div>
+        {feed.view === "map" ? (
+          <div className="px-4 pt-1 pb-24">
+            <FeedMap deals={feed.items} origin={origin} now={feed.now} className="h-[max(380px,calc(100dvh-400px))]" />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-[18px] px-4 pt-3 pb-24">
+            {feed.items.map((deal) => (
+              <FeedDealCard key={deal.id} deal={deal} now={feed.now} />
+            ))}
+            {feed.items.length === 0 ? <div className="px-5 py-10 text-center text-14 text-muted">{t("feed.empty")}</div> : null}
+          </div>
+        )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => feed.setView(feed.view === "map" ? "list" : "map")}
+        className="fixed bottom-[100px] left-1/2 z-20 flex h-12 -translate-x-1/2 items-center gap-2 rounded-full border-0 bg-ink px-5 font-sans text-15 font-bold text-white transition-[scale,background-color] duration-150 ease-out hover:bg-ink-2 active:scale-[0.97]"
+      >
+        {feed.view === "map" ? null : <Icon name="map" size={18} />}
+        {t(feed.view === "map" ? "feed.floatList" : "feed.floatMap")}
+      </button>
 
       <StudentBottomNav active="home" coupons={coupons} />
     </div>

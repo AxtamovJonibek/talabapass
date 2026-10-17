@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { cn } from "@/lib/cn";
 import { Icon } from "./icon";
 
@@ -13,6 +13,8 @@ type DropdownProps<V extends string> = {
   value: V;
   options: DropdownOption<V>[];
   onChange: (value: V) => void;
+  /** `md` — 44px (lenta boshqaruv qatori) */
+  size?: "sm" | "md";
   className?: string;
 };
 
@@ -20,11 +22,12 @@ type DropdownProps<V extends string> = {
  * Saralash ro'yxati: chip ko'rinishidagi tugma, ochilganda kartochka ro'yxat, tanlangani belgili.
  * Klaviatura: ↑ ↓ Home End — yurish, Enter / Probel — tanlash, Esc — yopish. Fokus tugmada qoladi (aria-activedescendant).
  */
-export function Dropdown<V extends string>({ id, label, value, options, onChange, className }: DropdownProps<V>) {
+export function Dropdown<V extends string>({ id, label, value, options, onChange, size = "sm", className }: DropdownProps<V>) {
   const uid = useId();
   const root = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [place, setPlace] = useState<CSSProperties>({});
   const current = options.find((o) => o.value === value);
   const enabled = options.map((o, i) => (o.disabled ? -1 : i)).filter((i) => i >= 0);
 
@@ -33,11 +36,21 @@ export function Dropdown<V extends string>({ id, label, value, options, onChange
     const close = (e: PointerEvent) => {
       if (!root.current?.contains(e.target as Node)) setOpen(false);
     };
+    const hide = () => setOpen(false);
     document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
+    window.addEventListener("resize", hide);
+    window.addEventListener("wheel", hide, { passive: true });
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      window.removeEventListener("resize", hide);
+      window.removeEventListener("wheel", hide);
+    };
   }, [open]);
 
   const show = () => {
+    // Ro'yxat `fixed`: gorizontal suriladigan qator ichida ham kesilmaydi
+    const r = root.current?.getBoundingClientRect();
+    if (r) setPlace({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) });
     setActive(Math.max(0, options.findIndex((o) => o.value === value)));
     setOpen(true);
   };
@@ -105,7 +118,10 @@ export function Dropdown<V extends string>({ id, label, value, options, onChange
         aria-label={`${label}: ${current?.label ?? ""}`}
         onClick={() => (open ? setOpen(false) : show())}
         onKeyDown={onKeyDown}
-        className="box-border flex h-[38px] items-center gap-2 rounded-19 border-hair border-line bg-white px-3.5 font-sans text-14 font-semibold text-ink hover:bg-surface aria-expanded:border-ink"
+        className={cn(
+          "box-border flex items-center gap-2 border-hair border-line bg-white font-sans text-14 text-ink transition-[scale,background-color,border-color] duration-150 ease-out hover:bg-surface active:scale-[0.97] aria-expanded:border-ink",
+          size === "md" ? "h-11 rounded-22 px-4 font-bold whitespace-nowrap" : "h-[38px] rounded-19 px-3.5 font-semibold",
+        )}
       >
         <span className="text-muted">{label}:</span>
         {current?.label}
@@ -116,7 +132,8 @@ export function Dropdown<V extends string>({ id, label, value, options, onChange
           id={`${uid}-list`}
           role="listbox"
           aria-label={label}
-          className="absolute top-full right-0 z-30 mt-2 m-0 min-w-[240px] list-none rounded-16 border-hair border-line bg-white p-1.5 shadow-card-hover starting:-translate-y-1 starting:opacity-0 transition-[translate,opacity] duration-150 ease-out"
+          style={place}
+          className="fixed z-30 m-0 min-w-[240px] list-none rounded-16 border-hair border-line bg-white p-1.5 shadow-card-hover starting:-translate-y-1 starting:opacity-0 transition-[translate,opacity] duration-150 ease-out"
         >
           {options.map((o, i) => (
             <li

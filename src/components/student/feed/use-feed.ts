@@ -5,7 +5,8 @@ import { useRouter } from "@/i18n/navigation";
 import { categoryCounts, endingSoon, filterDeals, sortDeals, type FeedDeal, type FeedSort } from "@/lib/feed";
 import { useDealText } from "./labels";
 
-export type FeedState = { q: string; category: string; liveOnly: boolean; sort: FeedSort };
+export type FeedView = "list" | "map";
+export type FeedState = { q: string; category: string; liveOnly: boolean; sort: FeedSort; view: FeedView };
 
 /** Ma'lumot har daqiqada yangilanadi: "Hozir" / "Ertaga", qoldiq va "40 daq" eskirmasin. */
 const REFRESH_MS = 60_000;
@@ -19,7 +20,7 @@ export function useFeed({ deals, initial, defaultSort, now: serverNow }: { deals
   const [category, setCategory] = useState(initial.category);
   const [liveOnly, setLiveOnly] = useState(initial.liveOnly);
   const [sort, setSort] = useState<FeedSort>(initial.sort);
-  const [mapOpen, setMapOpen] = useState(false);
+  const [view, setView] = useState<FeedView>(initial.view);
   const now = new Date(serverNow);
 
   useEffect(() => {
@@ -35,9 +36,10 @@ export function useFeed({ deals, initial, defaultSort, now: serverNow }: { deals
     if (category !== "all") params.set("kategoriya", category);
     if (liveOnly) params.set("ochiq", "1");
     if (sort !== defaultSort) params.set("saralash", sort);
+    if (view === "map") params.set("korinish", "xarita");
     const search = params.size ? `?${params}` : "";
     if (search !== window.location.search) window.history.replaceState(window.history.state, "", `${window.location.pathname}${search}`);
-  }, [q, category, liveOnly, sort, defaultSort]);
+  }, [q, category, liveOnly, sort, view, defaultSort]);
 
   const filtered = filterDeals(deals, { q, category, liveOnly }, text.category);
   return {
@@ -50,8 +52,8 @@ export function useFeed({ deals, initial, defaultSort, now: serverNow }: { deals
     setLiveOnly,
     sort,
     setSort,
-    mapOpen,
-    setMapOpen,
+    view,
+    setView,
     items: sortDeals(filtered, sort),
     counts: categoryCounts(deals),
     hot: endingSoon(deals, now),

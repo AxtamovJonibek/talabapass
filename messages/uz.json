@@ -1576,16 +1576,8 @@
     "searchPhone": "Nima qidiryapsiz?",
     "titleTop": "Bugun",
     "titleBottom": "arzon",
-    "countLine": "{count} ta taklif · {open} tasi ochiq",
-    "sortTag": {
-      "near": "Yaqinidan",
-      "biggest": "Kattasidan",
-      "ending": "Tezroq",
-      "new": "Yangisidan"
-    },
     "categories": "Kategoriyalar",
     "notifications": "Bildirishnomalar",
-    "showMap": "Xaritada ko'rish",
     "endingSoon": "Tez tugaydi",
     "today": "bugun",
     "empty": "Bu bo'limda hozircha chegirma yo'q",
@@ -1606,10 +1598,13 @@
     "savedMonth": "{month} tejadingiz",
     "filters": "Filtrlar",
     "category": "KATEGORIYA",
-    "liveOnly": "Faqat hozir ochiq",
-    "liveOnlyHint": "Vaqti kelmaganlarni yashirish",
-    "miniMap": "Yaqin atrofdagi chegirmalar xaritasi",
-    "openMap": "Xaritada ochish",
+    "liveNow": "Hozir ochiq",
+    "liveNowHint": "Vaqti kelmaganlarni yashiradi",
+    "viewLabel": "Ko'rinish",
+    "viewList": "Ro'yxat",
+    "viewMap": "Xarita",
+    "floatMap": "Xarita",
+    "floatList": "Ro'yxat",
     "count": "{count} ta chegirma",
     "sortLabel": "Saralash",
     "sort": {
@@ -1617,12 +1612,6 @@
       "biggest": "Eng katta chegirma",
       "ending": "Tez tugaydi",
       "new": "Yangi"
-    },
-    "sortHint": {
-      "near": "· yaqinidan uzoqqa",
-      "biggest": "· kattasidan boshlab",
-      "ending": "· tez tugaydiganlari oldin",
-      "new": "· yangilari oldin"
     },
     "location": {
       "label": "Joy",

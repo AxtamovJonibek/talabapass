@@ -43,6 +43,7 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
         q: first(params.q).slice(0, 80),
         category: slugs.includes(category) ? category : "all",
         liveOnly: first(params.ochiq) === "1",
+        view: first(params.korinish) === "xarita" ? "map" : "list",
         sort: isFeedSort(sort) && (sort !== "near" || origin) ? sort : defaultSort,
       }}
       origin={origin?.point ?? null}

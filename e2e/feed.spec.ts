@@ -85,7 +85,7 @@ test.describe("veb (WT2 / WT3)", () => {
     const tiles = page.locator("section a[href^='/chegirmalar/']");
     await expect(tiles.first()).toContainText("1+1");
 
-    await page.getByRole("button", { name: "Faqat hozir ochiq" }).locator("visible=true").click();
+    await page.getByRole("button", { name: "Hozir ochiq" }).locator("visible=true").click();
     await expect(page).toHaveURL(/ochiq=1/);
 
     await page.goto(`/chegirmalar/${await discountId("Osh 0.5 porsiya + ko'k choy")}`);

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { cn } from "@/lib/cn";
 import { DealCard } from "@/components/ui/deal-card";
-import { Icon } from "@/components/ui/icon";
 import { isIconName } from "@/components/ui/icons";
 import type { FeedDeal } from "@/lib/feed";
 import { formatKm, type Point } from "@/lib/geo";
@@ -23,19 +23,29 @@ const PIN_SELECTED = "outline-2 outline-offset-2 outline-ink outline-solid";
 const ME = "box-content size-[18px] rounded-full border-4 border-solid border-white bg-blue shadow-[0_0_0_6px_color-mix(in_srgb,var(--color-blue)_20%,transparent)]";
 
 /**
- * To'liq ekran xarita (T4 "Xaritada ko'rish", WT2 "Xaritada ochish"). Dizaynda chizilmagan — mavjud
- * primitivlardan: yorliqlar kartadagi belgi uslubida, tanlangani pastda T4 kartasi bilan.
+ * Lentadagi xarita ("Ro'yxat | Xarita" ning "Xarita"i): kartalar o'rnida to'liq kenglikda. Dizaynda chizilmagan — mavjud
+ * primitivlardan: yorliqlar kartadagi belgi uslubida (foiz), tanlangani pastda kartasi bilan.
  */
-export default function DealsMap({ deals, origin, now, onClose }: { deals: FeedDeal[]; origin: Point | null; now: Date; onClose: () => void }) {
+export default function DealsMap({ deals, origin, now, className }: { deals: FeedDeal[]; origin: Point | null; now: Date; className?: string }) {
   const t = useTranslations("feed");
   const text = useDealText();
   const box = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const located = deals.filter((d): d is FeedDeal & { point: Point } => d.point !== null);
   const ids = located.map((d) => d.id).join(",");
+  // Telefon va veb ko'rinishi DOM'da birga turadi: xarita faqat ko'rinib turganida (o'lchami bor) quriladi
+  const [shown, setShown] = useState(false);
 
   useEffect(() => {
-    if (!box.current) return;
+    const el = box.current;
+    if (!el) return;
+    const watch = new ResizeObserver(() => setShown(el.offsetWidth > 0));
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!box.current || !shown) return;
     const map = new maplibregl.Map({
       container: box.current,
       style: MAP_STYLE,
@@ -76,7 +86,7 @@ export default function DealsMap({ deals, origin, now, onClose }: { deals: FeedD
     };
     // Belgilar faqat ro'yxat o'zgarganda qayta chiziladi
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ids, origin?.lat, origin?.lng]);
+  }, [ids, origin?.lat, origin?.lng, shown]);
 
   useEffect(() => {
     box.current?.querySelectorAll<HTMLElement>("[data-id]").forEach((el) => {
@@ -84,52 +94,35 @@ export default function DealsMap({ deals, origin, now, onClose }: { deals: FeedD
     });
   }, [selected]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   const deal = located.find((d) => d.id === selected);
   const status = deal ? text.phoneStatus(deal, now) : null;
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={t("map.title")} className="fixed inset-0 z-50 flex flex-col bg-paper text-ink">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-        <button type="button" onClick={onClose} aria-label={t("map.close")} className="flex size-11 items-center justify-center rounded-full border-0 bg-white text-ink">
-          <Icon name="close" size={20} />
-        </button>
-        <h2 className="m-0 text-20 font-extrabold tracking-[-0.02em] font-stretch-112%">{t("map.title")}</h2>
-        <span className="ml-auto font-mono text-12 text-muted">{located.length}</span>
-      </div>
-      <div className="relative flex-1">
-        <div ref={box} className="absolute inset-0" />
-        {located.length === 0 ? (
-          <div className="absolute inset-x-4 top-4 rounded-14 bg-white p-4 text-center text-14 text-muted">{t("map.nothing")}</div>
-        ) : null}
-        {deal && status ? (
-          <div className="absolute inset-x-4 bottom-6 mx-auto max-w-[420px]">
-            <DealCard
-              href={`/chegirmalar/${deal.id}`}
-              badge={deal.badge}
-              store={deal.store}
-              distance={deal.distanceKm !== null ? formatKm(deal.distanceKm) : undefined}
-              title={deal.title}
-              price={deal.price ? { now: formatSom(deal.price.now), old: deal.price.old ? formatSom(deal.price.old) : undefined, currency: text.currency } : undefined}
-              note={deal.price ? undefined : text.note(deal)}
-              live={deal.live}
-              status={status.status}
-              when={status.when}
-              left={deal.left}
-              total={deal.total}
-              icon={isIconName(deal.icon) ? deal.icon : "bowl"}
-              image={deal.images[0]}
-              tileColor={deal.tile}
-              inkColor={deal.ink}
-            />
-          </div>
-        ) : null}
-      </div>
-    </div>
+    <section aria-label={t("map.title")} className={cn("relative overflow-hidden rounded-18 bg-surface", className)}>
+      <div ref={box} className="size-full" />
+      {located.length === 0 ? <div className="absolute inset-x-4 top-4 rounded-14 bg-white p-4 text-center text-14 text-muted">{t("map.nothing")}</div> : null}
+      {deal && status ? (
+        <div className="absolute inset-x-4 bottom-4 mx-auto max-w-[420px]">
+          <DealCard
+            href={`/chegirmalar/${deal.id}`}
+            badge={deal.badge}
+            store={deal.store}
+            distance={deal.distanceKm !== null ? formatKm(deal.distanceKm) : undefined}
+            title={deal.title}
+            price={deal.price ? { now: formatSom(deal.price.now), old: deal.price.old ? formatSom(deal.price.old) : undefined, currency: text.currency } : undefined}
+            note={deal.price ? undefined : text.note(deal)}
+            live={deal.live}
+            status={status.status}
+            when={status.when}
+            left={deal.left}
+            total={deal.total}
+            icon={isIconName(deal.icon) ? deal.icon : "bowl"}
+            image={deal.images[0]}
+            tileColor={deal.tile}
+            inkColor={deal.ink}
+          />
+        </div>
+      ) : null}
+    </section>
   );
 }

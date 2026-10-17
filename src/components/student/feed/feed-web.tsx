@@ -2,13 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { HotDealCard } from "@/components/ui/deal-card";
-import { Dropdown } from "@/components/ui/dropdown";
 import { SearchField } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { isIconName } from "@/components/ui/icons";
-import { Switch } from "@/components/ui/switch";
 import { Link } from "@/i18n/navigation";
-import { SORTS } from "@/lib/feed";
 import { formatSom } from "@/lib/format";
 import { formatKm, type Point } from "@/lib/geo";
 import { formatMinute, toTashkent } from "@/lib/time";
@@ -17,8 +14,9 @@ import { HOT_TONES } from "./feed-phone";
 import { useDealText } from "./labels";
 import { LocationSelect, type LocationProps } from "./location-select";
 import { CategoryChips } from "./category-chips";
+import { FeedControls } from "./feed-controls";
+import { FeedMap } from "./feed-map";
 import { FeedDealCard } from "./feed-deal-card";
-import { MiniMap } from "./mini-map";
 import type { FeedCategory } from "@/lib/feed";
 import type { Feed } from "./use-feed";
 
@@ -100,36 +98,17 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
 
         <section className="mt-7 min-w-0">
           <CategoryChips categories={categories} value={feed.category} onChange={feed.setCategory} inset="px-6" className="-mx-6" />
-          <div aria-label={t("feed.filters")} role="group" className="mt-3.5 flex flex-wrap items-stretch gap-3">
-            <div className="flex min-w-[250px] flex-[1_1_250px] items-center justify-between gap-3 rounded-18 bg-white p-4">
-              <span className="flex flex-col gap-0.5">
-                <b className="text-15">{t("feed.liveOnly")}</b>
-                <span className="text-13 text-muted">{t("feed.liveOnlyHint")}</span>
-              </span>
-              <Switch id="wt2-live" checked={feed.liveOnly} onChange={feed.setLiveOnly} label={t("feed.liveOnly")} />
+          <FeedControls feed={feed} hasOrigin={origin !== null} idPrefix="wt2" className="mt-3.5" />
+          {feed.view === "map" ? (
+            <FeedMap deals={feed.items} origin={origin} now={feed.now} className="mt-3.5 h-[max(520px,calc(100dvh-280px))]" />
+          ) : (
+            <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(min(340px,100%),1fr))] gap-x-8 gap-y-8">
+              {feed.items.map((deal) => (
+                <FeedDealCard key={deal.id} deal={deal} now={feed.now} />
+              ))}
             </div>
-            <div className="min-w-[250px] flex-[1_1_250px]">
-              <MiniMap deals={feed.items} origin={origin} onOpen={() => feed.setMapOpen(true)} />
-            </div>
-          </div>
-          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2.5">
-            <h2 className="m-0 text-22 font-extrabold">
-              {t("feed.count", { count: feed.items.length })} <span className="font-medium text-muted">{t(`feed.sortHint.${feed.sort}`)}</span>
-            </h2>
-            <Dropdown
-              id="wt2-sort"
-              label={t("feed.sortLabel")}
-              value={feed.sort}
-              onChange={feed.setSort}
-              options={SORTS.map((s) => ({ value: s, label: t(`feed.sort.${s}`), disabled: s === "near" && !origin }))}
-            />
-          </div>
-          <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(min(340px,100%),1fr))] gap-x-8 gap-y-8">
-            {feed.items.map((deal) => (
-              <FeedDealCard key={deal.id} deal={deal} now={feed.now} />
-            ))}
-          </div>
-          {feed.items.length === 0 ? <div className="mt-3.5 rounded-18 bg-white p-10 text-center text-muted">{t("feed.emptyFilter")}</div> : null}
+          )}
+          {feed.view === "list" && feed.items.length === 0 ? <div className="mt-3.5 rounded-18 bg-white p-10 text-center text-muted">{t("feed.emptyFilter")}</div> : null}
         </section>
       </div>
     </div>

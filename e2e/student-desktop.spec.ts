@@ -38,14 +38,25 @@ test.describe("1440", () => {
     expect(mask).toContain("linear-gradient");
 
     const carousel = await group.boundingBox();
-    const live = await visible(page, "button", "Faqat hozir ochiq").boundingBox();
+    const live = await visible(page, "button", "Hozir ochiq").boundingBox();
     const map = await visible(page, "button", "Xarita").boundingBox();
     expect(live!.y).toBeGreaterThan(carousel!.y + carousel!.height - 1);
-    expect(map!.y).toBeCloseTo(live!.y, 0);
-    // chip yoqilganda to'ldiriladi
-    await visible(page, "button", "Faqat hozir ochiq").click();
-    await expect(visible(page, "button", "Faqat hozir ochiq")).toHaveAttribute("aria-pressed", "true");
+    // bitta qator: 44px boshqaruvlar bir chiziqda
+    expect(map!.y + map!.height / 2).toBeCloseTo(live!.y + live!.height / 2, 0);
+    expect(live!.height).toBe(44);
+    // yoqilganda ko'k fon
+    await visible(page, "button", "Hozir ochiq").click();
+    await expect(visible(page, "button", "Hozir ochiq")).toHaveAttribute("aria-pressed", "true");
     await expect(page).toHaveURL(/ochiq=1/);
+
+    // "Xarita" — kartalar o'rnida xarita, URL'da saqlanadi; "Ro'yxat" — kartalar qaytadi
+    await visible(page, "button", "Xarita").click();
+    await expect(page).toHaveURL(/korinish=xarita/);
+    await expect(page.getByRole("region", { name: "Xaritada" }).locator("visible=true")).toBeVisible();
+    await expect(page.locator("a:has(h2)").locator("visible=true")).toHaveCount(0);
+    await visible(page, "button", "Ro'yxat").click();
+    await expect(page).not.toHaveURL(/korinish/);
+    await expect(page.locator("a:has(h2)").locator("visible=true").first()).toBeVisible();
 
     // saralash: ochiladi, ↓ + Enter tanlaydi, Esc yopadi
     const sort = page.locator("#wt2-sort");
@@ -88,7 +99,7 @@ test.describe("1440", () => {
   test("tugmalar: bosilganda kichrayadi, klaviatura fokusi ko'k halqa", async ({ page }) => {
     const { student } = await seedPhones();
     await signIn(page, student);
-    const chip = visible(page, "button", "Xarita");
+    const chip = visible(page, "button", "Hozir ochiq");
     await chip.hover();
     await page.mouse.down();
     await page.waitForTimeout(250);
