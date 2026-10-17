@@ -137,13 +137,13 @@ test("oflayn: 'Qayta urinish' tarmoq yo'qligini aytadi, tarmoq qaytganda o'zi ya
   await page.goto("/oflayn");
   await expect(page.getByTestId("offline-page")).toBeVisible();
   await context.setOffline(true);
-  await page.getByRole("button", { name: "Qayta urinib ko'rish" }).click();
+  await page.getByRole("button", { name: "Qayta urinish" }).click();
   await expect(page.getByTestId("still-offline")).toBeVisible();
   await context.setOffline(false);
   await expect(page).not.toHaveURL(/oflayn/, { timeout: 15_000 });
 
   // qo'lda: tarmoq qaytgach tugma sahifani ochadi
   await page.goto("/oflayn");
-  await page.getByRole("button", { name: "Qayta urinib ko'rish" }).click();
+  await page.getByRole("button", { name: "Qayta urinish" }).click();
   await expect(page).not.toHaveURL(/oflayn/, { timeout: 15_000 });
 });

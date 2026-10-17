@@ -7,6 +7,9 @@ const SIZES = {
   18: { root: "gap-1.5 text-18 tracking-[-0.02em]", chip: "rounded-5 px-[7px] pt-0.5 pb-[3px] text-15" },
   20: { root: "gap-1.5 text-20 tracking-[-0.02em]", chip: "rounded-6 px-2 pt-0.5 pb-[3px] text-17" },
   22: { root: "gap-1.5 text-22", chip: "rounded-6 px-2 pt-0.5 pb-[3px] text-18" },
+  // 404 / oflayn ekranlari: so'z va chip bir xil o'lchamda, chip 900
+  "state-phone": { root: "gap-1.5 text-22 tracking-[-0.035em]", chip: "rounded-7 px-2 pt-px pb-1 text-22 font-black tracking-[-0.03em]" },
+  "state-web": { root: "gap-2 text-30 tracking-[-0.035em]", chip: "rounded-9 px-2.5 pt-0.5 pb-[5px] text-30 font-black tracking-[-0.03em]" },
 } as const;
 
 const CHIPS = {

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ async function reachable() {
  * `onRetry` berilsa (xato sahifasi) — shuni chaqiradi. Berilmasa (oflayn sahifa) avval tarmoqni tekshiradi:
  * bor bo'lsa sahifani qayta yuklaydi, yo'q bo'lsa "hali ulanish yo'q" deydi; tarmoq qaytganda o'zi ham yangilaydi.
  */
-export function RetryButton({ label, onRetry }: { label: string; onRetry?: () => void }) {
+export function RetryButton({ label, onRetry, size, strong }: { label: string; onRetry?: () => void; size?: ComponentProps<typeof Button>["size"]; strong?: boolean }) {
   const t = useTranslations("state");
   const [checking, setChecking] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -49,7 +50,7 @@ export function RetryButton({ label, onRetry }: { label: string; onRetry?: () =>
 
   return (
     <>
-      <Button type="button" variant="blue" disabled={checking} aria-busy={checking} onClick={onRetry ?? check}>
+      <Button type="button" variant="blue" size={size} strong={strong} block disabled={checking} aria-busy={checking} onClick={onRetry ?? check}>
         {label}
       </Button>
       {failed ? (

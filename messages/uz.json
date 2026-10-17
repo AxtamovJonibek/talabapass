@@ -1787,15 +1787,22 @@
     }
   },
   "state": {
-    "retry": "Qayta urinib ko'rish",
+    "retry": "Qayta urinish",
     "home": "Bosh sahifa",
     "stillOffline": "Internet hali yo'q. Ulanishni tekshirib, yana urinib ko'ring.",
-    "offlineTitle": "Internet yo'q",
-    "offlineLead": "Ulanish tiklangach sahifa o'zi ochiladi. Avval ochilgan kupon internetsiz ham ko'rinadi — kuponlar bo'limiga o'ting.",
+    "offlineEyebrow": "OFLAYN REJIM",
+    "offlineTitle": "Internet aloqasi yo'q",
+    "offlineLead": "Saqlangan kuponlaringiz baribir ochiladi va kassada ishlaydi.",
+    "myCoupons": "Kuponlarim",
     "errorTitle": "Nimadir xato ketdi",
     "errorLead": "Sahifani ochib bo'lmadi. Bir ozdan keyin qayta urinib ko'ring — muammo takrorlansa, bizga xabar bering.",
-    "notFoundTitle": "Sahifa topilmadi",
-    "notFoundLead": "Havola eskirgan yoki manzil noto'g'ri yozilgan bo'lishi mumkin.",
+    "notFoundEyebrow": "XATO 404 · KUPON YIRTILDI",
+    "notFoundTitle": "Bu sahifa topilmadi.",
+    "notFoundLead": "Havola eskirgan yoki manzilda xato bor. Chegirmalar esa o'z joyida — ularga bir bosishda qaytasiz.",
+    "notFoundLeadPhone": "Havola eskirgan yoki manzilda xato bor. Chegirmalar esa o'z joyida.",
+    "notFoundBack": "← Bosh sahifa",
+    "notFoundPrimary": "Chegirmalarga qaytish",
+    "notFoundSecondary": "Yordam markazi",
     "loading": "Yuklanmoqda…"
   },
   "profile": {

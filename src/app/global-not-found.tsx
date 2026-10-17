@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import Link from "next/link";
-import { StatePage } from "@/components/state/state-page";
-import { buttonClass } from "@/components/ui/button";
+import { NotFoundScreen } from "@/components/state/not-found-screen";
+import { notFoundText } from "@/components/state/not-found-text";
 import messages from "../../messages/uz.json";
 import "./globals.css";
 
@@ -13,15 +13,17 @@ const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"
 export const metadata: Metadata = { title: messages.state.notFoundTitle };
 
 export default function GlobalNotFound() {
-  const t = messages.state;
   return (
     <html lang="uz" className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
-        <StatePage testId="not-found-page" title={t.notFoundTitle} lead={t.notFoundLead}>
-          <Link href="/" className={buttonClass({ variant: "blue" })}>
-            {t.home}
-          </Link>
-        </StatePage>
+        <NotFoundScreen
+          text={notFoundText(messages.state)}
+          renderLink={(href, className, label) => (
+            <Link href={href} className={className}>
+              {label}
+            </Link>
+          )}
+        />
       </body>
     </html>
   );

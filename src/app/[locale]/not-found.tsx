@@ -1,14 +1,26 @@
 import { getTranslations } from "next-intl/server";
-import { StatePage } from "@/components/state/state-page";
-import { ButtonLink } from "@/components/ui/button";
+import { NotFoundScreen } from "@/components/state/not-found-screen";
+import { notFoundText } from "@/components/state/not-found-text";
+import { Link } from "@/i18n/navigation";
 
 export default async function NotFoundPage() {
   const t = await getTranslations("state");
   return (
-    <StatePage testId="not-found-page" title={t("notFoundTitle")} lead={t("notFoundLead")}>
-      <ButtonLink href="/" variant="blue">
-        {t("home")}
-      </ButtonLink>
-    </StatePage>
+    <NotFoundScreen
+      text={notFoundText({
+        notFoundEyebrow: t("notFoundEyebrow"),
+        notFoundTitle: t("notFoundTitle"),
+        notFoundLead: t("notFoundLead"),
+        notFoundLeadPhone: t("notFoundLeadPhone"),
+        notFoundBack: t("notFoundBack"),
+        notFoundPrimary: t("notFoundPrimary"),
+        notFoundSecondary: t("notFoundSecondary"),
+      })}
+      renderLink={(href, className, label) => (
+        <Link href={href} className={className}>
+          {label}
+        </Link>
+      )}
+    />
   );
 }

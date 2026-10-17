@@ -135,6 +135,7 @@
   --text-28: 28px;
   --text-30: 30px;
   --text-32: 32px;
+  --text-34: 34px;
   --text-36: 36px;
   --text-38: 38px;
   --text-40: 40px;
@@ -419,4 +420,47 @@
     display: revert;
     vertical-align: revert;
   }
+}
+
+/* 404: yirtilgan chipta bo'laklari sekin tebranadi; oflayn: signal chiziqlari "nafas oladi" */
+@keyframes tp-tear-l {
+  0%,
+  100% {
+    transform: rotate(-7deg) translateX(0);
+  }
+  50% {
+    transform: rotate(-9deg) translateX(-5px);
+  }
+}
+
+@keyframes tp-tear-r {
+  0%,
+  100% {
+    transform: rotate(5deg) translateX(0);
+  }
+  50% {
+    transform: rotate(7deg) translateX(5px);
+  }
+}
+
+@keyframes tp-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@utility tear-l {
+  animation: tp-tear-l 2.4s ease-in-out infinite;
+}
+
+@utility tear-r {
+  animation: tp-tear-r 2.4s ease-in-out infinite;
+}
+
+@utility pulse-bar {
+  animation: tp-pulse 1.8s ease-in-out infinite;
 }

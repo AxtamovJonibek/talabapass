@@ -399,6 +399,7 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
   (`ServiceWorkerRegister`). `/_next/static` — cache-first; navigatsiya tarmoqsiz bo'lsa `/oflayn`; ochilgan kupon sahifasi (`/kuponlar/<id>`)
   va fayllari keshlanadi (internetsiz ochiladi; QR kliyentda hisoblanadi), `/kuponlar` — eng so'nggi keshlangani. `/kirish` ochilganda kesh
   tozalanadi. SW o'zgarsa `VERSION` ni oshiring. Tekshiruv: faqat `next build && next start` + DevTools → Offline.
+- 404 va oflayn ekranlari dizayndan (`design/404.html` ichida 404 desktop/telefon va oflayn): `NotFoundScreen` (`@container`, 700px da desktop↔telefon), `OfflineScreen`; "Qayta urinish" (`RetryButton`) tarmoqni tekshirib sahifani qayta yuklaydi, tarmoq qaytsa o'zi yangilaydi.
 - Holatlar: `src/app/[locale]/error.tsx`, `not-found.tsx`, `/oflayn` (`StatePage`), yuklanish — `PageSkeleton` (ilova sahifalarining `<Suspense>` fallback'i;
   landing/kirish'da `null` qoldi). Skelet `animate-pulse` ishlatadi — dizaynda chizilmagan holat.
 - `e2e/navigation.spec.ts`: 4 rol + mehmon × 390/1440, ko'rinadigan havolalar 2 qadam chuqurlikda; xato/404, bo'sh, "tez orada" matni, begona bo'limga

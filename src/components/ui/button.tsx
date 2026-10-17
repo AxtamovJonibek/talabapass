@@ -25,6 +25,8 @@ const SIZES = {
   md: "h-12 rounded-12 px-4 text-15",
   /** WB2 sarlavhasidagi asosiy tugma: "E'lon qilish" */
   "md-wide": "h-12 rounded-12 px-[22px] text-15",
+  /** 404 / oflayn ekranlari (56px, radius 16, 17px) */
+  state: "h-14 rounded-16 px-6 text-17",
   /** Ikkilamchi: B6 "Excel hisobot" */
   sm: "h-11 rounded-12 px-4 text-14",
 } as const;
@@ -36,6 +38,8 @@ const VARIANTS = {
   ink: ["border-0 bg-ink text-white hover:bg-ink-2", "font-bold"],
   green: ["border-0 bg-green text-white hover:brightness-110", "font-extrabold"],
   outline: ["border-hair border-ink bg-white text-ink hover:bg-surface", "font-bold"],
+  /** Shaffof fonli, qora chegarali: 404 / oflayn ikkilamchi tugmasi */
+  "outline-clear": ["border-hair border-ink bg-transparent text-ink hover:bg-surface", "font-bold"],
   /** Ikkilamchi, kulrang chegarali: WT1 "Orqaga" */
   "outline-soft": ["border-hair border-line bg-white text-ink hover:bg-surface", "font-bold"],
   /** O'sha tugmaning faol bo'lmagan ko'rinishi: WT1 birinchi qadamdagi "Orqaga" */
