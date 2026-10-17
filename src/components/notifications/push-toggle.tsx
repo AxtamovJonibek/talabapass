@@ -83,12 +83,12 @@ export function PushToggle({ publicKey }: { publicKey: string }) {
         <div className="mt-0.5 text-13 text-muted">{t(`push.${state}`)}</div>
       </div>
       {state === "off" ? (
-        <Button type="button" variant="blue" size="sm" disabled={busy} onClick={enable}>
+        <Button type="button" variant="blue" size="sm" disabled={busy} aria-busy={busy} onClick={enable}>
           {t("pushEnable")}
         </Button>
       ) : null}
       {state === "on" ? (
-        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={disable}>
+        <Button type="button" variant="outline" size="sm" disabled={busy} aria-busy={busy} onClick={disable}>
           {t("pushDisable")}
         </Button>
       ) : null}

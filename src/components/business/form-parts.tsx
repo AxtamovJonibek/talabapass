@@ -134,7 +134,7 @@ export function DocTiles({ r }: { r: BusinessRegistration }) {
               <button
                 type="button"
                 aria-label={t("remove")}
-                disabled={r.pending || d.id.startsWith("local-")}
+                disabled={r.pending || d.id.startsWith("local-")} aria-busy={r.pending}
                 onClick={() => r.removeDoc(d.id)}
                 className="flex size-7 items-center justify-center rounded-8 border-0 bg-transparent text-muted"
               >

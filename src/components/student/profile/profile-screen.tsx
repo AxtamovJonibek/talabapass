@@ -83,10 +83,11 @@ function ProfileWebShell({ profile, totals, children }: Pick<Common, "profile" |
   );
 }
 
-function WebCard({ title, children }: { title: string; children: ReactNode }) {
+/** `back` — ota sahifa: `/profil` ning o'zida lentaga, ichki sahifalarda `/profil` ga (o'ziga emas). */
+function WebCard({ title, back, children }: { title: string; back: "/chegirmalar" | "/profil"; children: ReactNode }) {
   return (
     <section className="max-w-[560px] rounded-22 bg-white p-5">
-      <BackLink href="/profil" variant="text" className="-mt-2 mb-1" />
+      <BackLink href={back} variant="text" className="-mt-2 mb-1" />
       <h1 className="m-0 mb-4 text-28 font-black tracking-[-0.03em] font-stretch-110%">{title}</h1>
       {children}
     </section>
@@ -184,7 +185,7 @@ export function ProfileScreen(props: Common) {
       phone={<ProfilePhone {...props} />}
       web={
         <ProfileWebShell {...props}>
-          <WebCard title={t("personalTitle")}>
+          <WebCard title={t("personalTitle")} back="/chegirmalar">
             <ProfileForm profile={props.profile} districts={props.districts} idPrefix="w" />
           </WebCard>
         </ProfileWebShell>
@@ -205,7 +206,7 @@ export function ProfileEditScreen(props: Common) {
       }
       web={
         <ProfileWebShell {...props}>
-          <WebCard title={t("personalTitle")}>
+          <WebCard title={t("personalTitle")} back="/profil">
             <ProfileForm profile={props.profile} districts={props.districts} idPrefix="w" />
           </WebCard>
         </ProfileWebShell>
@@ -250,7 +251,7 @@ export function CardScreen(props: Common) {
       }
       web={
         <ProfileWebShell {...props}>
-          <WebCard title={t("cardTitle")}>
+          <WebCard title={t("cardTitle")} back="/profil">
             <CardRows profile={props.profile} onWhite />
           </WebCard>
         </ProfileWebShell>

@@ -88,7 +88,7 @@ export function BusinessReview(props: BusinessReviewData) {
       right={<CheckTable rows={props.rows} />}
       actions={
         <>
-          <Button variant="green" size="md" className="px-[22px]" disabled={pending || decided} onClick={() => run(() => approveBusinessAction({ businessId: props.businessId }))}>
+          <Button variant="green" size="md" className="px-[22px]" disabled={pending || decided} aria-busy={pending} onClick={() => run(() => approveBusinessAction({ businessId: props.businessId }))}>
             <Icon name="check" size={18} strokeWidth={3} />
             {t("approve")}
           </Button>
@@ -104,7 +104,7 @@ export function BusinessReview(props: BusinessReviewData) {
                   </option>
                 ))}
               </Select>
-              <Button variant="outline" size="md" disabled={pending || decided} onClick={() => run(() => rejectBusinessAction({ businessId: props.businessId, reason }))}>
+              <Button variant="outline" size="md" disabled={pending || decided} aria-busy={pending} onClick={() => run(() => rejectBusinessAction({ businessId: props.businessId, reason }))}>
                 {t("reject")}
               </Button>
             </div>
@@ -113,7 +113,7 @@ export function BusinessReview(props: BusinessReviewData) {
             variant="danger-outline"
             size="md"
             className="ml-auto"
-            disabled={pending || props.state === "BLOCKED"}
+            disabled={pending || props.state === "BLOCKED"} aria-busy={pending}
             onClick={() => {
               if (window.confirm(t("confirmBlockBusiness"))) run(() => blockBusinessAction({ businessId: props.businessId, reason }));
             }}

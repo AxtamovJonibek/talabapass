@@ -32,7 +32,7 @@ export function RegisterWeb({ r, rejectReason }: { r: BusinessRegistration; reje
           <Button variant="outline-soft" size="tall-quiet" onClick={r.back}>
             {t("back")}
           </Button>
-          <Button type="submit" form={FORM_ID} variant="orange" size="tall" disabled={r.pending}>
+          <Button type="submit" form={FORM_ID} variant="orange" size="tall" disabled={r.pending} aria-busy={r.pending}>
             {label}
           </Button>
         </>

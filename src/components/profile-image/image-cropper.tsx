@@ -170,10 +170,10 @@ export function ImageCropper({ file, busy, error, onCancel, onSave }: { file: Fi
         </p>
       ) : null}
       <div className="mt-4 flex gap-2.5">
-        <Button variant="outline-soft" size="sm" block disabled={busy} onClick={onCancel}>
+        <Button variant="outline-soft" size="sm" block disabled={busy} aria-busy={busy} onClick={onCancel}>
           {t("cancel")}
         </Button>
-        <Button variant="ink" size="sm" block disabled={busy || !source} onClick={save}>
+        <Button variant="ink" size="sm" block disabled={busy || !source} aria-busy={busy} onClick={save}>
           {busy ? t("saving") : t("save")}
         </Button>
       </div>

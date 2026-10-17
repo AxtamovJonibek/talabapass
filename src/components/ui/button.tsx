@@ -31,18 +31,18 @@ const SIZES = {
 
 // [ko'rinish, standart yozuv og'irligi]
 const VARIANTS = {
-  blue: ["border-0 bg-blue text-white", "font-bold"],
-  orange: ["border-0 bg-orange text-ink", "font-extrabold"],
-  ink: ["border-0 bg-ink text-white", "font-bold"],
-  green: ["border-0 bg-green text-white", "font-extrabold"],
-  outline: ["border-hair border-ink bg-white text-ink", "font-bold"],
+  blue: ["border-0 bg-blue text-white hover:bg-blue-2", "font-bold"],
+  orange: ["border-0 bg-orange text-ink hover:brightness-95", "font-extrabold"],
+  ink: ["border-0 bg-ink text-white hover:bg-ink-2", "font-bold"],
+  green: ["border-0 bg-green text-white hover:brightness-110", "font-extrabold"],
+  outline: ["border-hair border-ink bg-white text-ink hover:bg-surface", "font-bold"],
   /** Ikkilamchi, kulrang chegarali: WT1 "Orqaga" */
-  "outline-soft": ["border-hair border-line bg-white text-ink", "font-bold"],
+  "outline-soft": ["border-hair border-line bg-white text-ink hover:bg-surface", "font-bold"],
   /** O'sha tugmaning faol bo'lmagan ko'rinishi: WT1 birinchi qadamdagi "Orqaga" */
   "outline-idle": ["border-hair border-line bg-white text-fog-3", "font-bold"],
-  "danger-outline": ["border-hair border-danger-line bg-white text-danger", "font-bold"],
-  "danger-ghost": ["border-0 bg-transparent text-danger", "font-bold"],
-  ghost: ["border-0 bg-transparent", "font-semibold"],
+  "danger-outline": ["border-hair border-danger-line bg-white text-danger hover:bg-danger-bg", "font-bold"],
+  "danger-ghost": ["border-0 bg-transparent text-danger hover:bg-danger-bg", "font-bold"],
+  ghost: ["border-0 bg-transparent hover:bg-surface", "font-semibold"],
   /** Hozir bosib bo'lmaydigan asosiy harakat (chegirma hali ochilmagan): o'qiladigan kulrang, xira ko'k emas */
   idle: ["border-0 bg-track text-muted", "font-bold"],
 } as const;
@@ -65,8 +65,8 @@ export function buttonClass(
   // idle o'zi "nofaol" ko'rinishda — ustiga yana xiralashtirilmaydi
   const idle = variant === "idle";
   return cn(
-    // Bosilganda 0.97 ga kichrayadi (150ms) — interfeys "eshitdi" degan javob
-    "flex items-center gap-2 font-sans no-underline transition-[scale,opacity] duration-150 ease-out active:scale-[0.97] disabled:scale-100",
+    // Bosilganda 0.97 ga kichrayadi (120ms) — interfeys "eshitdi" degan javob
+    "flex items-center gap-2 font-sans no-underline transition-[scale,opacity,background-color,filter] duration-120 ease-out active:scale-[0.97] disabled:scale-100 disabled:hover:brightness-100",
     !idle && "disabled:opacity-50",
     spread ? "justify-between" : "justify-center",
     block && "w-full",

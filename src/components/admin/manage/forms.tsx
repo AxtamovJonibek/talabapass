@@ -67,7 +67,7 @@ export function OwnNameForm({ me }: { me: Person }) {
           <Input id="own-last" name="lastName" defaultValue={me.lastName} autoComplete="family-name" invalid={f.bad("lastName")} maxLength={40} />
         </Field>
       </Grid>
-      <Button type="submit" variant="blue" size="md" disabled={f.pending} className="self-start">
+      <Button type="submit" variant="blue" size="md" disabled={f.pending} aria-busy={f.pending} className="self-start">
         {f.t("save")}
       </Button>
       <Notes form={f} />
@@ -97,7 +97,7 @@ export function NewAdminForm() {
         </Field>
       </Grid>
       <p className="m-0 text-13 leading-[1.5] text-muted">{f.t("profile.newNote")}</p>
-      <Button type="submit" variant="blue" size="md" disabled={f.pending} className="self-start">
+      <Button type="submit" variant="blue" size="md" disabled={f.pending} aria-busy={f.pending} className="self-start">
         {f.t("profile.newSubmit")}
       </Button>
       {f.state.status === "saved" ? (
@@ -195,7 +195,7 @@ export function UserEditForm({
           </Grid>
         </>
       ) : null}
-      <Button type="submit" variant="blue" size="md" disabled={f.pending} className="self-start">
+      <Button type="submit" variant="blue" size="md" disabled={f.pending} aria-busy={f.pending} className="self-start">
         {f.t("save")}
       </Button>
       <Notes form={f} />
@@ -259,7 +259,7 @@ export function BusinessAdminForm({ business, kindLabels }: { business: Business
         <Textarea id="b-description" name="description" rows={2} maxLength={120} defaultValue={business.description} invalid={f.bad("description")} />
       </Field>
       <p className="m-0 text-12 text-muted">{f.t("users.businessNote")}</p>
-      <Button type="submit" variant="blue" size="md" disabled={f.pending} className="self-start">
+      <Button type="submit" variant="blue" size="md" disabled={f.pending} aria-busy={f.pending} className="self-start">
         {f.t("save")}
       </Button>
       <Notes form={f} />
@@ -326,7 +326,7 @@ export function UniversityForm({
         <input type="checkbox" name="active" defaultChecked={university?.active ?? true} className="size-4 accent-ink" />
         {f.t("universities.activeField")}
       </label>
-      <Button type="submit" variant="blue" size="md" disabled={f.pending} className="self-start">
+      <Button type="submit" variant="blue" size="md" disabled={f.pending} aria-busy={f.pending} className="self-start">
         {submitLabel ?? f.t("save")}
       </Button>
       <Notes form={f} />
@@ -353,7 +353,7 @@ export function LinkRequestForm({ requestId, universities }: { requestId: string
           </option>
         ))}
       </Select>
-      <Button type="submit" variant="outline" size="sm" disabled={f.pending}>
+      <Button type="submit" variant="outline" size="sm" disabled={f.pending} aria-busy={f.pending}>
         {f.t("universities.requestApply")}
       </Button>
       <Notes form={f} />
@@ -371,7 +371,7 @@ export function ActionButton({ kind, id, label, confirm }: { kind: "deleteUniver
       <Button
         variant="danger-outline"
         size="sm"
-        disabled={pending}
+        disabled={pending} aria-busy={pending}
         onClick={() => {
           if (confirm && !window.confirm(confirm)) return;
           start(async () => {

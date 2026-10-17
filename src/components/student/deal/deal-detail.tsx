@@ -196,7 +196,7 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
         </Link>
       </StudentWebHeader>
 
-      <div className="mx-auto flex max-w-[1360px] flex-wrap items-start gap-6 px-[clamp(16px,3cqw,40px)] pt-7 pb-[60px]">
+      <div className="mx-auto flex max-w-[1360px] flex-wrap items-start gap-6 px-[clamp(16px,3cqw,40px)] pt-5 pb-[60px]">
         <div className="flex min-w-0 flex-[3_1_560px] flex-col gap-3">
           {deal.images.length ? (
             <WebGallery images={deal.images} tile={deal.tile}>
@@ -204,7 +204,7 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
               <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
             </WebGallery>
           ) : (
-            <div className="relative flex h-[clamp(260px,30cqw,420px)] items-center justify-center overflow-hidden rounded-22" style={{ background: deal.tile, color: deal.ink }}>
+            <div className="relative flex h-[min(45vh,clamp(220px,28cqw,420px))] items-center justify-center overflow-hidden rounded-22" style={{ background: deal.tile, color: deal.ink }}>
               <Icon name={x.icon} size={240} strokeWidth={0.6} />
               <PctBadge size="lg" className="absolute top-5 right-5">{deal.badge}</PctBadge>
               <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
@@ -221,7 +221,7 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
                 <div className="text-14 text-muted">{[business.typeLabel, business.district, t("dealPage.verifiedPartner")].filter(Boolean).join(" · ")}</div>
               </div>
             </div>
-            <h1 className="mt-[18px] mb-0 text-[clamp(32px,3.6cqw,48px)] leading-none font-black tracking-[-0.035em] font-stretch-108%">{deal.title}</h1>
+            <h1 className="mt-[18px] mb-0 text-[clamp(24px,2.6cqw,36px)] leading-none font-black tracking-[-0.035em] font-stretch-108%">{deal.title}</h1>
             {detail.description ? <p className="mt-3 mb-0 max-w-[640px] text-16 leading-[1.55] text-ink-5">{detail.description}</p> : null}
             <dl className="mt-5 mb-0 grid grid-cols-[repeat(auto-fit,minmax(min(170px,100%),1fr))] gap-2">
               <Fact web label={t("dealPage.when")}>

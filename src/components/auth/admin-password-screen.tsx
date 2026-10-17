@@ -48,7 +48,7 @@ export function AdminPasswordScreen() {
           <Field label={t("passwordLabel")} htmlFor="admin-password" error={errorText}>
             <Input id="admin-password" name="password" type="password" autoComplete="current-password" autoFocus required invalid={!!failure} />
           </Field>
-          <button type="submit" disabled={pending || failure?.error === "locked"} className={buttonClass({ variant: "blue", strong: true })}>
+          <button type="submit" disabled={pending || failure?.error === "locked"} aria-busy={pending} className={buttonClass({ variant: "blue", strong: true })}>
             {pending ? t("checking") : t("submit")}
           </button>
         </form>

@@ -76,7 +76,7 @@ export function AvatarEditor({ kind, url, fallback, idPrefix }: { kind: Kind; ur
           {url ? t("change") : t(`${kind}.choose`)}
         </Button>
         {url ? (
-          <Button variant="danger-ghost" size="sm" disabled={busy} onClick={() => send("DELETE")} className="px-0">
+          <Button variant="danger-ghost" size="sm" disabled={busy} aria-busy={busy} onClick={() => send("DELETE")} className="px-0">
             {t("remove")}
           </Button>
         ) : null}

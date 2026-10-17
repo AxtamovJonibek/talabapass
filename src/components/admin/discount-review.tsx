@@ -83,7 +83,7 @@ export function DiscountReview(props: DiscountReviewData) {
       right={<CheckTable rows={props.rows} />}
       actions={
         <>
-          <Button variant="green" size="md" className="px-[22px]" disabled={pending || !props.pending} onClick={() => run(() => approveDiscountAction({ discountId: props.discountId }))}>
+          <Button variant="green" size="md" className="px-[22px]" disabled={pending || !props.pending} aria-busy={pending} onClick={() => run(() => approveDiscountAction({ discountId: props.discountId }))}>
             <Icon name="check" size={18} strokeWidth={3} />
             {t("approve")}
           </Button>
@@ -99,7 +99,7 @@ export function DiscountReview(props: DiscountReviewData) {
                   </option>
                 ))}
               </Select>
-              <Button variant="outline" size="md" disabled={pending || !props.pending} onClick={() => run(() => rejectDiscountAction({ discountId: props.discountId, reason }))}>
+              <Button variant="outline" size="md" disabled={pending || !props.pending} aria-busy={pending} onClick={() => run(() => rejectDiscountAction({ discountId: props.discountId, reason }))}>
                 {t("reject")}
               </Button>
             </div>

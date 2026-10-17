@@ -32,7 +32,7 @@ function Cancel({ id }: { id: string }) {
   return (
     <button
       type="button"
-      disabled={pending}
+      disabled={pending} aria-busy={pending}
       onClick={() => {
         if (!window.confirm(t("confirmCancel"))) return;
         startTransition(async () => {

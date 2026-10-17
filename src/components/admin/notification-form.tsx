@@ -183,7 +183,7 @@ export function NotificationForm({ options }: { options: NotificationFormOptions
         ) : null}
 
         <div className="mt-auto flex flex-wrap items-center gap-3 border-0 border-t-[1.5px] border-dashed border-dash pt-4">
-          <Button type="submit" size="wide" strong disabled={pending || !ready}>
+          <Button type="submit" size="wide" strong disabled={pending || !ready} aria-busy={pending}>
             <Icon name="share" size={18} strokeWidth={2.2} />
             {t(when === "now" ? "send" : "schedule")}
           </Button>

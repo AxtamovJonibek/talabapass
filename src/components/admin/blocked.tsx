@@ -29,7 +29,7 @@ export function UnblockButton({ kind, id }: { kind: "student" | "business"; id: 
           {t("failed")}
         </span>
       ) : null}
-      <button type="button" disabled={pending} onClick={unblock} className="h-8 rounded-8 border-hair border-line bg-white px-2.5 font-sans text-13 font-semibold text-ink disabled:opacity-50">
+      <button type="button" disabled={pending} aria-busy={pending} onClick={unblock} className="h-8 rounded-8 border-hair border-line bg-white px-2.5 font-sans text-13 font-semibold text-ink disabled:opacity-50">
         {t("unblock")}
       </button>
     </span>

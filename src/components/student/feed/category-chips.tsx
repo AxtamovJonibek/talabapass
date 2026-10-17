@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { CategoryPill } from "@/components/ui/category-pill";
-import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { FeedCategory } from "@/lib/feed";
 import { useDealText } from "./labels";
@@ -14,6 +13,8 @@ type Props = {
   onChange: (slug: string) => void;
   /** Yon bo'sh joy: telefonda qator ekran chetigacha chiqadi */
   inset?: string;
+  /** Joylashuv uchun (margin) */
+  className?: string;
 };
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
@@ -27,23 +28,19 @@ const ALL: FeedCategory = { slug: "all", icon: "all", tile: "var(--color-white)"
 
 /** Sekin aylanish tezligi (px/s) */
 const SPEED = 24;
-/** Barmoq/sichqoncha tugmalari bir bosishda suradigan masofa */
-const STEP = 220;
 
 /**
  * Kategoriya chiplari karuseli: o'zi sekin aylanadi (bir xil nusxa ketma-ket, cheksiz). Tegish, hover, g'ildirak, fokus yoki
- * surish bo'lsa to'xtaydi va qayta aylanmaydi — nusxa olib tashlanadi, qator oddiy surish bo'ladi. Kursorli qurilmada ← → tugmalari.
+ * surish bo'lsa to'xtaydi va qayta aylanmaydi — nusxa olib tashlanadi, qator oddiy surish bo'ladi. Ikki chetda yumshoq so'nish (fade).
  * `prefers-reduced-motion` bo'lsa umuman aylanmaydi.
  */
-export function CategoryChips({ categories, value, onChange, inset = "px-4" }: Props) {
+export function CategoryChips({ categories, value, onChange, inset = "px-4", className }: Props) {
   const t = useTranslations("feed");
   const text = useDealText();
   const scroller = useRef<HTMLDivElement>(null);
-  const stopRef = useRef<() => void>(() => {});
   const reduced = useSyncExternalStore(subscribeReduced, () => window.matchMedia(REDUCED).matches, () => false);
   const [stoppedByUser, setStoppedByUser] = useState(false);
   const looping = !reduced && !stoppedByUser;
-  const [edges, setEdges] = useState({ start: true, end: false });
   const list = [ALL, ...categories];
 
   useEffect(() => {
@@ -82,7 +79,6 @@ export function CategoryChips({ categories, value, onChange, inset = "px-4" }: P
       if (p > 0) el.scrollLeft = el.scrollLeft % p;
       setStoppedByUser(true);
     };
-    stopRef.current = stop;
     // Avtomatik surishdan boshqa har qanday siljish — foydalanuvchi qo'li
     const onScroll = () => {
       if (!stopped && Math.abs(el.scrollLeft - written) > 2) stop();
@@ -104,27 +100,9 @@ export function CategoryChips({ categories, value, onChange, inset = "px-4" }: P
     };
   }, [list.length, reduced]);
 
-  const measure = () => {
-    const el = scroller.current;
-    if (el) setEdges({ start: el.scrollLeft <= 1, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 });
-  };
-  useEffect(() => {
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [looping]);
-
-  const nudge = (dir: 1 | -1) => {
-    stopRef.current();
-    // Nusxa olib tashlangach (keyingi kadr) siljitiladi
-    requestAnimationFrame(() => scroller.current?.scrollBy({ left: dir * STEP, behavior: reduced ? "auto" : "smooth" }));
-  };
-
-  const arrow = "absolute top-1/2 z-[1] hidden size-9 -translate-y-1/2 items-center justify-center rounded-full border-hair border-line bg-white text-ink transition-[opacity,scale] duration-150 ease-out active:scale-90 disabled:opacity-0 [@media(pointer:fine)]:flex";
-
   return (
-    <div className="relative">
-      <div ref={scroller} role="group" aria-label={t("categories")} onScroll={measure} className={cn("relative flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", inset)}>
+    <div className={cn("relative", className)}>
+      <div ref={scroller} role="group" aria-label={t("categories")} className={cn("relative flex gap-2 overflow-x-auto py-1 [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", inset)}>
         {list.map((c) => (
           <CategoryPill key={c.slug} data-chip selected={value === c.slug} label={text.category(c.slug)} icon={c.icon} tileColor={c.tile} inkColor={c.ink} onClick={() => onChange(c.slug)} />
         ))}
@@ -134,12 +112,6 @@ export function CategoryChips({ categories, value, onChange, inset = "px-4" }: P
             ))
           : null}
       </div>
-      <button type="button" aria-label={t("chipsPrev")} disabled={!looping && edges.start} onClick={() => nudge(-1)} className={cn(arrow, "left-1")}>
-        <Icon name="chevronLeft" size={18} strokeWidth={2.4} />
-      </button>
-      <button type="button" aria-label={t("chipsNext")} disabled={!looping && edges.end} onClick={() => nudge(1)} className={cn(arrow, "right-1")}>
-        <Icon name="chevronRight" size={18} strokeWidth={2.4} />
-      </button>
     </div>
   );
 }

@@ -151,7 +151,7 @@ export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponV
           <button
             type="button"
             onClick={cancel}
-            disabled={cancelling}
+            disabled={cancelling} aria-busy={cancelling}
             className="h-[50px] w-full rounded-14 border-hair border-ink-7 bg-transparent font-sans text-15 font-semibold text-paper transition-[scale] duration-150 ease-out active:scale-[0.97] disabled:opacity-50"
           >
             {t("cancel")}

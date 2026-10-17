@@ -27,7 +27,7 @@ export function Chip({ selected = false, size = "md", count, children, className
       className={cn(
         "flex shrink-0 items-center gap-1.5 border-hair font-sans text-14 font-semibold",
         CHIP_SIZES[size],
-        selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink",
+        selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-surface",
         className,
       )}
       {...props}

@@ -49,7 +49,7 @@ export function BusinessEditForm({ initial, logoUrl, idPrefix }: { initial: Init
         </Field>
       </fieldset>
       <p className="m-0 text-12 leading-[1.45] text-muted">{e("editNote")}</p>
-      <Button type="submit" variant="orange" size="lg" disabled={pending}>
+      <Button type="submit" variant="orange" size="lg" disabled={pending} aria-busy={pending}>
         {e("editSave")}
       </Button>
       {state.status === "saved" ? (

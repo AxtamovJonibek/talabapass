@@ -92,7 +92,7 @@ export function CardUploadDesktop({ qr, pendingFileName, backHref }: Props) {
               variant="blue"
               size="wide"
               strong
-              disabled={uploading}
+              disabled={uploading} aria-busy={uploading}
               className="gap-2.5"
               onClick={() => {
                 if (!upload?.done) return input.current?.click();
@@ -134,7 +134,7 @@ export function CardUploadDesktop({ qr, pendingFileName, backHref }: Props) {
                 ref={input}
                 type="file"
                 accept="image/jpeg,image/png,image/heic,image/heif,.heic,.heif,application/pdf"
-                disabled={uploading}
+                disabled={uploading} aria-busy={uploading}
                 data-testid="card-file-web"
                 className="absolute size-px opacity-0"
                 onChange={(e) => {

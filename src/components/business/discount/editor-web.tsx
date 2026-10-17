@@ -63,11 +63,11 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
         </div>
         <div className="flex gap-2">
           {live ? null : (
-            <Button variant="outline" size="md" onClick={e.draft} disabled={e.pending}>
+            <Button variant="outline" size="md" onClick={e.draft} disabled={e.pending} aria-busy={e.pending}>
               {t("draft")}
             </Button>
           )}
-          <Button variant="orange" size="md-wide" onClick={e.publish} disabled={e.pending}>
+          <Button variant="orange" size="md-wide" onClick={e.publish} disabled={e.pending} aria-busy={e.pending}>
             {e.pending ? t("saving") : live ? t("save") : t("publish")}
           </Button>
         </div>

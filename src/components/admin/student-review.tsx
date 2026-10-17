@@ -109,7 +109,7 @@ export function StudentReview(props: StudentReviewData) {
             variant="green"
             size="md"
             className="px-[22px]"
-            disabled={pending || decided}
+            disabled={pending || decided} aria-busy={pending}
             onClick={() => run(() => approveStudentAction({ verificationId: props.verificationId, cardNumber, cardExpiresAt: expires }))}
           >
             <Icon name="check" size={18} strokeWidth={3} />
@@ -127,7 +127,7 @@ export function StudentReview(props: StudentReviewData) {
                   </option>
                 ))}
               </Select>
-              <Button variant="outline" size="md" disabled={pending || decided} onClick={() => run(() => rejectStudentAction({ verificationId: props.verificationId, reason }))}>
+              <Button variant="outline" size="md" disabled={pending || decided} aria-busy={pending} onClick={() => run(() => rejectStudentAction({ verificationId: props.verificationId, reason }))}>
                 {t("reject")}
               </Button>
             </div>
@@ -136,7 +136,7 @@ export function StudentReview(props: StudentReviewData) {
             variant="danger-outline"
             size="md"
             className="ml-auto"
-            disabled={pending || props.state === "BLOCKED"}
+            disabled={pending || props.state === "BLOCKED"} aria-busy={pending}
             onClick={() => {
               if (window.confirm(t("confirmBlockStudent"))) run(() => blockStudentAction({ verificationId: props.verificationId, reason }));
             }}

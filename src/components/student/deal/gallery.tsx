@@ -43,7 +43,7 @@ export function WebGallery({ images, tile, children }: { images: string[]; tile:
   const others = images.map((src, i) => ({ src, i })).filter((x) => x.i !== main);
   return (
     <div className={cn("grid gap-2.5", others.length ? "grid-cols-[3fr_1fr]" : "grid-cols-1")}>
-      <div className="relative flex h-[clamp(260px,30cqw,420px)] items-center justify-center overflow-hidden rounded-22" style={{ background: tile }}>
+      <div className="relative flex h-[min(45vh,clamp(220px,28cqw,420px))] items-center justify-center overflow-hidden rounded-22" style={{ background: tile }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili */}
         <img src={images[main]} alt={t("photo", { n: main + 1 })} className="absolute inset-0 size-full object-cover" />
         {children}

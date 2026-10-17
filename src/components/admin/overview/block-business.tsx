@@ -44,7 +44,7 @@ export function BlockBusiness({ businessId }: { businessId: string }) {
           </option>
         ))}
       </Select>
-      <button type="button" disabled={pending} onClick={block} className="h-8 rounded-8 border-hair border-danger-line bg-white px-2.5 font-sans text-13 font-semibold text-danger disabled:opacity-50">
+      <button type="button" disabled={pending} aria-busy={pending} onClick={block} className="h-8 rounded-8 border-hair border-danger-line bg-white px-2.5 font-sans text-13 font-semibold text-danger disabled:opacity-50">
         {t("block")}
       </button>
       <button type="button" onClick={() => setOpen(false)} className="h-8 rounded-8 border-0 bg-transparent px-1.5 font-sans text-13 font-semibold text-muted">

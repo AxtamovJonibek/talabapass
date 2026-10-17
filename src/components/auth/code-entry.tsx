@@ -42,7 +42,7 @@ export function CodeEntry({ phone, code, onCode, onComplete, onResend, onChangeP
         digitLabel={(n) => t("digit", { n })}
         length={OTP_LENGTH}
         invalid={invalid}
-        disabled={pending}
+        disabled={pending} aria-busy={pending}
         autoFocus
       />
       <div className="flex justify-between text-13 text-muted">
@@ -51,7 +51,7 @@ export function CodeEntry({ phone, code, onCode, onComplete, onResend, onChangeP
             {t("resendIn")} <b className="font-mono text-ink">{clock(resendIn)}</b>
           </span>
         ) : (
-          <button type="button" onClick={onResend} disabled={pending} className={textButton}>
+          <button type="button" onClick={onResend} disabled={pending} aria-busy={pending} className={textButton}>
             {t("resend")}
           </button>
         )}

@@ -29,7 +29,7 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
         </Link>
         <h1 className="m-0 flex-1 text-20 font-extrabold tracking-[-0.02em] font-stretch-110%">{e.id ? t("editTitle") : t("newTitle")}</h1>
         {live ? null : (
-          <button type="button" onClick={e.draft} disabled={e.pending} className="h-10 border-0 bg-transparent px-3 font-sans text-14 font-semibold text-muted">
+          <button type="button" onClick={e.draft} disabled={e.pending} aria-busy={e.pending} className="h-10 border-0 bg-transparent px-3 font-sans text-14 font-semibold text-muted">
             {t("draft")}
           </button>
         )}
@@ -137,7 +137,7 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
       </div>
 
       <div className="border-t border-solid border-line-soft bg-paper px-4 pt-3 pb-[30px]">
-        <Button variant="orange" block onClick={e.publish} disabled={e.pending}>
+        <Button variant="orange" block onClick={e.publish} disabled={e.pending} aria-busy={e.pending}>
           {e.pending ? t("saving") : live ? t("save") : t("publish")}
         </Button>
       </div>

@@ -50,7 +50,7 @@ export function ProfileForm({ profile, districts, idPrefix }: { profile: Profile
         </Select>
       </Field>
       <p className="m-0 text-12 leading-[1.45] text-muted">{t("profile.districtHint")}</p>
-      <Button type="submit" variant="blue" size="lg" disabled={pending}>
+      <Button type="submit" variant="blue" size="lg" disabled={pending} aria-busy={pending}>
         {t("profile.save")}
       </Button>
       {state.status === "saved" ? (

@@ -44,7 +44,7 @@ export function SaveButton({ discountId, saved: initial }: { discountId: string;
       toast(result.saved ? t("savedToast") : t("unsavedToast"));
     });
   return (
-    <button type="button" aria-label={saved ? t("unsave") : t("save")} aria-pressed={saved} disabled={pending} onClick={toggle} className={cn(ROUND, "disabled:opacity-100")}>
+    <button type="button" aria-label={saved ? t("unsave") : t("save")} aria-pressed={saved} disabled={pending} aria-busy={pending} onClick={toggle} className={cn(ROUND, "disabled:opacity-100")}>
       <Icon name="bookmark" size={19} filled={saved} />
     </button>
   );

@@ -167,8 +167,52 @@
 
   /* Lenta kartasi (Lenta B · Jurnal) */
   --shadow-card: 0 1px 0 var(--color-line), 0 14px 24px -18px rgb(20 20 20 / 0.55);
-  --shadow-card-hover: 0 0 0 1.5px var(--color-ink), 0 22px 32px -18px rgb(20 20 20 / 0.6);
+  --shadow-card-hover: 0 1px 0 var(--color-line), 0 18px 40px -8px color-mix(in srgb, var(--color-ink) 12%, transparent), 0 6px 16px -4px color-mix(in srgb, var(--color-ink) 8%, transparent);
   --shadow-chip-hover: 0 6px 12px -8px rgb(20 20 20 / 0.5);
+}
+
+/*
+ * Barcha tugmalar: bosilganda 0.97 (120ms), hover'da rang o'zgaradi (komponentda), klaviatura fokusi — ko'k halqa,
+ * `aria-busy="true"` bo'lsa matn yonida aylanuvchi belgi (Button va oddiy <button> uchun bir xil).
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+  button {
+    transition:
+      translate 120ms var(--ease-out),
+      scale 120ms var(--ease-out),
+      background-color 120ms var(--ease-out),
+      color 120ms var(--ease-out),
+      border-color 120ms var(--ease-out),
+      filter 120ms var(--ease-out),
+      opacity 120ms var(--ease-out);
+  }
+  button:not(:disabled):active {
+    scale: 0.97;
+  }
+  :is(button, a, summary, select, input, textarea, [role="switch"], [role="button"], [role="option"], [tabindex]):focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
+  }
+  button[aria-busy="true"]::after {
+    content: "";
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: tp-spin 700ms linear infinite;
+  }
+}
+
+@keyframes tp-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Dizayndagi standart chegara qalinligi */

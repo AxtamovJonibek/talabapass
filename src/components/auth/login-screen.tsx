@@ -176,7 +176,7 @@ export function LoginScreen() {
                   defaultValue={phoneInput}
                 />
               </Field>
-              <button type="submit" disabled={pending} className={buttonClass({ variant: cta, strong: true })}>
+              <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
                 {pending ? t("sending") : t("sendCode")}
               </button>
             </form>
@@ -199,7 +199,7 @@ export function LoginScreen() {
                 invalid={failure?.error === "wrongCode"}
                 errorText={errorText}
               />
-              <button type="submit" disabled={pending} className={buttonClass({ variant: cta, strong: true })}>
+              <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
                 {pending ? t("checking") : t("submit")}
               </button>
             </form>

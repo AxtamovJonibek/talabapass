@@ -82,7 +82,7 @@ export function RegisterMobile({ r, rejectReason }: { r: BusinessRegistration; r
           />
         </div>
         <Footer>
-          <button type="submit" disabled={r.pending} className={cta}>
+          <button type="submit" disabled={r.pending} aria-busy={r.pending} className={cta}>
             <span>{r.pending ? auth("checking") : t("confirm")}</span>
             <Icon name="arrowRight" size={22} strokeWidth={2.2} />
           </button>
@@ -177,10 +177,10 @@ export function RegisterMobile({ r, rejectReason }: { r: BusinessRegistration; r
         <FormStatus r={r} />
       </div>
       <Footer>
-        <button type="button" onClick={r.back} disabled={r.pending} className={back}>
+        <button type="button" onClick={r.back} disabled={r.pending} aria-busy={r.pending} className={back}>
           {t("back")}
         </button>
-        <button type="submit" disabled={r.pending} className={buttonClass({ variant: "orange", spread: true }, "flex-1")}>
+        <button type="submit" disabled={r.pending} aria-busy={r.pending} className={buttonClass({ variant: "orange", spread: true }, "flex-1")}>
           <span>{busy ?? t("submit")}</span>
           <Icon name="arrowRight" size={22} strokeWidth={2.2} />
         </button>

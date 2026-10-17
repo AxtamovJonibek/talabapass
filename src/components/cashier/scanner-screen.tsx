@@ -285,7 +285,7 @@ function ManualEntry({ pending, error, onSubmit, onClose }: { pending: boolean; 
         <button type="button" onClick={onClose} className="h-12 rounded-12 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
           {t("back")}
         </button>
-        <button type="submit" disabled={pending} className="h-12 rounded-12 border-0 bg-orange font-sans text-15 font-extrabold text-ink disabled:opacity-50">
+        <button type="submit" disabled={pending} aria-busy={pending} className="h-12 rounded-12 border-0 bg-orange font-sans text-15 font-extrabold text-ink disabled:opacity-50">
           {t("check")}
         </button>
       </div>
@@ -418,7 +418,7 @@ function SalePreview({ preview: p, at, onCancel, onDone }: { preview: ScanPrevie
         <button type="button" onClick={onCancel} className="h-14 rounded-14 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
           {t("reject")}
         </button>
-        <button type="button" onClick={confirm} disabled={pending} className="h-14 rounded-14 border-0 bg-orange font-sans text-16 font-extrabold text-ink disabled:opacity-50">
+        <button type="button" onClick={confirm} disabled={pending} aria-busy={pending} className="h-14 rounded-14 border-0 bg-orange font-sans text-16 font-extrabold text-ink disabled:opacity-50">
           {t("confirm")}
         </button>
       </div>

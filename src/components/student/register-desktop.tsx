@@ -30,7 +30,7 @@ export function RegisterDesktop({ registration: r, universities, verifiedPhone }
           <Button variant="outline-soft" size="wide-quiet" onClick={r.backToForm}>
             {t("web.back")}
           </Button>
-          <Button type="submit" form={FORM_ID} variant="blue" size="wide" strong disabled={r.pending} className="gap-2.5">
+          <Button type="submit" form={FORM_ID} variant="blue" size="wide" strong disabled={r.pending} aria-busy={r.pending} className="gap-2.5">
             {r.pending ? auth(inCode ? "checking" : "sending") : inCode ? t("register.confirm") : t("register.submit")}
             <Icon name="arrowRight" size={18} strokeWidth={2.2} />
           </Button>

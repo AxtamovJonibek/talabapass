@@ -2,12 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { HotDealCard } from "@/components/ui/deal-card";
+import { Chip } from "@/components/ui/chip";
+import { Dropdown } from "@/components/ui/dropdown";
 import { SearchField } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { isIconName } from "@/components/ui/icons";
-import { Switch } from "@/components/ui/switch";
 import { Link } from "@/i18n/navigation";
-import { SORTS, isFeedSort } from "@/lib/feed";
+import { SORTS } from "@/lib/feed";
 import { formatSom } from "@/lib/format";
 import { formatKm, type Point } from "@/lib/geo";
 import { formatMinute, toTashkent } from "@/lib/time";
@@ -17,7 +18,6 @@ import { useDealText } from "./labels";
 import { LocationSelect, type LocationProps } from "./location-select";
 import { CategoryChips } from "./category-chips";
 import { FeedDealCard } from "./feed-deal-card";
-import { MiniMap } from "./mini-map";
 import type { FeedCategory } from "@/lib/feed";
 import type { Feed } from "./use-feed";
 
@@ -97,48 +97,37 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
           </div>
         ) : null}
 
-        <div className="mt-7 flex flex-wrap items-start gap-6">
-          <aside aria-label={t("feed.filters")} className="flex min-w-0 flex-[1_1_250px] flex-col gap-3">
-            <div className="flex items-center justify-between gap-3 rounded-18 bg-white p-4">
-              <span className="flex flex-col gap-0.5">
-                <b className="text-15">{t("feed.liveOnly")}</b>
-                <span className="text-13 text-muted">{t("feed.liveOnlyHint")}</span>
-              </span>
-              <Switch id="wt2-live" checked={feed.liveOnly} onChange={feed.setLiveOnly} label={t("feed.liveOnly")} />
-            </div>
-            <MiniMap deals={feed.items} origin={origin} onOpen={() => feed.setMapOpen(true)} />
-          </aside>
-
-          <section className="min-w-0 flex-[4_1_600px]">
-            <CategoryChips categories={categories} value={feed.category} onChange={feed.setCategory} inset="px-0" />
-            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2.5">
-              <h2 className="m-0 text-22 font-extrabold">
-                {t("feed.count", { count: feed.items.length })} <span className="font-medium text-muted">{t(`feed.sortHint.${feed.sort}`)}</span>
-              </h2>
-              <label className="flex items-center gap-2 text-14 text-muted">
-                {t("feed.sortLabel")}
-                <select
-                  id="wt2-sort"
-                  value={feed.sort}
-                  onChange={(e) => isFeedSort(e.target.value) && feed.setSort(e.target.value)}
-                  className="h-[42px] rounded-10 border-hair border-line bg-white px-2.5 font-sans text-14 text-ink"
-                >
-                  {SORTS.map((s) => (
-                    <option key={s} value={s} disabled={s === "near" && !origin}>
-                      {t(`feed.sort.${s}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="mt-3.5 grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-3">
-              {feed.items.map((deal) => (
-                <FeedDealCard key={deal.id} deal={deal} now={feed.now} />
-              ))}
-            </div>
-            {feed.items.length === 0 ? <div className="mt-3.5 rounded-18 bg-white p-10 text-center text-muted">{t("feed.emptyFilter")}</div> : null}
-          </section>
-        </div>
+        <section className="mt-7 min-w-0">
+          <CategoryChips categories={categories} value={feed.category} onChange={feed.setCategory} inset="px-6" className="-mx-6" />
+          <div aria-label={t("feed.filters")} role="group" className="mt-2.5 flex flex-wrap items-center gap-2">
+            <Chip id="wt2-live" selected={feed.liveOnly} onClick={() => feed.setLiveOnly(!feed.liveOnly)} title={t("feed.liveOnlyHint")}>
+              {feed.liveOnly ? <Icon name="check" size={15} strokeWidth={2.6} /> : null}
+              {t("feed.liveOnly")}
+            </Chip>
+            <Chip id="wt2-map" onClick={() => feed.setMapOpen(true)}>
+              <Icon name="map" size={16} />
+              {t("feed.mapChip")}
+            </Chip>
+          </div>
+          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2.5">
+            <h2 className="m-0 text-22 font-extrabold">
+              {t("feed.count", { count: feed.items.length })} <span className="font-medium text-muted">{t(`feed.sortHint.${feed.sort}`)}</span>
+            </h2>
+            <Dropdown
+              id="wt2-sort"
+              label={t("feed.sortLabel")}
+              value={feed.sort}
+              onChange={feed.setSort}
+              options={SORTS.map((s) => ({ value: s, label: t(`feed.sort.${s}`), disabled: s === "near" && !origin }))}
+            />
+          </div>
+          <div className="mt-3.5 grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-3">
+            {feed.items.map((deal) => (
+              <FeedDealCard key={deal.id} deal={deal} now={feed.now} />
+            ))}
+          </div>
+          {feed.items.length === 0 ? <div className="mt-3.5 rounded-18 bg-white p-10 text-center text-muted">{t("feed.emptyFilter")}</div> : null}
+        </section>
       </div>
     </div>
   );

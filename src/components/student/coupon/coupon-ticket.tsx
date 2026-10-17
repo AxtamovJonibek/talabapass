@@ -134,7 +134,7 @@ export function CouponPanel({
       <button
         type="button"
         onClick={onCancel}
-        disabled={cancelling}
+        disabled={cancelling} aria-busy={cancelling}
         className="mt-3 h-[46px] w-full rounded-12 border-hair border-ink-7 bg-transparent font-sans text-14 font-semibold text-paper transition-[scale] duration-150 ease-out active:scale-[0.97] disabled:opacity-50"
       >
         {t("cancel")}

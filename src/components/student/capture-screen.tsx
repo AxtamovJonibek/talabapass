@@ -221,7 +221,7 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
       <div className="mt-auto flex items-center justify-between px-6 pb-10">
         <button
           type="button"
-          disabled={busy}
+          disabled={busy} aria-busy={busy}
           onClick={() => fileInput.current?.click()}
           className="flex h-14 w-[92px] flex-col items-center justify-center gap-1 rounded-14 border-0 bg-ink-2 font-sans text-12 font-semibold text-paper"
         >
@@ -231,7 +231,7 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
         <button
           type="button"
           aria-label={t("shoot")}
-          disabled={busy}
+          disabled={busy} aria-busy={busy}
           onClick={shoot}
           className="box-border flex size-[78px] items-center justify-center rounded-full border-4 border-solid border-paper bg-transparent p-0 disabled:opacity-50"
         >

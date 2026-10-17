@@ -72,7 +72,7 @@ export function RegisterMobile({ registration: r, universities, verifiedPhone }:
             />
           </div>
           <div className="flex flex-col gap-3 px-6 pt-4 pb-[34px]">
-            <button type="submit" disabled={r.pending} className={submitClass}>
+            <button type="submit" disabled={r.pending} aria-busy={r.pending} className={submitClass}>
               <span>{r.pending ? auth("checking") : t("register.confirm")}</span>
               <Icon name="arrowRight" size={22} />
             </button>
@@ -129,7 +129,7 @@ export function RegisterMobile({ registration: r, universities, verifiedPhone }:
             </div>
           </div>
           <div className="flex flex-col gap-3 px-6 pt-4 pb-[34px]">
-            <button type="submit" disabled={r.pending} className={submitClass}>
+            <button type="submit" disabled={r.pending} aria-busy={r.pending} className={submitClass}>
               <span>{r.pending ? auth("sending") : t("register.submit")}</span>
               <Icon name="arrowRight" size={22} />
             </button>

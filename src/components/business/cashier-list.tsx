@@ -23,7 +23,7 @@ export function CashierHeader({ data, onInvite, pending }: { data: OwnerCashiers
     <div className="flex items-baseline justify-between">
       <h2 className="m-0 text-18 font-extrabold font-stretch-110%">{t("title")}</h2>
       {data.canInvite ? (
-        <button type="button" onClick={onInvite} disabled={pending} className="flex h-11 items-center border-0 bg-transparent p-0 font-sans text-14 font-bold text-rust">
+        <button type="button" onClick={onInvite} disabled={pending} aria-busy={pending} className="flex h-11 items-center border-0 bg-transparent p-0 font-sans text-14 font-bold text-rust">
           {t("invite")}
         </button>
       ) : null}
@@ -117,7 +117,7 @@ export function CashierList({ data }: { data: OwnerCashiers }) {
                   type="button"
                   aria-label={`${t("remove")}: ${name}`}
                   title={t("remove")}
-                  disabled={pending}
+                  disabled={pending} aria-busy={pending}
                   onClick={() => {
                     if (window.confirm(t("confirmRemove", { name }))) run(() => removeCashierAction(c.memberId));
                   }}
@@ -138,7 +138,7 @@ export function CashierList({ data }: { data: OwnerCashiers }) {
             {data.invites.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between gap-2 rounded-12 bg-white px-3.5 py-2 text-13">
                 <span className="font-mono text-12 text-muted">{t("inviteUntil", { time: hhmm(inv.expiresAt) })}</span>
-                <Button variant="danger-ghost" size="sm" disabled={pending} onClick={() => run(() => revokeInviteAction(inv.id))}>
+                <Button variant="danger-ghost" size="sm" disabled={pending} aria-busy={pending} onClick={() => run(() => revokeInviteAction(inv.id))}>
                   {t("revoke")}
                 </Button>
               </li>

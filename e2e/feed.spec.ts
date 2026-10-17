@@ -78,13 +78,14 @@ test.describe("veb (WT2 / WT3)", () => {
     await expect(page).toHaveURL("/chegirmalar");
     await expect(page.getByRole("heading", { name: /^Salom, / })).toBeVisible();
 
-    await page.locator("#wt2-sort").selectOption("biggest");
+    await page.locator("#wt2-sort").click();
+    await page.getByRole("option", { name: "Eng katta chegirma" }).click();
     await expect(page).toHaveURL(/saralash=biggest/);
     // 1+1 (50%) eng katta, keyin kino (−44%)
     const tiles = page.locator("section a[href^='/chegirmalar/']");
     await expect(tiles.first()).toContainText("1+1");
 
-    await page.getByRole("switch", { name: "Faqat hozir ochiq" }).locator("visible=true").click();
+    await page.getByRole("button", { name: "Faqat hozir ochiq" }).locator("visible=true").click();
     await expect(page).toHaveURL(/ochiq=1/);
 
     await page.goto(`/chegirmalar/${await discountId("Osh 0.5 porsiya + ko'k choy")}`);

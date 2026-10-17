@@ -26,7 +26,7 @@ function useNotify(initial: boolean) {
 export function NotifySwitch({ initial }: { initial: boolean }) {
   const t = useTranslations("profile");
   const { on, change, pending } = useNotify(initial);
-  return <Switch id="notif" checked={on} onChange={change} label={t("notify")} disabled={pending} />;
+  return <Switch id="notif" checked={on} onChange={change} label={t("notify")} disabled={pending} aria-busy={pending} />;
 }
 
 /** WT4: "Bildirishnomalar — yoqilgan/o'chirilgan" qatori; bosilsa almashadi. */
@@ -34,7 +34,7 @@ export function NotifyRow({ initial, className }: { initial: boolean; className:
   const t = useTranslations();
   const { on, change, pending } = useNotify(initial);
   return (
-    <button type="button" role="switch" aria-checked={on} disabled={pending} onClick={() => change(!on)} className={cn(className, "w-full border-x-0 border-t-0 bg-transparent text-left font-sans text-16")}>
+    <button type="button" role="switch" aria-checked={on} disabled={pending} aria-busy={pending} onClick={() => change(!on)} className={cn(className, "w-full border-x-0 border-t-0 bg-transparent text-left font-sans text-16")}>
       {t("history.menu.notifications")}
       <span className={cn("ml-auto text-13 font-bold", on ? "text-green" : "text-muted")}>{on ? t("history.menu.on") : t("history.menu.off")}</span>
     </button>

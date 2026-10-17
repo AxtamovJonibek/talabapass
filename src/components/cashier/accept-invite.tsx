@@ -83,7 +83,7 @@ export function AcceptInvite({ token, businessName }: { token: string; businessN
             invalid={Boolean(error)}
             errorText={error}
           />
-          <Button type="submit" variant="orange" spread block disabled={pending} className="mt-auto">
+          <Button type="submit" variant="orange" spread block disabled={pending} aria-busy={pending} className="mt-auto">
             <span>{pending ? auth("checking") : t("confirm")}</span>
             <Icon name="arrowRight" size={22} strokeWidth={2.2} />
           </Button>
@@ -106,7 +106,7 @@ export function AcceptInvite({ token, businessName }: { token: string; businessN
           <Field label={t("phone")} htmlFor="inv-phone" error={fieldError("phone") ?? error}>
             <PhoneInput id="inv-phone" name="phone" defaultValue={values?.phone} invalid={invalid.includes("phone")} />
           </Field>
-          <Button type="submit" variant="orange" spread block disabled={pending} className="mt-auto">
+          <Button type="submit" variant="orange" spread block disabled={pending} aria-busy={pending} className="mt-auto">
             <span>{pending ? auth("sending") : t("submit")}</span>
             <Icon name="arrowRight" size={22} strokeWidth={2.2} />
           </Button>
