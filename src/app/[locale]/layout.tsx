@@ -5,7 +5,6 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { resolveLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
-import { StagingBadge } from "@/components/StagingBadge";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { isStaging } from "@/server/env-check";
 import "../globals.css";
@@ -42,7 +41,6 @@ export const viewport: Viewport = {
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
   const locale = await resolveLocale(params);
-  const t = await getTranslations({ locale, namespace: "meta" });
 
   return (
     <html lang={locale} className={`${archivo.variable}`}>
@@ -53,7 +51,6 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
             <ServiceWorkerRegister />
           </Suspense>
         </NextIntlClientProvider>
-        {isStaging() && <StagingBadge label={t("stagingBadge")} />}
       </body>
     </html>
   );

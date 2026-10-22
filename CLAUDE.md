@@ -326,7 +326,7 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Havola: https://talabapass.vercel.app — alohida Neon baza va alohida private bucket. `APP_ENV=staging`
   (build vaqtida ham kerak — o'zgartirilsa Redeploy).
 - Sayt hammaga ochiq (Basic Auth yo'q): landing, talaba, biznes. `APP_ENV=staging` da: `X-Robots-Tag` + `robots` meta
-  noindex, "Sinov versiyasi" belgisi (`StagingBadge`, dizaynda yo'q), SMS/Telegram ulanguncha `OTP_FIXED_CODE` va
+  noindex (ko'rinadigan belgi yo'q), SMS/Telegram ulanguncha `OTP_FIXED_CODE` va
   `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Start'da `STORAGE_DRIVER=s3` majburiy.
   `APP_ENV` yo'q/boshqa qiymat — production qoidalari o'zgarmagan (`env-check.test.ts`).
 - Fayllar: `STORAGE_DRIVER=s3` (`storage/s3.ts`) — R2 yoki Supabase S3 endpoint, path-style.

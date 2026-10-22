@@ -60,7 +60,6 @@ To'ldirilmagan joylar (egasidan kutilmoqda, o'ylab topilmaydi): `[EMAIL]`, `[TEL
 - [ ] **[BLOK]** `DATABASE_POOL_MAX` Production'da qo'yilmagan (faqat lokal PGlite uchun).
 - [ ] **[BLOK]** Domen va HTTPS; `NEXT_PUBLIC_*`/`APP_URL` yangi domenga; Vercel `*.vercel.app` ga noindex qolsin yoki domen yo'naltirilsin.
 - [ ] **[TAVSIYA]** Monitoring: Vercel Logs + xatolar uchun Sentry (yo'q); uptime tekshiruvi `/`.
-- [ ] **[TAVSIYA]** Sinov serveridagi "Sinov versiyasi" belgisi (`StagingBadge`) production'da ko'rinmasligini tekshiring (`APP_ENV` yo'q).
 
 ## 6. Chiqishdan oldingi qo'l bilan tekshiruv (production havolasida)
 1. Talaba: ro'yxat → guvohnoma → (admin tasdiqlaydi) → chegirma olish → kassir skanerlaydi → chek PDF.
