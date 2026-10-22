@@ -50,7 +50,7 @@ export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProp
             href={item.href}
             aria-current={item.active ? "page" : undefined}
             className={cn(
-              "flex h-[42px] items-center gap-2.5 rounded-10 px-3 text-14 no-underline",
+              "tp-row flex h-[42px] items-center gap-2.5 rounded-10 px-3 text-14 no-underline",
               // A2: hisoblagichli bandlar faol bo'lmasa ham qalin
               item.active || item.badge != null ? "font-bold" : "font-semibold",
               item.active ? (accent === "orange" ? "bg-orange text-ink" : "bg-blue text-white") : "text-fog-1",

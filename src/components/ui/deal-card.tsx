@@ -39,7 +39,7 @@ function TileImage({ image, icon, size, strokeWidth }: { image?: string; icon: I
 export function DealCard(props: DealCardProps) {
   const pct = props.total > 0 ? Math.round((props.left / props.total) * 100) : 0;
   return (
-    <Link href={props.href} className="relative block rounded-16 bg-white text-ink no-underline">
+    <Link href={props.href} className="tp-card relative block rounded-16 bg-white text-ink no-underline">
       <div className="flex gap-3 p-3">
         <div
           className="relative flex size-[92px] shrink-0 items-center justify-center rounded-12"
@@ -140,7 +140,7 @@ export function HotDealCard({ href, tone, size, store, big, title, foot, dot = f
   const s = HOT_SIZES[size];
   const c = HOT_TONES[tone];
   return (
-    <Link href={href} className={cn("relative box-border flex flex-col overflow-hidden no-underline", s.card, c.card)}>
+    <Link href={href} className={cn("tp-card relative box-border flex flex-col overflow-hidden no-underline", s.card, c.card)}>
       <span className={cn(s.store, c.store)}>{store}</span>
       <span className={cn("font-black font-stretch-62%", s.big, c.big)}>{big}</span>
       <b className={s.title}>{title}</b>
