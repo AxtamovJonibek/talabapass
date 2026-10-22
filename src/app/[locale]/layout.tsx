@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { Archivo } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { resolveLocale } from "@/i18n/locale";
@@ -15,13 +15,6 @@ const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin", "latin-ext"],
   axes: ["wdth"],
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin", "latin-ext", "cyrillic"],
-  weight: ["400", "500", "600"],
   display: "swap",
 });
 
@@ -52,7 +45,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   const t = await getTranslations({ locale, namespace: "meta" });
 
   return (
-    <html lang={locale} className={`${archivo.variable} ${plexMono.variable}`}>
+    <html lang={locale} className={`${archivo.variable}`}>
       <body>
         <NextIntlClientProvider>
           {children}

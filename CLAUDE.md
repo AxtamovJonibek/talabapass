@@ -80,7 +80,7 @@ issiqlik shkalasi: #EFEDE7 #FBD5C2 #FCA57D #FF6A2E #B83A0A
 Rol mavzusi: talaba — ko'k CTA, oq matn. Biznes — to'q sariq CTA, qora matn. Kassir skaneri —
 qora fon. Admin — #EEEDE8 fon, qora sidebar, ko'k urg'u.
 
-Shriftlar: Archivo (variable, `wdth` o'qi majburiy) va IBM Plex Mono — `next/font` orqali self-host.
+Shriftlar: Archivo (variable, `wdth` o'qi majburiy) — `next/font` orqali self-host. Mono shrift yo'q: `--font-mono` ham Archivo, raqamlar `tabular-nums` (design/ dagi Plex Mono faqat manba).
 - Og'irlik: 600 / 700 / 800 / 900 (400 kam).
 - `font-stretch`: logo 125%, sarlavha 110–112%, siqiq raqam/badge 62–75%.
 - Sarlavha: letter-spacing −0.02…−0.045em, line-height 0.9–1.

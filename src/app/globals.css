@@ -113,7 +113,8 @@
    * Fayllarni baribir next/font yuklaydi (layout.tsx).
    */
   --font-sans: "Archivo", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  /* Mono o`rniga ham Archivo: raqamlar tabular-nums bilan (pastdagi qoida), yorliqlar katta harf + letter-spacing o`z joyida */
+  --font-mono: "Archivo", system-ui, sans-serif;
 
   /* o'lcham = piksel; dizayndagi qiymatlar */
   --text-*: initial;
@@ -386,6 +387,12 @@
     background: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
+  }
+
+  /* Raqam, vaqt, kod — bir xil kenglikda (sakramasin) */
+  .font-mono,
+  [style*="--font-mono"] {
+    font-variant-numeric: tabular-nums;
   }
 
   input::placeholder,

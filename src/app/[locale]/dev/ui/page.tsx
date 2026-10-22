@@ -80,7 +80,7 @@ export default async function DesignSystemPage({ params }: PageProps<"/[locale]/
         </div>
       </Section>
 
-      <Section title="Tipografiya — Archivo (wdth 62–125%) + IBM Plex Mono">
+      <Section title="Tipografiya — Archivo (wdth 62–125%), raqamlar tabular-nums">
         <div className="flex flex-col gap-3 rounded-18 bg-white p-6">
           <div className="text-40 leading-[0.98] font-black tracking-[-0.035em] font-stretch-112%">
             Talabamisan? Arzonroq to&apos;laysan.
