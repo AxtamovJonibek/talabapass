@@ -29,7 +29,7 @@ export function ProfileHeader({ p }: { p: OwnerProfile }) {
             {p.status === "WARNED" ? t("warned") : live ? t("approved") : t("pending")}
           </div>
         </div>
-        <Link href="/biznes/profil/tahrir" aria-label={t("edit")} className="flex size-11 shrink-0 items-center justify-center rounded-22 bg-ink-3 text-paper no-underline">
+        <Link href="/biznes/profil/tahrir" aria-label={t("edit")} className="tp-lift flex size-11 shrink-0 items-center justify-center rounded-22 bg-ink-3 text-paper no-underline">
           <Icon name="edit" size={18} />
         </Link>
       </div>

@@ -100,7 +100,7 @@ export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponV
   return (
     <div className="flex min-h-dvh flex-col bg-ink text-paper">
       <div className="flex items-center justify-between px-4 pt-[54px]">
-        <Link href={backHref} aria-label={t("close")} className="flex size-11 items-center justify-center rounded-full bg-ink-3 text-paper">
+        <Link href={backHref} aria-label={t("close")} className="tp-lift flex size-11 items-center justify-center rounded-full bg-ink-3 text-paper">
           <Icon name="close" size={20} />
         </Link>
         <div className="flex items-center gap-1.5 text-12 text-fog-2">
@@ -141,7 +141,7 @@ export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponV
             </div>
           </div>
           <p className="enter-rise mx-5 mt-4 mb-0 text-14 leading-[1.45] text-fog-0 [animation-delay:180ms]">
-            {t.rich("hint", { link: (chunks) => <Link href="/tarix" className="font-bold text-white underline">{chunks}</Link> })}
+            {t.rich("hint", { link: (chunks) => <Link href="/tarix" className="tp-link font-bold text-white underline">{chunks}</Link> })}
           </p>
         </>
       )}

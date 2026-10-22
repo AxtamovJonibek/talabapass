@@ -136,7 +136,7 @@ export function DocTiles({ r }: { r: BusinessRegistration }) {
                 aria-label={t("remove")}
                 disabled={r.pending || d.id.startsWith("local-")} aria-busy={r.pending}
                 onClick={() => r.removeDoc(d.id)}
-                className="flex size-7 items-center justify-center rounded-8 border-0 bg-transparent text-muted"
+                className="tp-lift flex size-7 items-center justify-center rounded-8 border-0 bg-transparent text-muted"
               >
                 <Icon name="close" size={14} />
               </button>
@@ -163,7 +163,7 @@ export function Consent({ r }: { r: BusinessRegistration }) {
       <span>
         {t.rich("consent", {
           terms: (chunks) => (
-            <Link href="/huquqiy/biznes" target="_blank" className="font-bold text-ink underline">
+            <Link href="/huquqiy/biznes" target="_blank" className="tp-link font-bold text-ink underline">
               {chunks}
             </Link>
           ),

@@ -18,7 +18,7 @@ function stamp(at: Date) {
 }
 
 const tabsShell = "flex gap-[3px] rounded-10 bg-admin-bg p-[3px]";
-const tab = (on: boolean) => cn("flex h-[34px] items-center rounded-8 px-3 text-13 font-bold text-ink no-underline", on ? "bg-white" : "bg-transparent");
+const tab = (on: boolean) => cn("tp-lift flex h-[34px] items-center rounded-8 px-3 text-13 font-bold text-ink no-underline", on ? "bg-white" : "bg-transparent");
 
 /** Filtr paneli: holat, davr (havola — holat URL'da), qidiruv va Excel eksport. */
 export function TransactionFilters({ filter }: { filter: TxFilter }) {
@@ -58,7 +58,7 @@ export function TransactionFilters({ filter }: { filter: TxFilter }) {
       </form>
       <a
         href={`/api/admin/tranzaksiyalar/eksport${txQuery({ ...filter, page: 1 })}`}
-        className="flex h-[38px] items-center gap-2 rounded-12 border-hair border-ink bg-white px-3.5 text-14 font-bold text-ink no-underline"
+        className="tp-lift flex h-[38px] items-center gap-2 rounded-12 border-hair border-ink bg-white px-3.5 text-14 font-bold text-ink no-underline"
       >
         <Icon name="download" size={16} />
         {t("exportButton")}
@@ -130,7 +130,7 @@ export function TransactionTable({ rows, course }: { rows: TxRow[]; course: (cod
 /** Sahifalash: oldingi / keyingi (filtr URL'da saqlanadi). */
 export function TransactionPager({ filter, pages, total }: { filter: TxFilter; pages: number; total: number }) {
   const t = useTranslations("admin.transactions");
-  const link = "flex h-9 items-center rounded-10 border-hair border-line bg-white px-3.5 text-14 font-bold text-ink no-underline";
+  const link = "tp-lift flex h-9 items-center rounded-10 border-hair border-line bg-white px-3.5 text-14 font-bold text-ink no-underline";
   return (
     <nav aria-label={t("pager.label")} className="flex flex-wrap items-center justify-between gap-3">
       <span className="text-13 text-muted">{t("pager.total", { n: formatSom(total) })}</span>

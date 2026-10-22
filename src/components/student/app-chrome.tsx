@@ -39,7 +39,7 @@ export function StudentWebHeader({ sticky = false, initials, avatarUrl = null, c
         <Link
           href="/profil"
           aria-label={t("profile")}
-          className="flex size-[46px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue text-14 font-extrabold text-white no-underline"
+          className="tp-lift flex size-[46px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue text-14 font-extrabold text-white no-underline"
         >
           <PhotoOr src={avatarUrl}>{initials}</PhotoOr>
         </Link>
@@ -55,7 +55,7 @@ export function BellButton({ unread, size = "md" }: { unread: boolean; size?: "m
     <Link
       href="/bildirishnomalar"
       aria-label={t("notifications")}
-      className={cn("relative flex shrink-0 items-center justify-center rounded-full bg-white text-ink no-underline", size === "md" ? "size-11" : "size-[46px]")}
+      className={cn("tp-lift relative flex shrink-0 items-center justify-center rounded-full bg-white text-ink no-underline", size === "md" ? "size-11" : "size-[46px]")}
     >
       <Icon name="bell" size={20} />
       {unread ? (
@@ -68,7 +68,7 @@ export function BellButton({ unread, size = "md" }: { unread: boolean; size?: "m
 /** WT4 (tarix) va profil sahifalari sarlavhasi: logo + "Chegirmalar" / "Profil va tarix" navigatsiyasi. Ota element `@container`. */
 export function StudentWebNav({ active }: { active?: "deals" | "profile" }) {
   const t = useTranslations();
-  const base = "flex h-10 items-center rounded-10 px-3 text-14 whitespace-nowrap no-underline";
+  const base = "tp-row flex h-10 items-center rounded-10 px-3 text-14 whitespace-nowrap no-underline";
   return (
     <header className="border-0 border-b-[1.5px] border-solid border-ink">
       <div className="mx-auto flex h-[72px] max-w-[1360px] items-center gap-3.5 px-[clamp(16px,3cqw,40px)]">

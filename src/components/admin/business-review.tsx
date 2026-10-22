@@ -61,7 +61,7 @@ export function BusinessReview(props: BusinessReviewData) {
             {PHOTO_SLOTS.map((slot, i) => {
               const url = props.photos[i];
               return url ? (
-                <a key={slot} href={`${url}?maqsad=full`} target="_blank" rel="noreferrer" className="block aspect-square overflow-hidden rounded-10 bg-track">
+                <a key={slot} href={`${url}?maqsad=full`} target="_blank" rel="noreferrer" className="tp-lift block aspect-square overflow-hidden rounded-10 bg-track">
                   {/* eslint-disable-next-line @next/next/no-img-element -- himoyalangan, keshlanmaydigan manzil */}
                   <img src={url} alt={t(`photos.${slot}`)} className="size-full object-cover" />
                 </a>
@@ -77,7 +77,7 @@ export function BusinessReview(props: BusinessReviewData) {
               <li key={d.id} className="flex items-center gap-2.5 rounded-10 bg-paper px-3 py-2.5 text-13">
                 <Icon name="file" size={16} />
                 <span className="flex-1">{d.name}</span>
-                <a href={`${d.url}?maqsad=open`} target="_blank" rel="noreferrer" className="font-bold text-blue no-underline">
+                <a href={`${d.url}?maqsad=open`} target="_blank" rel="noreferrer" className="tp-link font-bold text-blue no-underline">
                   {t("open")}
                 </a>
               </li>

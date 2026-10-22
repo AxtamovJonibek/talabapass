@@ -69,7 +69,7 @@ export function BusinessOnboardingShell({ step, showLogin = false, children, foo
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="font-mono text-13 text-muted">{t("stepWeb", { n: step })}</span>
             {showLogin ? (
-              <Link href="/kirish?rol=biznes" className="text-14 font-bold text-ink underline">
+              <Link href="/kirish?rol=biznes" className="tp-link text-14 font-bold text-ink underline">
                 {t("haveAccount")}
               </Link>
             ) : null}

@@ -85,7 +85,7 @@ export function StudentReview(props: StudentReviewData) {
         <figure className="m-0 flex flex-col gap-2.5 rounded-14 bg-ink-1 p-[22px]">
           <div className="-rotate-[1.5deg] overflow-hidden rounded-10 bg-paper-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
             {props.isPdf ? (
-              <a href={`${props.fileUrl}?maqsad=pdf`} target="_blank" rel="noreferrer" className="flex h-40 items-center justify-center gap-2 text-14 font-bold text-ink">
+              <a href={`${props.fileUrl}?maqsad=pdf`} target="_blank" rel="noreferrer" className="tp-link flex h-40 items-center justify-center gap-2 text-14 font-bold text-ink">
                 <Icon name="file" size={18} />
                 {t("pdfPreview")}
               </a>
@@ -96,7 +96,7 @@ export function StudentReview(props: StudentReviewData) {
           </div>
           <figcaption className="flex justify-between gap-3 text-12 text-fog-3">
             <span>{props.fileCaption}</span>
-            <a href={`${props.fileUrl}?maqsad=full`} target="_blank" rel="noreferrer" className="text-fog-3 no-underline">
+            <a href={`${props.fileUrl}?maqsad=full`} target="_blank" rel="noreferrer" className="tp-link text-fog-3 no-underline">
               {t("zoom")}
             </a>
           </figcaption>

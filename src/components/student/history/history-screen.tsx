@@ -146,7 +146,7 @@ function HistoryPhone({ history, selected, coupons, now, fresh }: Props) {
                 <li key={r.id}>
                   <Link
                     href={`/tarix?oy=${history.month}&chek=${r.id}`}
-                    className={cn("flex items-center gap-3 px-3.5 py-3 text-ink no-underline", i < others.length - 1 && "border-0 border-b border-solid border-surface")}
+                    className={cn("tp-row flex items-center gap-3 px-3.5 py-3 text-ink no-underline", i < others.length - 1 && "border-0 border-b border-solid border-surface")}
                   >
                     <CategoryTile r={r} size={42} />
                     <div className="min-w-0 flex-1">
@@ -201,7 +201,7 @@ function HistoryWeb({ history, selected, profile, now, fresh }: Props) {
                     <Link
                       href={`/tarix?oy=${history.month}&chek=${r.id}`}
                       aria-current={on ? "true" : undefined}
-                      className={cn("flex w-full items-center gap-3 rounded-14 p-3 text-left text-ink no-underline", on ? "bg-paper" : "bg-transparent")}
+                      className={cn("tp-row flex w-full items-center gap-3 rounded-14 p-3 text-left text-ink no-underline", on ? "bg-paper" : "bg-transparent")}
                     >
                       <CategoryTile r={r} size={44} />
                       <span className="flex min-w-0 flex-1 flex-col gap-0.5">

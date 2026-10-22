@@ -39,13 +39,13 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
     <div className="min-h-dvh bg-paper text-ink">
       <StudentWebHeader sticky initials={user.initials} avatarUrl={user.avatarUrl}>
         <nav aria-label={t("feed.nav")} className="hidden gap-0.5 whitespace-nowrap @min-[1000px]:flex">
-          <Link href="/chegirmalar" aria-current="page" className="flex h-10 items-center rounded-10 bg-ink px-3 text-14 font-bold text-white no-underline">
+          <Link href="/chegirmalar" aria-current="page" className="tp-lift flex h-10 items-center rounded-10 bg-ink px-3 text-14 font-bold text-white no-underline">
             {t("feed.navDeals")}
           </Link>
-          <Link href="/kuponlar" className="flex h-10 items-center rounded-10 px-3 text-14 font-semibold text-ink no-underline">
+          <Link href="/kuponlar" className="tp-row flex h-10 items-center rounded-10 px-3 text-14 font-semibold text-ink no-underline">
             {t("feed.navCoupons")}
           </Link>
-          <Link href="/tarix" className="flex h-10 items-center rounded-10 px-3 text-14 font-semibold text-ink no-underline">
+          <Link href="/tarix" className="tp-row flex h-10 items-center rounded-10 px-3 text-14 font-semibold text-ink no-underline">
             {t("feed.navHistory")}
           </Link>
         </nav>
@@ -69,7 +69,7 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
               {t("feed.greeting", { name: user.firstName })}
             </h1>
           </div>
-          <Link href="/tarix" className="flex items-center gap-3 rounded-16 bg-ink px-4 py-2.5 text-paper no-underline">
+          <Link href="/tarix" className="tp-lift flex items-center gap-3 rounded-16 bg-ink px-4 py-2.5 text-paper no-underline">
             <span className="text-13 text-fog-2">{t("feed.savedMonth", { month: t(`month.in.${now.date.getUTCMonth() + 1}` as "month.in.1") })}</span>
             <b className="text-22 font-black font-stretch-85%">
               {formatSom(user.savedMonth)} {text.currency}

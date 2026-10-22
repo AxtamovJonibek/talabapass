@@ -14,7 +14,7 @@ const ROLES = ["STUDENT", "BUSINESS_OWNER", "CASHIER"] as const satisfies readon
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 const th = "border-0 border-b-[1.5px] border-solid border-ink p-2 text-left text-12 font-semibold text-muted";
 const td = "border-0 border-b border-solid border-surface px-2 py-2.5 align-top";
-const tab = (on: boolean) => cn("flex h-[34px] items-center gap-2 rounded-8 px-3 text-13 font-bold text-ink no-underline", on ? "bg-white" : "bg-transparent");
+const tab = (on: boolean) => cn("tp-lift flex h-[34px] items-center gap-2 rounded-8 px-3 text-13 font-bold text-ink no-underline", on ? "bg-white" : "bg-transparent");
 const day = (d: Date) => new Date(d.getTime() + 5 * 3_600_000).toISOString().slice(0, 16).replace("T", " ");
 
 function href(params: { rol: string; q?: string; sahifa?: number; id?: string }) {
@@ -73,7 +73,7 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
               placeholder={t("users.searchPlaceholder")}
               className="box-border h-11 min-w-0 flex-1 rounded-12 border-hair border-line bg-white px-3.5 font-sans text-14 text-ink outline-none focus:border-ink"
             />
-            <button type="submit" className="h-11 rounded-12 border-0 bg-ink px-4 font-sans text-14 font-bold text-white">
+            <button type="submit" className="tp-btn tp-stamp [--tp-shadow:var(--color-orange)] h-11 rounded-12 border-0 bg-ink px-4 font-sans text-14 font-bold text-white">
               {t("search")}
             </button>
           </form>
@@ -99,7 +99,7 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
                   return (
                     <tr key={u.id} className={cn(u.id === id && "bg-paper")}>
                       <td className={td}>
-                        <Link href={href({ rol: role, q, sahifa: page, id: u.id })} className="font-bold text-ink no-underline">
+                        <Link href={href({ rol: role, q, sahifa: page, id: u.id })} className="tp-link font-bold text-ink no-underline">
                           {nameOf(u)}
                         </Link>
                         {u.status === "BLOCKED" ? <div className="text-12 font-bold text-danger">{t("users.status.BLOCKED")}</div> : null}
@@ -115,8 +115,8 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
           <div className="flex items-center justify-between gap-3 text-13 text-muted">
             <span>{t("page", { page, total: list.total })}</span>
             <span className="flex gap-3">
-              {page > 1 ? <Link href={href({ rol: role, q, sahifa: page - 1 })} className="font-bold text-ink">{t("prev")}</Link> : null}
-              {page < pages ? <Link href={href({ rol: role, q, sahifa: page + 1 })} className="font-bold text-ink">{t("next")}</Link> : null}
+              {page > 1 ? <Link href={href({ rol: role, q, sahifa: page - 1 })} className="tp-link font-bold text-ink">{t("prev")}</Link> : null}
+              {page < pages ? <Link href={href({ rol: role, q, sahifa: page + 1 })} className="tp-link font-bold text-ink">{t("next")}</Link> : null}
             </span>
           </div>
         </section>

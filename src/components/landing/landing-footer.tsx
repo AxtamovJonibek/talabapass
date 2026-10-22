@@ -19,26 +19,26 @@ export function LandingFooter() {
             {t("ozbekiston_talabalari_va_mahalliy")}
           </p>
           <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-            <a href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" aria-label={t("telegram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <a className="tp-lift" href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" aria-label={t("telegram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 4L3 11l6 2 2 6 3-4 5 4z" />
                 <path d="M9 13l12-9" />
               </svg>
             </a>
-            <a href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" aria-label={t("instagram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <a className="tp-lift" href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" aria-label={t("instagram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <rect x="3" y="3" width="18" height="18" rx="5" />
                 <circle cx="12" cy="12" r="4" />
                 <path d="M17.5 6.5h.01" />
               </svg>
             </a>
-            <a href="#" aria-label={t("youtube")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <a className="tp-lift" href="#" aria-label={t("youtube")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
                 <rect x="2" y="5" width="20" height="14" rx="4" />
                 <path d="M10 9l5 3-5 3z" />
               </svg>
             </a>
-            <a href={CONTACTS.x} target="_blank" rel="noopener noreferrer" aria-label={t("x")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <a className="tp-lift" href={CONTACTS.x} target="_blank" rel="noopener noreferrer" aria-label={t("x")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
@@ -47,37 +47,37 @@ export function LandingFooter() {
         </div>
         <div style={{ flex: "1 1 150px", display: "flex", flexDirection: "column", gap: "4px" }}>
           <b style={{ color: "var(--color-white)", fontSize: "14px", marginBottom: "6px" }}>{t("loyiha")}</b>
-          <a href="#qanday" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <a className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="#qanday" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("qanday_ishlaydi")}
           </a>
-          <a href="#hamkorlar" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <a className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="#hamkorlar" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("hamkorlar")}
           </a>
-          <a href="#savollar" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <a className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="#savollar" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("savollar")}
           </a>
         </div>
         <div style={{ flex: "1 1 150px", display: "flex", flexDirection: "column", gap: "4px" }}>
           <b style={{ color: "var(--color-white)", fontSize: "14px", marginBottom: "6px" }}>{t("kirish")}</b>
-          <Link href="/talaba/royxat" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <Link className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="/talaba/royxat" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("talaba_royxati")}
           </Link>
-          <Link href="/biznes/royxat" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <Link className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="/biznes/royxat" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("biznesni_ulash")}
           </Link>
-          <Link href="/kirish" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <Link className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="/kirish" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("hisobga_kirish")}
           </Link>
         </div>
         <div style={{ flex: "1 1 150px", display: "flex", flexDirection: "column", gap: "4px" }}>
           <b style={{ color: "var(--color-white)", fontSize: "14px", marginBottom: "6px" }}>{t("huquqiy")}</b>
-          <Link href="/huquqiy/maxfiylik" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <Link className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="/huquqiy/maxfiylik" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("maxfiylik_siyosati")}
           </Link>
-          <Link href="/huquqiy/shartlar" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <Link className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="/huquqiy/shartlar" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("foydalanish_shartlari")}
           </Link>
-          <Link href="/huquqiy/biznes" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+          <Link className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="/huquqiy/biznes" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("biznes_hamkorlik_shartlari")}
           </Link>
         </div>

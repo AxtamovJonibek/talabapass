@@ -224,12 +224,12 @@ export function ScannerScreen({ business, cashierName, todaySales, lastSale, foo
                   setError(null);
                   setStage({ kind: "manual" });
                 }}
-                className="flex h-[46px] items-center gap-2 rounded-full border-0 bg-ink-2 px-4 font-sans text-14 font-semibold text-paper">
+                className="tp-lift flex h-[46px] items-center gap-2 rounded-full border-0 bg-ink-2 px-4 font-sans text-14 font-semibold text-paper">
                 <Icon name="keyboard" size={18} />
                 {t("enterCode")}
               </button>
               {torch !== null ? (
-                <button type="button" aria-label={t("torch")} aria-pressed={torch} onClick={toggleTorch} className={cn("flex size-[46px] items-center justify-center rounded-full border-0", torch ? "bg-orange text-ink" : "bg-ink-2 text-paper")}>
+                <button type="button" aria-label={t("torch")} aria-pressed={torch} onClick={toggleTorch} className={cn("tp-lift flex size-[46px] items-center justify-center rounded-full border-0", torch ? "bg-orange text-ink" : "bg-ink-2 text-paper")}>
                   <Icon name="bolt" size={18} />
                 </button>
               ) : null}
@@ -282,10 +282,10 @@ function ManualEntry({ pending, error, onSubmit, onClose }: { pending: boolean; 
       </Field>
       {error ? <ScanErrorBox error={error} /> : null}
       <div className="grid grid-cols-[1fr_2fr] gap-2">
-        <button type="button" onClick={onClose} className="h-12 rounded-12 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
+        <button type="button" onClick={onClose} className="tp-btn tp-paint h-12 rounded-12 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
           {t("back")}
         </button>
-        <button type="submit" disabled={pending} aria-busy={pending} className="h-12 rounded-12 border-0 bg-orange font-sans text-15 font-extrabold text-ink disabled:opacity-50">
+        <button type="submit" disabled={pending} aria-busy={pending} className="tp-btn tp-stamp [--tp-bar:var(--color-ink)] h-12 rounded-12 border-0 bg-orange font-sans text-15 font-extrabold text-ink disabled:opacity-50">
           {t("check")}
         </button>
       </div>
@@ -332,7 +332,7 @@ function SalePreview({ preview: p, at, onCancel, onDone }: { preview: ScanPrevie
   return (
     <div className="flex h-dvh flex-col bg-paper text-ink">
       <div className="flex items-center gap-3 bg-green px-4 pt-[54px] pb-[18px] text-white">
-        <button type="button" onClick={onCancel} aria-label={t("backToScan")} className="flex size-11 items-center justify-center rounded-full border-0 bg-green-2 text-white">
+        <button type="button" onClick={onCancel} aria-label={t("backToScan")} className="tp-lift flex size-11 items-center justify-center rounded-full border-0 bg-green-2 text-white">
           <Icon name="close" size={20} />
         </button>
         <div className="flex-1">
@@ -415,10 +415,10 @@ function SalePreview({ preview: p, at, onCancel, onDone }: { preview: ScanPrevie
       </div>
 
       <div className="grid grid-cols-[1fr_2fr] gap-2 border-0 border-t border-solid border-line-soft px-4 pt-3 pb-[30px]">
-        <button type="button" onClick={onCancel} className="h-14 rounded-14 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
+        <button type="button" onClick={onCancel} className="tp-btn tp-paint h-14 rounded-14 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
           {t("reject")}
         </button>
-        <button type="button" onClick={confirm} disabled={pending} aria-busy={pending} className="h-14 rounded-14 border-0 bg-orange font-sans text-16 font-extrabold text-ink disabled:opacity-50">
+        <button type="button" onClick={confirm} disabled={pending} aria-busy={pending} className="tp-btn tp-stamp [--tp-bar:var(--color-ink)] h-14 rounded-14 border-0 bg-orange font-sans text-16 font-extrabold text-ink disabled:opacity-50">
           {t("confirm")}
         </button>
       </div>
@@ -439,10 +439,10 @@ function SaleDone({ receipt, onNext }: { receipt: ReceiptData; onNext: () => voi
         <p className="mt-3.5 mb-0 text-center text-13 text-muted print:hidden">{t("receiptSent")}</p>
       </div>
       <div className="grid grid-cols-[1fr_2fr] gap-2 px-4 pt-3 pb-[30px] print:hidden">
-        <button type="button" onClick={() => window.print()} className="h-14 rounded-14 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
+        <button type="button" onClick={() => window.print()} className="tp-btn tp-paint h-14 rounded-14 border-hair border-line bg-white font-sans text-15 font-bold text-ink">
           {t("print")}
         </button>
-        <button type="button" onClick={onNext} className="h-14 rounded-14 border-0 bg-ink font-sans text-16 font-extrabold text-white">
+        <button type="button" onClick={onNext} className="tp-btn tp-stamp [--tp-shadow:var(--color-orange)] h-14 rounded-14 border-0 bg-ink font-sans text-16 font-extrabold text-white">
           {t("next")}
         </button>
       </div>

@@ -136,7 +136,7 @@ export function RegisterMobile({ registration: r, universities, verifiedPhone }:
             <p className="m-0 text-center text-13 text-muted">
               {t.rich("register.haveAccount", {
                 login: (chunks) => (
-                  <Link href="/kirish" className="font-semibold text-blue underline">
+                  <Link href="/kirish" className="tp-link font-semibold text-blue underline">
                     {chunks}
                   </Link>
                 ),

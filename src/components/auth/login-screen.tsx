@@ -213,7 +213,7 @@ export function LoginScreen() {
 
           <Link
             href={business ? "/biznes/royxat" : "/talaba/royxat"}
-            className="box-content flex min-h-16 items-center gap-3.5 rounded-14 border-[1.5px] border-dashed border-placeholder bg-white px-4 py-2.5 text-ink no-underline"
+            className="tp-card box-content flex min-h-16 items-center gap-3.5 rounded-14 border-[1.5px] border-dashed border-placeholder bg-white px-4 py-2.5 text-ink no-underline"
           >
             <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-10", business ? "bg-orange text-ink" : "bg-blue text-white")}>
               <Icon name="plus" size={18} strokeWidth={2.4} />
@@ -229,8 +229,8 @@ export function LoginScreen() {
 
           <p className="m-0 text-13 leading-[1.5] text-muted">
             {t.rich("consent", {
-              terms: (chunks) => <Link href="/huquqiy/shartlar" className="font-bold text-ink underline">{chunks}</Link>,
-              privacy: (chunks) => <Link href="/huquqiy/maxfiylik" className="font-bold text-ink underline">{chunks}</Link>,
+              terms: (chunks) => <Link href="/huquqiy/shartlar" className="tp-link font-bold text-ink underline">{chunks}</Link>,
+              privacy: (chunks) => <Link href="/huquqiy/maxfiylik" className="tp-link font-bold text-ink underline">{chunks}</Link>,
             })}
           </p>
         </div>

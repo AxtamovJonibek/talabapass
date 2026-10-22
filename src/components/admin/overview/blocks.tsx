@@ -56,7 +56,7 @@ export function OverviewKpis({ kpi }: { kpi: OverviewKpiData }) {
         <div className={kpiValue}>{formatMln(kpi.saved)}</div>
         <div className="mt-1.5 text-12 text-muted">{t("savedNote", { revenue: formatMln(kpi.revenue) })}</div>
       </div>
-      <Link href="/admin/talabalar" className="block rounded-16 bg-orange p-4 text-ink no-underline">
+      <Link href="/admin/talabalar" className="tp-lift block rounded-16 bg-orange p-4 text-ink no-underline">
         <div className="text-13 font-semibold">{t("queue")}</div>
         <div className={kpiValue}>{`${kpi.queue.students} + ${kpi.queue.businesses}`}</div>
         <div className="mt-1.5 text-12 font-bold">{t("queueNote")}</div>
@@ -190,7 +190,7 @@ export function RatingTable({ rows }: { rows: RatingRow[] }) {
     <Card>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <CardTitle>{t("title")}</CardTitle>
-        <Link href="/admin/bizneslar" className="text-14 font-bold text-blue no-underline">
+        <Link href="/admin/bizneslar" className="tp-link text-14 font-bold text-blue no-underline">
           {t("all")}
         </Link>
       </div>
@@ -237,7 +237,7 @@ export function RatingTable({ rows }: { rows: RatingRow[] }) {
                 </td>
                 <td className={cn(td, "text-right")}>
                   <div className="inline-flex gap-1.5">
-                    <Link href={`/admin/bizneslar?id=${row.id}`} className="flex h-8 items-center rounded-8 border-hair border-line bg-white px-2.5 text-13 font-semibold text-ink no-underline">
+                    <Link href={`/admin/bizneslar?id=${row.id}`} className="tp-lift flex h-8 items-center rounded-8 border-hair border-line bg-white px-2.5 text-13 font-semibold text-ink no-underline">
                       {t("view")}
                     </Link>
                     <BlockBusiness businessId={row.id} />

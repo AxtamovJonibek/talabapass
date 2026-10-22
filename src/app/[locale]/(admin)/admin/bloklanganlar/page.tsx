@@ -12,7 +12,7 @@ import { requireRole } from "@/server/auth/session";
 
 const th = "border-0 border-b-[1.5px] border-solid border-ink p-2 font-semibold";
 const td = "border-0 border-b border-solid border-surface px-2 py-2.5 align-top";
-const tab = (on: boolean) => cn("flex h-[34px] items-center gap-2 rounded-8 px-3 text-13 font-bold text-ink no-underline", on ? "bg-white" : "bg-transparent");
+const tab = (on: boolean) => cn("tp-lift flex h-[34px] items-center gap-2 rounded-8 px-3 text-13 font-bold text-ink no-underline", on ? "bg-white" : "bg-transparent");
 
 const dotted = (at: Date | null) => {
   if (!at) return "—";
@@ -120,7 +120,7 @@ async function BlockedContent({ searchParams }: { searchParams: PageProps<"/[loc
                     </td>
                     <td className={cn(td, "text-right")}>
                       <div className="inline-flex gap-1.5">
-                        <Link href={`/admin/bizneslar?id=${b.id}`} className="flex h-8 items-center rounded-8 border-hair border-line bg-white px-2.5 text-13 font-semibold text-ink no-underline">
+                        <Link href={`/admin/bizneslar?id=${b.id}`} className="tp-lift flex h-8 items-center rounded-8 border-hair border-line bg-white px-2.5 text-13 font-semibold text-ink no-underline">
                           {t("view")}
                         </Link>
                         <UnblockButton kind="business" id={b.id} />

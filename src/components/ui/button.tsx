@@ -34,8 +34,8 @@ const SIZES = {
 // [ko'rinish, standart yozuv og'irligi]; harakat sinflari (tp-*) — globals.css, design/Tugmalar
 const VARIANTS = {
   blue: ["tp-stamp border-0 bg-blue text-white", "font-bold"],
-  orange: ["tp-squish border-0 bg-orange text-ink [--tp-bar:var(--color-ink)] hover:brightness-95", "font-extrabold"],
-  ink: ["border-0 bg-ink text-white hover:bg-ink-2", "font-bold"],
+  orange: ["tp-stamp border-0 bg-orange text-ink [--tp-bar:var(--color-ink)]", "font-extrabold"],
+  ink: ["tp-stamp border-0 bg-ink text-white [--tp-shadow:var(--color-orange)]", "font-bold"],
   green: ["tp-stamp border-0 bg-green text-white", "font-extrabold"],
   outline: ["tp-paint border-hair border-ink bg-white text-ink", "font-bold"],
   /** Shaffof fonli, qora chegarali: 404 / oflayn ikkilamchi tugmasi */

@@ -61,7 +61,7 @@ export function QueuePanel({ items, selectedId, more }: { items: QueueItem[]; se
                 href={q.href}
                 aria-current={selected ? "true" : undefined}
                 className={cn(
-                  "flex w-full items-center gap-3 border-0 border-b border-l-4 border-solid border-b-surface py-3 pr-3.5 pl-3 text-ink no-underline",
+                  "tp-row flex w-full items-center gap-3 border-0 border-b border-l-4 border-solid border-b-surface py-3 pr-3.5 pl-3 text-ink no-underline",
                   selected ? "border-l-blue bg-paper" : "border-l-transparent bg-white",
                 )}
               >

@@ -93,7 +93,7 @@ function DealPhone({ detail, now, saved, claim }: Props) {
     <div className="flex h-dvh flex-col bg-paper text-ink">
       <div className="relative flex h-[286px] shrink-0 items-center justify-center overflow-hidden" style={{ background: deal.tile, color: deal.ink }}>
         <PhoneGallery images={deal.images} ink={deal.ink} fallback={<Icon name={x.icon} size={190} strokeWidth={0.7} className="mt-[30px]" />}>
-          <Link href="/chegirmalar" aria-label={t("dealPage.back")} className="absolute top-[54px] left-4 flex size-11 items-center justify-center rounded-full bg-white text-ink">
+          <Link href="/chegirmalar" aria-label={t("dealPage.back")} className="tp-lift absolute top-[54px] left-4 flex size-11 items-center justify-center rounded-full bg-white text-ink">
             <Icon name="chevronLeft" size={20} />
           </Link>
           <div className="absolute top-[54px] right-4 flex gap-2">
@@ -158,7 +158,7 @@ function DealPhone({ detail, now, saved, claim }: Props) {
             <div className="text-14 font-semibold">{[business.address, business.landmark].filter(Boolean).join(", ")}</div>
             <div className="text-12 text-muted">{t("dealPage.open", { hours: business.workingHours })}</div>
           </div>
-          <a href={x.route} target="_blank" rel="noopener noreferrer" className="flex h-10 items-center rounded-10 bg-paper px-3.5 text-13 font-bold text-ink no-underline">
+          <a href={x.route} target="_blank" rel="noopener noreferrer" className="tp-lift flex h-10 items-center rounded-10 bg-paper px-3.5 text-13 font-bold text-ink no-underline">
             {t("dealPage.route")}
           </a>
         </div>
@@ -190,7 +190,7 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
   return (
     <div className="min-h-dvh bg-paper text-ink">
       <StudentWebHeader initials={initials} avatarUrl={avatarUrl}>
-        <Link href="/chegirmalar" className="ml-auto flex h-11 items-center gap-2 px-3.5 text-15 font-bold text-ink no-underline">
+        <Link href="/chegirmalar" className="tp-link ml-auto flex h-11 items-center gap-2 px-3.5 text-15 font-bold text-ink no-underline">
           <Icon name="arrowLeft" size={18} strokeWidth={2.2} />
           {t("dealPage.allDeals")}
         </Link>
@@ -244,7 +244,7 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
                 <b>{[business.address, business.landmark].filter(Boolean).join(", ")}</b>{" "}
                 <span className="text-muted">{[t("dealPage.openWeb", { hours: business.workingHours }), x.distance].filter(Boolean).join(" · ")}</span>
               </span>
-              <a href={x.route} target="_blank" rel="noopener noreferrer" className="flex h-[42px] items-center rounded-10 bg-paper px-3.5 text-14 font-bold text-ink no-underline">
+              <a href={x.route} target="_blank" rel="noopener noreferrer" className="tp-lift flex h-[42px] items-center rounded-10 bg-paper px-3.5 text-14 font-bold text-ink no-underline">
                 {t("dealPage.routeWeb")}
               </a>
             </div>
@@ -293,7 +293,7 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
                   <li key={n.id}>
                     <Link
                       href={`/chegirmalar/${n.id}`}
-                      className={cn("flex min-h-[52px] items-center gap-2.5 text-ink no-underline", i < detail.nearby.length - 1 && "border-0 border-b border-solid border-surface")}
+                      className={cn("tp-row flex min-h-[52px] items-center gap-2.5 text-ink no-underline", i < detail.nearby.length - 1 && "border-0 border-b border-solid border-surface")}
                     >
                       <DealBadge size="sm" muted={!n.live}>
                         {n.badge}

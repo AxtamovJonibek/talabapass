@@ -74,7 +74,7 @@ export function StatusDesktop({ sentAt, queuePosition, rejected }: Props) {
           <div className="border-t-hair-dashed pt-4 text-15">
             {t.rich("web.whileWaiting", {
               deals: (chunks) => (
-                <Link href="/" className="font-bold text-blue underline">
+                <Link href="/" className="tp-link font-bold text-blue underline">
                   {chunks}
                 </Link>
               ),

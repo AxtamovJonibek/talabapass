@@ -24,7 +24,7 @@ function useNextCheck(iso: string | null) {
 /** WT4 yon paneli: karta, jami, menyu. `/tarix` va `/profil` (veb) ikkalasida bir xil. */
 export function ProfileAside({ profile, totals }: { profile: ProfileData; totals: ProfileTotals }) {
   const t = useTranslations();
-  const row = "flex h-14 items-center border-0 border-b border-solid border-surface px-4 font-semibold text-ink no-underline";
+  const row = "tp-row flex h-14 items-center border-0 border-b border-solid border-surface px-4 font-semibold text-ink no-underline";
   const check = useNextCheck(profile.cardExpiresAt);
   return (
     <aside className="flex min-w-0 flex-[1_1_320px] flex-col gap-3">
@@ -60,7 +60,7 @@ export function ProfileAside({ profile, totals }: { profile: ProfileData; totals
         </li>
         <li>
           <form action={logoutAction}>
-            <button type="submit" className="flex h-14 w-full items-center border-0 bg-transparent px-4 font-sans text-16 font-bold text-danger">
+            <button type="submit" className="tp-row flex h-14 w-full items-center border-0 bg-transparent px-4 font-sans text-16 font-bold text-danger">
               {t("common.logout")}
             </button>
           </form>
@@ -100,7 +100,7 @@ function PhoneSubScreen({ title, coupons, children }: { title: string; coupons: 
   return (
     <div className="flex h-dvh flex-col bg-paper text-ink">
       <div className="flex-1 overflow-y-auto px-5 pt-[58px] pb-5">
-        <Link href="/profil" className="flex h-11 items-center gap-1.5 text-14 font-bold text-ink no-underline">
+        <Link href="/profil" className="tp-link flex h-11 items-center gap-1.5 text-14 font-bold text-ink no-underline">
           <Icon name="chevronLeft" size={16} strokeWidth={2.4} />
           {t("common.back")}
         </Link>
@@ -112,7 +112,7 @@ function PhoneSubScreen({ title, coupons, children }: { title: string; coupons: 
   );
 }
 
-const MENU_ROW = "flex h-14 items-center gap-3 px-4 text-ink no-underline";
+const MENU_ROW = "tp-row flex h-14 items-center gap-3 px-4 text-ink no-underline";
 const SEP = "border-0 border-b border-solid border-surface";
 const Chevron = () => <Icon name="chevronRight" size={16} strokeWidth={2.4} className="text-placeholder" />;
 
@@ -125,7 +125,7 @@ function ProfilePhone({ profile, totals, coupons }: Common) {
       <div className="flex-1 overflow-y-auto px-5 pt-[58px] pb-5">
         <div className="flex items-center justify-between">
           <h1 className="m-0 text-30 font-black tracking-[-0.03em] font-stretch-112%">{t("profile.title")}</h1>
-          <a href="#sozlamalar" aria-label={t("profile.settings")} className="flex size-11 items-center justify-center rounded-full bg-white text-ink no-underline">
+          <a href="#sozlamalar" aria-label={t("profile.settings")} className="tp-lift flex size-11 items-center justify-center rounded-full bg-white text-ink no-underline">
             <Icon name="gear" size={20} />
           </a>
         </div>
@@ -167,7 +167,7 @@ function ProfilePhone({ profile, totals, coupons }: Common) {
           </li>
         </ul>
         <form action={logoutAction}>
-          <button type="submit" className="mt-3 h-[50px] w-full rounded-14 border-0 bg-transparent font-sans text-15 font-bold text-danger">
+          <button type="submit" className="tp-row mt-3 h-[50px] w-full rounded-14 border-0 bg-transparent font-sans text-15 font-bold text-danger">
             {t("common.logout")}
           </button>
         </form>

@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import { toggleSavedAction } from "@/server/actions/student-feed";
 
-const ROUND = "flex size-11 items-center justify-center rounded-full border-0 bg-white text-ink transition-[scale] duration-150 ease-out active:scale-90";
+const ROUND = "tp-lift flex size-11 items-center justify-center rounded-full border-0 bg-white text-ink transition-[scale] duration-150 ease-out active:scale-90";
 
 /** T5 "Ulashish": tizim oynasi, bo'lmasa havolani nusxalash. */
 export function ShareButton({ title }: { title: string }) {

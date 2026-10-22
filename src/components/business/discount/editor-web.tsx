@@ -106,13 +106,13 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
             <TypePicker e={e} size="web" />
             <div className="flex flex-wrap items-center gap-3.5">
               {e.type === "BOGO" ? null : (
-                <button type="button" aria-label={t("decrease")} onClick={e.decrease} className="size-13 rounded-14 border-hair border-ink bg-white font-sans text-22 font-extrabold text-ink">
+                <button type="button" aria-label={t("decrease")} onClick={e.decrease} className="tp-lift size-13 rounded-14 border-hair border-ink bg-white font-sans text-22 font-extrabold text-ink">
                   −
                 </button>
               )}
               <ValueDisplay e={e} size="web" />
               {e.type === "BOGO" ? null : (
-                <button type="button" aria-label={t("increase")} onClick={e.increase} className="size-13 rounded-14 border-hair border-ink bg-white font-sans text-22 font-extrabold text-ink">
+                <button type="button" aria-label={t("increase")} onClick={e.increase} className="tp-lift size-13 rounded-14 border-hair border-ink bg-white font-sans text-22 font-extrabold text-ink">
                   +
                 </button>
               )}

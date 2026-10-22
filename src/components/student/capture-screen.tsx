@@ -30,7 +30,7 @@ type Props = {
   uploadToken?: string;
 };
 
-const roundButton = "flex size-11 items-center justify-center rounded-22 border-0 bg-ink-2 text-paper";
+const roundButton = "tp-lift flex size-11 items-center justify-center rounded-22 border-0 bg-ink-2 text-paper";
 const corner = "absolute box-content size-[30px] border-orange";
 
 /**
@@ -223,7 +223,7 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
           type="button"
           disabled={busy} aria-busy={busy}
           onClick={() => fileInput.current?.click()}
-          className="flex h-14 w-[92px] flex-col items-center justify-center gap-1 rounded-14 border-0 bg-ink-2 font-sans text-12 font-semibold text-paper"
+          className="tp-lift flex h-14 w-[92px] flex-col items-center justify-center gap-1 rounded-14 border-0 bg-ink-2 font-sans text-12 font-semibold text-paper"
         >
           <Icon name="upload" size={20} />
           {t("file")}
@@ -233,7 +233,7 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
           aria-label={t("shoot")}
           disabled={busy} aria-busy={busy}
           onClick={shoot}
-          className="box-border flex size-[78px] items-center justify-center rounded-full border-4 border-solid border-paper bg-transparent p-0 disabled:opacity-50"
+          className="tp-lift box-border flex size-[78px] items-center justify-center rounded-full border-4 border-solid border-paper bg-transparent p-0 disabled:opacity-50"
         >
           <span className="block size-[60px] rounded-full bg-paper" />
         </button>

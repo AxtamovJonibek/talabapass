@@ -24,12 +24,12 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
   return (
     <div className="flex h-dvh flex-col bg-paper text-ink">
       <div className="flex items-center gap-2.5 border-b border-solid border-line-soft px-4 pt-[54px] pb-3">
-        <Link href="/biznes/chegirmalar" aria-label={t("back")} className="flex size-11 items-center justify-center rounded-22 bg-white text-ink">
+        <Link href="/biznes/chegirmalar" aria-label={t("back")} className="tp-lift flex size-11 items-center justify-center rounded-22 bg-white text-ink">
           <Icon name="chevronLeft" size={20} />
         </Link>
         <h1 className="m-0 flex-1 text-20 font-extrabold tracking-[-0.02em] font-stretch-110%">{e.id ? t("editTitle") : t("newTitle")}</h1>
         {live ? null : (
-          <button type="button" onClick={e.draft} disabled={e.pending} aria-busy={e.pending} className="h-10 border-0 bg-transparent px-3 font-sans text-14 font-semibold text-muted">
+          <button type="button" onClick={e.draft} disabled={e.pending} aria-busy={e.pending} className="tp-link h-10 border-0 bg-transparent px-3 font-sans text-14 font-semibold text-muted">
             {t("draft")}
           </button>
         )}
@@ -85,10 +85,10 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
               </div>
               {e.type === "BOGO" ? null : (
                 <div className="flex flex-col gap-1">
-                  <button type="button" aria-label={t("increase")} onClick={e.increase} className="h-[26px] w-8 rounded-7 border-0 bg-ink-4 font-sans text-16 font-bold text-white">
+                  <button type="button" aria-label={t("increase")} onClick={e.increase} className="tp-lift h-[26px] w-8 rounded-7 border-0 bg-ink-4 font-sans text-16 font-bold text-white">
                     +
                   </button>
-                  <button type="button" aria-label={t("decrease")} onClick={e.decrease} className="h-[26px] w-8 rounded-7 border-0 bg-ink-4 font-sans text-16 font-bold text-white">
+                  <button type="button" aria-label={t("decrease")} onClick={e.decrease} className="tp-lift h-[26px] w-8 rounded-7 border-0 bg-ink-4 font-sans text-16 font-bold text-white">
                     −
                   </button>
                 </div>

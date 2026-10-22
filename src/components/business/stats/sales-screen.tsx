@@ -14,7 +14,7 @@ type Sales = Awaited<ReturnType<typeof businessSales>>;
 function Content({ period, sales, phone }: { period: Period; sales: Sales; phone: boolean }) {
   const t = useTranslations("businessStats");
   const href = (page: number) => `/biznes/sotuvlar?davr=${period}&sahifa=${page}`;
-  const pager = "flex h-11 items-center rounded-12 border-hair px-4 text-14 font-bold no-underline";
+  const pager = "tp-lift flex h-11 items-center rounded-12 border-hair px-4 text-14 font-bold no-underline";
   return (
     <div className={cn("flex flex-col gap-4", phone && "px-4 pt-14 pb-6")}>
       {phone ? <BackLink href="/biznes" variant="text" className="-mb-2 self-start" /> : null}

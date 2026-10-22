@@ -21,30 +21,30 @@ export function LandingHeader() {
           </span>
         </Link>
         <nav aria-label={t("asosiy")} style={{ flex: "1 1 auto", maxWidth: "clamp(0px, calc((100cqw - 920px) * 999), 2000px)", overflow: "hidden", display: "flex", justifyContent: "center", gap: "4px", whiteSpace: "nowrap" }}>
-          <a href="#qanday" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
+          <a className="tp-link" href="#qanday" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
             {t("qanday_ishlaydi")}
           </a>
-          <a href="#talabalar" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
+          <a className="tp-link" href="#talabalar" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
             {t("talabalarga")}
           </a>
-          <a href="#biznes" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
+          <a className="tp-link" href="#biznes" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
             {t("bizneslarga")}
           </a>
-          <a href="#hamkorlar" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
+          <a className="tp-link" href="#hamkorlar" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
             {t("hamkorlar")}
           </a>
-          <a href="#savollar" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
+          <a className="tp-link" href="#savollar" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>
             {t("savollar")}
           </a>
         </nav>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-          <Link href="/kirish" style={{ height: "44px", padding: "0 16px", borderRadius: "12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "15px", border: "1.5px solid var(--color-ink)" }}>
+          <Link className="tp-btn tp-paint" href="/kirish" style={{ height: "44px", padding: "0 16px", borderRadius: "12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "15px", border: "1.5px solid var(--color-ink)" }}>
             {t("kirish")}
           </Link>
-          <Link href="/talaba/royxat" style={{ maxWidth: "clamp(0px, calc((100cqw - 600px) * 999), 300px)", overflow: "hidden", whiteSpace: "nowrap", height: "44px", boxSizing: "border-box", padding: "0 clamp(0px, calc((100cqw - 600px) * 999), 18px)", borderRadius: "12px", display: "flex", alignItems: "center", background: "var(--color-blue)", color: "var(--color-white)", textDecoration: "none", fontWeight: 700, fontSize: "15px" }}>
+          <Link className="tp-btn tp-stamp" href="/talaba/royxat" style={{ maxWidth: "clamp(0px, calc((100cqw - 600px) * 999), 300px)", overflow: "hidden", whiteSpace: "nowrap", height: "44px", boxSizing: "border-box", padding: "0 clamp(0px, calc((100cqw - 600px) * 999), 18px)", borderRadius: "12px", display: "flex", alignItems: "center", background: "var(--color-blue)", color: "var(--color-white)", textDecoration: "none", fontWeight: 700, fontSize: "15px" }}>
             {t("boshlash_bepul")}
           </Link>
-          <button type="button" onClick={toggleMenu} aria-label={t("menyu")} aria-expanded={menuOpen} style={{ width: "clamp(0px, calc((920px - 100cqw) * 999), 44px)", height: "44px", overflow: "hidden", padding: "0", border: "0", borderRadius: "12px", background: "var(--color-ink)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <button className="tp-btn tp-stamp [--tp-shadow:var(--color-orange)]" type="button" onClick={toggleMenu} aria-label={t("menyu")} aria-expanded={menuOpen} style={{ width: "clamp(0px, calc((920px - 100cqw) * 999), 44px)", height: "44px", overflow: "hidden", padding: "0", border: "0", borderRadius: "12px", background: "var(--color-ink)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <path d={menuIcon} />
             </svg>
@@ -54,25 +54,25 @@ export function LandingHeader() {
       {menuOpen ? (
         <>
           <nav aria-label={t("mobil_menyu")} style={{ borderTop: "1px solid var(--color-line)", padding: "8px clamp(16px, 4cqw, 48px) 16px", display: "flex", flexDirection: "column" }}>
-            <a href="#qanday" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
+            <a className="tp-link" href="#qanday" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
               {t("qanday_ishlaydi")}
             </a>
-            <a href="#talabalar" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
+            <a className="tp-link" href="#talabalar" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
               {t("talabalarga")}
             </a>
-            <a href="#biznes" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
+            <a className="tp-link" href="#biznes" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
               {t("bizneslarga")}
             </a>
-            <a href="#hamkorlar" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
+            <a className="tp-link" href="#hamkorlar" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
               {t("hamkorlar")}
             </a>
-            <a href="#savollar" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
+            <a className="tp-link" href="#savollar" onClick={closeMenu} style={{ height: "52px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 700, fontSize: "18px", borderBottom: "1px solid var(--color-line-soft)" }}>
               {t("savollar")}
             </a>
-            <Link href="/talaba/royxat" style={{ marginTop: "14px", height: "52px", borderRadius: "14px", background: "var(--color-blue)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800, fontSize: "16px" }}>
+            <Link className="tp-btn tp-stamp" href="/talaba/royxat" style={{ marginTop: "14px", height: "52px", borderRadius: "14px", background: "var(--color-blue)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800, fontSize: "16px" }}>
               {t("talaba_sifatida_boshlash")}
             </Link>
-            <Link href="/biznes/royxat" style={{ marginTop: "8px", height: "52px", borderRadius: "14px", background: "var(--color-orange)", color: "var(--color-ink)", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800, fontSize: "16px" }}>
+            <Link className="tp-btn tp-stamp" href="/biznes/royxat" style={{ marginTop: "8px", height: "52px", borderRadius: "14px", background: "var(--color-orange)", color: "var(--color-ink)", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800, fontSize: "16px" }}>
               {t("biznesni_ulash")}
             </Link>
           </nav>

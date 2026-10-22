@@ -40,7 +40,7 @@ function Cancel({ id }: { id: string }) {
           router.refresh();
         });
       }}
-      className="h-8 rounded-8 border-hair border-danger-line bg-white px-2.5 font-sans text-13 font-semibold text-danger disabled:opacity-50"
+      className="tp-lift h-8 rounded-8 border-hair border-danger-line bg-white px-2.5 font-sans text-13 font-semibold text-danger disabled:opacity-50"
     >
       {t("cancel")}
     </button>

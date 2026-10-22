@@ -108,7 +108,7 @@ async function UniversitiesContent({ searchParams }: { searchParams: PageProps<"
                 </option>
               ))}
             </select>
-            <button type="submit" className="h-11 rounded-12 border-0 bg-ink px-4 font-sans text-14 font-bold text-white">
+            <button type="submit" className="tp-btn tp-stamp [--tp-shadow:var(--color-orange)] h-11 rounded-12 border-0 bg-ink px-4 font-sans text-14 font-bold text-white">
               {t("search")}
             </button>
           </form>
@@ -134,7 +134,7 @@ async function UniversitiesContent({ searchParams }: { searchParams: PageProps<"
                 {list.rows.map((u) => (
                   <tr key={u.id} className={cn(u.id === id && "bg-paper")}>
                     <td className={td}>
-                      <Link href={href({ ...filter, sahifa: page, id: u.id })} className="font-bold text-ink no-underline">
+                      <Link href={href({ ...filter, sahifa: page, id: u.id })} className="tp-link font-bold text-ink no-underline">
                         {u.name}
                       </Link>
                       <div className="text-12 text-muted">{u.shortName}</div>
@@ -151,8 +151,8 @@ async function UniversitiesContent({ searchParams }: { searchParams: PageProps<"
           <div className="flex items-center justify-between gap-3 text-13 text-muted">
             <span>{t("page", { page, total: list.total })}</span>
             <span className="flex gap-3">
-              {page > 1 ? <Link href={href({ ...filter, sahifa: page - 1 })} className="font-bold text-ink">{t("prev")}</Link> : null}
-              {page < pages ? <Link href={href({ ...filter, sahifa: page + 1 })} className="font-bold text-ink">{t("next")}</Link> : null}
+              {page > 1 ? <Link href={href({ ...filter, sahifa: page - 1 })} className="tp-link font-bold text-ink">{t("prev")}</Link> : null}
+              {page < pages ? <Link href={href({ ...filter, sahifa: page + 1 })} className="tp-link font-bold text-ink">{t("next")}</Link> : null}
             </span>
           </div>
           <p className="m-0 text-12 text-muted">{t("universities.sourceNote")}</p>

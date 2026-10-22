@@ -215,7 +215,8 @@
  * Tugmalar (design/Tugmalar · hover va bosish animatsiyalari): bitta joyda, `buttonClass` orqali butun saytga.
  * - stamp (blue, green) — "muhr": hover'da ko'tarilib qora soya tashlaydi, bosganda qog'ozga bosilgandek tushadi.
  * - paint (outline*) — "bo'yoq": hover'da to'q sariq fon chapdan to'ladi, bosganda siqiladi.
- * - squish (orange) — "stiker": bosganda rezinadek ezilib qaytadi.
+ * - lift / card — chip va bosiladigan bloklar: hover'da ko'tarilish, bosganda tushish (Tailwind primitivlarda `LIFT`).
+ * - link — matnli havola: hover'da uzuq chiziq va rang, bosganda rang.
  * - aria-busy — "kutish chizig'i": pastda to'q sariq chiziq yuguradi (aylanuvchi belgi o'rniga).
  * Hover faqat sichqonchali qurilmada; `disabled` va yuklanayotgan tugmada hech narsa harakatlanmaydi.
  */
@@ -225,7 +226,7 @@
   }
 
   .tp-stamp {
-    box-shadow: 0 0 0 0 var(--color-ink);
+    box-shadow: 0 0 0 0 var(--tp-shadow, var(--color-ink));
     transition:
       translate 200ms var(--ease-tp),
       scale 120ms var(--ease-out),
@@ -235,7 +236,7 @@
   .tp-stamp:not(:disabled, [aria-busy="true"]):active {
     translate: 2px 2px;
     scale: 1;
-    box-shadow: 0 0 0 0 var(--color-ink);
+    box-shadow: 0 0 0 0 var(--tp-shadow, var(--color-ink));
     transition-duration: 70ms;
   }
 
@@ -260,14 +261,10 @@
     transform: scaleX(1);
   }
 
-  .tp-squish:not(:disabled, [aria-busy="true"]):active {
-    scale: 1.03 0.92;
-  }
-
   @media (hover: hover) {
     .tp-stamp:not(:disabled, [aria-busy="true"]):hover {
       translate: -3px -3px;
-      box-shadow: 5px 5px 0 0 var(--color-ink);
+      box-shadow: 5px 5px 0 0 var(--tp-shadow, var(--color-ink));
     }
     .tp-paint:not(:disabled, [aria-busy="true"]):hover::before {
       transform: scaleX(1);
@@ -275,8 +272,75 @@
     /* hover + bosish: bosish ustun (yuqoridagi hover qoidasidan keyin turishi shart) */
     .tp-stamp:not(:disabled, [aria-busy="true"]):hover:active {
       translate: 2px 2px;
-      box-shadow: 0 0 0 0 var(--color-ink);
+      box-shadow: 0 0 0 0 var(--tp-shadow, var(--color-ink));
     }
+  }
+
+  /* Inline `style` bilan yozilgan (landing, huquqiy) elementlar uchun: holatlar sinf orqali, ko'rinish o'zgarmaydi */
+  .tp-lift,
+  .tp-card {
+    transition:
+      translate 150ms var(--ease-out),
+      scale 150ms var(--ease-out),
+      box-shadow 180ms var(--ease-out),
+      background-color 150ms var(--ease-out),
+      color 150ms var(--ease-out);
+  }
+  .tp-lift:active {
+    scale: 0.96;
+  }
+  .tp-card:active {
+    translate: 0 0;
+    scale: 0.985;
+    box-shadow: none;
+  }
+  @media (hover: hover) {
+    .tp-lift:hover {
+      translate: 0 -2px;
+      box-shadow: var(--shadow-chip-hover);
+    }
+    .tp-card:hover {
+      translate: 0 -4px;
+      box-shadow: var(--shadow-card-hover);
+    }
+    .tp-lift:active,
+    .tp-card:active {
+      translate: 0 0;
+    }
+  }
+
+  /* Ro'yxat qatori / menyu bandi: hover'da yengil fon, bosganda biroz siqiladi (fon rangi sinflari bunga ustun) */
+  .tp-row {
+    transition:
+      background-color 150ms var(--ease-out),
+      scale 120ms var(--ease-out);
+  }
+  .tp-row:active {
+    scale: 0.99;
+  }
+  @media (hover: hover) {
+    .tp-row:hover {
+      background-color: color-mix(in srgb, currentColor 7%, transparent);
+    }
+  }
+
+  .tp-link {
+    --tp-link-hover: var(--color-blue);
+    text-decoration-line: none;
+    text-decoration-style: dashed;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+    transition: color 150ms var(--ease-out);
+  }
+  @media (hover: hover) {
+    .tp-link:hover {
+      text-decoration-line: underline !important;
+      color: var(--tp-link-hover) !important;
+    }
+  }
+  .tp-link:active {
+    text-decoration-line: underline !important;
+    color: var(--tp-link-active, var(--color-blue)) !important;
   }
 
   .tp-btn[aria-busy="true"]::after {
@@ -483,7 +547,11 @@
   .tp-stamp:hover,
   .tp-stamp:active,
   .tp-paint:active,
-  .tp-squish:active {
+  .tp-lift:hover,
+  .tp-lift:active,
+  .tp-card:active,
+  .tp-row:active,
+  .tp-card:hover {
     translate: none !important;
     scale: none !important;
     box-shadow: none !important;

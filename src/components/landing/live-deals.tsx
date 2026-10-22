@@ -26,14 +26,14 @@ export function LiveDeals({ items, now }: { items: FeedDeal[]; now: Date }) {
         <h2 style={{ margin: "0", fontSize: "clamp(28px, 3.4cqw, 44px)", fontWeight: 900, fontStretch: "110%", letterSpacing: "-0.03em" }}>
           {t("hozir_toshkentda_ochiq")}
         </h2>
-        <Link href="/chegirmalar" style={{ fontWeight: 700, fontSize: "16px", color: "var(--color-blue)", textDecoration: "none", height: "44px", display: "flex", alignItems: "center" }}>
+        <Link className="tp-link" href="/chegirmalar" style={{ fontWeight: 700, fontSize: "16px", color: "var(--color-blue)", textDecoration: "none", height: "44px", display: "flex", alignItems: "center" }}>
           {t("barcha_chegirmalar")}
         </Link>
       </div>
       <div style={{ marginTop: "22px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: "12px" }}>
         {deals.map((d) => (
           <Fragment key={d.id}>
-            <Link href={`/chegirmalar/${d.id}`} style={{ display: "block", background: "var(--color-white)", borderRadius: "18px", textDecoration: "none", color: "var(--color-ink)", position: "relative" }}>
+            <Link className="tp-card" href={`/chegirmalar/${d.id}`} style={{ display: "block", background: "var(--color-white)", borderRadius: "18px", textDecoration: "none", color: "var(--color-ink)", position: "relative" }}>
               <div style={{ height: "150px", margin: "10px 10px 0", borderRadius: "12px", background: d.tile, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {d.images[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili

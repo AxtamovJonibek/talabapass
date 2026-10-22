@@ -20,7 +20,7 @@ function DiscountsBlock({ discounts }: { discounts: OwnerDiscount[] }) {
     <div className="flex flex-col">
       <div className="flex items-baseline justify-between">
         <h2 className="m-0 text-18 font-extrabold font-stretch-110%">{t("title")}</h2>
-        <Link href="/biznes/chegirma/yangi" className="flex h-11 items-center text-14 font-bold text-rust no-underline">
+        <Link href="/biznes/chegirma/yangi" className="tp-link flex h-11 items-center text-14 font-bold text-rust no-underline">
           {t("add")}
         </Link>
       </div>
@@ -34,7 +34,7 @@ function PhoneLogout() {
   const t = useTranslations("common");
   return (
     <form action={logoutAction}>
-      <button type="submit" className="mt-3 h-[50px] w-full rounded-14 border-0 bg-transparent font-sans text-15 font-bold text-danger">
+      <button type="submit" className="tp-row mt-3 h-[50px] w-full rounded-14 border-0 bg-transparent font-sans text-15 font-bold text-danger">
         {t("logout")}
       </button>
     </form>

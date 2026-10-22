@@ -3,7 +3,7 @@ import { formatPhone } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { instagramUrl, telegramUrl } from "@/lib/business";
 
-const PILL = "flex h-11 items-center gap-1.5 rounded-12 px-3.5 text-14 font-bold no-underline";
+const PILL = "tp-lift flex h-11 items-center gap-1.5 rounded-12 px-3.5 text-14 font-bold no-underline";
 const QUIET = "border-hair border-line bg-white text-ink";
 
 /**

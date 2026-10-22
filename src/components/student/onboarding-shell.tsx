@@ -36,7 +36,7 @@ export function OnboardingShell({ step, showLogin = false, children, footer }: P
               <span className="ml-auto max-w-[clamp(0px,calc((100cqw-560px)*999),400px)] overflow-hidden text-14 whitespace-nowrap text-muted">
                 {t("haveAccount")}
               </span>
-              <Link href="/kirish" className="box-content flex h-11 items-center rounded-12 border-hair border-ink px-4 text-15 font-bold text-ink no-underline">
+              <Link href="/kirish" className="tp-btn tp-paint box-content flex h-11 items-center rounded-12 border-hair border-ink px-4 text-15 font-bold text-ink no-underline">
                 {t("login")}
               </Link>
             </>

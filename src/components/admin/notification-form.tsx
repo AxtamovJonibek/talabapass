@@ -122,7 +122,7 @@ export function NotificationForm({ options }: { options: NotificationFormOptions
                     aria-pressed={on}
                     onClick={() => toggle(option.id)}
                     className={cn(
-                      "flex h-[30px] items-center rounded-15 border-hair px-2.5 font-sans text-13 font-bold",
+                      "tp-lift flex h-[30px] items-center rounded-15 border-hair px-2.5 font-sans text-13 font-bold",
                       on ? "border-blue bg-blue text-white" : "border-line bg-white text-ink",
                     )}
                   >

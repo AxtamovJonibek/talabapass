@@ -15,7 +15,7 @@ export async function Inbox({ items, vapidPublicKey, backHref }: { items: InboxI
   const unread = items.some((i) => i.unread);
   return (
     <div className="mx-auto flex w-full max-w-[640px] flex-col gap-3.5 px-[clamp(16px,4vw,24px)] pt-7 pb-12">
-      <Link href={backHref} className="text-14 font-bold text-ink no-underline">
+      <Link href={backHref} className="tp-link text-14 font-bold text-ink no-underline">
         ← {t("back")}
       </Link>
       <h1 className="m-0 text-36 leading-none font-black font-stretch-112% tracking-[-0.035em]">{t("title")}</h1>
@@ -31,7 +31,7 @@ export async function Inbox({ items, vapidPublicKey, backHref }: { items: InboxI
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  className={cn("block rounded-16 border-hair p-4 text-ink no-underline", item.unread ? "border-ink bg-white" : "border-line bg-white")}
+                  className={cn("tp-card block rounded-16 border-hair p-4 text-ink no-underline", item.unread ? "border-ink bg-white" : "border-line bg-white")}
                 >
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="text-15 font-extrabold">

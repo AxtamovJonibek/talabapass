@@ -21,7 +21,7 @@ export function LegalIntro({ doc }: { doc: LegalDoc }) {
         {LEGAL_DOCS.map((id) => {
           const on = id === doc;
           return (
-            <Link key={id} href={`/huquqiy/${id}`} role="tab" aria-selected={on} style={{ height: "46px", padding: "0 18px", borderRadius: "23px", border: "1.5px solid var(--color-ink)", background: on ? "var(--color-ink)" : "var(--color-white)", color: on ? "var(--color-white)" : "var(--color-ink)", display: "flex", alignItems: "center", textDecoration: "none", boxSizing: "border-box", fontFamily: "inherit", fontSize: "15px", fontWeight: 700 }}>
+            <Link className="tp-lift" key={id} href={`/huquqiy/${id}`} role="tab" aria-selected={on} style={{ height: "46px", padding: "0 18px", borderRadius: "23px", border: "1.5px solid var(--color-ink)", background: on ? "var(--color-ink)" : "var(--color-white)", color: on ? "var(--color-white)" : "var(--color-ink)", display: "flex", alignItems: "center", textDecoration: "none", boxSizing: "border-box", fontFamily: "inherit", fontSize: "15px", fontWeight: 700 }}>
               {tabs(id)}
             </Link>
           );

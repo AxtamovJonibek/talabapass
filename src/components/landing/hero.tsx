@@ -19,13 +19,13 @@ export function Hero() {
           {t("kafe_kitob_dokoni_sport")}
         </p>
         <div style={{ marginTop: "clamp(18px, 3.2vh, 30px)", display: "flex", flexWrap: "wrap", gap: "10px" }}>
-          <Link href="/talaba/royxat" style={{ height: "58px", padding: "0 24px", borderRadius: "16px", background: "var(--color-blue)", color: "var(--color-white)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
+          <Link className="tp-btn tp-stamp" href="/talaba/royxat" style={{ height: "58px", padding: "0 24px", borderRadius: "16px", background: "var(--color-blue)", color: "var(--color-white)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
             {t("talaba_sifatida_boshlash")}
             <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </Link>
-          <a href="#biznes" style={{ height: "58px", padding: "0 22px", borderRadius: "16px", border: "1.5px solid var(--color-ink)", color: "var(--color-ink)", display: "flex", alignItems: "center", textDecoration: "none", fontWeight: 700, fontSize: "17px", background: "var(--color-white)" }}>
+          <a className="tp-btn tp-paint" href="#biznes" style={{ height: "58px", padding: "0 22px", borderRadius: "16px", border: "1.5px solid var(--color-ink)", color: "var(--color-ink)", display: "flex", alignItems: "center", textDecoration: "none", fontWeight: 700, fontSize: "17px", background: "var(--color-white)" }}>
             {t("men_biznes_egasiman")}
           </a>
         </div>

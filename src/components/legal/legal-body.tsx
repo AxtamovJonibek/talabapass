@@ -18,7 +18,7 @@ export function LegalBody({ doc: docId }: { doc: LegalDoc }) {
           {doc.map((s, i) => (
             <Fragment key={i}>
               <li>
-                <a href={`#${s.id}`} style={{ minHeight: "40px", display: "flex", alignItems: "center", gap: "10px", color: "var(--color-ink)", textDecoration: "none", fontSize: "15px", fontWeight: 600 }}>
+                <a className="tp-link" href={`#${s.id}`} style={{ minHeight: "40px", display: "flex", alignItems: "center", gap: "10px", color: "var(--color-ink)", textDecoration: "none", fontSize: "15px", fontWeight: 600 }}>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--color-muted)", width: "20px" }}>
                     {s.n}
                   </span>

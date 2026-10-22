@@ -25,7 +25,7 @@ async function EditContent() {
   const logoUrl = businessLogoUrl(info.id, info.logoKey);
   const head = (
     <>
-      <Link href="/biznes/profil" className="flex h-11 items-center text-14 font-bold text-rust no-underline">
+      <Link href="/biznes/profil" className="tp-link flex h-11 items-center text-14 font-bold text-rust no-underline">
         ← {t("title")}
       </Link>
       <h1 className="m-0 mb-4 text-28 font-black tracking-[-0.03em] font-stretch-110%">{t("editTitle")}</h1>

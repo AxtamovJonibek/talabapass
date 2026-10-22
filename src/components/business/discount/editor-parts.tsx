@@ -209,7 +209,7 @@ export function ImagePicker({ e, id, size }: { e: DiscountEditor; id: string; si
               type="button"
               onClick={() => e.removeImage(image.key)}
               aria-label={t("removeImage", { n: i + 1 })}
-              className="absolute -top-1.5 -right-1.5 flex size-[22px] items-center justify-center rounded-11 border-0 bg-ink p-0 text-white"
+              className="tp-lift absolute -top-1.5 -right-1.5 flex size-[22px] items-center justify-center rounded-11 border-0 bg-ink p-0 text-white"
             >
               <Icon name="close" size={12} strokeWidth={2.6} />
             </button>

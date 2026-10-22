@@ -71,7 +71,7 @@ export function DiscountReview(props: DiscountReviewData) {
           {p.images.length > 1 ? (
             <div className="flex flex-wrap gap-2">
               {p.images.slice(1).map((src) => (
-                <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="block size-16 overflow-hidden rounded-12 bg-paper">
+                <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="tp-lift block size-16 overflow-hidden rounded-12 bg-paper">
                   {/* eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili */}
                   <img src={src} alt="" className="size-full object-cover" />
                 </a>

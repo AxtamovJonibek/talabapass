@@ -87,7 +87,7 @@ export function ImageCropper({ file, busy, error, onCancel, onSave }: { file: Fi
     out.toBlob((blob) => blob && onSave(blob), "image/jpeg", 0.9);
   }
 
-  const iconButton = "flex size-11 items-center justify-center rounded-full border-hair border-line bg-white text-ink";
+  const iconButton = "tp-lift flex size-11 items-center justify-center rounded-full border-hair border-line bg-white text-ink";
   return (
     <dialog
       ref={dialog}
@@ -147,7 +147,7 @@ export function ImageCropper({ file, busy, error, onCancel, onSave }: { file: Fi
           <div className="mt-2 flex justify-center gap-2">
             <button
               type="button"
-              className="flex h-11 items-center gap-1.5 rounded-12 border-hair border-line bg-white px-3.5 font-sans text-14 font-bold text-ink"
+              className="tp-btn tp-paint flex h-11 items-center gap-1.5 rounded-12 border-hair border-line bg-white px-3.5 font-sans text-14 font-bold text-ink"
               onClick={() => source && setCrop((c) => rotateCrop(c, -1, source.width, source.height, VIEW))}
             >
               <span aria-hidden="true">↺</span>
@@ -155,7 +155,7 @@ export function ImageCropper({ file, busy, error, onCancel, onSave }: { file: Fi
             </button>
             <button
               type="button"
-              className="flex h-11 items-center gap-1.5 rounded-12 border-hair border-line bg-white px-3.5 font-sans text-14 font-bold text-ink"
+              className="tp-btn tp-paint flex h-11 items-center gap-1.5 rounded-12 border-hair border-line bg-white px-3.5 font-sans text-14 font-bold text-ink"
               onClick={() => source && setCrop((c) => rotateCrop(c, 1, source.width, source.height, VIEW))}
             >
               <span aria-hidden="true">↻</span>

@@ -8,7 +8,7 @@ export const OTP_LENGTH = 6;
 export const RESEND_SECONDS = 60;
 
 const clock = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-const textButton = "border-0 bg-transparent p-0 font-sans text-13 font-bold text-blue";
+const textButton = "tp-link border-0 bg-transparent p-0 font-sans text-13 font-bold text-blue";
 
 type Props = {
   /** Kod yuborilgan raqam (E.164) */

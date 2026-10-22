@@ -48,7 +48,7 @@ export function ForBusiness() {
             </li>
           </ul>
           <div style={{ marginTop: "34px", display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
-            <Link href="/biznes/royxat" style={{ height: "58px", padding: "0 24px", borderRadius: "16px", background: "var(--color-orange)", color: "var(--color-ink)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
+            <Link className="tp-btn tp-stamp" href="/biznes/royxat" style={{ height: "58px", padding: "0 24px", borderRadius: "16px", background: "var(--color-orange)", color: "var(--color-ink)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
               {t("biznesni_bepul_ulash")}
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M13 6l6 6-6 6" />

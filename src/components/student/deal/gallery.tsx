@@ -56,7 +56,7 @@ export function WebGallery({ images, tile, children }: { images: string[]; tile:
               type="button"
               onClick={() => setMain(i)}
               aria-label={t("showPhoto", { n: i + 1 })}
-              className="relative min-h-0 flex-1 overflow-hidden rounded-16 border-0 p-0"
+              className="tp-lift relative min-h-0 flex-1 overflow-hidden rounded-16 border-0 p-0"
               style={{ background: tile }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili */}

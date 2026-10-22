@@ -70,7 +70,7 @@ export function UniversityPicker({
           <p className="m-0 text-12 leading-[1.4] text-muted">{t("universityOtherHint")}</p>
           <button
             type="button"
-            className="h-9 self-start border-0 bg-transparent p-0 font-sans text-13 font-bold text-ink underline"
+            className="tp-link h-9 self-start border-0 bg-transparent p-0 font-sans text-13 font-bold text-ink underline"
             onClick={() => {
               setSelected(null);
               setQuery("");

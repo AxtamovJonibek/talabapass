@@ -22,7 +22,7 @@ async function ScannerContent() {
   // Kassir uchun pastki navigatsiya o'rniga chiqish (unga faqat skaner ochiq)
   const footer = cashier ? (
     <form action={logoutAction} className="px-4 pb-6">
-      <button type="submit" className="flex h-12 w-full items-center justify-center gap-2 rounded-14 border-hair border-ink-4 bg-transparent font-sans text-14 font-semibold text-fog-2">
+      <button type="submit" className="tp-btn tp-paint flex h-12 w-full items-center justify-center gap-2 rounded-14 border-hair border-ink-4 bg-transparent font-sans text-14 font-semibold text-fog-2">
         <Icon name="logout" size={18} />
         {t("logout")}
       </button>

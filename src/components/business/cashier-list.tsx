@@ -23,7 +23,7 @@ export function CashierHeader({ data, onInvite, pending }: { data: OwnerCashiers
     <div className="flex items-baseline justify-between">
       <h2 className="m-0 text-18 font-extrabold font-stretch-110%">{t("title")}</h2>
       {data.canInvite ? (
-        <button type="button" onClick={onInvite} disabled={pending} aria-busy={pending} className="flex h-11 items-center border-0 bg-transparent p-0 font-sans text-14 font-bold text-rust">
+        <button type="button" onClick={onInvite} disabled={pending} aria-busy={pending} className="tp-link flex h-11 items-center border-0 bg-transparent p-0 font-sans text-14 font-bold text-rust">
           {t("invite")}
         </button>
       ) : null}

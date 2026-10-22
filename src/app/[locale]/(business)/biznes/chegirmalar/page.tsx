@@ -23,7 +23,7 @@ async function Discounts() {
           <div className="flex-1 pt-10">
             <div className="flex items-baseline justify-between px-4 pt-[18px]">
               <h1 className="m-0 text-18 font-extrabold font-stretch-110%">{t("title")}</h1>
-              <Link href="/biznes/chegirma/yangi" className="flex h-11 items-center text-14 font-bold text-rust no-underline">
+              <Link href="/biznes/chegirma/yangi" className="tp-link flex h-11 items-center text-14 font-bold text-rust no-underline">
                 {t("add")}
               </Link>
             </div>

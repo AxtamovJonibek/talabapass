@@ -78,7 +78,7 @@ export function NotFoundScreen({ text, renderLink }: { text: NotFoundText; rende
       <div className="hidden min-h-dvh flex-col @[700px]:flex">
         <header className="box-border flex h-22 shrink-0 items-center justify-between border-hair border-x-0 border-t-0 border-ink px-16">
           <Logo size="state-web" />
-          {renderLink("/", "text-17 font-bold text-ink no-underline", text.back)}
+          {renderLink("/", "tp-link text-17 font-bold text-ink no-underline", text.back)}
         </header>
         <div className="mx-auto flex w-full max-w-[1312px] flex-1 items-center gap-16 px-16">
           <div className="flex w-[560px] shrink-0 flex-col gap-[22px]">
@@ -86,8 +86,8 @@ export function NotFoundScreen({ text, renderLink }: { text: NotFoundText; rende
             <h1 className="m-0 text-[72px] leading-[0.95] font-black tracking-[-0.04em] font-stretch-110%">{text.title}</h1>
             <p className="m-0 text-20 leading-[1.45] text-muted">{text.leadWeb}</p>
             <div className="mt-2.5 flex gap-3">
-              {renderLink("/chegirmalar", `${btn} bg-blue px-7 font-extrabold text-white`, text.primary)}
-              {renderLink("/#savollar", `${btn} border-hair border-ink px-6 font-bold text-ink`, text.secondary)}
+              {renderLink("/chegirmalar", `tp-btn tp-stamp ${btn} bg-blue px-7 font-extrabold text-white`, text.primary)}
+              {renderLink("/#savollar", `tp-btn tp-paint ${btn} border-hair border-ink px-6 font-bold text-ink`, text.secondary)}
             </div>
           </div>
           <div className="relative h-[560px] flex-1">
@@ -110,8 +110,8 @@ export function NotFoundScreen({ text, renderLink }: { text: NotFoundText; rende
           <p className="m-0 text-16 leading-[1.45] text-muted">{text.leadPhone}</p>
         </div>
         <div className="flex flex-col gap-2.5 px-6 pt-6 pb-8">
-          {renderLink("/chegirmalar", `${btn} justify-center bg-blue font-extrabold text-white`, text.primary)}
-          {renderLink("/#savollar", `${btn} justify-center border-hair border-ink font-bold text-ink`, text.secondary)}
+          {renderLink("/chegirmalar", `tp-btn tp-stamp ${btn} justify-center bg-blue font-extrabold text-white`, text.primary)}
+          {renderLink("/#savollar", `tp-btn tp-paint ${btn} justify-center border-hair border-ink font-bold text-ink`, text.secondary)}
         </div>
       </div>
     </main>

@@ -33,7 +33,7 @@ function Faq() {
 
 function Contacts({ contacts }: { contacts: SupportContacts }) {
   const t = useTranslations("help");
-  const row = "flex h-14 items-center gap-3 border-0 border-b border-solid border-surface px-4 text-ink no-underline last:border-b-0";
+  const row = "tp-row flex h-14 items-center gap-3 border-0 border-b border-solid border-surface px-4 text-ink no-underline last:border-b-0";
   return (
     <section aria-labelledby="help-contact">
       <h2 id="help-contact" className="m-0 mb-1 text-18 font-extrabold font-stretch-110%">{t("contactTitle")}</h2>
@@ -75,7 +75,7 @@ function Body({ contacts }: { contacts: SupportContacts }) {
         <h2 id="help-faq" className="m-0 mb-3 text-18 font-extrabold font-stretch-110%">{t("faqTitle")}</h2>
         <Faq />
       </section>
-      <Link href="/huquqiy/maxfiylik" className="text-14 font-bold text-ink underline">{t("legal")}</Link>
+      <Link href="/huquqiy/maxfiylik" className="tp-link text-14 font-bold text-ink underline">{t("legal")}</Link>
     </div>
   );
 }
@@ -85,7 +85,7 @@ function Phone({ coupons, children }: { coupons: number; children: ReactNode }) 
   return (
     <div className="flex h-dvh flex-col bg-paper text-ink">
       <div className="flex-1 overflow-y-auto px-5 pt-[58px] pb-5">
-        <Link href="/profil" className="flex h-11 items-center gap-1.5 text-14 font-bold text-ink no-underline">
+        <Link href="/profil" className="tp-link flex h-11 items-center gap-1.5 text-14 font-bold text-ink no-underline">
           <Icon name="chevronLeft" size={16} strokeWidth={2.4} />
           {t("back")}
         </Link>
