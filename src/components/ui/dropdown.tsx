@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { cn } from "@/lib/cn";
 import { Icon } from "./icon";
+import { LIFT } from "./motion";
 
 export type DropdownOption<V extends string> = { value: V; label: string; disabled?: boolean };
 
@@ -119,7 +120,8 @@ export function Dropdown<V extends string>({ id, label, value, options, onChange
         onClick={() => (open ? setOpen(false) : show())}
         onKeyDown={onKeyDown}
         className={cn(
-          "box-border flex items-center gap-2 border-hair border-line bg-white font-sans text-14 text-ink transition-[scale,background-color,border-color] duration-150 ease-out hover:bg-surface active:scale-[0.97] aria-expanded:border-ink",
+          "box-border flex items-center gap-2 border-hair border-line bg-white font-sans text-14 text-ink aria-expanded:border-ink",
+          LIFT,
           size === "md" ? "h-11 rounded-22 px-4 font-bold whitespace-nowrap" : "h-[38px] rounded-19 px-3.5 font-semibold",
         )}
       >
@@ -145,7 +147,7 @@ export function Dropdown<V extends string>({ id, label, value, options, onChange
               onPointerEnter={() => !o.disabled && setActive(i)}
               onClick={() => pick(i)}
               className={cn(
-                "flex h-11 cursor-pointer items-center gap-2 rounded-10 px-3 text-14 font-semibold",
+                "flex h-11 cursor-pointer items-center gap-2 rounded-10 px-3 text-14 font-semibold transition-colors duration-100",
                 o.disabled ? "cursor-default text-placeholder" : "text-ink",
                 i === active && !o.disabled && "bg-surface",
               )}

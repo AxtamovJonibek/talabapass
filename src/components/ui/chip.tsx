@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { LIFT } from "./motion";
 
 const CHIP_SIZES = {
   /** T4 kategoriyalar */
@@ -26,8 +27,9 @@ export function Chip({ selected = false, size = "md", count, children, className
       aria-pressed={selected}
       className={cn(
         "flex shrink-0 items-center gap-1.5 border-hair font-sans text-14 font-semibold",
+        LIFT,
         CHIP_SIZES[size],
-        selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-surface",
+        selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink",
         className,
       )}
       {...props}
@@ -60,6 +62,7 @@ export function ToggleSquare({ selected = false, textSize = 15, wide = false, da
       aria-pressed={selected}
       className={cn(
         "rounded-10 border-hair font-sans",
+        LIFT,
         tall ? "h-[46px]" : "h-11",
         wide ? "min-w-14 px-3.5 font-bold" : day ? "font-bold" : "font-semibold",
         TOGGLE_TEXT[textSize],

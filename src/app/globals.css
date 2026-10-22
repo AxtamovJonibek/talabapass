@@ -211,6 +211,108 @@
   }
 }
 
+/*
+ * Tugmalar (design/Tugmalar · hover va bosish animatsiyalari): bitta joyda, `buttonClass` orqali butun saytga.
+ * - stamp (blue, green) — "muhr": hover'da ko'tarilib qora soya tashlaydi, bosganda qog'ozga bosilgandek tushadi.
+ * - paint (outline*) — "bo'yoq": hover'da to'q sariq fon chapdan to'ladi, bosganda siqiladi.
+ * - squish (orange) — "stiker": bosganda rezinadek ezilib qaytadi.
+ * - aria-busy — "kutish chizig'i": pastda to'q sariq chiziq yuguradi (aylanuvchi belgi o'rniga).
+ * Hover faqat sichqonchali qurilmada; `disabled` va yuklanayotgan tugmada hech narsa harakatlanmaydi.
+ */
+@layer components {
+  .tp-btn {
+    position: relative;
+  }
+
+  .tp-stamp {
+    box-shadow: 0 0 0 0 var(--color-ink);
+    transition:
+      translate 200ms var(--ease-tp),
+      scale 120ms var(--ease-out),
+      box-shadow 200ms var(--ease-tp),
+      opacity 120ms var(--ease-out);
+  }
+  .tp-stamp:not(:disabled, [aria-busy="true"]):active {
+    translate: 2px 2px;
+    scale: 1;
+    box-shadow: 0 0 0 0 var(--color-ink);
+    transition-duration: 70ms;
+  }
+
+  .tp-paint {
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .tp-paint::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--color-orange);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 340ms var(--ease-tp);
+  }
+  .tp-paint:not(:disabled, [aria-busy="true"]):active {
+    scale: 0.96;
+  }
+  .tp-paint:not(:disabled, [aria-busy="true"]):active::before {
+    transform: scaleX(1);
+  }
+
+  .tp-squish:not(:disabled, [aria-busy="true"]):active {
+    scale: 1.03 0.92;
+  }
+
+  @media (hover: hover) {
+    .tp-stamp:not(:disabled, [aria-busy="true"]):hover {
+      translate: -3px -3px;
+      box-shadow: 5px 5px 0 0 var(--color-ink);
+    }
+    .tp-paint:not(:disabled, [aria-busy="true"]):hover::before {
+      transform: scaleX(1);
+    }
+    /* hover + bosish: bosish ustun (yuqoridagi hover qoidasidan keyin turishi shart) */
+    .tp-stamp:not(:disabled, [aria-busy="true"]):hover:active {
+      translate: 2px 2px;
+      box-shadow: 0 0 0 0 var(--color-ink);
+    }
+  }
+
+  .tp-btn[aria-busy="true"]::after {
+    content: "";
+    position: absolute;
+    right: 12px;
+    bottom: 0;
+    left: 12px;
+    width: auto;
+    height: 3px;
+    border: 0;
+    border-radius: 3px 3px 0 0;
+    background: var(--tp-bar, var(--color-orange));
+    animation: tp-load 1100ms ease-in-out infinite;
+  }
+}
+
+@keyframes tp-load {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  50% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  50.01% {
+    transform: scaleX(1);
+    transform-origin: right;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+}
+
 @keyframes tp-spin {
   to {
     transform: rotate(360deg);
@@ -283,6 +385,8 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* design/Tugmalar: tugma harakatlari */
+  --ease-tp: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Sahifa o'tishi (talaba ilovasi template'i): yengil ko'tarilish */
@@ -372,6 +476,29 @@
   .enter-focus,
   .enter-print {
     animation: tp-fade 200ms ease backwards !important;
+  }
+
+  /* Tugmalar: siljish/kattalashish yo'q, rang o'zgarishi qoladi; kutish chizig'i harakatsiz to'liq */
+  .tp-stamp,
+  .tp-stamp:hover,
+  .tp-stamp:active,
+  .tp-paint:active,
+  .tp-squish:active {
+    translate: none !important;
+    scale: none !important;
+    box-shadow: none !important;
+  }
+  .tp-paint::before {
+    transform: scaleX(1);
+    opacity: 0;
+    transition: opacity 1ms;
+  }
+  .tp-paint:hover::before,
+  .tp-paint:active::before {
+    opacity: 1;
+  }
+  .tp-btn[aria-busy="true"]::after {
+    animation: none;
   }
 }
 

@@ -31,17 +31,17 @@ const SIZES = {
   sm: "h-11 rounded-12 px-4 text-14",
 } as const;
 
-// [ko'rinish, standart yozuv og'irligi]
+// [ko'rinish, standart yozuv og'irligi]; harakat sinflari (tp-*) — globals.css, design/Tugmalar
 const VARIANTS = {
-  blue: ["border-0 bg-blue text-white hover:bg-blue-2", "font-bold"],
-  orange: ["border-0 bg-orange text-ink hover:brightness-95", "font-extrabold"],
+  blue: ["tp-stamp border-0 bg-blue text-white", "font-bold"],
+  orange: ["tp-squish border-0 bg-orange text-ink [--tp-bar:var(--color-ink)] hover:brightness-95", "font-extrabold"],
   ink: ["border-0 bg-ink text-white hover:bg-ink-2", "font-bold"],
-  green: ["border-0 bg-green text-white hover:brightness-110", "font-extrabold"],
-  outline: ["border-hair border-ink bg-white text-ink hover:bg-surface", "font-bold"],
+  green: ["tp-stamp border-0 bg-green text-white", "font-extrabold"],
+  outline: ["tp-paint border-hair border-ink bg-white text-ink", "font-bold"],
   /** Shaffof fonli, qora chegarali: 404 / oflayn ikkilamchi tugmasi */
-  "outline-clear": ["border-hair border-ink bg-transparent text-ink hover:bg-surface", "font-bold"],
+  "outline-clear": ["tp-paint border-hair border-ink bg-transparent text-ink", "font-bold"],
   /** Ikkilamchi, kulrang chegarali: WT1 "Orqaga" */
-  "outline-soft": ["border-hair border-line bg-white text-ink hover:bg-surface", "font-bold"],
+  "outline-soft": ["tp-paint border-hair border-line bg-white text-ink", "font-bold"],
   /** O'sha tugmaning faol bo'lmagan ko'rinishi: WT1 birinchi qadamdagi "Orqaga" */
   "outline-idle": ["border-hair border-line bg-white text-fog-3", "font-bold"],
   "danger-outline": ["border-hair border-danger-line bg-white text-danger hover:bg-danger-bg", "font-bold"],
@@ -69,8 +69,11 @@ export function buttonClass(
   // idle o'zi "nofaol" ko'rinishda — ustiga yana xiralashtirilmaydi
   const idle = variant === "idle";
   return cn(
-    // Bosilganda 0.97 ga kichrayadi (120ms) — interfeys "eshitdi" degan javob
-    "flex items-center gap-2 font-sans no-underline transition-[scale,opacity,background-color,filter] duration-120 ease-out active:scale-[0.97] disabled:scale-100 disabled:hover:brightness-100",
+    // Bosilganda 0.97 ga kichrayadi (120ms) — interfeys "eshitdi" degan javob; stamp/paint/squish — o'zining bosilish harakati
+    "tp-btn flex items-center gap-2 font-sans no-underline disabled:scale-100 disabled:hover:brightness-100",
+    // stamp o'z o'tishini (translate, box-shadow) globals.css da beradi
+    !look.includes("tp-stamp") && "transition-[scale,opacity,background-color,filter] duration-120 ease-out",
+    !look.includes("tp-") && "active:scale-[0.97]",
     !idle && "disabled:opacity-50",
     spread ? "justify-between" : "justify-center",
     block && "w-full",
@@ -81,10 +84,22 @@ export function buttonClass(
   );
 }
 
-type ButtonProps = ButtonStyle & ComponentProps<"button">;
+type ButtonProps = ButtonStyle &
+  ComponentProps<"button"> & {
+    /** Kutish: tugma bosilmaydi, pastida to'q sariq chiziq yuguradi (`aria-busy`) */
+    loading?: boolean;
+  };
 
-export function Button({ variant, size, spread, block, strong, className, type = "button", ...props }: ButtonProps) {
-  return <button type={type} className={buttonClass({ variant, size, spread, block, strong }, className)} {...props} />;
+export function Button({ variant, size, spread, block, strong, loading, disabled, className, type = "button", ...props }: ButtonProps) {
+  return (
+    <button
+      type={type}
+      className={buttonClass({ variant, size, spread, block, strong }, className)}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      {...props}
+    />
+  );
 }
 
 type ButtonLinkProps = ButtonStyle & ComponentProps<typeof Link>;

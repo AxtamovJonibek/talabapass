@@ -378,6 +378,7 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Tokenlar `globals.css`: `--ease-out` (0.23,1,0.32,1), `--ease-in-out`, `--ease-drawer`; kirish utilitalari `enter-page` (talaba `template.tsx`, 220ms),
   `enter-rise` (kupon chiptasi/paneli, tasdiq bloki), `enter-focus` (QR — xiralikdan), `enter-print` (chek yuqoridan ochiladi), `skeleton-breathe` (`PageSkeleton`).
   Faqat transform/opacity/clip-path/filter. `prefers-reduced-motion` — global qoida: siljish yo'q, `enter-*` faqat shaffoflik bilan.
+- Tugma harakatlari (`design/Tugmalar · hover va bosish animatsiyalari-html`): `buttonClass` orqali, sinflari `globals.css` da — `tp-stamp` (blue/green: hover'da ko'tarilib qora soya, bosganda tushadi), `tp-paint` (outline*: to'q sariq fon chapdan to'ladi), `tp-squish` (orange), `aria-busy`/`Button loading` — pastda yuguruvchi chiziq. Chip/ToggleSquare/TogglePill/Dropdown — `ui/motion.ts` (`LIFT`), Segmented/ViewSwitch — `PRESS`. `prefers-reduced-motion` da siljish yo'q. Dizaynning kupon "yirtiladigan dum", stiker belgisi va "uchqun" (saqlash) variantlari ilovada mos tugma yo'qligi uchun qo'llanmagan.
 - Bosilish: `Button`/`ButtonLink` `active:scale-[0.97]`, `FeedCard` 0.985, `CategoryPill` 0.96, pastki nav ikonkasi. Tailwind v4 da `translate`/`scale` —
   alohida xususiyat: `transition-[transform]` ularni qamramaydi, `transition-[translate,scale,…]` yozing.
 - `Button variant="idle"` — hozir bosib bo'lmaydigan asosiy harakat (`track` fon, `muted` matn; `opacity-50` emas — kontrast).

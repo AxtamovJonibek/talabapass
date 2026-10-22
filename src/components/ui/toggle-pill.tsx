@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { LIFT } from "./motion";
 
 type TogglePillProps = {
   id?: string;
@@ -22,8 +23,9 @@ export function TogglePill({ id, pressed, onChange, label, hint, className }: To
       title={hint}
       onClick={() => onChange(!pressed)}
       className={cn(
-        "box-border flex h-11 shrink-0 items-center gap-2 rounded-22 border-hair px-4 font-sans text-14 font-bold whitespace-nowrap transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.97]",
-        pressed ? "border-blue bg-blue text-white" : "border-line bg-white text-ink hover:bg-surface",
+        "box-border flex h-11 shrink-0 items-center gap-2 rounded-22 border-hair px-4 font-sans text-14 font-bold whitespace-nowrap",
+        LIFT,
+        pressed ? "border-blue bg-blue text-white" : "border-line bg-white text-ink",
         className,
       )}
     >

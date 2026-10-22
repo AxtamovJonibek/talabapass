@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { PRESS } from "./motion";
 
 type Option<T extends string> = { value: T; label: ReactNode };
 
@@ -46,8 +47,9 @@ export function Segmented<T extends string>({ options, value, onChange, label, s
             onClick={() => onChange(option.value)}
             className={cn(
               "flex items-center justify-center gap-2 border-0 font-sans text-ink",
+              PRESS,
               SIZES[size][1],
-              selected ? "bg-white" : "bg-transparent",
+              selected ? "bg-white" : "bg-transparent hover:bg-white/50",
             )}
           >
             {option.label}

@@ -23,9 +23,9 @@ export function Switch({ checked, onChange, label, id, disabled, small = false }
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn("relative shrink-0 border-0 p-0", small ? "h-7 w-[46px] rounded-14" : "h-[30px] w-[50px] rounded-15", checked ? "bg-ink" : "bg-line")}
+      className={cn("relative shrink-0 border-0 p-0 transition-[background-color,scale] duration-200 ease-tp", small ? "h-7 w-[46px] rounded-14" : "h-[30px] w-[50px] rounded-15", checked ? "bg-ink" : "bg-line")}
     >
-      <span className={cn("absolute top-[3px] bg-white", small ? "size-[22px] rounded-11" : "size-6 rounded-12", checked ? "right-[3px]" : "left-[3px]")} />
+      <span className={cn("absolute top-[3px] left-[3px] bg-white transition-[translate] duration-200 ease-tp", small ? "size-[22px] rounded-11" : "size-6 rounded-12", checked && (small ? "translate-x-[18px]" : "translate-x-[20px]"))} />
     </button>
   );
 }

@@ -22,7 +22,7 @@ const TONES = {
 type Look = { variant?: keyof typeof VARIANTS; tone?: keyof typeof TONES; className?: string };
 
 const face = ({ variant = "round", tone = "light", className }: Look) =>
-  cn("flex shrink-0 items-center justify-center border-0 font-sans no-underline", VARIANTS[variant], variant === "text" && tone === "light" ? TONES.plain : TONES[tone], className);
+  cn("flex shrink-0 items-center justify-center border-0 font-sans no-underline transition-[scale] duration-150 ease-out active:scale-[0.96]", VARIANTS[variant], variant === "text" && tone === "light" ? TONES.plain : TONES[tone], className);
 
 function Content({ variant = "round", label }: { variant?: keyof typeof VARIANTS; label: string }) {
   return variant === "text" ? (
