@@ -112,5 +112,5 @@ export async function readDiscountImage(imageId: string, viewer: { id: string; r
   if (!visible && !privileged) return null;
   const bytes = await storage().get(image.fileKey);
   if (!bytes) return null;
-  return { bytes, mime: image.fileKey.endsWith(".png") ? "image/png" : "image/jpeg", public: visible };
+  return { bytes, mime: image.fileKey.endsWith(".png") ? "image/png" : image.fileKey.endsWith(".webp") ? "image/webp" : "image/jpeg", public: visible };
 }

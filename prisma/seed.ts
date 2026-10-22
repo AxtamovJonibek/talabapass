@@ -15,6 +15,7 @@ import { priceAfterPercent } from "../src/lib/format";
 import { fromTashkent, toTashkent } from "../src/lib/time";
 import { syncUniversities } from "../src/server/universities/sync";
 import { maintainStoredFiles } from "../src/server/storage/maintenance";
+import { attachSeedImages } from "./seed-images";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
@@ -600,11 +601,12 @@ async function main() {
   });
 
   const files = await maintainStoredFiles({ generateMissing: true });
+  const discountImages = await attachSeedImages(db);
 
   console.log(
     [
       "Seed tayyor:",
-      `  namunaviy fayllar: ${files.generated}`,
+      `  namunaviy fayllar: ${files.generated}, chegirma rasmlari: ${discountImages}`,
       `  universitetlar: ${UNIVERSITIES.length}, tumanlar: ${DISTRICTS.length}, kategoriyalar: ${CATEGORIES.length}`,
       `  talabalar: ${students.length + 1} tasdiqlangan, ${PENDING_STUDENTS.length} navbatda`,
       `  bizneslar: ${BUSINESSES.length} faol, ${PENDING_BUSINESSES.length} navbatda`,

@@ -19,6 +19,8 @@
     "admin:hash": "tsx scripts/admin-hash.mts",
     "push:keys": "tsx scripts/push-keys.mts",
     "staging:migrate": "node scripts/with-env.mjs .env.staging prisma migrate deploy",
+    "seed:images": "tsx --conditions=react-server scripts/seed-images.mts",
+    "staging:images": "node scripts/with-env.mjs .env.staging npm run seed:images",
     "staging:seed": "node scripts/with-env.mjs .env.staging prisma db seed",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
