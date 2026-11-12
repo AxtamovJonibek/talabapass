@@ -17,7 +17,8 @@ export const CODE_DIGITS = 6;
 
 /** Kupon kodi: "TP-7K3Q-92XD" (o'xshash belgilar — 0/O, 1/I — yo'q) */
 export const COUPON_CODE_RE = /^TP-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/;
-const QR_RE = /^(TP-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4})\.(\d{1,12})\.([A-Za-z0-9_-]{22})$/;
+/** QR: kupon (TP-) yoki oldindan band qilingan buyurtma (TB-) — format va imzo bir xil */
+const QR_RE = /^(T[PB]-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4})\.(\d{1,12})\.([A-Za-z0-9_-]{22})$/;
 
 export const windowAt = (ms: number) => Math.floor(ms / 1000 / WINDOW_SECONDS);
 /** Oyna tugashiga qolgan soniya (QR yangilanish taymeri) */
@@ -73,11 +74,15 @@ export function parseQr(text: string): ParsedQr | null {
   return m ? { code: m[1]!, window: Number(m[2]), tag: m[3]! } : null;
 }
 
-/** Kiritilgan kupon kodini bir xil ko'rinishga keltirish: "tp 7k3q 92xd" → "TP-7K3Q-92XD". */
+/**
+ * Kiritilgan kodni bir xil ko'rinishga keltirish: "tp 7k3q 92xd" → "TP-7K3Q-92XD", "tb7k3q92xd" → "TB-7K3Q-92XD".
+ * Prefikssiz 8 belgi — kupon.
+ */
 export function normalizeCouponCode(value: string): string {
   const raw = value.toUpperCase().replace(/[^0-9A-Z]/g, "");
-  const body = raw.startsWith("TP") ? raw.slice(2) : raw;
-  return body.length === 8 ? `TP-${body.slice(0, 4)}-${body.slice(4)}` : value.trim().toUpperCase();
+  const prefix = raw.length === 10 && (raw.startsWith("TP") || raw.startsWith("TB")) ? raw.slice(0, 2) : "TP";
+  const body = raw.length === 10 ? raw.slice(2) : raw;
+  return body.length === 8 ? `${prefix}-${body.slice(0, 4)}-${body.slice(4)}` : value.trim().toUpperCase();
 }
 
 function equal(a: string, b: string): boolean {

@@ -31,6 +31,8 @@ model User {
   locale        String     @default("uz")
   status        UserStatus @default(ACTIVE)
   blockedReason String?
+  /// Telegram orqali kirganlar uchun bot suhbati (xabarnomalar shu yerga ham). Telegram kirishi ulanganda to'ldiriladi.
+  telegramChatId String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -47,6 +49,8 @@ model User {
   pushSubscriptions  PushSubscription[]
   auditLogs          AuditLog[]
   universityRequests UniversityRequest[]
+  orders             Order[]
+  orderEvents        OrderEvent[]
 
   @@index([role, status])
 }
@@ -309,6 +313,9 @@ model Business {
   discounts    Discount[]
   redemptions  Redemption[]
   scanAttempts ScanAttempt[]
+  preorder     PreorderSettings?
+  orders       Order[]
+  slots        PreorderSlot[]
 
   @@index([status, submittedAt])
   @@index([ownerId])
@@ -424,6 +431,8 @@ model Discount {
   startsOn        DateTime       @db.Date
   endsOn          DateTime       @db.Date
   terms           String?
+  /// "Oldindan band qilish mumkin" — biznes sozlamasi yoqilgan bo'lsa talabaga "Band qilish" chiqadi (tekshiruvsiz)
+  preorder        Boolean        @default(false)
   status          DiscountStatus @default(DRAFT)
   rejectReason    String?
   reviewedById    String?
@@ -439,6 +448,7 @@ model Discount {
   savedBy     SavedDiscount[]
   coupons     Coupon[]
   redemptions Redemption[]
+  orders      Order[]
 
   @@index([status, endsOn])
   @@index([businessId])
@@ -686,4 +696,183 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([createdAt])
+}
+
+// ───────────── Oldindan band qilish (buyurtma) va to'lov ─────────────
+
+enum PreorderMode {
+  PICKUP
+  DINE_IN
+  BOTH
+}
+
+enum OrderMode {
+  PICKUP
+  DINE_IN
+}
+
+enum PrepayType {
+  FULL
+  PARTIAL
+  NONE
+}
+
+/// Holat o'tishlari faqat `src/lib/preorder.ts` dagi `ORDER_TRANSITIONS` bo'yicha (server `transitionOrder` orqali).
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  CONFIRMED
+  READY
+  COMPLETED
+  REJECTED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  CREATED
+  HELD
+  CAPTURED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  FAILED
+}
+
+/// Biznesning "Oldindan band qilish" sozlamasi. Yo'q yoki enabled=false — talabaga "Band qilish" ko'rinmaydi.
+model PreorderSettings {
+  businessId        String       @id
+  enabled           Boolean      @default(false)
+  mode              PreorderMode @default(BOTH)
+  /// Hafta kunlari bo'yicha qabul oralig'i (Toshkent vaqti, daqiqa): [{ "day": 1..7, "from": 840, "to": 1200 }]
+  schedule          Json
+  slotMinutes       Int          @default(30)
+  slotCapacity      Int          @default(10)
+  /// Slot boshlanishidan kamida shuncha daqiqa oldin band qilinadi (tayyorlash vaqti)
+  leadMinutes       Int          @default(30)
+  /// 0 — faqat bugun, 1 — bugun va ertaga
+  daysAhead         Int          @default(1)
+  prepay            PrepayType   @default(FULL)
+  /// PARTIAL da oldindan to'lanadigan ulush, %
+  prepayPercent     Int          @default(50)
+  /// Slotdan shuncha daqiqa oldingacha bekor qilish bepul (to'liq qaytariladi)
+  freeCancelMinutes Int          @default(60)
+  /// Kech bekor qilinsa yoki talaba kelmasa — oldindan to'lovning biznesda qoladigan ulushi, %
+  keepPercent       Int          @default(100)
+  autoConfirm       Boolean      @default(true)
+  /// "Bugun qabul qilmayman": shu Toshkent sanasida yangi buyurtma olinmaydi
+  pausedOn          DateTime?    @db.Date
+  updatedAt         DateTime     @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+/// Slot sig'imi hisoblagichi: band qilish `INSERT … ON CONFLICT DO UPDATE … WHERE booked < sig'im` bilan atom.
+model PreorderSlot {
+  businessId String
+  startsAt   DateTime
+  booked     Int      @default(0)
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@id([businessId, startsAt])
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  /// TB-7K3Q-92XD — kassada qo'lda kiritish uchun
+  code              String      @unique
+  businessId        String
+  discountId        String
+  studentId         String
+  mode              OrderMode
+  slotStart         DateTime
+  slotEnd           DateTime
+  quantity          Int
+  note              String?     @db.VarChar(200)
+  /// Aloqa uchun, E.164
+  phone             String
+  status            OrderStatus @default(PENDING_PAYMENT)
+  /// QR (TOTP) siri — kupon kabi AES-GCM bilan shifrlangan
+  secret            Bytes
+  rejectReason      String?
+
+  // ── Snapshot: band qilingan paytdagi narx va qoidalar (keyin o'zgarsa ham shu buyurtmaga ta'sir qilmaydi)
+  title             String
+  unitOriginal      Int
+  unitFinal         Int
+  totalOriginal     Int
+  totalFinal        Int
+  prepay            PrepayType
+  /// Oldindan to'lanadigan summa (NONE — 0)
+  prepayAmount      Int
+  freeCancelMinutes Int
+  keepPercent       Int
+  autoConfirm       Boolean
+
+  /// Qo'lda tasdiqlashda javob muddati — o'tsa avtomatik bekor
+  confirmBy         DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  business Business     @relation(fields: [businessId], references: [id])
+  discount Discount     @relation(fields: [discountId], references: [id])
+  student  User         @relation(fields: [studentId], references: [id])
+  payment  Payment?
+  events   OrderEvent[]
+
+  @@index([businessId, status, slotStart])
+  @@index([studentId, createdAt])
+  @@index([status, confirmBy])
+  @@index([status, slotEnd])
+  @@index([status, createdAt])
+}
+
+/// Holat vaqt chizig'i (kim, qachon, qaysi holatdan qaysiga). actorId null — tizim (cron, to'lov).
+model OrderEvent {
+  id        String       @id @default(cuid())
+  orderId   String
+  from      OrderStatus?
+  to        OrderStatus
+  actorId   String?
+  reason    String?
+  createdAt DateTime     @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  orderId           String        @unique
+  /// "mock" — hozircha; haqiqiy provayder keyin
+  provider          String
+  providerPaymentId String?
+  amount            Int
+  captured          Int           @default(0)
+  refunded          Int           @default(0)
+  status            PaymentStatus @default(CREATED)
+  idempotencyKey    String        @unique
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  order Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  logs  PaymentLog[]
+
+  @@unique([provider, providerPaymentId])
+}
+
+/// Provayder so'rovlari va callback'larining xom yozuvi
+model PaymentLog {
+  id        String   @id @default(cuid())
+  paymentId String
+  kind      String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId, createdAt])
 }

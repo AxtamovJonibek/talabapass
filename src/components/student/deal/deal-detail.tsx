@@ -20,9 +20,11 @@ import { SaveButton, ShareButton } from "./deal-actions";
 import { PhoneGallery, WebGallery } from "./gallery";
 import { BusinessContact } from "./business-contact";
 import { DirectionsButton } from "./directions";
+import { BookingButton } from "../booking/booking-sheet";
 import { PhoneClaim, WebClaim, type ClaimState } from "./claim";
 
-type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string; avatarUrl: string | null; claim: ClaimState };
+/** booking — oldindan band qilish yoqilgan bo'lsa (telefon profildan); null — tugma umuman ko'rinmaydi */
+type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string; avatarUrl: string | null; claim: ClaimState; booking: { phone: string } | null };
 
 /** Ikkala ko'rinish uchun umumiy yozuvlar. */
 function useDetailText({ detail, now }: Pick<Props, "detail" | "now">) {
@@ -80,7 +82,7 @@ function VerifiedMark({ label }: { label: string }) {
 }
 
 /** T5 — chegirma tafsiloti (telefon). */
-function DealPhone({ detail, now, saved, claim }: Props) {
+function DealPhone({ detail, now, saved, claim, booking }: Props) {
   const x = useDetailText({ detail, now });
   const { t, text } = x;
   const { deal, business } = detail;
@@ -168,6 +170,7 @@ function DealPhone({ detail, now, saved, claim }: Props) {
       </div>
 
       <div className="flex flex-col gap-2 border-0 border-t border-solid border-line-soft bg-paper px-4 pt-3 pb-[30px]">
+        {booking ? <BookingButton discountId={deal.id} phone={booking.phone} /> : null}
         <PhoneClaim state={claim} />
         {/* Yopiq chegirma: kulrang tugma ostida nega — "Dushanba 12:00 ochiladi" (tugaganda xato matni o'zi chiqadi) */}
         {claim.available || claim.coupon ? (
@@ -184,7 +187,7 @@ function DealPhone({ detail, now, saved, claim }: Props) {
 }
 
 /** WT3 — chegirma tafsiloti (veb). */
-function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
+function DealWeb({ detail, now, initials, avatarUrl, claim, booking }: Props) {
   const x = useDetailText({ detail, now });
   const { t, text } = x;
   const { deal, business } = detail;
@@ -291,6 +294,16 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
   <p className="m-0 text-13 leading-[1.5] text-muted">{[t("dealPage.claimHintWeb"), detail.terms].filter(Boolean).join(" ")}</p>
             }
           />
+
+          {booking ? (
+            <div className="flex flex-col gap-3 rounded-22 bg-white p-[18px]">
+              <div className="flex items-center gap-2 text-15 font-bold">
+                <Icon name="clock" size={18} strokeWidth={2.2} />
+                {t("booking.available")}
+              </div>
+              <BookingButton discountId={deal.id} phone={booking.phone} />
+            </div>
+          ) : null}
 
           {detail.nearby.length > 0 ? (
             <div className="rounded-22 bg-white p-[18px]">

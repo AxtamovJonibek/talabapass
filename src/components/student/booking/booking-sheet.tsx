@@ -1,0 +1,340 @@
+"use client";
+
+import { useRef, useState, useTransition, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { BackButton } from "@/components/ui/back-button";
+import { Button } from "@/components/ui/button";
+import { Field, PhoneInput, Textarea } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { LIFT } from "@/components/ui/motion";
+import { cn } from "@/lib/cn";
+import { formatSom, MINUS, phoneNational } from "@/lib/format";
+import { NOTE_MAX, orderAmounts, QUANTITY_MAX } from "@/lib/preorder";
+import { formatMinute, toTashkent } from "@/lib/time";
+import { useRouter } from "@/i18n/navigation";
+import { bookingOfferAction, createOrderAction } from "@/server/actions/preorder";
+import type { CreateOrderError } from "@/server/preorder/orders";
+import type { BookingOffer, BookingSlot } from "@/server/preorder/settings";
+
+type Mode = "PICKUP" | "DINE_IN";
+type Step = "mode" | "day" | "slot" | "quantity" | "contact" | "summary";
+const STEPS: Step[] = ["mode", "day", "slot", "quantity", "contact", "summary"];
+
+const clock = (iso: string) => formatMinute(toTashkent(new Date(iso)).minute);
+
+/** Bosiladigan katta variant (usul, kun, slot): oq karta, tanlangani qora chegara. */
+function Choice({ selected, disabled, onClick, children, className }: { selected?: boolean; disabled?: boolean; onClick: () => void; children: ReactNode; className?: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "box-border flex items-center rounded-14 border-hair bg-white text-left font-sans text-ink disabled:cursor-default disabled:bg-surface disabled:text-placeholder",
+        selected ? "border-ink" : "border-line",
+        !disabled && LIFT,
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * "Band qilish" (T5 / WT3): tugma va bosqichli oyna — usul → kun → vaqt (to'lgan/o'tgan slotlar o'chiq) → soni va
+ * izoh → telefon (profildan) → yakuniy narx va bekor qilish qoidasi → to'lov. Taklif har ochilishda serverdan
+ * (`bookingOfferAction`); yuborishda server hammasini qayta tekshiradi. Dizaynda chizilmagan — mavjud primitivlardan.
+ */
+export function BookingButton({ discountId, phone, className, size = "md" }: { discountId: string; phone: string; className?: string; size?: "md" | "cta" }) {
+  const t = useTranslations("booking");
+  const tt = useTranslations();
+  const router = useRouter();
+  const trigger = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const [offer, setOffer] = useState<BookingOffer | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [step, setStep] = useState<Step>("mode");
+  const [mode, setMode] = useState<Mode | null>(null);
+  const [day, setDay] = useState<string | null>(null);
+  const [slot, setSlot] = useState<BookingSlot | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [note, setNote] = useState("");
+  const [phoneText, setPhoneText] = useState(phoneNational(phone));
+  const [error, setError] = useState<CreateOrderError | "loadFailed" | null>(null);
+  const [loading, startLoading] = useTransition();
+  const [sending, startSending] = useTransition();
+
+  const steps = offer && offer.modes.length === 1 ? STEPS.filter((s) => s !== "mode") : STEPS;
+  const index = steps.indexOf(step);
+
+  const load = () =>
+    startLoading(async () => {
+      setLoadError(false);
+      const next = await bookingOfferAction(discountId).catch(() => null);
+      if (!next) return setLoadError(true);
+      setOffer(next);
+      if (next.modes.length === 1) {
+        setMode(next.modes[0]!);
+        setStep("day");
+      }
+    });
+
+  const show = () => {
+    setError(null);
+    setSlot(null);
+    setDay(null);
+    setStep("mode");
+    setMode(null);
+    setOffer(null);
+    setOpen(true);
+    load();
+  };
+
+  const go = (next: Step) => {
+    setError(null);
+    setStep(next);
+  };
+  const back = () => (index > 0 ? go(steps[index - 1]!) : setOpen(false));
+
+  const dayInfo = offer?.days.find((d) => d.date === day) ?? null;
+  const amounts = offer ? orderAmounts(offer.unit, quantity, { type: offer.prepay, percent: offer.prepayPercent }) : null;
+
+  const dayLabel = (date: string) => {
+    const d = new Date(`${date}T00:00:00Z`);
+    const today = toTashkent(new Date()).date.getTime();
+    const rel = d.getTime() === today ? t("today") : d.getTime() === today + 86_400_000 ? t("tomorrow") : null;
+    const full = `${tt(`weekday.long.${d.getUTCDay() === 0 ? 7 : d.getUTCDay()}` as "weekday.long.1")}, ${d.getUTCDate()}-${tt(`month.name.${d.getUTCMonth() + 1}` as "month.name.1")}`;
+    return { rel, full };
+  };
+
+  const submit = () =>
+    startSending(async () => {
+      if (!offer || !mode || !slot) return;
+      setError(null);
+      const result = await createOrderAction({ discountId, mode, slotStart: slot.start, quantity, note: note.trim() || undefined, phone: `+998${phoneText.replace(/\D/g, "")}` });
+      if (!result.ok) {
+        setError(result.error);
+        if (result.error === "slotFull" || result.error === "slot") {
+          // Joy hozirgina to'ldi — yangilangan slotlar bilan vaqt tanlashga qaytamiz
+          setSlot(null);
+          const fresh = await bookingOfferAction(discountId).catch(() => null);
+          if (fresh) setOffer(fresh);
+          setStep("slot");
+        }
+        return;
+      }
+      setOpen(false);
+      if (result.checkoutUrl) window.location.assign(result.checkoutUrl);
+      else router.push(`/buyurtmalar/${result.orderId}`);
+    });
+
+  const phoneValid = /^\d{9}$/.test(phoneText.replace(/\D/g, ""));
+
+  return (
+    <>
+      <Button ref={trigger} variant="outline" size={size} block onClick={show} aria-haspopup="dialog" aria-expanded={open} className={className} data-testid="booking-open">
+        <Icon name="clock" size={18} strokeWidth={2.2} />
+        {t("button")}
+      </Button>
+
+      <BottomSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t("title")}
+        closeLabel={t("close")}
+        anchor={trigger}
+        width={420}
+        description={
+          offer ? (
+            <span className="flex items-center justify-between gap-3">
+              <span className="font-bold text-ink">{t(`steps.${step}`)}</span>
+              <span className="font-mono text-12">{t("step", { n: index + 1, total: steps.length })}</span>
+            </span>
+          ) : null
+        }
+      >
+        <div className="flex flex-col gap-3 px-4 pb-2" data-testid="booking-sheet">
+          {offer && index > 0 ? <BackButton onClick={back} variant="text" className="-mt-1 self-start" /> : null}
+
+          {!offer ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center text-14 text-muted">
+              {loadError ? (
+                <>
+                  {t("errors.notAvailable")}
+                  <Button variant="outline-soft" size="sm" onClick={load}>
+                    {t("errors.loadFailed")}
+                  </Button>
+                </>
+              ) : (
+                <span aria-busy={loading}>{t("loading")}</span>
+              )}
+            </div>
+          ) : step === "mode" ? (
+            <div className="grid gap-2">
+              {offer.modes.map((m) => (
+                <Choice
+                  key={m}
+                  selected={mode === m}
+                  onClick={() => {
+                    setMode(m);
+                    go("day");
+                  }}
+                  className="min-h-16 gap-3 px-4 py-3"
+                >
+                  <Icon name={m === "PICKUP" ? "bowl" : "store"} size={22} />
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-16 font-bold">{t(`modes.${m}`)}</span>
+                    <span className="text-13 text-muted">{t(`modeHints.${m}`)}</span>
+                  </span>
+                </Choice>
+              ))}
+            </div>
+          ) : step === "day" ? (
+            <div className="grid gap-2">
+              {offer.days.map((d) => {
+                const free = d.slots.filter((s) => !s.disabled).length;
+                const label = dayLabel(d.date);
+                return (
+                  <Choice
+                    key={d.date}
+                    selected={day === d.date}
+                    disabled={free === 0}
+                    onClick={() => {
+                      setDay(d.date);
+                      setSlot(null);
+                      go("slot");
+                    }}
+                    className="min-h-16 justify-between gap-3 px-4 py-3"
+                  >
+                    <span className="flex flex-col gap-0.5">
+                      <span className="text-16 font-bold">{label.rel ?? label.full}</span>
+                      {label.rel ? <span className="text-13 text-muted">{label.full}</span> : null}
+                    </span>
+                    <span className="text-13 font-semibold">{free === 0 ? t("noSlots") : t("left", { n: free })}</span>
+                  </Choice>
+                );
+              })}
+            </div>
+          ) : step === "slot" && dayInfo ? (
+            <div role="radiogroup" aria-label={t("steps.slot")} className="grid grid-cols-[repeat(auto-fill,minmax(min(100px,100%),1fr))] gap-2">
+              {dayInfo.slots.map((s) => (
+                <Choice
+                  key={s.start}
+                  selected={slot?.start === s.start}
+                  disabled={s.disabled}
+                  onClick={() => {
+                    setSlot(s);
+                    go("quantity");
+                  }}
+                  className="h-16 flex-col justify-center gap-0.5 px-2"
+                >
+                  <span className="font-mono text-16 font-semibold">{clock(s.start)}</span>
+                  <span className="text-11 font-semibold text-muted">{s.disabled ? (s.left === 0 ? t("full") : t("late")) : t("left", { n: s.left })}</span>
+                </Choice>
+              ))}
+              {error === "slotFull" || error === "slot" ? <p className="col-span-full m-0 text-13 font-semibold text-danger">{t(`errors.${error}`)}</p> : null}
+            </div>
+          ) : step === "quantity" && mode ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between rounded-14 bg-white px-4 py-3">
+                <span className="text-15 font-bold">{t(`quantity.${mode}`)}</span>
+                <div className="flex items-center gap-3">
+                  <button type="button" aria-label={t("less")} disabled={quantity <= 1} onClick={() => setQuantity((q) => Math.max(1, q - 1))} className={cn("flex size-10 items-center justify-center rounded-full border-0 bg-surface text-ink disabled:text-placeholder", LIFT)}>
+                    <Icon name="minus" size={18} strokeWidth={2.4} />
+                  </button>
+                  <output aria-live="polite" className="w-8 text-center font-mono text-20 font-semibold" data-testid="booking-quantity">
+                    {quantity}
+                  </output>
+                  <button type="button" aria-label={t("more")} disabled={quantity >= QUANTITY_MAX} onClick={() => setQuantity((q) => Math.min(QUANTITY_MAX, q + 1))} className={cn("flex size-10 items-center justify-center rounded-full border-0 bg-surface text-ink disabled:text-placeholder", LIFT)}>
+                    <Icon name="plus" size={18} strokeWidth={2.4} />
+                  </button>
+                </div>
+              </div>
+              <Field label={t("note")} htmlFor="booking-note" counter={`${note.length}/${NOTE_MAX}`}>
+                <Textarea id="booking-note" rows={2} maxLength={NOTE_MAX} placeholder={t("notePlaceholder")} value={note} onChange={(e) => setNote(e.target.value)} />
+              </Field>
+              <Button size="md" block onClick={() => go("contact")}>
+                {t("next")}
+              </Button>
+            </div>
+          ) : step === "contact" ? (
+            <div className="flex flex-col gap-3">
+              <Field label={t("phone")} htmlFor="booking-phone" hint={t("phoneHint")} error={error === "phone" ? t("errors.phone") : undefined}>
+                <PhoneInput id="booking-phone" value={phoneText} onChange={(e) => setPhoneText(e.target.value.replace(/[^\d ]/g, "").slice(0, 12))} invalid={error === "phone"} />
+              </Field>
+              <Button size="md" block disabled={!phoneValid} onClick={() => go("summary")}>
+                {t("next")}
+              </Button>
+            </div>
+          ) : step === "summary" && amounts && mode && slot && day ? (
+            <div className="flex flex-col gap-3">
+              <div className="rounded-16 bg-white px-4 py-3.5">
+                <div className="text-13 text-muted">{offer.businessName}</div>
+                <div className="mt-0.5 text-17 font-extrabold">
+                  {offer.title} × {quantity}
+                </div>
+                <div className="mt-1 text-14 font-semibold">
+                  {t(`modes.${mode}`)} · {t("summaryWhen", { day: dayLabel(day).rel ?? dayLabel(day).full, time: `${clock(slot.start)}–${clock(slot.end)}` })}
+                </div>
+                <div className="mt-3 flex flex-col gap-2 font-mono text-14">
+                  <div className="flex justify-between">
+                    <span className="text-muted">{t("original")}</span>
+                    <s className="text-muted">{formatSom(amounts.totalOriginal)}</s>
+                  </div>
+                  <div className="flex justify-between text-rust">
+                    <span>{t("discount")}</span>
+                    <span>
+                      {MINUS}
+                      {formatSom(amounts.totalDiscount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-sans font-bold">
+                    <span>{t("total")}</span>
+                    <span className="font-mono">{formatSom(amounts.totalFinal)}</span>
+                  </div>
+                  <div className="border-t-hair-dashed" />
+                  {offer.prepay === "NONE" ? (
+                    <div className="font-sans text-14 font-semibold">{t("noPrepay")}</div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-sans font-bold">{t("payNow")}</span>
+                        <span className="text-26 font-semibold" data-testid="booking-pay-now">
+                          {formatSom(amounts.prepayAmount)}
+                        </span>
+                      </div>
+                      {amounts.totalFinal > amounts.prepayAmount ? (
+                        <div className="flex justify-between">
+                          <span className="text-muted">{t("payLater")}</span>
+                          <span>{formatSom(amounts.totalFinal - amounts.prepayAmount)}</span>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="rounded-14 bg-info-bg px-4 py-3 text-13 leading-[1.45]">
+                <b className="text-14">{t("rulesTitle")}</b>
+                <p className="m-0 mt-1">
+                  {t("freeCancel", { minutes: offer.freeCancelMinutes })} {offer.prepay === "NONE" ? null : offer.keepPercent > 0 ? t("lateKeep", { pct: offer.keepPercent }) : t("lateFree")}
+                </p>
+                {!offer.autoConfirm ? <p className="m-0 mt-1">{t("manualConfirm")}</p> : null}
+              </div>
+              {error && error !== "slotFull" && error !== "slot" ? (
+                <div role="alert" className="rounded-14 bg-danger-bg px-3.5 py-3 text-14 font-semibold text-danger">
+                  {t(`errors.${error}`)}
+                </div>
+              ) : null}
+              <Button size="cta" strong block loading={sending} onClick={submit} data-testid="booking-submit">
+                {offer.prepay === "NONE" ? t("book") : t("pay", { amount: formatSom(amounts.prepayAmount) })}
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      </BottomSheet>
+    </>
+  );
+}

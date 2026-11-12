@@ -17,8 +17,16 @@ import { parseQr } from "@/lib/totp";
 import { confirmSaleAction, scanAction } from "@/server/actions/coupons";
 import type { ScanPreview } from "@/server/coupons/scan";
 import type { ReceiptData } from "@/server/coupons/receipts";
+import type { OrderScanPreview } from "@/server/preorder/scan";
+import { OrderDone, OrderPreview } from "./order-preview";
 
-type Stage = { kind: "scan" } | { kind: "manual" } | { kind: "preview"; preview: ScanPreview; at: string } | { kind: "done"; receipt: ReceiptData };
+type Stage =
+  | { kind: "scan" }
+  | { kind: "manual" }
+  | { kind: "preview"; preview: ScanPreview; at: string }
+  | { kind: "done"; receipt: ReceiptData }
+  | { kind: "order"; order: OrderScanPreview; at: string }
+  | { kind: "orderDone" };
 type ScanError = { key: string; attemptsLeft?: number };
 
 const PAYMENTS = ["CASH", "CARD", "QR"] as const;
@@ -142,8 +150,11 @@ export function ScannerScreen({ business, cashierName, todaySales, lastSale, foo
     start(async () => {
       setError(null);
       const result = await scanAction(input);
-      if (result.ok) {
-        setStage({ kind: "preview", preview: result.preview, at: formatMinute(toTashkent(new Date()).minute) });
+      const at = formatMinute(toTashkent(new Date()).minute);
+      if (result.ok && "order" in result) {
+        setStage({ kind: "order", order: result.order, at });
+      } else if (result.ok) {
+        setStage({ kind: "preview", preview: result.preview, at });
       } else {
         setError({ key: result.result, attemptsLeft: "attemptsLeft" in result ? result.attemptsLeft : undefined });
       }
@@ -172,6 +183,20 @@ export function ScannerScreen({ business, cashierName, todaySales, lastSale, foo
     );
   }
   if (stage.kind === "done") return <SaleDone receipt={stage.receipt} onNext={() => setStage({ kind: "scan" })} />;
+  if (stage.kind === "order") {
+    return (
+      <OrderPreview
+        order={stage.order}
+        at={stage.at}
+        onCancel={() => setStage({ kind: "scan" })}
+        onDone={() => {
+          setStage({ kind: "orderDone" });
+          router.refresh();
+        }}
+      />
+    );
+  }
+  if (stage.kind === "orderDone") return <OrderDone onNext={() => setStage({ kind: "scan" })} />;
 
   return (
     <div className="flex h-dvh flex-col bg-ink-0 text-paper">
@@ -275,7 +300,7 @@ function ManualEntry({ pending, error, onSubmit, onClose }: { pending: boolean; 
     >
       <b className="text-18">{t("manualTitle")}</b>
       <Field label={t("couponCode")} htmlFor="manual-code">
-        <Input id="manual-code" name="code" mono={15} placeholder="TP-7K3Q-92XD" autoCapitalize="characters" autoComplete="off" required value={code} onChange={(e) => setCode(e.target.value)} />
+        <Input id="manual-code" name="code" mono={15} placeholder="TP-7K3Q-92XD / TB-…" autoCapitalize="characters" autoComplete="off" required value={code} onChange={(e) => setCode(e.target.value)} />
       </Field>
       <Field label={t("totpCode")} htmlFor="manual-totp">
         <Input id="manual-totp" name="totp" mono={15} inputMode="numeric" placeholder="000 000" autoComplete="one-time-code" required value={totp} onChange={(e) => setTotp(e.target.value)} />

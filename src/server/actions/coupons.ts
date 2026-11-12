@@ -6,6 +6,7 @@ import { requireActiveStudent } from "../auth/student";
 import { cancelCoupon, claimCoupon, studentCoupon, type ClaimError, type CouponView } from "../coupons/coupons";
 import { confirmRedemption, scanCoupon, scannerFor, type ConfirmResult, type ScanOutcome } from "../coupons/scan";
 import { receipt, type ReceiptData } from "../coupons/receipts";
+import { orderCodeOf, scanOrder, type OrderScanOutcome } from "../preorder/scan";
 import { db } from "../db";
 
 const id = z.string().regex(/^[a-z0-9_]{10,40}$/);
@@ -33,15 +34,19 @@ const scanSchema = z.union([
   z.object({ code: z.string().max(40), totp: z.string().max(20) }),
 ]);
 
-export type ScanActionResult = ScanOutcome | { ok: false; result: "NO_BUSINESS" };
+export type ScanActionResult = ScanOutcome | OrderScanOutcome | { ok: false; result: "NO_BUSINESS" };
 
-/** B3: QR yoki qo'lda kiritilgan kod. Biznes sessiyadan (kassir — faol a'zoligi, egasi — o'z biznesi). */
+/**
+ * B3: QR yoki qo'lda kiritilgan kod. Biznes sessiyadan (kassir — faol a'zoligi, egasi — o'z biznesi).
+ * `TB-` kodi — oldindan band qilingan buyurtma (natijada `order`), qolgani — kupon (`preview`).
+ */
 export async function scanAction(input: unknown): Promise<ScanActionResult> {
   const user = await requireRole("BUSINESS_OWNER", "CASHIER");
   const scanner = await scannerFor(user);
   if (!scanner) return { ok: false, result: "NO_BUSINESS" };
   const parsed = scanSchema.safeParse(input);
   if (!parsed.success) return { ok: false, result: "INVALID" };
+  if (orderCodeOf(parsed.data)) return scanOrder(scanner, parsed.data);
   return scanCoupon(scanner, parsed.data);
 }
 

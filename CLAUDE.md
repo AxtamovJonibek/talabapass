@@ -167,7 +167,8 @@ Shrift oilalari `globals.css` da to'g'ridan-to'g'ri yozilgan (`"Archivo", system
 dev serverni qayta ishga tushirish kerak.
 
 Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` · `/talaba/royxat` · `/chegirmalar` ·
-`/profil` · `/kuponlar` · `/tarix` · `/biznes`, `/biznes/royxat`, `/biznes/chegirmalar/yangi`, `/biznes/skaner` · `/admin`.
+`/profil` · `/kuponlar` · `/tarix` · `/buyurtmalar` · `/biznes`, `/biznes/royxat`, `/biznes/chegirmalar/yangi`, `/biznes/skaner`,
+`/biznes/buyurtmalar`, `/biznes/sozlamalar` · `/admin`.
 
 ## Kod qoidalari
 - Server Component — standart; `"use client"` faqat interaktivlik uchun.
@@ -454,6 +455,36 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   (ko'rsatkichlar mustaqil SQL bilan solishtiriladi), `e2e/business-home.spec.ts`.
 - Dizayndan chetlanishlar: B6 telefon ko'rinishi chizilmagan (bloklar ustma-ust); voronkadagi "QR muddatini uzaytiring"
   maslahati yo'q (muddat sozlanmaydi); yon panelda biznes kartasi va "Kassa ilovasi" bloki yo'q; "Skaner" bandi qo'shilgan.
+
+## Oldindan band qilish (buyurtma) va to'lov
+- Biznes yoqadi: `/biznes/sozlamalar` (Sozlamalar → "Oldindan band qilish", jonli preview) — rejim, har kun uchun oraliq, slot 15/30/60 va sig'im,
+  tayyorlash vaqti, bugun/ertaga, to'lov (to'liq/qisman %/to'lovsiz), bepul bekor qilish muddati va kech bekor/kelmaslikda qoladigan %, avto/qo'lda
+  tasdiq, "Bugun qabul qilmayman" (`pausedOn`), chegirmalarda "Oldindan band qilish mumkin" (`Discount.preorder`, faqat narxi aniq chegirma, tekshiruvsiz).
+  Sozlama yo'q/o'chiq — talabaga tugma umuman chiqmaydi (`canBook`).
+- Qoidalar bitta joyda: `src/lib/preorder.ts` — holat mashinasi `ORDER_TRANSITIONS` (kim, qaysi holatga, qaysidan), slotlar, narx, `settlement`
+  (bekor qilish/kelmaslik puli). Server: `src/server/preorder/` — `orders.ts` (`transitionOrder` — yagona o'tish joyi: shartli UPDATE + `OrderEvent`
+  vaqt chizig'i + `AuditLog` + slot joyini bo'shatish bitta tranzaksiyada, keyin pul va xabarnoma), `settings.ts`, `views.ts`, `scan.ts`, `payments.ts`, `notify.ts`.
+- Holatlar: `PENDING_PAYMENT → PAID → CONFIRMED → READY → COMPLETED`; yon: `REJECTED`, `CANCELLED`, `NO_SHOW`. Holatni hech qachon to'g'ridan-to'g'ri
+  `update` qilmang — faqat `transitionOrder`.
+- Slot sig'imi atom: `PreorderSlot` ga `INSERT … ON CONFLICT DO UPDATE SET booked = booked + 1 WHERE booked < sig'im`; bekor/rad — `booked − 1` o'tish
+  tranzaksiyasida (bir marta). Narx va qoidalar buyurtmada snapshot.
+- To'lov: `src/lib/payments/` — `PaymentProvider` (createPayment, hold, capture, cancelHold, refund, verifyCallback, getStatus); hozir faqat SOXTA
+  `MockProvider` (`devShortcutsAllowed` — lokal va sinov serveri), to'lov sahifasi `/test-tolov/<paymentId>` ("Muvaffaqiyatli"/"Rad etildi").
+  Callback `POST /api/tolov/<provayder>` (imzo, `PaymentLog` ga xom yozuv, idempotent). Model: to'lov ushlanadi (HELD), berilganda yechiladi;
+  bekor/kelmaslikda qoidaga ko'ra qismi yechiladi, qolgani bo'shatiladi. Production'da provayder yo'q — to'lovli band qilish yopiq.
+- Talaba: T5/WT3 da "Band qilish" → `BookingButton` (`student/booking/booking-sheet.tsx`, `BottomSheet`, 6 bosqich) → to'lov → `/buyurtmalar/<id>`
+  (vaqt chizig'i, QR — kupon kabi TOTP, `TB-` kodi; bekor qilishda qaytadigan summa oldindan; 5 s da yangilanadi). Ro'yxat `/buyurtmalar` (profil menyusida).
+- Biznes: `/biznes/buyurtmalar` — jonli ro'yxat `GET /api/biznes/buyurtmalar?holat=` (server action emas: action'lar navbatda bajariladi va 5 s so'rov
+  bosishlarni ushlab qoladi), yangi buyurtmada ovoz (WebAudio) va belgi, Qabul/Rad (sabab)/Tayyor, bugungi hisobot. Kassir: mavjud skaner `TB-` QR'ni
+  taniydi (`scanAction` → `scanOrder`), tafsilot va "Berildi" → BERILDI + capture. Buyurtma sahifalari `BusinessShell phoneTab` / `OrdersFrame` bilan
+  bir marta chiziladi (PhoneOrWeb emas — polling ikki nusxa bo'lmasin); `@container` ichida pastki nav `sticky` (fixed konteynerga bog'lanadi).
+- Avtomatika: `runOrderAutomation` — to'lanmagan 15 daq, qo'lda tasdiq 10 daq → bekor (pul qaytadi), slot tugab 15 daq → `NO_SHOW`. Cron
+  `/api/cron/buyurtmalar` (GitHub Actions `orders`), sahifalarda lazy.
+- Xabarnomalar: har o'zgarishda ilova ichi + push + Telegram (`User.telegramChatId` va `TELEGRAM_BOT_TOKEN` bo'lsa; Telegram kirishi hali yo'q).
+  O'zi qilgan o'zgarish haqida xabar yo'q (`recipientsFor`).
+- Testlar: `src/lib/preorder.test.ts`, `src/server/preorder/preorder.itest.ts` (20 parallel → 10, o'tishlar, pul, cron, kassir), `e2e/preorder.spec.ts`.
+- Dizaynda chizilmagan (hammasi mavjud primitivlardan): band qilish oynasi, buyurtmalar sahifalari, biznes buyurtmalar paneli va sozlamalari,
+  test to'lov sahifasi, skanerdagi buyurtma tafsiloti; biznes pastki navigatsiyasiga "Buyurtmalar", yon panelga "Buyurtmalar" va "Sozlamalar" qo'shilgan.
 
 ## Sayqal bosqichi (profil rasmi, aloqa, OTM, admin boshqaruvi)
 - Profil rasmi: talaba `StudentProfile.avatarKey`, biznes `Business.logoKey`. Mijoz kesadi (`ImageCropper`, `src/lib/crop.ts`) va 512×512 JPEG yuboradi;

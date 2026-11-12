@@ -9,6 +9,7 @@ import { getTranslations } from "next-intl/server";
 import { activeCouponFor } from "@/server/coupons/coupons";
 import { countView, dealDetail, isSaved } from "@/server/student/feed";
 import { currentOrigin } from "@/server/student/location";
+import { canBook } from "@/server/preorder/settings";
 
 // T5 / WT3 — chegirma tafsiloti. Talabaga ko'rinmaydigan chegirma (tasdiqlanmagan, tugagan, biznesi bloklangan) — 404.
 async function DealPageContent({ params }: { params: PageProps<"/[locale]/chegirmalar/[id]">["params"] }) {
@@ -17,11 +18,12 @@ async function DealPageContent({ params }: { params: PageProps<"/[locale]/chegir
   if (!/^[a-z0-9]{10,40}$/.test(id)) notFound();
   const now = new Date();
   const origin = await currentOrigin();
-  const [detail, saved, coupon, t] = await Promise.all([
+  const [detail, saved, coupon, t, bookable] = await Promise.all([
     dealDetail(id, now, origin?.point ?? null),
     isSaved(user.id, id),
     activeCouponFor(user.id, id),
     getTranslations("dealPage"),
+    canBook(id, now),
   ]);
   if (!detail) notFound();
   await countView(id, now);
@@ -34,7 +36,7 @@ async function DealPageContent({ params }: { params: PageProps<"/[locale]/chegir
     coupon,
     renderedAt: now.getTime(),
   };
-  return <DealDetailScreen detail={detail} now={now} saved={saved} claim={claim} initials={initials(user.firstName, user.lastName)} avatarUrl={studentAvatarUrl(user.id, user.student.avatarKey)} />;
+  return <DealDetailScreen detail={detail} now={now} saved={saved} claim={claim} booking={bookable ? { phone: user.phone } : null} initials={initials(user.firstName, user.lastName)} avatarUrl={studentAvatarUrl(user.id, user.student.avatarKey)} />;
 }
 
 export default function DealPage({ params }: PageProps<"/[locale]/chegirmalar/[id]">) {

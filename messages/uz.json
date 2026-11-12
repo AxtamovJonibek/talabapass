@@ -20,6 +20,321 @@
     "view": "Ko'rish",
     "pieces": "ta"
   },
+  "orderStatus": {
+    "PENDING_PAYMENT": "To'lov kutilmoqda",
+    "PAID": "To'landi",
+    "CONFIRMED": "Tasdiqlandi",
+    "READY": "Tayyor",
+    "COMPLETED": "Berildi",
+    "REJECTED": "Rad etildi",
+    "CANCELLED": "Bekor qilindi",
+    "NO_SHOW": "Kelmadi"
+  },
+  "booking": {
+    "button": "Band qilish",
+    "available": "Oldindan band qilish mumkin",
+    "title": "Oldindan band qilish",
+    "close": "Yopish",
+    "back": "Orqaga",
+    "next": "Keyingi",
+    "step": "{n}/{total}",
+    "loading": "Bo'sh vaqtlar yuklanmoqda…",
+    "steps": {
+      "mode": "Qanday olasiz?",
+      "day": "Qaysi kun?",
+      "slot": "Qaysi vaqtda?",
+      "quantity": "Nechta?",
+      "contact": "Aloqa uchun telefon",
+      "summary": "Hammasi to'g'rimi?"
+    },
+    "modes": {
+      "PICKUP": "Olib ketaman",
+      "DINE_IN": "Joyida yeyman"
+    },
+    "modeHints": {
+      "PICKUP": "Tayyor bo'lganda kelib olasiz",
+      "DINE_IN": "Kelganingizda joyingiz tayyor turadi"
+    },
+    "today": "Bugun",
+    "tomorrow": "Ertaga",
+    "left": "{n} ta joy",
+    "full": "To'lgan",
+    "late": "O'tgan",
+    "noSlots": "Bu kunga bo'sh vaqt qolmadi.",
+    "quantity": {
+      "PICKUP": "Porsiya soni",
+      "DINE_IN": "Odam soni"
+    },
+    "less": "Kamaytirish",
+    "more": "Ko'paytirish",
+    "note": "Izoh (ixtiyoriy)",
+    "notePlaceholder": "Masalan: achchiq bo'lmasin",
+    "phone": "Telefon raqam",
+    "phoneHint": "Kerak bo'lsa, biznes shu raqamga qo'ng'iroq qiladi.",
+    "summaryWhen": "{day}, {time}",
+    "original": "Asl narx",
+    "discount": "Talaba chegirmasi",
+    "total": "Jami",
+    "payNow": "Hozir to'lanadi",
+    "payLater": "Joyida to'lanadi",
+    "noPrepay": "Oldindan to'lov yo'q — joyida to'laysiz.",
+    "rulesTitle": "Bekor qilish qoidasi",
+    "freeCancel": "Vaqtdan {minutes} daqiqa oldingacha bepul bekor qilasiz — pul to'liq qaytadi.",
+    "lateKeep": "Kechroq bekor qilsangiz yoki kelmasangiz, oldindan to'lovning {pct}% biznesda qoladi.",
+    "lateFree": "Kechroq bekor qilsangiz ham pul to'liq qaytadi.",
+    "manualConfirm": "Biznes 10 daqiqa ichida tasdiqlaydi; javob bo'lmasa buyurtma bekor bo'lib, pul qaytadi.",
+    "pay": "{amount} so'm to'lash",
+    "book": "Band qilish",
+    "errors": {
+      "invalid": "Ma'lumotlarni tekshiring.",
+      "notAvailable": "Bu chegirmani hozir band qilib bo'lmaydi.",
+      "mode": "Bu usul mavjud emas.",
+      "slot": "Bu vaqt endi mavjud emas — boshqasini tanlang.",
+      "slotFull": "Bu vaqt hozirgina to'ldi — boshqasini tanlang.",
+      "phone": "Telefon raqamni to'g'ri kiriting.",
+      "tooMany": "Sizda 3 ta ochiq buyurtma bor. Avval ularni yakunlang.",
+      "paymentUnavailable": "Onlayn to'lov hozircha ulanmagan.",
+      "loadFailed": "Yuklab bo'lmadi. Qayta urining."
+    }
+  },
+  "orders": {
+    "title": "Mening buyurtmalarim",
+    "empty": "Hali buyurtma yo'q",
+    "emptyHint": "Chegirma sahifasida “Band qilish” tugmasini bosing.",
+    "browse": "Chegirmalarga",
+    "back": "Buyurtmalar",
+    "code": "Buyurtma kodi",
+    "qrHint": "Kassada QR'ni yoki kod bilan 6 raqamni ko'rsating",
+    "totp": "6 raqamli kod",
+    "refreshIn": "{s} s da yangilanadi",
+    "when": "Vaqt",
+    "mode": "Usul",
+    "quantity": "Soni",
+    "note": "Izoh",
+    "phone": "Telefon",
+    "address": "Manzil",
+    "amounts": "To'lov",
+    "original": "Asl narx",
+    "discount": "Chegirma",
+    "total": "Jami",
+    "prepaid": "Oldindan to'langan",
+    "dueAtCounter": "Joyida to'lanadi",
+    "pay": "To'lovni tugatish",
+    "payHint": "To'lov 15 daqiqa ichida tugatilmasa, buyurtma bekor bo'ladi.",
+    "cancel": "Buyurtmani bekor qilish",
+    "cancelRefund": "Hozir bekor qilsangiz: {refund} so'm qaytariladi",
+    "cancelKeep": "{keep} so'm biznesda qoladi (bepul bekor qilish {time} gacha edi).",
+    "cancelFreeUntil": "{time} gacha bepul bekor qilish mumkin.",
+    "cancelConfirm": "Buyurtma bekor qilinsinmi? {refund} so'm qaytariladi.",
+    "cancelled": "Buyurtma bekor qilindi",
+    "cancelFailed": "Bekor qilib bo'lmadi — holat o'zgargan.",
+    "timeline": "Holat",
+    "rejectReason": "Sabab: {reason}",
+    "reasons": {
+      "unpaid": "To'lov 15 daqiqada tugatilmadi",
+      "noResponse": "Biznes 10 daqiqada javob bermadi — pul qaytadi",
+      "paymentFailed": "To'lov rad etildi",
+      "student": "Siz bekor qildingiz",
+      "auto": "Avtomatik tasdiqlandi",
+      "noShow": "Vaqt tugadi"
+    },
+    "statusNote": {
+      "PENDING_PAYMENT": "To'lov tugatilgach buyurtma biznesga ketadi.",
+      "PAID": "Biznes buyurtmani ko'rib chiqmoqda.",
+      "CONFIRMED": "Buyurtma tayyorlanmoqda.",
+      "READY": "Tayyor! Kassada QR'ni ko'rsating.",
+      "COMPLETED": "Buyurtma berildi.",
+      "REJECTED": "Biznes rad etdi — to'lov to'liq qaytariladi.",
+      "CANCELLED": "Buyurtma bekor qilindi.",
+      "NO_SHOW": "Vaqt tugadi, buyurtma olib ketilmadi."
+    },
+    "notify": {
+      "student": {
+        "PENDING_PAYMENT": {
+          "title": "To'lov kutilmoqda",
+          "body": "{title} — to'lovni tugating."
+        },
+        "PAID": {
+          "title": "To'lov qabul qilindi",
+          "body": "{business}: {title} × {n}, {time}."
+        },
+        "CONFIRMED": {
+          "title": "Buyurtma tasdiqlandi",
+          "body": "{business}: {title} × {n}, {time} da tayyor bo'ladi."
+        },
+        "READY": {
+          "title": "Buyurtmangiz tayyor",
+          "body": "{business}: {title} × {n}. Kassada QR'ni ko'rsating."
+        },
+        "COMPLETED": {
+          "title": "Buyurtma berildi",
+          "body": "{business}: {title}. Yoqimli ishtaha!"
+        },
+        "REJECTED": {
+          "title": "Buyurtma rad etildi",
+          "body": "{business}: {reason}. To'lov to'liq qaytariladi."
+        },
+        "CANCELLED": {
+          "title": "Buyurtma bekor qilindi",
+          "body": "{business}: {title} ({time}). To'lov qoidaga ko'ra qaytariladi."
+        },
+        "NO_SHOW": {
+          "title": "Buyurtma olib ketilmadi",
+          "body": "{business}: {title} ({time}) — vaqt tugadi, qoidaga ko'ra hisoblandi."
+        }
+      },
+      "business": {
+        "PENDING_PAYMENT": {
+          "title": "To'lov kutilmoqda",
+          "body": "{title} × {n}, {time}."
+        },
+        "PAID": {
+          "title": "Yangi buyurtma",
+          "body": "{student}: {title} × {n}, {time}."
+        },
+        "CONFIRMED": {
+          "title": "Buyurtma tasdiqlandi",
+          "body": "{student}: {title} × {n}, {time}."
+        },
+        "READY": {
+          "title": "Buyurtma tayyor",
+          "body": "{student}: {title} × {n}, {time}."
+        },
+        "COMPLETED": {
+          "title": "Buyurtma berildi",
+          "body": "{student}: {title} × {n}."
+        },
+        "REJECTED": {
+          "title": "Buyurtma rad etildi",
+          "body": "{student}: {title} × {n}, {time}."
+        },
+        "CANCELLED": {
+          "title": "Buyurtma bekor qilindi",
+          "body": "{student}: {title} × {n}, {time}."
+        },
+        "NO_SHOW": {
+          "title": "Talaba kelmadi",
+          "body": "{student}: {title} × {n}, {time}."
+        }
+      }
+    }
+  },
+  "preorder": {
+    "title": "Sozlamalar",
+    "section": "Oldindan band qilish",
+    "intro": "Talaba ovqatni oldindan to'lab, tanlagan vaqtida olib ketadi yoki joyida yeydi. Kerak bo'lmasa — o'chiq qoldiring: chegirmalar oddiy QR kupon bilan ishlayveradi.",
+    "testMode": "To'lov hozircha sinov rejimida — pul yechilmaydi.",
+    "enabled": "Oldindan band qilish",
+    "enabledHint": "O'chiq bo'lsa talabaga “Band qilish” tugmasi umuman ko'rinmaydi.",
+    "pause": "Bugun qabul qilmayman",
+    "pauseHint": "Faqat bugungi yangi buyurtmalar to'xtaydi; ertaga o'zi qayta ochiladi.",
+    "paused": "Bugun yangi buyurtma olinmaydi",
+    "resumed": "Buyurtmalar qayta ochildi",
+    "mode": "Qanday beriladi",
+    "modeHint": "Talaba shulardan birini tanlaydi.",
+    "modes": {
+      "PICKUP": "Olib ketish",
+      "DINE_IN": "Joyida",
+      "BOTH": "Ikkalasi"
+    },
+    "schedule": "Ish kunlari va vaqti",
+    "scheduleHint": "Har kun uchun alohida. Belgilanmagan kunda band qilib bo'lmaydi.",
+    "from": "dan",
+    "to": "gacha",
+    "closed": "Yopiq",
+    "slotMinutes": "Slot uzunligi",
+    "slotMinutesHint": "Talaba shu oraliqlardan birini tanlaydi: 14:00–14:30, 14:30–15:00…",
+    "minutes": "{n} daq",
+    "capacity": "Bitta slotga buyurtma",
+    "capacityHint": "Slot to'lsa talabaga “To'lgan” deb ko'rinadi.",
+    "lead": "Tayyorlash vaqti, daqiqa",
+    "leadHint": "Slot boshlanishidan kamida shuncha oldin band qilinadi.",
+    "daysAhead": "Qachongacha band qilinadi",
+    "days": {
+      "0": "Faqat bugun",
+      "1": "Bugun va ertaga"
+    },
+    "prepay": "To'lov",
+    "prepayHint": "Qisman — talaba ulushni oldindan, qolganini joyida to'laydi.",
+    "prepayTypes": {
+      "FULL": "To'liq oldindan",
+      "PARTIAL": "Qisman",
+      "NONE": "To'lovsiz bron"
+    },
+    "prepayPercent": "Oldindan to'lanadigan ulush, %",
+    "freeCancel": "Bepul bekor qilish, daqiqa",
+    "freeCancelHint": "Slotdan shuncha daqiqa oldingacha bekor qilsa — pul to'liq qaytadi.",
+    "keep": "Kech bekor qilinsa yoki kelmasa, %",
+    "keepHint": "Oldindan to'lovning qancha foizi sizda qoladi (0 — hammasi qaytadi).",
+    "confirm": "Tasdiqlash",
+    "confirmHint": "Qo'lda: 10 daqiqada javob bo'lmasa buyurtma bekor bo'ladi va pul qaytadi.",
+    "confirmModes": {
+      "auto": "Avtomatik",
+      "manual": "Qo'lda"
+    },
+    "discounts": "Qaysi chegirmalar band qilinadi",
+    "discountsHint": "Belgilangan chegirmada talabaga “Band qilish” chiqadi. Faqat narxi aniq chegirmalar.",
+    "noDiscounts": "Hali chegirma yo'q.",
+    "noPrice": "Narxi aniq emas",
+    "preview": "Talabaga shunday ko'rinadi",
+    "previewEmpty": "Jadvalda kun belgilanmagan.",
+    "save": "Saqlash",
+    "saved": "Sozlamalar saqlandi",
+    "errors": {
+      "invalid": "Qiymatlarni tekshiring.",
+      "noSchedule": "Kamida bitta kunni belgilang.",
+      "noBusiness": "Biznes topilmadi.",
+      "range": "“gacha” vaqti “dan” dan keyin bo'lsin."
+    }
+  },
+  "businessOrders": {
+    "title": "Buyurtmalar",
+    "filters": {
+      "new": "Yangi",
+      "preparing": "Tayyorlanmoqda",
+      "ready": "Tayyor",
+      "done": "Yakunlangan"
+    },
+    "empty": {
+      "new": "Yangi buyurtma yo'q",
+      "preparing": "Tayyorlanayotgan buyurtma yo'q",
+      "ready": "Tayyor buyurtma yo'q",
+      "done": "So'nggi 24 soatda yakunlangan buyurtma yo'q"
+    },
+    "report": {
+      "title": "Bugun",
+      "orders": "Buyurtmalar",
+      "revenue": "Tushum",
+      "cancelled": "Bekor qilingan",
+      "noShow": "Kelmagan"
+    },
+    "accept": "Qabul qilish",
+    "reject": "Rad etish",
+    "ready": "Tayyor",
+    "rejectReason": "Rad etish sababi",
+    "rejectPlaceholder": "Masalan: bugun bu taom tugadi",
+    "rejectSend": "Rad etish",
+    "cancelReject": "Bekor",
+    "reasonRequired": "Sababni yozing — talabaga ko'rinadi.",
+    "failed": "Bajarib bo'lmadi — holat o'zgargan.",
+    "respondIn": "{min} daqiqada javob bering",
+    "prepaid": "To'langan: {amount} so'm",
+    "dueAtCounter": "Joyida: {amount} so'm",
+    "noPrepay": "To'lovsiz bron",
+    "sound": "Ovozli signal",
+    "newOrder": "Yangi buyurtma!",
+    "live": "Jonli · har 5 soniyada",
+    "settings": "Sozlamalar"
+  },
+  "mockPay": {
+    "title": "Test to'lov",
+    "notice": "Bu soxta to'lov sahifasi (sinov serveri) — pul yechilmaydi. Haqiqiy to'lov keyin ulanadi.",
+    "amount": "To'lanadigan summa",
+    "success": "Muvaffaqiyatli",
+    "fail": "Rad etildi",
+    "notFound": "To'lov topilmadi yoki allaqachon yakunlangan.",
+    "toOrder": "Buyurtmaga qaytish"
+  },
   "directions": {
     "close": "Yopish",
     "distance": "~{km} · to'g'ri chiziq bo'yicha",
@@ -105,6 +420,7 @@
   },
   "cashierNav": {
     "scanner": "Skaner",
+    "orders": "Buyurtmalar",
     "discounts": "Chegirmalar",
     "stats": "Statistika",
     "profile": "Profil"
@@ -117,7 +433,9 @@
     "cashiers": "Kassirlar",
     "scanner": "Skaner",
     "profile": "Biznes profili",
-    "notifications": "Bildirishnomalar"
+    "notifications": "Bildirishnomalar",
+    "orders": "Buyurtmalar",
+    "settings": "Sozlamalar"
   },
   "adminNav": {
     "label": "Admin menyu",
@@ -1785,7 +2103,25 @@
       "NO_BUSINESS": "Biznes topilmadi.",
       "ticket": "Skan eskirdi — qayta skanerlang.",
       "amount": "Summani to'g'ri kiriting.",
-      "attemptsLeft": "Yana {n} ta urinish."
+      "attemptsLeft": "Yana {n} ta urinish.",
+      "ORDER_NOT_CONFIRMED": "Buyurtma hali tasdiqlanmagan — avval “Buyurtmalar”da qabul qiling.",
+      "ORDER_CLOSED": "Bu buyurtma yopilgan (bekor qilingan yoki muddati o'tgan).",
+      "forbidden": "Bu buyurtmani berib bo'lmaydi.",
+      "conflict": "Buyurtma holati o'zgardi — qayta skanerlang.",
+      "notFound": "Buyurtma topilmadi."
+    },
+    "order": {
+      "valid": "Oldindan band qilingan",
+      "mode": {"PICKUP": "Olib ketish", "DINE_IN": "Joyida"},
+      "slot": "Vaqt",
+      "quantity": "Soni",
+      "note": "Izoh",
+      "prepaid": "Oldindan to'langan",
+      "dueNow": "Kassada olinadi",
+      "nothingDue": "To'liq to'langan — pul olinmaydi",
+      "complete": "Berildi",
+      "done": "Buyurtma berildi",
+      "doneHint": "Talabaga xabar yuborildi, to'lov yakunlandi."
     }
   },
   "history": {

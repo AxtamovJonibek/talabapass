@@ -52,7 +52,17 @@ To'ldirilmagan joylar (egasidan kutilmoqda, o'ylab topilmaydi): `[EMAIL]`, `[TEL
 - [ ] **[BLOK]** Vercel'da `CRON_SECRET` — `vercel.json` cron'lari (kuponlar, bildirishnomalar) kuniga 1 marta (Hobby). Kuponlar lazy ham tozalanadi.
 - [ ] **[BLOK]** GitHub Actions secrets: `CRON_SECRET`, `APP_URL` (production havolasi) — aks holda rejalashtirilgan xabarlar kuniga bir marta ketadi.
 - [ ] **[TAVSIYA]** `pruneOtpData` (eski OTP va rate-limit yozuvlari) — hozir cron'ga ulanmagan; jadval o'sadi. Cron yo'liga qo'shing.
+- [ ] **[BLOK]** Buyurtmalar avtomatikasi (`/api/cron/buyurtmalar`, GitHub Actions `orders` job'i) ishlayapti — aks holda javobsiz buyurtmalar
+      10 daqiqada bekor bo'lmaydi va pul qaytmaydi (sahifalar ochilganda lazy ham ishlaydi, lekin kafolat emas).
+- [ ] **[TAVSIYA]** Telegram xabarnomalari: `TELEGRAM_BOT_TOKEN` va Telegram kirishi (`User.telegramChatId` to'ldiriladi) — hozir ulanmagan.
 - [ ] **[TAVSIYA]** Web Push: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:`) uchalasi birga. Bo'lmasa faqat ilova ichidagi xabarlar.
+
+## 4a. To'lov (oldindan band qilish)
+- [ ] **[BLOK] Haqiqiy to'lov provayderi** — hozir faqat SOXTA `MockProvider` (`src/lib/payments/mock.ts`), u faqat ishlab chiqish va sinov
+      serverida yoqiladi. Production'da provayder ulanmaguncha oldindan to'lovli band qilish yopiq ("Onlayn to'lov hozircha ulanmagan"),
+      to'lovsiz bron ishlaydi. Provayder `PaymentProvider` interfeysiga (`src/lib/payments/types.ts`) ulanadi: hold → capture/cancelHold, refund,
+      `verifyCallback` (callback: `POST /api/tolov/<provayder>`). Ulangach: callback imzosi, summa mosligi va idempotentlik qayta tekshirilsin.
+- [ ] **[BLOK]** Bekor qilish/kelmaslik qoidasi va to'lov shartlari biznes shartnomasi va oferta matnida yozilgan (yurist).
 
 ## 5. Muhit va deploy
 - [ ] **[BLOK]** Alohida Vercel Production muhiti, alohida Neon branch, `DATABASE_URL` (pooled) va `DATABASE_URL_UNPOOLED` (migratsiya uchun).

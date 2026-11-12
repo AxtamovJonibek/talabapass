@@ -44,6 +44,12 @@ export function ProfileAside({ profile, totals }: { profile: ProfileData; totals
           </Link>
         </li>
         <li>
+          <Link href="/buyurtmalar" className={row}>
+            {t("orders.title")}
+            <span className="ml-auto text-placeholder">›</span>
+          </Link>
+        </li>
+        <li>
           <NotifyRow initial={profile.notify} className={row} />
         </li>
         <li>
@@ -134,6 +140,12 @@ function ProfilePhone({ profile, totals, coupons }: Common) {
         </div>
         <TotalsGrid totals={totals} size="phone" />
         <ul id="sozlamalar" className="m-0 mt-4 list-none rounded-16 bg-white p-0">
+          <li>
+            <Link href="/buyurtmalar" className={cn(MENU_ROW, SEP)}>
+              <span className="flex-1 text-15 font-semibold">{t("orders.title")}</span>
+              <Chevron />
+            </Link>
+          </li>
           <li>
             <Link href="/profil/tahrir" className={cn(MENU_ROW, SEP)}>
               <span className="flex-1 text-15 font-semibold">{t("history.menu.personal")}</span>

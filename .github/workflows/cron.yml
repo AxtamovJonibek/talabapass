@@ -1,4 +1,4 @@
-# Rejalashtirilgan bildirishnomalarni yuborish: Vercel Hobby cron'i kuniga 1 marta ishlaydi, shuning uchun
+# Rejalashtirilgan bildirishnomalar va buyurtmalar avtomatikasi: Vercel Hobby cron'i kuniga 1 marta ishlaydi, shuning uchun
 # har 5 daqiqada GitHub Actions saytdagi cron manzilini chaqiradi (bepul).
 # Repo sozlamalari → Secrets and variables → Actions:
 #   CRON_SECRET — Vercel'dagi CRON_SECRET bilan bir xil qiymat
@@ -31,3 +31,22 @@ jobs:
             --retry 2 --retry-delay 5 \
             -H "Authorization: Bearer $CRON_SECRET" \
             "$APP_URL/api/cron/bildirishnomalar"
+
+  orders:
+    # Oldindan band qilish: javobsiz/to'lanmagan buyurtmalarni bekor qilish, kelmaganlarni belgilash (pul qoidaga ko'ra)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Buyurtmalar avtomatikasi
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: ${{ secrets.APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$APP_URL" ]; then
+            echo "CRON_SECRET va APP_URL secret'lari o'rnatilmagan" >&2
+            exit 1
+          fi
+          curl --fail --silent --show-error --max-time 60 \
+            --retry 2 --retry-delay 5 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/buyurtmalar"
