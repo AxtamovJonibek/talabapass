@@ -50,7 +50,7 @@ export function FeedWeb({ feed, categories, location, origin, user }: Props) {
           </Link>
         </nav>
         <SearchField id="wt2-search" size="sm" label={t("common.search")} placeholder={t("feed.searchPlaceholder")} value={feed.q} onChange={(e) => feed.setQ(e.target.value)} />
-        <LocationSelect value={location.value} districts={location.districts} className="hidden shrink-0 @min-[760px]:block">
+        <LocationSelect value={location.value} label={location.label} districts={location.districts} className="hidden shrink-0 @min-[760px]:block">
           <span className="flex h-[46px] max-w-[300px] items-center gap-1.5 overflow-hidden rounded-14 bg-white px-3 text-14 font-bold whitespace-nowrap">
             <Icon name="pin" size={16} />
             {location.label}

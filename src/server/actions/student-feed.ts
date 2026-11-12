@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { z } from "zod";
+import { regionById } from "@/lib/regions";
 import { authCookieOptions } from "../auth/cookie-options";
 import { requireActiveStudent } from "../auth/student";
 import { db } from "../db";
@@ -10,10 +11,11 @@ import { LOCATION_COOKIE, LOCATION_MAX_AGE_MS } from "../student/location";
 
 const locationSchema = z.union([
   z.object({ districtId: z.string().regex(/^[a-z0-9]{10,40}$/) }),
+  z.object({ regionId: z.string().max(40) }),
   z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
 ]);
 
-/** Masofa hisoblanadigan joy: tuman yoki brauzer geolokatsiyasi (~100 m gacha yaxlitlanadi). */
+/** Masofa hisoblanadigan joy: tuman, viloyat yoki brauzer geolokatsiyasi (~100 m gacha yaxlitlanadi). */
 export async function setLocationAction(input: unknown): Promise<{ ok: boolean }> {
   await requireActiveStudent();
   const parsed = locationSchema.safeParse(input);
@@ -23,6 +25,9 @@ export async function setLocationAction(input: unknown): Promise<{ ok: boolean }
   if ("districtId" in value) {
     if (!(await db.district.findUnique({ where: { id: value.districtId }, select: { id: true } }))) return { ok: false };
     cookie = `d:${value.districtId}`;
+  } else if ("regionId" in value) {
+    if (!regionById(value.regionId)) return { ok: false };
+    cookie = `r:${value.regionId}`;
   } else {
     cookie = `g:${value.lat.toFixed(3)},${value.lng.toFixed(3)}`;
   }

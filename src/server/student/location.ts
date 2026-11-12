@@ -1,22 +1,26 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { isValidPoint, type Point } from "@/lib/geo";
+import { regionById } from "@/lib/regions";
 import { db } from "../db";
 
 /**
  * Talaba tanlagan joy — masofa shundan hisoblanadi. Maxfiy emas, lekin httpOnly: faqat server o'qiydi.
- * "d:<tuman id>" (tuman markazi) yoki "g:<lat>,<lng>" (brauzer geolokatsiyasi, 3 xonagacha yaxlitlangan ≈ 100 m).
+ * "d:<tuman id>" (tuman markazi), "r:<viloyat>" (`REGIONS` dagi markaz) yoki "g:<lat>,<lng>" (brauzer geolokatsiyasi,
+ * 3 xonagacha yaxlitlangan ≈ 100 m).
  */
 export const LOCATION_COOKIE = "tp_loc";
 export const LOCATION_MAX_AGE_MS = 365 * 86_400_000;
 
 export type Origin =
   | { kind: "district"; districtId: string; name: string; point: Point }
+  | { kind: "region"; regionId: string; name: string; point: Point }
   | { kind: "gps"; point: Point };
 
-export function parseLocationCookie(value: string | undefined): { districtId: string } | { point: Point } | null {
+export function parseLocationCookie(value: string | undefined): { districtId: string } | { regionId: string } | { point: Point } | null {
   if (!value) return null;
   if (value.startsWith("d:") && /^d:[a-z0-9]{10,40}$/.test(value)) return { districtId: value.slice(2) };
+  if (value.startsWith("r:") && regionById(value.slice(2))) return { regionId: value.slice(2) };
   const m = /^g:(-?\d{1,2}(?:\.\d{1,6})?),(-?\d{1,3}(?:\.\d{1,6})?)$/.exec(value);
   if (m) {
     const point = { lat: Number(m[1]), lng: Number(m[2]) };
@@ -29,6 +33,10 @@ export async function currentOrigin(): Promise<Origin | null> {
   const parsed = parseLocationCookie((await cookies()).get(LOCATION_COOKIE)?.value);
   if (!parsed) return null;
   if ("point" in parsed) return { kind: "gps", point: parsed.point };
+  if ("regionId" in parsed) {
+    const r = regionById(parsed.regionId)!;
+    return { kind: "region", regionId: r.id, name: r.name, point: { lat: r.lat, lng: r.lng } };
+  }
   const district = await db.district.findUnique({ where: { id: parsed.districtId }, select: { id: true, name: true, lat: true, lng: true } });
   return district ? { kind: "district", districtId: district.id, name: district.name, point: { lat: district.lat, lng: district.lng } } : null;
 }

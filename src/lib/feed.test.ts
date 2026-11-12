@@ -11,6 +11,7 @@ function deal(over: Partial<FeedDeal> & { id: string }): FeedDeal {
     store: "Bodom Choyxonasi",
     typeLabel: "Choyxona",
     district: "Chilonzor",
+    address: "Bunyodkor ko'chasi 14",
     category: "taom",
     icon: "bowl",
     images: [],

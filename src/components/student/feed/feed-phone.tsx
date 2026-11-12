@@ -31,7 +31,7 @@ export function FeedPhone({ feed, categories, location, origin, unread, coupons 
             <span>
               {t(`weekday.long.${now.weekday}` as "weekday.long.1")} · {now.date.getUTCDate()} {t(`month.name.${now.date.getUTCMonth() + 1}` as "month.name.1")} · {formatMinute(now.minute)}
             </span>
-            <LocationSelect value={location.value} districts={location.districts}>
+            <LocationSelect value={location.value} label={location.label} districts={location.districts}>
               <span className="flex h-11 items-center gap-[5px] text-11 tracking-[0.1em] text-ink uppercase underline decoration-1 underline-offset-4">
                 {location.label}
                 <Icon name="chevronDown" size={12} strokeWidth={2.6} />

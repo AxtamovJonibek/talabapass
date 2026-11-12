@@ -44,6 +44,10 @@ export const ICONS = {
   edit: "M4 20h4L19 9l-4-4L4 16zM13 7l4 4",
   /** B1 manzil maydoni */
   pin: "M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM14.5 9.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z",
+  /** Joy tanlovi: "Mening joylashuvim" */
+  locate: "M12 6a6 6 0 1 0 0 12a6 6 0 1 0 0-12zM12 10a2 2 0 1 0 0 4a2 2 0 1 0 0-4zM12 2v4M12 18v4M2 12h4M18 12h4",
+  /** Yo'nalish oynasi: "Manzilni nusxalash" */
+  copy: "M9 9h11v11H9zM5 15H4V4h11v1",
   /** WB1 joy fotolari */
   /** T4 qidiruv */
   search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4",

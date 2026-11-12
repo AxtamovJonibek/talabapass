@@ -124,7 +124,15 @@ Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspen
 - Ko'rinish qoidasi bitta joyda: `visibleDiscountWhere` (`src/server/student/feed.ts`) — `ACTIVE`, biznes APPROVED/WARNED,
   egasi bloklanmagan, muddat tugamagan. Holat/keyingi ochilish — `dealTiming` (`src/lib/time.ts`), qoldiq — oraliq kunidagi
   `DiscountDay.claimed`. Filtr/saralash brauzerda (`src/lib/feed.ts`), URL'da saqlanadi; sahifa har daqiqa yangilanadi.
-- Joy (`tp_loc` cookie): tuman markazi yoki geolokatsiya (~100 m); masofa shundan. Xarita — MapLibre + OpenFreeMap (kalitsiz).
+- Joy (`tp_loc` cookie): tuman markazi (`d:`), viloyat markazi (`r:`, `src/lib/regions.ts`) yoki geolokatsiya (`g:`) (~100 m); masofa shundan. Xarita — MapLibre + OpenFreeMap (kalitsiz).
+- `BottomSheet` (`ui/bottom-sheet.tsx`) — umumiy oyna: telefonda pastdan (tutqich, pastga surib yopish, parda), `anchor` berilsa ≥ 700px da tugma ostida
+  popover (pastda joy kam bo'lsa tepasida). Dialog: fokus ichida, Esc, fokus tugmaga qaytadi. Joy tanlovi va yo'nalish shundan; bron oynasi ham shundan bo'ladi.
+- Joy tanlovi (`feed/location-select.tsx`): qidiruv, "Mening joylashuvim" (xato — sababi va qayta urinish), "Toshkent tumanlari", "Viloyatlar". Tanlov
+  `localStorage` `tp:joy` da ham — cookie yo'q bo'lsa tiklanadi.
+- "Yo'l ko'rsatish" (`deal/directions.tsx`, havolalar `src/lib/directions.ts`): Yandex Xaritalar, Google Maps, 2GIS, Yandex Go, manzilni nusxalash; oxirgi
+  tanlangani tepada (`tp:yonalish`). Havolalar oddiy https — ilova bo'lsa universal/App Links ochadi (yandex.uz/maps, 2gis.uz domenlari tekshirilgan);
+  Yandex Go: telefonda do'kon, kompyuterda sayt `appmetrica_tracking_id`. Logotiplar `public/brands/`. T5/WT3 manzil qatori va xaritadagi tanlangan joy.
+  Test: `e2e/location-directions.spec.ts`.
 - **Lenta B · Jurnal** (`design/talabaPass – Lenta B · Jurnal (1).html`, T4/WT2 kartalari va T5/WT3 rasm qismi): `FeedCard` (`ui/feed-card.tsx`) — 210px rasm,
   tepada yorliq (`DealTag`: "Tez tugaydi · 2/20" qora fonda, "Ertaga 08:00" oq fonda), o'ngda foiz (`PctBadge`: −30%, 1+1), pastda narx plitkasi;
   holatlar `useDealMarks` da. Rasmsiz karta — katta bosh harf + "Rasm kutilmoqda" (dizayndagi noImg). Telefon lentasi sarlavhasi

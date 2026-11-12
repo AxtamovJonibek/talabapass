@@ -10,6 +10,8 @@ import { isIconName } from "@/components/ui/icons";
 import type { FeedDeal } from "@/lib/feed";
 import { formatKm, type Point } from "@/lib/geo";
 import { formatSom } from "@/lib/format";
+import { Icon } from "@/components/ui/icon";
+import { DirectionsButton } from "../deal/directions";
 import { useDealText } from "./labels";
 
 /** Ochiq vektor xarita (kalitsiz). Uslub OpenStreetMap ma'lumotlari asosida, atributsiya xaritaning o'zida. */
@@ -102,7 +104,18 @@ export default function DealsMap({ deals, origin, now, className }: { deals: Fee
       <div ref={box} className="size-full" />
       {located.length === 0 ? <div className="absolute inset-x-4 top-4 rounded-14 bg-white p-4 text-center text-14 text-muted">{t("map.nothing")}</div> : null}
       {deal && status ? (
-        <div className="absolute inset-x-4 bottom-4 mx-auto max-w-[420px]">
+        <div className="absolute inset-x-4 bottom-4 mx-auto flex max-w-[420px] flex-col gap-2">
+          {/* Tanlangan joyga yo'l: karta ustida (dizaynda chizilmagan) */}
+          <DirectionsButton
+            name={deal.store}
+            address={deal.address}
+            point={deal.point}
+            distanceKm={deal.distanceKm}
+            className="tp-lift flex h-11 items-center gap-2 self-end rounded-full bg-ink px-4 font-sans text-14 font-bold text-white"
+          >
+            <Icon name="pin" size={16} strokeWidth={2.2} />
+            {t("map.route")}
+          </DirectionsButton>
           <DealCard
             href={`/chegirmalar/${deal.id}`}
             badge={deal.badge}

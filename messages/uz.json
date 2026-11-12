@@ -20,6 +20,23 @@
     "view": "Ko'rish",
     "pieces": "ta"
   },
+  "directions": {
+    "close": "Yopish",
+    "distance": "~{km} · to'g'ri chiziq bo'yicha",
+    "options": "Yo'l ko'rsatish usullari",
+    "providers": {
+      "yandex": "Yandex Xaritalar",
+      "google": "Google Maps",
+      "dgis": "2GIS",
+      "yandexGo": "Yandex Go"
+    },
+    "mapHint": "Ilovada, bo'lmasa saytda ochiladi",
+    "taxiHint": "Taksi chaqirish",
+    "recent": "Oxirgi ishlatilgan",
+    "copy": "Manzilni nusxalash",
+    "copied": "Nusxalandi",
+    "copyFailed": "Nusxalab bo'lmadi"
+  },
   "course": {
     "label": "Kurs",
     "C1": "1",
@@ -1617,12 +1634,30 @@
       "city": "Toshkent",
       "gps": "Mening joylashuvim",
       "here": "Joylashuvim",
-      "failed": "Joylashuvni aniqlab bo'lmadi"
+      "failed": "Joylashuvni aniqlab bo'lmadi",
+      "title": "Joylashuvni tanlang",
+      "close": "Yopish",
+      "search": "Joy qidirish",
+      "searchPlaceholder": "Tuman yoki viloyat",
+      "gpsHint": "Masofa aniqroq hisoblanadi",
+      "locating": "Aniqlanmoqda…",
+      "retry": "Qayta urinish",
+      "errors": {
+        "denied": "Ruxsat berilmadi. Brauzer sozlamalarida joylashuvga ruxsat bering.",
+        "unavailable": "Joylashuvni aniqlab bo'lmadi. GPS yoqilganini tekshiring.",
+        "timeout": "Joylashuv aniqlanmadi — vaqt tugadi.",
+        "unsupported": "Bu brauzer joylashuvni aniqlay olmaydi."
+      },
+      "groupTashkent": "Toshkent tumanlari",
+      "groupRegions": "Viloyatlar",
+      "nothing": "Hech narsa topilmadi",
+      "saveFailed": "Joyni saqlab bo'lmadi, qayta urining"
     },
     "map": {
       "title": "Xaritada",
       "close": "Yopish",
-      "nothing": "Xaritada ko'rsatadigan joy yo'q"
+      "nothing": "Xaritada ko'rsatadigan joy yo'q",
+      "route": "Yo'l ko'rsatish"
     }
   },
   "dealPage": {

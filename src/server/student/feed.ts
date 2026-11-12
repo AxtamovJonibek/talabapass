@@ -85,6 +85,7 @@ function toFeedDeal(row: DealRow, timing: DealTiming, claimed: number, origin: P
     store: row.business.name,
     typeLabel: row.business.typeLabel,
     district: row.business.district?.name ?? null,
+    address: [row.business.address, row.business.landmark].filter(Boolean).join(", "),
     category: row.category.slug,
     icon: row.icon ?? row.category.icon,
     images: row.images.map((i) => discountImageUrl(i.id)),

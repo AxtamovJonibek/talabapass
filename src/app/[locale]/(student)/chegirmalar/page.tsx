@@ -48,8 +48,8 @@ async function FeedPageContent({ searchParams }: { searchParams: PageProps<"/[lo
       }}
       origin={origin?.point ?? null}
       location={{
-        value: origin ? (origin.kind === "gps" ? "gps" : origin.districtId) : "",
-        label: origin ? (origin.kind === "gps" ? t("here") : origin.name) : t("city"),
+        value: !origin ? "" : origin.kind === "gps" ? "gps" : origin.kind === "region" ? `r:${origin.regionId}` : `d:${origin.districtId}`,
+        label: !origin ? t("city") : origin.kind === "gps" ? t("here") : origin.name,
         districts,
       }}
       user={{ firstName: user.firstName ?? "", initials: initials(user.firstName, user.lastName), avatarUrl: studentAvatarUrl(user.id, user.student.avatarKey), savedMonth, unread, coupons }}

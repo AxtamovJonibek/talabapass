@@ -12,6 +12,8 @@ export type FeedDeal = {
   /** "Choyxona" */
   typeLabel: string | null;
   district: string | null;
+  /** Manzil (mo'ljal bilan) — xaritadagi "Yo'l ko'rsatish" uchun */
+  address: string;
   /** Kategoriya slug'i: taom, kofe, ... */
   category: string;
   icon: string;

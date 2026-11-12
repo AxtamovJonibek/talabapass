@@ -19,15 +19,10 @@ import { StudentWebHeader } from "../app-chrome";
 import { SaveButton, ShareButton } from "./deal-actions";
 import { PhoneGallery, WebGallery } from "./gallery";
 import { BusinessContact } from "./business-contact";
+import { DirectionsButton } from "./directions";
 import { PhoneClaim, WebClaim, type ClaimState } from "./claim";
 
 type Props = { detail: DealDetail; now: Date; saved: boolean; initials: string; avatarUrl: string | null; claim: ClaimState };
-
-/** Yo'nalish: Yandex xaritasi (O'zbekistonda eng ko'p ishlatiladi); koordinata bo'lmasa — manzil bo'yicha qidiruv. */
-function routeUrl(detail: DealDetail) {
-  const p = detail.business.point;
-  return p ? `https://yandex.uz/maps/?rtext=~${p.lat},${p.lng}&rtt=auto` : `https://yandex.uz/maps/?text=${encodeURIComponent(detail.business.address)}`;
-}
 
 /** Ikkala ko'rinish uchun umumiy yozuvlar. */
 function useDetailText({ detail, now }: Pick<Props, "detail" | "now">) {
@@ -52,7 +47,7 @@ function useDetailText({ detail, now }: Pick<Props, "detail" | "now">) {
     distance: deal.distanceKm !== null ? formatKm(deal.distanceKm) : null,
     /** "Hozir ochiq · 15:00 gacha" yoki "Ertaga 08:00 ochiladi" */
     state: deal.live && deal.closesAt ? t("dealPage.liveUntil", { time: text.clock(deal.closesAt) }) : t("dealPage.opensAt", { when: text.webStatus(deal, now) }),
-    route: routeUrl(detail),
+    address: [detail.business.address, detail.business.landmark].filter(Boolean).join(", "),
     letter: detail.business.name.trim().charAt(0).toUpperCase(),
   };
 }
@@ -155,12 +150,18 @@ function DealPhone({ detail, now, saved, claim }: Props) {
 
         <div className="mt-2 flex items-center gap-3 rounded-14 bg-white px-3.5 py-3">
           <div className="flex flex-1 flex-col gap-0.5">
-            <div className="text-14 font-semibold">{[business.address, business.landmark].filter(Boolean).join(", ")}</div>
+            <div className="text-14 font-semibold">{x.address}</div>
             <div className="text-12 text-muted">{t("dealPage.open", { hours: business.workingHours })}</div>
           </div>
-          <a href={x.route} target="_blank" rel="noopener noreferrer" className="tp-lift flex h-10 items-center rounded-10 bg-paper px-3.5 text-13 font-bold text-ink no-underline">
+          <DirectionsButton
+            name={business.name}
+            address={x.address}
+            point={business.point}
+            distanceKm={deal.distanceKm}
+            className="tp-lift flex h-10 items-center rounded-10 bg-paper px-3.5 font-sans text-13 font-bold text-ink"
+          >
             {t("dealPage.route")}
-          </a>
+          </DirectionsButton>
         </div>
         <BusinessContact business={business} className="mt-2" />
         <p className="mx-0.5 mt-3.5 mb-6 text-13 leading-[1.5] text-muted">{detail.terms}</p>
@@ -241,12 +242,18 @@ function DealWeb({ detail, now, initials, avatarUrl, claim }: Props) {
             <div className="border-t-hair-dashed mt-4 flex flex-wrap items-center gap-3 pt-4">
               <Icon name="pin" size={20} />
               <span className="min-w-[200px] flex-1">
-                <b>{[business.address, business.landmark].filter(Boolean).join(", ")}</b>{" "}
+                <b>{x.address}</b>{" "}
                 <span className="text-muted">{[t("dealPage.openWeb", { hours: business.workingHours }), x.distance].filter(Boolean).join(" · ")}</span>
               </span>
-              <a href={x.route} target="_blank" rel="noopener noreferrer" className="tp-lift flex h-[42px] items-center rounded-10 bg-paper px-3.5 text-14 font-bold text-ink no-underline">
+              <DirectionsButton
+                name={business.name}
+                address={x.address}
+                point={business.point}
+                distanceKm={deal.distanceKm}
+                className="tp-lift flex h-[42px] items-center rounded-10 bg-paper px-3.5 font-sans text-14 font-bold text-ink"
+              >
                 {t("dealPage.routeWeb")}
-              </a>
+              </DirectionsButton>
             </div>
             <BusinessContact business={business} className="mt-3" />
           </div>
