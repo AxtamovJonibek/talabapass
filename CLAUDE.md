@@ -460,7 +460,10 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - Biznes yoqadi: `/biznes/sozlamalar` (Sozlamalar → "Oldindan band qilish", jonli preview) — rejim, har kun uchun oraliq, slot 15/30/60 va sig'im,
   tayyorlash vaqti, bugun/ertaga, to'lov (to'liq/qisman %/to'lovsiz), bepul bekor qilish muddati va kech bekor/kelmaslikda qoladigan %, avto/qo'lda
   tasdiq, "Bugun qabul qilmayman" (`pausedOn`), chegirmalarda "Oldindan band qilish mumkin" (`Discount.preorder`, faqat narxi aniq chegirma, tekshiruvsiz).
-  Sozlama yo'q/o'chiq — talabaga tugma umuman chiqmaydi (`canBook`).
+  Tugma `bookingAvailability` (`settings.ts`) dan: sozlama yo'q/o'chiq, chegirma belgilanmagan yoki narxsiz — umuman chiqmaydi (null); qolganida
+  tugma bor, hozir band qilib bo'lmasa o'chiq + sababi (`BookingBlock`: `full` bo'sh slot yo'q, `paused`, `hours` jadval chegirma soatlariga
+  to'g'ri kelmaydi, `closed`, `payment` provayder yo'q) — jimgina yashirilmaydi. Slot chegirma oralig'i ichida bo'lishi shart (`slotInDiscount`:
+  kun, muddat, soat, yarim tundan o'tish; `discountSlots`). Sozlamalarda egasiga: hech bir chegirma belgilanmagan / chegirma soatlari jadvalga mos emas.
 - Qoidalar bitta joyda: `src/lib/preorder.ts` — holat mashinasi `ORDER_TRANSITIONS` (kim, qaysi holatga, qaysidan), slotlar, narx, `settlement`
   (bekor qilish/kelmaslik puli). Server: `src/server/preorder/` — `orders.ts` (`transitionOrder` — yagona o'tish joyi: shartli UPDATE + `OrderEvent`
   vaqt chizig'i + `AuditLog` + slot joyini bo'shatish bitta tranzaksiyada, keyin pul va xabarnoma), `settings.ts`, `views.ts`, `scan.ts`, `payments.ts`, `notify.ts`.

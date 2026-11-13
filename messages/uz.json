@@ -85,6 +85,13 @@
     "manualConfirm": "Biznes 10 daqiqa ichida tasdiqlaydi; javob bo'lmasa buyurtma bekor bo'lib, pul qaytadi.",
     "pay": "{amount} so'm to'lash",
     "book": "Band qilish",
+    "blocked": {
+      "full": "Hozir bo'sh slot yo'q — keyinroq qarang.",
+      "paused": "Biznes bugun oldindan buyurtma qabul qilmayapti.",
+      "hours": "Chegirma amal qiladigan soatlarda band qilish vaqti yo'q.",
+      "closed": "Hozircha band qilish yopiq.",
+      "payment": "Onlayn to'lov hozircha ishlamayapti — band qilib bo'lmaydi."
+    },
     "errors": {
       "invalid": "Ma'lumotlarni tekshiring.",
       "notAvailable": "Bu chegirmani hozir band qilib bo'lmaydi.",
@@ -276,6 +283,8 @@
     "discountsHint": "Belgilangan chegirmada talabaga “Band qilish” chiqadi. Faqat narxi aniq chegirmalar.",
     "noDiscounts": "Hali chegirma yo'q.",
     "noPrice": "Narxi aniq emas",
+    "noneMarked": "Hech bir chegirma belgilanmagan — talabalar “Band qilish” tugmasini ko'rmaydi. Quyidan kamida bittasini yoqing.",
+    "offHours": "Chegirma soatlari ({hours}) band qilish jadvaliga to'g'ri kelmaydi — talabaga tugma o'chiq ko'rinadi.",
     "preview": "Talabaga shunday ko'rinadi",
     "previewEmpty": "Jadvalda kun belgilanmagan.",
     "save": "Saqlash",

@@ -15,17 +15,17 @@ import {
   QUANTITY_MAX,
   RELEASES_SEAT,
   settlement,
+  slotInDiscount,
   type OrderActor,
   type OrderStatus,
 } from "@/lib/preorder";
-import { toTashkent } from "@/lib/time";
 import type { Prisma } from "@/generated/prisma/client";
 import { audit } from "../audit";
 import { encryptSecret } from "../coupons/coupons";
 import { db } from "../db";
 import { notifyOrder } from "./notify";
 import { applyCallback, settlePayment, startPayment } from "./payments";
-import { bookableDiscount, bookingConfig, discountRunsOn } from "./settings";
+import { bookableDiscount, bookingConfig } from "./settings";
 
 /**
  * Buyurtma hayoti. Holat faqat `transitionOrder` orqali o'zgaradi: `ORDER_TRANSITIONS` (src/lib/preorder) bo'yicha
@@ -148,7 +148,7 @@ export async function createOrder(studentId: string, raw: unknown, now = new Dat
   const { discount, settings, unit } = found;
   if (settings.mode !== "BOTH" && settings.mode !== input.mode) return { ok: false, error: "mode" };
   const slot = findSlot(bookingConfig(settings), new Date(input.slotStart), now);
-  if (!slot || !discountRunsOn(discount, toTashkent(slot.start).date)) return { ok: false, error: "slot" };
+  if (!slot || !slotInDiscount(discount, slot)) return { ok: false, error: "slot" };
   if (settings.prepay !== "NONE" && !paymentProvider()) return { ok: false, error: "paymentUnavailable" };
   if ((await db.order.count({ where: { studentId, status: { in: OPEN_STATUSES } } })) >= ACTIVE_ORDERS_MAX) return { ok: false, error: "tooMany" };
 

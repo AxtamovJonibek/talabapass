@@ -8,12 +8,14 @@ test.setTimeout(180_000);
 const TITLE = "Osh 0.5 porsiya + ko'k choy";
 let businessId: string;
 let discountId: string;
+let weekdays: number[];
 
 test.beforeAll(async () => {
   await withDb(async (db) => {
-    const { rows } = await db.query<{ id: string; businessId: string }>(`SELECT d.id, d."businessId" FROM "Discount" d WHERE d.title = $1`, [TITLE]);
+    const { rows } = await db.query<{ id: string; businessId: string; weekdays: number[] }>(`SELECT d.id, d."businessId", d.weekdays FROM "Discount" d WHERE d.title = $1`, [TITLE]);
     discountId = rows[0]!.id;
     businessId = rows[0]!.businessId;
+    weekdays = rows[0]!.weekdays;
     await db.query(`DELETE FROM "Order" WHERE "businessId" = $1`, [businessId]);
     await db.query(`DELETE FROM "PreorderSlot" WHERE "businessId" = $1`, [businessId]);
     // Har kuni kun bo'yi, tayyorlash vaqtisiz — test qachon yurmasin slot bo'lsin; qo'lda tasdiqlash
@@ -24,7 +26,8 @@ test.beforeAll(async () => {
          "leadMinutes" = 0, "daysAhead" = 1, prepay = 'FULL', "autoConfirm" = false, "pausedOn" = NULL`,
       [businessId, JSON.stringify([1, 2, 3, 4, 5, 6, 7].map((day) => ({ day, from: 0, to: 1440 })))],
     );
-    await db.query(`UPDATE "Discount" SET preorder = true WHERE id = $1`, [discountId]);
+    // Chegirma har kuni (seed'da Du–Ju) — slotlar chegirma soatlari (12:00–15:00) ichida bo'lishi shart, test dam olish kunida ham yursin
+    await db.query(`UPDATE "Discount" SET preorder = true, weekdays = '{1,2,3,4,5,6,7}' WHERE id = $1`, [discountId]);
   });
 });
 
@@ -33,7 +36,7 @@ test.afterAll(async () => {
     await db.query(`DELETE FROM "Order" WHERE "businessId" = $1`, [businessId]);
     await db.query(`DELETE FROM "PreorderSlot" WHERE "businessId" = $1`, [businessId]);
     await db.query(`DELETE FROM "PreorderSettings" WHERE "businessId" = $1`, [businessId]);
-    await db.query(`UPDATE "Discount" SET preorder = false WHERE id = $1`, [discountId]);
+    await db.query(`UPDATE "Discount" SET preorder = false, weekdays = $2 WHERE id = $1`, [discountId, weekdays]);
   });
 });
 
@@ -46,6 +49,8 @@ test("talaba band qiladi → biznes qabul qiladi → tayyor → kassir skanerlay
 
   // 1) Band qilish: usul → kun → vaqt → soni → telefon (profildan) → narx va qoida → to'lov
   await student.goto(`/chegirmalar/${discountId}`);
+  // Dev serverdagi Next.js belgisi ("Insight") oyna pastidagi slot tugmasini to'sadi
+  await student.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   await student.getByTestId("booking-open").locator("visible=true").click();
   await sheet(student).getByRole("button", { name: /Olib ketaman/ }).click();
   await sheet(student).locator("button[aria-pressed]:not([disabled])").first().click(); // birinchi bo'sh kun
@@ -121,4 +126,32 @@ test("funksiya o'chiq bo'lsa \"Band qilish\" umuman ko'rinmaydi", async ({ page 
   await expect(page.getByRole("heading", { name: TITLE }).locator("visible=true")).toBeVisible();
   await expect(page.getByTestId("booking-open")).toHaveCount(0);
   await expect(page.getByText("Band qilish")).toHaveCount(0);
+});
+
+test("hozir band qilib bo'lmasa — tugma o'chiq, ostida sababi; egasi belgisiz chegirma haqida ogohlantiriladi", async ({ browser }) => {
+  // Bugun to'xtatilgan, ertaga band qilinmaydi — talabaga "Biznes bugun ... qabul qilmayapti"
+  await withDb((db) =>
+    db.query(
+      `UPDATE "PreorderSettings" SET enabled = true, "daysAhead" = 0, "pausedOn" = (now() AT TIME ZONE 'Asia/Tashkent')::date WHERE "businessId" = $1`,
+      [businessId],
+    ),
+  );
+  const phones = await seedPhones();
+  const student = await (await browser.newContext()).newPage();
+  await signIn(student, phones.student);
+  await student.goto(`/chegirmalar/${discountId}`);
+  const blocked = student.getByTestId("booking-blocked").locator("visible=true");
+  await expect(blocked).toHaveText("Biznes bugun oldindan buyurtma qabul qilmayapti.");
+  await expect(student.getByRole("button", { name: "Band qilish" }).locator("visible=true")).toBeDisabled();
+  await expect(student.getByTestId("booking-open")).toHaveCount(0);
+
+  // Egasi: hech bir chegirma belgilanmagan — sozlamalarda ogohlantirish, talabada tugma umuman yo'q
+  await withDb((db) => db.query(`UPDATE "Discount" SET preorder = false WHERE "businessId" = $1`, [businessId]));
+  const owner = await (await browser.newContext()).newPage();
+  await signIn(owner, phones.owner);
+  await owner.goto("/biznes/sozlamalar");
+  await expect(owner.getByTestId("preorder-none-marked").locator("visible=true")).toBeVisible();
+  await student.reload();
+  await expect(student.getByTestId("booking-blocked")).toHaveCount(0);
+  await expect(student.getByText("Band qilish")).toHaveCount(0);
 });

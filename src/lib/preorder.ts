@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fromTashkent, toTashkent, weekdayOf } from "./time";
+import { fromTashkent, openWindowStart, toTashkent, weekdayOf, windowEnd, type Schedule } from "./time";
 
 /**
  * Oldindan band qilish: holat mashinasi, sozlamalar, slotlar, narx va bekor qilish qoidasi. Sof mantiq — forma, server
@@ -123,14 +123,13 @@ export type BookingConfig = Pick<PreorderSettingsInput, "schedule" | "slotMinute
 const DAY_MS = 86_400_000;
 
 /** Band qilish mumkin bo'lgan Toshkent sanalari: bugun (+ ertaga), jadvalda bor va to'xtatilmagan kunlar. */
-export function bookingDays(config: BookingConfig, now: Date, extra: (date: Date) => boolean = () => true): Date[] {
+export function bookingDays(config: BookingConfig, now: Date): Date[] {
   const today = toTashkent(now).date;
   const days: Date[] = [];
   for (let i = 0; i <= config.daysAhead; i++) {
     const date = new Date(today.getTime() + i * DAY_MS);
     if (config.pausedOn && config.pausedOn.getTime() === date.getTime()) continue;
     if (!config.schedule.some((d) => d.day === weekdayOf(date))) continue;
-    if (!extra(date)) continue;
     days.push(date);
   }
   return days;
@@ -157,6 +156,34 @@ export function findSlot(config: BookingConfig, start: Date, now: Date): Slot | 
   if (!bookingDays(config, now).some((d) => d.getTime() === date.getTime())) return null;
   const slot = slotsOn(config, date, now).find((s) => s.start.getTime() === start.getTime());
   return slot && !slot.late ? slot : null;
+}
+
+/** Slot chegirma oralig'i ichidami: boshlanishi ochiq oraliqda, tugashi shu oraliq yopilishidan kech emas (kun, muddat, yarim tun ham). */
+export function slotInDiscount(discount: Schedule, slot: Pick<Slot, "start" | "end">): boolean {
+  const opened = openWindowStart(discount, slot.start);
+  return opened !== null && slot.end.getTime() <= windowEnd(discount, opened).getTime();
+}
+
+/** Talabaga taklif qilinadigan kunlar va slotlar: biznes jadvali × chegirma soatlari. Sloti yo'q kun chiqmaydi. */
+export function discountSlots(config: BookingConfig, discount: Schedule, now: Date): { date: Date; slots: Slot[] }[] {
+  return bookingDays(config, now)
+    .map((date) => ({ date, slots: slotsOn(config, date, now).filter((s) => slotInDiscount(discount, s)) }))
+    .filter((d) => d.slots.length > 0);
+}
+
+/**
+ * Nega hozir band qilib bo'lmaydi (talabaga ko'rsatiladi) — bo'lsa null:
+ * `full` — slotlar bor, lekin hammasi o'tgan yoki to'lgan; `paused` — "Bugun qabul qilmayman";
+ * `hours` — jadval bor, lekin chegirma soatlari/kunlariga to'g'ri kelmaydi; `closed` — bugun (ertaga) jadvalda kun yo'q.
+ */
+export type BookingBlock = "full" | "paused" | "hours" | "closed" | "payment";
+
+export function bookingBlock(config: BookingConfig, discount: Schedule, now: Date, left: (start: Date) => number): BookingBlock | null {
+  const days = discountSlots(config, discount, now);
+  if (days.some((d) => d.slots.some((s) => !s.late && left(s.start) > 0))) return null;
+  if (days.length > 0) return "full";
+  if (config.pausedOn && discountSlots({ ...config, pausedOn: null }, discount, now).length > 0) return "paused";
+  return bookingDays(config, now).length > 0 ? "hours" : "closed";
 }
 
 // ───────── narx ─────────

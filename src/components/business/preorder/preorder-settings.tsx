@@ -10,7 +10,7 @@ import { toast } from "@/components/ui/toast";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 import { formatSom } from "@/lib/format";
-import { bookingDays, orderAmounts, slotsOn, type DaySchedule, type PreorderSettingsInput } from "@/lib/preorder";
+import { bookingBlock, bookingDays, orderAmounts, slotsOn, type DaySchedule, type PreorderSettingsInput } from "@/lib/preorder";
 import { formatMinute, parseMinute, toTashkent } from "@/lib/time";
 import { savePreorderSettingsAction, setDiscountPreorderAction, setPreorderPausedAction } from "@/server/actions/preorder";
 import type { OwnerPreorder } from "@/server/preorder/settings";
@@ -74,6 +74,11 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
   const setDay = (day: number, next: DaySchedule | null) =>
     set("schedule", [...form.schedule.filter((d) => d.day !== day), ...(next ? [next] : [])].sort((a, b) => a.day - b.day));
   const rangeBad = form.schedule.some((d) => d.to <= d.from);
+  const noneMarked = form.enabled && !discounts.some((d) => d.preorder && d.price);
+  // Belgilangan chegirma soatlari jadvalga to'g'ri kelmasa — talabada tugma o'chiq turadi; egasiga shu yerda aytamiz
+  const now = new Date();
+  const config = { ...form, pausedOn: null };
+  const offHours = (d: OwnerPreorder["discounts"][number]) => d.preorder && bookingBlock(config, d.schedule, now, () => form.slotCapacity) === "hours";
 
   const save = () =>
     startSaving(async () => {
@@ -114,6 +119,11 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
         />
 
         <Block title={t("discounts")} hint={t("discountsHint")}>
+          {noneMarked ? (
+            <p className="m-0 rounded-12 bg-warn-bg px-3.5 py-2.5 text-13 font-semibold text-warn" data-testid="preorder-none-marked">
+              {t("noneMarked")}
+            </p>
+          ) : null}
           {discounts.length === 0 ? (
             <p className="m-0 text-14 text-muted">{t("noDiscounts")}</p>
           ) : (
@@ -123,6 +133,11 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-15 font-semibold">{d.title}</span>
                     <span className="font-mono text-12 text-muted">{d.price ? `${formatSom(d.price.final)} ${tt("common.currency")}` : t("noPrice")}</span>
+                    {offHours(d) ? (
+                      <span className="text-12 font-semibold text-warn" data-testid="preorder-off-hours">
+                        {t("offHours", { hours: `${formatMinute(d.schedule.fromMinute)}–${formatMinute(d.schedule.toMinute)}` })}
+                      </span>
+                    ) : null}
                   </span>
                   <Switch small checked={d.preorder} disabled={!d.price} onChange={(v) => void toggleDiscount(d.id, v)} label={d.title} />
                 </li>
@@ -231,7 +246,7 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
 
       <aside className="sticky top-5 flex min-w-0 flex-[2_1_300px] flex-col gap-2">
         <h3 className="m-0 font-mono text-11 tracking-[0.1em] text-muted uppercase">{t("preview")}</h3>
-        <StudentPreview form={form} paused={paused} sample={discounts.find((d) => d.preorder && d.price) ?? discounts.find((d) => d.price) ?? null} />
+        <StudentPreview form={form} paused={paused} sample={discounts.find((d) => d.preorder && d.price) ?? null} />
       </aside>
     </div>
   );

@@ -7,6 +7,7 @@ import { scannerFor, type Scanner } from "../coupons/scan";
 import { db } from "../db";
 import { createOrder, handlePaymentCallback, runOrderAutomation, transitionOrder, NO_SHOW_GRACE_MS } from "./orders";
 import { completeOrderScan, scanOrder } from "./scan";
+import { bookingAvailability } from "./settings";
 import { cancelOrderByStudent, decideOrder } from "./views";
 
 // Oldindan band qilish: atom slot sig'imi, holat mashinasi, pul qoidasi, avtomatika, kassir.
@@ -39,7 +40,18 @@ async function cleanup() {
   await db.user.deleteMany({ where: { id: { in: ids } } });
 }
 
-async function setSettings(over: Partial<{ slotCapacity: number; autoConfirm: boolean; prepay: "FULL" | "PARTIAL" | "NONE"; keepPercent: number; freeCancelMinutes: number }> = {}) {
+type SettingsOver = {
+  slotCapacity: number;
+  autoConfirm: boolean;
+  prepay: "FULL" | "PARTIAL" | "NONE";
+  keepPercent: number;
+  freeCancelMinutes: number;
+  schedule: { day: number; from: number; to: number }[];
+  daysAhead: number;
+  pausedOn: Date | null;
+};
+
+async function setSettings(over: Partial<SettingsOver> = {}) {
   const data = {
     enabled: true,
     mode: "BOTH" as const,
@@ -53,7 +65,7 @@ async function setSettings(over: Partial<{ slotCapacity: number; autoConfirm: bo
     freeCancelMinutes: 60,
     keepPercent: 30,
     autoConfirm: true,
-    pausedOn: null,
+    pausedOn: null as Date | null,
     ...over,
   };
   await db.preorderSettings.upsert({ where: { businessId }, create: { businessId, ...data }, update: data });
@@ -313,5 +325,44 @@ describe("kassir", () => {
     const code = await totpCode(decryptSecret(saved.secret), windowAt(Date.now()));
     expect(await scanOrder(cashier, { code: saved.code, totp: code })).toEqual({ ok: false, result: "ORDER_NOT_CONFIRMED" });
     expect(await scanOrder(cashier, { code: saved.code, totp: code === "000000" ? "111111" : "000000" })).toEqual({ ok: false, result: "INVALID" });
+  });
+});
+
+describe("chegirma sahifasidagi tugma (bookingAvailability)", () => {
+  it("belgisiz chegirma yoki o'chiq biznes — tugma yo'q (null); ochiq — open", async () => {
+    expect(await bookingAvailability(discountId)).toEqual({ open: true });
+    await db.discount.update({ where: { id: discountId }, data: { preorder: false } });
+    expect(await bookingAvailability(discountId)).toBeNull();
+    await db.discount.update({ where: { id: discountId }, data: { preorder: true } });
+    await db.preorderSettings.update({ where: { businessId }, data: { enabled: false } });
+    expect(await bookingAvailability(discountId)).toBeNull();
+  });
+
+  it("chegirma soatlari jadvalga to'g'ri kelmasa — \"hours\" va shu soatdan tashqaridagi slot band qilinmaydi", async () => {
+    // JierEdu: chegirma 00:00–04:01, jadval har kuni 14:00–20:00
+    await db.discount.update({ where: { id: discountId }, data: { fromMinute: 0, toMinute: 241 } });
+    try {
+      await setSettings({ schedule: [1, 2, 3, 4, 5, 6, 7].map((day) => ({ day, from: 840, to: 1200 })) });
+      expect(await bookingAvailability(discountId)).toEqual({ open: false, reason: "hours" });
+      expect(await book(students[0]!, fromTashkent(tomorrow(), 840))).toEqual({ ok: false, error: "slot" });
+      // Jadval chegirma soatlarini qamrasa — ochiladi, lekin faqat 04:01 gacha tugaydigan slotlar
+      await setSettings({ schedule: [1, 2, 3, 4, 5, 6, 7].map((day) => ({ day, from: 0, to: 360 })) });
+      expect(await bookingAvailability(discountId)).toEqual({ open: true });
+      expect((await book(students[0]!, fromTashkent(tomorrow(), 180))).ok).toBe(true);
+      expect(await book(students[1]!, fromTashkent(tomorrow(), 240))).toEqual({ ok: false, error: "slot" });
+    } finally {
+      await db.discount.update({ where: { id: discountId }, data: { fromMinute: 0, toMinute: 1439 } });
+    }
+  });
+
+  it("hamma slot to'lgan — \"full\"; bugun to'xtatilgan — \"paused\"", async () => {
+    // Faqat ertaga bitta slot (12:00–13:00), sig'imi 1
+    const weekday = tomorrow().getUTCDay() === 0 ? 7 : tomorrow().getUTCDay();
+    await setSettings({ schedule: [{ day: weekday, from: 720, to: 780 }], slotCapacity: 1 });
+    expect(await bookingAvailability(discountId)).toEqual({ open: true });
+    expect((await book(students[0]!)).ok).toBe(true);
+    expect(await bookingAvailability(discountId)).toEqual({ open: false, reason: "full" });
+    await setSettings({ daysAhead: 0, pausedOn: toTashkent(new Date()).date });
+    expect(await bookingAvailability(discountId)).toEqual({ open: false, reason: "paused" });
   });
 });

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   allowedFrom,
+  bookingBlock,
   bookingDays,
   canTransition,
+  discountSlots,
   findSlot,
   FINAL_STATUSES,
   freeCancelUntil,
@@ -11,12 +13,13 @@ import {
   orderAmounts,
   preorderSettingsInput,
   settlement,
+  slotInDiscount,
   slotsOn,
   DEFAULT_SETTINGS,
   type BookingConfig,
   type OrderActor,
 } from "./preorder";
-import { fromTashkent, toTashkent } from "./time";
+import { fromTashkent, toTashkent, type Schedule } from "./time";
 
 // 2026-11-13 (juma) 12:00 Toshkent
 const NOW = new Date("2026-11-13T07:00:00Z");
@@ -146,5 +149,53 @@ describe("sozlamalar sxemasi", () => {
     expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, keepPercent: 101 }).success).toBe(false);
     expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, schedule: [{ day: 1, from: 900, to: 840 }] }).success).toBe(false);
     expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, schedule: [{ day: 1, from: 840, to: 900 }, { day: 1, from: 960, to: 1000 }] }).success).toBe(false);
+  });
+});
+
+describe("chegirma soatlari bilan kesishuv va tugma sababi", () => {
+  const discount = (over: Partial<Schedule> = {}): Schedule => ({
+    weekdays: [1, 2, 3, 4, 5, 6, 7],
+    fromMinute: 0,
+    toMinute: 1439,
+    startsOn: new Date(TODAY.getTime() - DAY),
+    endsOn: new Date(TODAY.getTime() + 10 * DAY),
+    ...over,
+  });
+  const slot = (from: number, to: number, date = TODAY) => ({ start: fromTashkent(date, from), end: fromTashkent(date, to) });
+  const free = () => 10;
+
+  it("slot butunlay chegirma oralig'i ichida bo'lishi kerak (yarim tundan o'tadigan ham)", () => {
+    const night = discount({ fromMinute: 0, toMinute: 241 }); // 00:00–04:01
+    expect(slotInDiscount(night, slot(225, 240))).toBe(true); // 03:45–04:00
+    expect(slotInDiscount(night, slot(240, 255))).toBe(false); // 04:00–04:15 — 04:01 da yopiladi
+    expect(slotInDiscount(night, slot(840, 870))).toBe(false); // 14:00 — umuman tashqarida
+    const late = discount({ fromMinute: 22 * 60, toMinute: 2 * 60 }); // 22:00–02:00
+    expect(slotInDiscount(late, slot(23 * 60, 24 * 60))).toBe(true);
+    expect(slotInDiscount(late, slot(60, 120, new Date(TODAY.getTime() + DAY)))).toBe(true); // ertasi 01:00 — kechagi oraliq
+    expect(slotInDiscount(discount({ weekdays: [1] }), slot(840, 870))).toBe(false); // juma — chegirma kuni emas
+    expect(slotInDiscount(discount({ endsOn: new Date(TODAY.getTime() - DAY) }), slot(840, 870))).toBe(false);
+  });
+
+  it("JierEdu holati: chegirma 00:00–04:01, jadval 14:00–16:00 — slot yo'q, sababi \"hours\"", () => {
+    const night = discount({ fromMinute: 0, toMinute: 241 });
+    expect(discountSlots(config(), night, NOW)).toEqual([]);
+    expect(bookingBlock(config(), night, NOW, free)).toBe("hours");
+  });
+
+  it("ochiq slot bor — null; hammasi to'lgan yoki o'tgan — full", () => {
+    expect(bookingBlock(config(), discount(), NOW, free)).toBeNull();
+    expect(bookingBlock(config(), discount(), NOW, () => 0)).toBe("full");
+    // bugun 17:00, ertaga ham yo'q (daysAhead 0) — bugungi slotlar o'tgan
+    expect(bookingBlock(config({ daysAhead: 0 }), discount(), fromTashkent(TODAY, 17 * 60), free)).toBe("full");
+    // ertangi slotlar to'lgan, bugungilari bo'sh — ochiq
+    const tomorrowFull = (start: Date) => (start.getTime() >= TODAY.getTime() + DAY ? 0 : 1);
+    expect(bookingBlock(config(), discount(), NOW, tomorrowFull)).toBeNull();
+  });
+
+  it("bugun to'xtatilgan — paused; jadvalda kun yo'q — closed", () => {
+    expect(bookingBlock(config({ daysAhead: 0, pausedOn: TODAY }), discount(), NOW, free)).toBe("paused");
+    // ertaga ochiq bo'lsa — to'xtatilgan bugun to'sqinlik qilmaydi
+    expect(bookingBlock(config({ pausedOn: TODAY }), discount(), NOW, free)).toBeNull();
+    expect(bookingBlock(config({ schedule: [{ day: 1, from: 840, to: 960 }] }), discount(), NOW, free)).toBe("closed");
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition, type ReactNode } from "react";
+import { useId, useRef, useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { BackButton } from "@/components/ui/back-button";
@@ -10,7 +10,7 @@ import { Icon } from "@/components/ui/icon";
 import { LIFT } from "@/components/ui/motion";
 import { cn } from "@/lib/cn";
 import { formatSom, MINUS, phoneNational } from "@/lib/format";
-import { NOTE_MAX, orderAmounts, QUANTITY_MAX } from "@/lib/preorder";
+import { NOTE_MAX, orderAmounts, QUANTITY_MAX, type BookingBlock } from "@/lib/preorder";
 import { formatMinute, toTashkent } from "@/lib/time";
 import { useRouter } from "@/i18n/navigation";
 import { bookingOfferAction, createOrderAction } from "@/server/actions/preorder";
@@ -47,8 +47,26 @@ function Choice({ selected, disabled, onClick, children, className }: { selected
  * "Band qilish" (T5 / WT3): tugma va bosqichli oyna — usul → kun → vaqt (to'lgan/o'tgan slotlar o'chiq) → soni va
  * izoh → telefon (profildan) → yakuniy narx va bekor qilish qoidasi → to'lov. Taklif har ochilishda serverdan
  * (`bookingOfferAction`); yuborishda server hammasini qayta tekshiradi. Dizaynda chizilmagan — mavjud primitivlardan.
+ * Hozir band qilib bo'lmasa (`blocked`) — o'chiq tugma va ostida sababi.
  */
-export function BookingButton({ discountId, phone, className, size = "md" }: { discountId: string; phone: string; className?: string; size?: "md" | "cta" }) {
+export function BookingButton(props: { discountId: string; phone: string; blocked: BookingBlock | null; className?: string; size?: "md" | "cta" }) {
+  const t = useTranslations("booking");
+  const reasonId = useId();
+  if (!props.blocked) return <BookingFlow {...props} />;
+  return (
+    <div className={cn("flex flex-col gap-1.5", props.className)}>
+      <Button variant="idle" size={props.size ?? "md"} block disabled aria-describedby={reasonId}>
+        <Icon name="clock" size={18} strokeWidth={2.2} />
+        {t("button")}
+      </Button>
+      <p id={reasonId} className="m-0 text-center text-13 font-semibold text-muted" data-testid="booking-blocked">
+        {t(`blocked.${props.blocked}`)}
+      </p>
+    </div>
+  );
+}
+
+function BookingFlow({ discountId, phone, className, size = "md" }: { discountId: string; phone: string; className?: string; size?: "md" | "cta" }) {
   const t = useTranslations("booking");
   const tt = useTranslations();
   const router = useRouter();

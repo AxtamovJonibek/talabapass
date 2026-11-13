@@ -1,15 +1,17 @@
 import "server-only";
 import { discountTerms } from "@/lib/discount";
+import { paymentProvider } from "@/lib/payments";
 import {
-  bookingDays,
+  bookingBlock,
   DEFAULT_SETTINGS,
+  discountSlots,
   parseSchedule,
   preorderSettingsInput,
-  slotsOn,
+  type BookingBlock,
   type BookingConfig,
   type PreorderSettingsInput,
 } from "@/lib/preorder";
-import { toTashkent, weekdayOf } from "@/lib/time";
+import { toTashkent, type Schedule } from "@/lib/time";
 import type { PreorderSettings } from "@/generated/prisma/client";
 import { audit } from "../audit";
 import { db } from "../db";
@@ -18,7 +20,8 @@ import { visibleDiscountWhere } from "../student/feed";
 
 /**
  * Biznesning "Oldindan band qilish" sozlamalari (Biznes → Sozlamalar) va talabaga taklif (qaysi kun/slot bo'sh).
- * Sozlama yo'q yoki o'chiq — talabaga "Band qilish" umuman ko'rinmaydi.
+ * Sozlama yo'q/o'chiq, chegirma belgilanmagan yoki narxi aniq emas — talabaga "Band qilish" umuman ko'rinmaydi.
+ * Qolgan holatlarda tugma ko'rinadi; hozir band qilib bo'lmasa — o'chiq tugma va sababi (`bookingAvailability`).
  */
 
 export function toInput(row: PreorderSettings | null): PreorderSettingsInput {
@@ -53,7 +56,7 @@ export type OwnerPreorder = {
   businessId: string;
   settings: PreorderSettingsInput;
   pausedToday: boolean;
-  discounts: { id: string; title: string; preorder: boolean; price: { original: number; final: number } | null; status: string }[];
+  discounts: { id: string; title: string; preorder: boolean; price: { original: number; final: number } | null; status: string; schedule: Schedule }[];
 };
 
 export async function ownerPreorder(ownerId: string, now = new Date()): Promise<OwnerPreorder | null> {
@@ -64,14 +67,35 @@ export async function ownerPreorder(ownerId: string, now = new Date()): Promise<
     db.discount.findMany({
       where: { businessId: business.id, status: { in: ["ACTIVE", "PENDING_REVIEW", "PAUSED", "DRAFT"] } },
       orderBy: { createdAt: "desc" },
-      select: { id: true, title: true, preorder: true, status: true, type: true, originalPrice: true, percent: true, newPrice: true },
+      select: {
+        id: true,
+        title: true,
+        preorder: true,
+        status: true,
+        type: true,
+        originalPrice: true,
+        percent: true,
+        newPrice: true,
+        weekdays: true,
+        fromMinute: true,
+        toMinute: true,
+        startsOn: true,
+        endsOn: true,
+      },
     }),
   ]);
   return {
     businessId: business.id,
     settings: toInput(row),
     pausedToday: row?.pausedOn?.getTime() === toTashkent(now).date.getTime(),
-    discounts: discounts.map((d) => ({ id: d.id, title: d.title, preorder: d.preorder, status: d.status, price: unitPrice(d) })),
+    discounts: discounts.map((d) => ({
+      id: d.id,
+      title: d.title,
+      preorder: d.preorder,
+      status: d.status,
+      price: unitPrice(d),
+      schedule: { weekdays: d.weekdays, fromMinute: d.fromMinute, toMinute: d.toMinute, startsOn: d.startsOn, endsOn: d.endsOn },
+    })),
   };
 }
 
@@ -148,6 +172,8 @@ const BOOKABLE_SELECT = {
   percent: true,
   newPrice: true,
   weekdays: true,
+  fromMinute: true,
+  toMinute: true,
   startsOn: true,
   endsOn: true,
   businessId: true,
@@ -163,23 +189,20 @@ export async function bookableDiscount(discountId: string, now = new Date()) {
   return { discount, settings, unit };
 }
 
-/** Sana chegirmaning amal qilish muddati va hafta kunlariga to'g'ri keladimi */
-export const discountRunsOn = (d: { weekdays: number[]; startsOn: Date; endsOn: Date }, date: Date) =>
-  date.getTime() >= d.startsOn.getTime() && date.getTime() <= d.endsOn.getTime() && d.weekdays.includes(weekdayOf(date));
+/** Band qilingan joylar: slot boshi → band soni */
+async function slotUsage(businessId: string, starts: Date[]): Promise<Map<number, number>> {
+  if (starts.length === 0) return new Map();
+  const rows = await db.preorderSlot.findMany({ where: { businessId, startsAt: { in: starts } }, select: { startsAt: true, booked: true } });
+  return new Map(rows.map((r) => [r.startsAt.getTime(), r.booked]));
+}
 
 export async function bookingOffer(discountId: string, now = new Date()): Promise<BookingOffer | null> {
   const found = await bookableDiscount(discountId, now);
   if (!found) return null;
   const { discount, settings, unit } = found;
-  const config = bookingConfig(settings);
-  const dates = bookingDays(config, now, (date) => discountRunsOn(discount, date));
-  if (dates.length === 0) return null;
-  const all = dates.flatMap((date) => slotsOn(config, date, now).map((s) => ({ date, ...s })));
-  const booked = await db.preorderSlot.findMany({
-    where: { businessId: discount.businessId, startsAt: { in: all.map((s) => s.start) } },
-    select: { startsAt: true, booked: true },
-  });
-  const used = new Map(booked.map((b) => [b.startsAt.getTime(), b.booked]));
+  const days = discountSlots(bookingConfig(settings), discount, now);
+  if (days.length === 0) return null;
+  const used = await slotUsage(discount.businessId, days.flatMap((d) => d.slots.map((s) => s.start)));
   return {
     discountId: discount.id,
     businessName: discount.business.name,
@@ -191,21 +214,29 @@ export async function bookingOffer(discountId: string, now = new Date()): Promis
     freeCancelMinutes: settings.freeCancelMinutes,
     keepPercent: settings.keepPercent,
     autoConfirm: settings.autoConfirm,
-    days: dates.map((date) => ({
+    days: days.map(({ date, slots }) => ({
       date: date.toISOString().slice(0, 10),
-      slots: all
-        .filter((s) => s.date === date)
-        .map((s) => {
-          const left = Math.max(0, settings.slotCapacity - (used.get(s.start.getTime()) ?? 0));
-          return { start: s.start.toISOString(), end: s.end.toISOString(), left, disabled: s.late || left === 0 };
-        }),
+      slots: slots.map((s) => {
+        const left = Math.max(0, settings.slotCapacity - (used.get(s.start.getTime()) ?? 0));
+        return { start: s.start.toISOString(), end: s.end.toISOString(), left, disabled: s.late || left === 0 };
+      }),
     })),
   };
 }
 
-/** Chegirma sahifasidagi tugma uchun: faqat ko'rsatish kerakmi (slotlar mijozda so'raladi). */
-export async function canBook(discountId: string, now = new Date()): Promise<boolean> {
+export type BookingAvailability = { open: true } | { open: false; reason: BookingBlock };
+
+/**
+ * Chegirma sahifasidagi tugma uchun. null — tugma umuman yo'q (funksiya o'chiq, chegirma belgilanmagan, narxsiz);
+ * aks holda ochiq yoki sababi bilan yopiq ("Hozir bo'sh slot yo'q" va h.k.) — jimgina yashirilmaydi.
+ */
+export async function bookingAvailability(discountId: string, now = new Date()): Promise<BookingAvailability | null> {
   const found = await bookableDiscount(discountId, now);
-  if (!found) return false;
-  return bookingDays(bookingConfig(found.settings), now, (date) => discountRunsOn(found.discount, date)).length > 0;
+  if (!found) return null;
+  const { discount, settings } = found;
+  if (settings.prepay !== "NONE" && !paymentProvider()) return { open: false, reason: "payment" };
+  const config = bookingConfig(settings);
+  const used = await slotUsage(discount.businessId, discountSlots(config, discount, now).flatMap((d) => d.slots.map((s) => s.start)));
+  const reason = bookingBlock(config, discount, now, (start) => settings.slotCapacity - (used.get(start.getTime()) ?? 0));
+  return reason ? { open: false, reason } : { open: true };
 }
