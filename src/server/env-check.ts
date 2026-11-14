@@ -4,6 +4,7 @@
  *
  * Istisno — sinov serveri (`APP_ENV=staging`): production build, SMS provayder ulanguncha OTP_FIXED_CODE va
  * SMS_PROVIDER=dev ruxsat etiladi (admin baribir parol bilan yopiq — admin-password.ts).
+ * Fayllar ombori qoidasi `APP_ENV` dan qat'i nazar bir xil (storageProblems).
  * `APP_ENV` yo'q yoki boshqa qiymat — oddiy production qoidalari.
  */
 type Env = Record<string, string | undefined>;
@@ -22,18 +23,28 @@ export function devShortcutsAllowed(env: Env = process.env): boolean {
   return env.NODE_ENV !== "production" || isStaging(env);
 }
 
+/**
+ * Fayllar ombori (storage/index.ts bilan bir xil standart — `local`). Lokal diskda papka absolyut yo'l bo'lsin:
+ * nisbiy yo'l jarayonning ishchi papkasiga bog'liq va deploy'da kod papkasi bilan birga yo'qolishi mumkin.
+ */
+function storageProblems(env: Env): string[] {
+  const driver = (env.STORAGE_DRIVER ?? "local").trim().toLowerCase() || "local";
+  if (driver === "local") {
+    return env.STORAGE_LOCAL_DIR?.trim().startsWith("/")
+      ? []
+      : ["STORAGE_DRIVER=local: STORAGE_LOCAL_DIR absolyut yo'l bo'lishi kerak (masalan /var/lib/talabapass/files)."];
+  }
+  if (driver === "s3") {
+    const missing = S3_VARS.filter((name) => !env[name]?.trim());
+    return missing.length ? [`STORAGE_DRIVER=s3: ${missing.join(", ")} o'rnatilmagan.`] : [];
+  }
+  return [`Noma'lum STORAGE_DRIVER: ${driver} (local yoki s3).`];
+}
+
 export function productionEnvProblems(env: Env): string[] {
   if (env.NODE_ENV !== "production") return [];
-  const problems: string[] = [];
-
-  if (isStaging(env)) {
-    if ((env.STORAGE_DRIVER ?? "local").trim().toLowerCase() !== "s3") {
-      problems.push("APP_ENV=staging: STORAGE_DRIVER=s3 kerak (Vercel'da lokal disk fayllarni yo'qotadi).");
-    } else {
-      const missing = S3_VARS.filter((name) => !env[name]?.trim());
-      if (missing.length) problems.push(`STORAGE_DRIVER=s3: ${missing.join(", ")} o'rnatilmagan.`);
-    }
-  } else {
+  const problems = storageProblems(env);
+  if (!isStaging(env)) {
     if (env.OTP_FIXED_CODE) {
       problems.push("OTP_FIXED_CODE o'rnatilgan: production'da hamma shu kod bilan istalgan hisobga kira oladi. O'chiring.");
     }

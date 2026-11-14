@@ -18,7 +18,8 @@ tekshiruvimiz uchun.
 Next.js App Router · TypeScript strict · Tailwind v4 · PostgreSQL (Neon) + Prisma 7 ·
 next-intl · Cloudflare R2 · Serwist (PWA) · Vitest + Playwright. Deploy: Vercel. Paket menejeri: npm.
 
-Deploy: Vercel (staging, main) + Airnet VPS talabapass.uz (main push → GitHub Actions → deploy.sh); serverda APP_ENV=staging.
+Deploy: Airnet VPS talabapass.uz (main push → GitHub Actions → deploy.sh); serverda APP_ENV=staging test rejimi; fayllar lokal diskda (STORAGE_LOCAL_DIR).
+Vercel (talabapass.vercel.app) ham ishlab turibdi — u yerda fayllar S3'da (`STORAGE_DRIVER=s3`).
 Server: `ecosystem.config.cjs` (PM2), `deploy/deploy.sh`, `.github/workflows/deploy.yml`, sirlar `/etc/talabapass/env` da — batafsil `docs/server.md`.
 `deploy.sh` da seed, `migrate dev`/`reset` hech qachon bo'lmaydi; migratsiyalar orqaga mos yozilsin (orqaga qaytishda baza qaytmaydi).
 
@@ -351,7 +352,8 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
   (build vaqtida ham kerak — o'zgartirilsa Redeploy).
 - Sayt hammaga ochiq (Basic Auth yo'q): landing, talaba, biznes. `APP_ENV=staging` da: `X-Robots-Tag` + `robots` meta
   noindex (ko'rinadigan belgi yo'q), SMS/Telegram ulanguncha `OTP_FIXED_CODE` va
-  `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Start'da `STORAGE_DRIVER=s3` majburiy.
+  `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Fayllar ombori har qanday production'da (APP_ENV'dan qat'i nazar):
+  `local` (standart) — `STORAGE_LOCAL_DIR` absolyut yo'l majburiy; `s3` — `S3_*` majburiy. Vercel'da faqat `s3` (lokal disk fayllarni yo'qotadi).
   `APP_ENV` yo'q/boshqa qiymat — production qoidalari o'zgarmagan (`env-check.test.ts`).
 - Fayllar: `STORAGE_DRIVER=s3` (`storage/s3.ts`) — R2 yoki Supabase S3 endpoint, path-style.
 - Vercel build: `vercel-build` = `check-env` → `prisma migrate deploy` → `next build`. Muhit xato bo'lsa deploy

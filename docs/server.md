@@ -4,7 +4,7 @@
 ```
 main'ga push → GitHub Actions (.github/workflows/deploy.yml) → SSH → /var/www/talabapass/deploy/deploy.sh
 internet → nginx (TLS, talabapass.uz) → 127.0.0.1:3000 → PM2 "talabapass" (cluster, 2 nusxa, next start)
-                                                          └ PostgreSQL · S3 bucket (STORAGE_DRIVER=s3)
+                                                          └ PostgreSQL · fayllar lokal diskda (STORAGE_LOCAL_DIR)
 ```
 - Kod: `/var/www/talabapass` (git clone, `origin` → GitHub; serverda o'qish uchun deploy key). Qo'lda o'zgartirilmaydi — har deploy `git reset --hard origin/main`.
 - Muhit: `/etc/talabapass/env` (faqat deploy foydalanuvchisi o'qiydi, `chmod 600`). Uni ham bash (`source`), ham Node (`--env-file`) o'qiydi —
@@ -13,6 +13,9 @@ internet → nginx (TLS, talabapass.uz) → 127.0.0.1:3000 → PM2 "talabapass" 
   ko'tarilishi uchun bir marta: `pm2 startup` (chiqqan buyruqni bajaring); har deploy `pm2 save` qiladi.
 - Nusxalar: har deploy oldidan `pg_dump -Fc` → `/var/backups/talabapass/pre-deploy-<sana>.dump`, oxirgi 10 tasi saqlanadi.
   `pg_dump` versiyasi baza serveridagidan eski bo'lmasin.
+- Fayllar (guvohnoma, hujjatlar, rasmlar): `STORAGE_DRIVER=local`, `STORAGE_LOCAL_DIR` — kod papkasidan tashqarida absolyut yo'l
+  (masalan `/var/lib/talabapass/files`, faqat ilova foydalanuvchisi o'qiydi; nginx orqali berilmaydi). Nisbiy yo'l bilan server ishga tushmaydi.
+  Bu papka `pg_dump` nusxasiga kirmaydi — alohida zaxiralang.
 - nginx `X-Forwarded-For` ni o'zi yozsin (`proxy_set_header X-Forwarded-For $remote_addr;`) — SMS chegarasi IP'ni shundan oladi.
 - Serverda `APP_ENV=staging` (Vercel sinov serveri bilan bir xil qoidalar: noindex, SMS ulanguncha `OTP_FIXED_CODE`).
 
@@ -45,7 +48,7 @@ yoki GitHub → Actions → deploy → Run workflow. Jurnal: `pm2 logs talabapas
 |---|---|
 | Asosiy | `NODE_ENV=production`, `APP_ENV`, `AUTH_SECRET`, `ADMIN_PASSWORD_HASH` |
 | Baza | `DATABASE_URL`, `DATABASE_URL_UNPOOLED` (ixtiyoriy, migratsiya uchun) |
-| Fayllar | `STORAGE_DRIVER`, `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` |
+| Fayllar | `STORAGE_DRIVER=local`, `STORAGE_LOCAL_DIR` (absolyut yo'l); S3 tanlansa — `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` |
 | Kirish | `SMS_PROVIDER`, `OTP_FIXED_CODE` (faqat `APP_ENV=staging`) |
 | Cron | `CRON_SECRET` |
 | Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (uchalasi birga yoki hech biri) |

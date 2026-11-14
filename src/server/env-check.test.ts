@@ -8,6 +8,7 @@ const SAFE = {
   AUTH_SECRET: "x".repeat(43),
   DATABASE_URL: "postgres://u:p@host/db",
   SMS_PROVIDER: "eskiz",
+  STORAGE_LOCAL_DIR: "/var/lib/talabapass/files",
 };
 
 describe("production muhit tekshiruvi", () => {
@@ -42,7 +43,27 @@ describe("production muhit tekshiruvi", () => {
 
   it("barcha muammolar bitta xabarda sanab o'tiladi", () => {
     const problems = productionEnvProblems({ NODE_ENV: "production", OTP_FIXED_CODE: "000000", SMS_PROVIDER: "dev" });
-    expect(problems).toHaveLength(4);
+    expect(problems).toHaveLength(5);
+  });
+
+  it("fayllar: lokal disk faqat absolyut STORAGE_LOCAL_DIR bilan", () => {
+    expect(productionEnvProblems({ ...SAFE, STORAGE_DRIVER: "local" })).toEqual([]);
+    expect(productionEnvProblems({ ...SAFE, STORAGE_DRIVER: " LOCAL " })).toEqual([]);
+    for (const STORAGE_LOCAL_DIR of [undefined, "", ".data/private", "data/files", "C:\\files"]) {
+      expect(() => assertProductionEnv({ ...SAFE, STORAGE_LOCAL_DIR }), String(STORAGE_LOCAL_DIR)).toThrow(/STORAGE_LOCAL_DIR absolyut/);
+    }
+  });
+
+  it("fayllar: S3 tanlansa S3_* majburiy, noma'lum drayver rad etiladi", () => {
+    const s3 = { STORAGE_DRIVER: "s3", S3_ENDPOINT: "https://s3.example", S3_BUCKET: "b", S3_ACCESS_KEY_ID: "id", S3_SECRET_ACCESS_KEY: "secret" };
+    expect(productionEnvProblems({ ...SAFE, ...s3, STORAGE_LOCAL_DIR: undefined })).toEqual([]);
+    expect(() => assertProductionEnv({ ...SAFE, ...s3, S3_BUCKET: "" })).toThrow(/STORAGE_DRIVER=s3: S3_BUCKET/);
+    expect(() => assertProductionEnv({ ...SAFE, STORAGE_DRIVER: "disk" })).toThrow(/Noma'lum STORAGE_DRIVER: disk/);
+  });
+
+  it("xato matnlarida hosting nomi yo'q", () => {
+    const problems = productionEnvProblems({ NODE_ENV: "production", APP_ENV: "staging", STORAGE_DRIVER: "s3" });
+    expect(problems.join("\n")).not.toMatch(/vercel/i);
   });
 
   it("ishlab chiqish va test muhitida xuddi shu sozlamalar ruxsat etiladi", () => {
@@ -73,8 +94,9 @@ describe("sinov serveri (APP_ENV=staging)", () => {
     expect(productionEnvProblems({ ...STAGING, APP_ENV: " Staging " })).toEqual([]);
   });
 
-  it("lokal disk yoki to'liq bo'lmagan S3 sozlamasi bilan to'xtaydi", () => {
-    expect(() => assertProductionEnv({ ...STAGING, STORAGE_DRIVER: undefined })).toThrow(/STORAGE_DRIVER=s3 kerak/);
+  it("lokal disk absolyut papka bilan ruxsat; nisbiy papka yoki to'liq bo'lmagan S3 bilan to'xtaydi", () => {
+    expect(productionEnvProblems({ ...STAGING, STORAGE_DRIVER: "local", STORAGE_LOCAL_DIR: "/var/lib/talabapass/files" })).toEqual([]);
+    expect(() => assertProductionEnv({ ...STAGING, STORAGE_DRIVER: undefined })).toThrow(/STORAGE_LOCAL_DIR absolyut/);
     expect(() => assertProductionEnv({ ...STAGING, S3_SECRET_ACCESS_KEY: "" })).toThrow(/S3_SECRET_ACCESS_KEY/);
   });
 
@@ -109,7 +131,7 @@ describe("sinov serveri (APP_ENV=staging)", () => {
 describe("server start (instrumentation.register)", () => {
   async function registerWith(env: Record<string, string>) {
     const saved = { ...process.env };
-    for (const key of ["NODE_ENV", "OTP_FIXED_CODE", "SMS_PROVIDER", "AUTH_SECRET", "DATABASE_URL", "NEXT_RUNTIME", ...Object.keys(STAGING)]) delete process.env[key];
+    for (const key of ["NODE_ENV", "OTP_FIXED_CODE", "SMS_PROVIDER", "AUTH_SECRET", "DATABASE_URL", "NEXT_RUNTIME", "STORAGE_LOCAL_DIR", ...Object.keys(STAGING)]) delete process.env[key];
     Object.assign(process.env, env, { NEXT_RUNTIME: "nodejs" });
     try {
       await register();
@@ -131,10 +153,11 @@ describe("server start (instrumentation.register)", () => {
     await expect(registerWith(SAFE)).resolves.toBeUndefined();
   });
 
-  it("staging: to'liq sozlamada start o'tadi, bucket'siz to'xtaydi", async () => {
+  it("staging: S3 yoki absolyut lokal papka bilan start o'tadi, papkasiz lokal diskda to'xtaydi", async () => {
     await expect(registerWith(STAGING)).resolves.toBeUndefined();
-    const noBucket = Object.fromEntries(Object.entries(STAGING).filter(([key]) => key !== "STORAGE_DRIVER"));
-    await expect(registerWith(noBucket)).rejects.toThrow(/STORAGE_DRIVER=s3/);
+    const local = Object.fromEntries(Object.entries(STAGING).filter(([key]) => key !== "STORAGE_DRIVER"));
+    await expect(registerWith({ ...local, STORAGE_LOCAL_DIR: "/var/lib/talabapass/files" })).resolves.toBeUndefined();
+    await expect(registerWith(local)).rejects.toThrow(/STORAGE_LOCAL_DIR/);
   });
 
   it("development'da start o'tadi", async () => {
