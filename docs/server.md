@@ -9,6 +9,8 @@ internet → nginx (TLS, talabapass.uz) → 127.0.0.1:3000 → PM2 "talabapass" 
 - Kod: `/var/www/talabapass` (git clone, `origin` → GitHub; serverda o'qish uchun deploy key). Qo'lda o'zgartirilmaydi — har deploy `git reset --hard origin/main`.
 - Muhit: `/etc/talabapass/env` (faqat deploy foydalanuvchisi o'qiydi, `chmod 600`). Uni ham bash (`source`), ham Node (`--env-file`) o'qiydi —
   `KALIT=qiymat` qatorlari, maxsus belgili qiymat qo'shtirnoqda, `export` yo'q.
+- Port: `next start -p 3000` `-H` siz (Next 16.4.6 da `-H` berilsa `experimental.trustHostHeader` e'tiborsiz qoladi va nginx orqasida "/" → "/" cheksiz 307).
+  Shuning uchun 3000-port faqat UFW bilan yopiq bo'lishi shart (ochiq: 22/80/443); nginx `127.0.0.1:3000` ga proksi qiladi.
 - PM2: `ecosystem.config.cjs` (repo ildizi). Ilova muhitni faqat `--env-file` dan oladi (deploy PM2'ni toza muhit bilan chaqiradi). Qayta yoqilganda
   ko'tarilishi uchun bir marta: `pm2 startup` (chiqqan buyruqni bajaring); har deploy `pm2 save` qiladi.
 - Nusxalar: har deploy oldidan `pg_dump -Fc` → `/var/backups/talabapass/pre-deploy-<sana>.dump`, oxirgi 10 tasi saqlanadi.

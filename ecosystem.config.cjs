@@ -6,7 +6,7 @@ module.exports = {
       name: "talabapass",
       cwd: __dirname,
       script: "node_modules/next/dist/bin/next",
-      args: "start -p 3000 -H 127.0.0.1",
+      args: "start -p 3000",
       node_args: "--env-file=/etc/talabapass/env",
       exec_mode: "cluster",
       instances: 2,
