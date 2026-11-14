@@ -15,7 +15,13 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   reactCompiler: true,
   // Noma'lum manzillar uchun o'zbekcha 404 (ildiz layout [locale] dinamik bo'lgani uchun oddiy not-found yetmaydi)
-  experimental: { globalNotFound: true },
+  experimental: {
+    globalNotFound: true,
+    // VPS'da Nginx orqasida Host sarlavhasiga ishonish: aks holda next-intl rewrite'i localhost:3000 ga proksi bo'lib,
+    // "/" -> "/" cheksiz 307 aylanasi chiqadi. Opsiya Next ichida o'qiladi, lekin NextConfig tipida e'lon qilinmagan.
+    // @ts-expect-error -- trustHostHeader NextConfig["experimental"] tipida yo'q
+    trustHostHeader: true,
+  },
   turbopack: {
     rules: {
       "*.css": {
