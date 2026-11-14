@@ -12,8 +12,10 @@ export type FeedDeal = {
   /** "Choyxona" */
   typeLabel: string | null;
   district: string | null;
-  /** Manzil (mo'ljal bilan) — xaritadagi "Yo'l ko'rsatish" uchun */
+  /** Manzil — xaritadagi "Borish" (Qanday boraman?) uchun */
   address: string;
+  /** Mo'ljal ("Chilonzor metrosidan 5 daqiqa") — bo'lmasa null */
+  landmark: string | null;
   /** Kategoriya slug'i: taom, kofe, ... */
   category: string;
   icon: string;

@@ -79,7 +79,7 @@ export const businessEditSchema = z.object({
   kind: z.enum(BUSINESS_KINDS),
   typeLabel: blank(40),
   address: z.string().trim().min(5).max(160),
-  landmark: blank(80),
+  landmark: blank(140),
   workingHours: z.string().trim().min(3).max(60),
   description: blank(120),
   contactName: z.string().trim().min(2).max(60),

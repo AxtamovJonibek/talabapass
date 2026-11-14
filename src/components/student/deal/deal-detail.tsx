@@ -4,6 +4,7 @@ import { PhotoOr } from "@/components/ui/avatar";
 import { DealBadge } from "@/components/ui/badge";
 import { PctBadge } from "@/components/ui/feed-card";
 import { Icon } from "@/components/ui/icon";
+import { StatusPill } from "@/components/ui/status-pill";
 import { isIconName, type IconName } from "@/components/ui/icons";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
@@ -57,8 +58,10 @@ function useDetailText({ detail, now }: Pick<Props, "detail" | "now">) {
     saves: deal.price?.old ? t("deal.saves", { amount: formatSom(deal.price.old - deal.price.now) }) : null,
     distance: deal.distanceKm !== null ? formatKm(deal.distanceKm) : null,
     /** "Hozir ochiq · 15:00 gacha" yoki "Ertaga 08:00 ochiladi" */
+    pill: text.pill(deal, now),
     state: deal.live && deal.closesAt ? t("dealPage.liveUntil", { time: text.clock(deal.closesAt) }) : t("dealPage.opensAt", { when: text.webStatus(deal, now) }),
-    address: [detail.business.address, detail.business.landmark].filter(Boolean).join(", "),
+    address: detail.business.address,
+    landmark: detail.business.landmark,
     letter: detail.business.name.trim().charAt(0).toUpperCase(),
   };
 }
@@ -107,7 +110,7 @@ function DealPhone({ detail, now, saved, claim, booking }: Props) {
             <SaveButton discountId={deal.id} saved={saved} />
           </div>
           <PctBadge className="absolute right-3 bottom-[26px]">{deal.badge}</PctBadge>
-          <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
+          <DealHeroTag deal={deal} now={now} className="absolute top-3 left-3 z-[2]" />
         </PhoneGallery>
       </div>
 
@@ -160,19 +163,23 @@ function DealPhone({ detail, now, saved, claim, booking }: Props) {
         </dl>
 
         <div className="mt-2 flex items-center gap-3 rounded-14 bg-white px-3.5 py-3">
-          <div className="flex flex-1 flex-col gap-0.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <div className="text-14 font-semibold">{x.address}</div>
+            {x.landmark ? (
+              <div className="text-12 text-muted" data-testid="deal-landmark">
+                {t("directions.landmark", { text: x.landmark })}
+              </div>
+            ) : null}
             <div className="text-12 text-muted">{t("dealPage.open", { hours: business.workingHours })}</div>
           </div>
           <DirectionsButton
             name={business.name}
             address={x.address}
+            landmark={x.landmark}
             point={business.point}
             distanceKm={deal.distanceKm}
-            className="tp-lift flex h-10 items-center rounded-10 bg-paper px-3.5 font-sans text-13 font-bold text-ink"
-          >
-            {t("dealPage.route")}
-          </DirectionsButton>
+            className="tp-lift flex h-10 shrink-0 items-center gap-1.5 rounded-10 bg-paper px-3 font-sans text-13 font-bold whitespace-nowrap text-ink"
+          />
         </div>
         <BusinessContact business={business} className="mt-2" />
         <p className="mx-0.5 mt-3.5 mb-6 text-13 leading-[1.5] text-muted">{detail.terms}</p>
@@ -214,13 +221,13 @@ function DealWeb({ detail, now, initials, avatarUrl, claim, booking }: Props) {
           {deal.images.length ? (
             <WebGallery images={deal.images} tile={deal.tile}>
               <PctBadge size="lg" className="absolute top-5 right-5">{deal.badge}</PctBadge>
-              <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
+              <DealHeroTag deal={deal} now={now} className="absolute top-3 left-3 z-[2]" />
             </WebGallery>
           ) : (
             <div className="relative flex h-[min(45vh,clamp(220px,28cqw,420px))] items-center justify-center overflow-hidden rounded-22" style={{ background: deal.tile, color: deal.ink }}>
               <Icon name={x.icon} size={240} strokeWidth={0.6} />
               <PctBadge size="lg" className="absolute top-5 right-5">{deal.badge}</PctBadge>
-              <DealHeroTag deal={deal} now={now} className="absolute top-0 left-0" />
+              <DealHeroTag deal={deal} now={now} className="absolute top-3 left-3 z-[2]" />
             </div>
           )}
 
@@ -256,16 +263,20 @@ function DealWeb({ detail, now, initials, avatarUrl, claim, booking }: Props) {
               <span className="min-w-[200px] flex-1">
                 <b>{x.address}</b>{" "}
                 <span className="text-muted">{[t("dealPage.openWeb", { hours: business.workingHours }), x.distance].filter(Boolean).join(" · ")}</span>
+                {x.landmark ? (
+                  <span className="block text-13 text-muted" data-testid="deal-landmark">
+                    {t("directions.landmark", { text: x.landmark })}
+                  </span>
+                ) : null}
               </span>
               <DirectionsButton
                 name={business.name}
                 address={x.address}
+                landmark={x.landmark}
                 point={business.point}
                 distanceKm={deal.distanceKm}
-                className="tp-lift flex h-[42px] items-center rounded-10 bg-paper px-3.5 font-sans text-14 font-bold text-ink"
-              >
-                {t("dealPage.routeWeb")}
-              </DirectionsButton>
+                className="tp-lift flex h-[42px] items-center gap-1.5 rounded-10 bg-paper px-3.5 font-sans text-14 font-bold whitespace-nowrap text-ink"
+              />
             </div>
             <BusinessContact business={business} className="mt-3" />
           </div>
@@ -293,10 +304,9 @@ function DealWeb({ detail, now, initials, avatarUrl, claim, booking }: Props) {
                   )}
                   {x.saves ? <span className="rounded-8 bg-green-bg px-2.5 py-2 text-14 font-bold text-green">{x.saves}</span> : null}
                 </div>
-                <div className={cn("flex items-center gap-2 text-14 font-bold", deal.live ? "text-green-text" : "text-muted")}>
-                  <span className={cn("size-2 rounded-4", deal.live ? "bg-green-live" : "bg-fog-3")} />
-                  {x.state}
-                </div>
+                <StatusPill tone={x.pill.tone} className="self-start">
+                  {x.pill.text}
+                </StatusPill>
               </>
             }
             terms={

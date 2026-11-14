@@ -9,6 +9,8 @@ export const BUSINESS_KINDS = ["CAFE", "SHOP", "SERVICE", "SPORT", "BEAUTY", "ED
 export type BusinessKindValue = (typeof BUSINESS_KINDS)[number];
 
 export const DESCRIPTION_MAX = 120;
+/** "Mo'ljal" (ixtiyoriy): "Chilonzor metrosidan 5 daqiqa, Mevazor yonida" — talabaga manzil ostida */
+export const LANDMARK_MAX = 140;
 /** Joy fotolari: peshtaxta, zal, kassa */
 export const PHOTOS_MAX = 3;
 

@@ -16,9 +16,9 @@ export type FeedCardProps = {
   note?: ReactNode;
   /** "16 300 so'm tejaysiz" */
   saves?: string | null;
-  /** Rasm ustidagi yorliq: "Tez tugaydi · 2/20" (hot) yoki "Ertaga 08:00" */
-  tag?: { text: string; hot: boolean };
-  /** "Hozir ochiq · 12/20" */
+  /** Rasm ustidagi belgilar (holat pilyulkasi va zaxira yorlig'i) — joylashuvi bilan */
+  marks?: ReactNode;
+  /** "12/20 qoldi" */
   status: string;
   /** Holat rangi: oz qoldi (rust) / ochiq (yashil) / keyinroq (kulrang) */
   statusTone: "hot" | "open" | "later";
@@ -37,10 +37,12 @@ export function PctBadge({ children, size = "md", className }: { children: React
   );
 }
 
-/** Rasm ustidagi mono yorliq: "Tez tugaydi · 2/20" (hot — qora fonda) yoki "Ertaga 08:00". */
-export function DealTag({ hot, children, className }: { hot: boolean; children: ReactNode; className?: string }) {
+/** Rasm ustidagi zaxira yorlig'i: "Tez tugaydi · 2/20" (hot — qora fonda). */
+export function DealTag({ hot, children, className, ...rest }: { hot: boolean; children: ReactNode; className?: string; "data-testid"?: string }) {
   return (
-    <span className={cn("px-2.5 py-1.5 font-mono text-11 font-semibold tracking-[0.08em] uppercase", hot ? "bg-ink text-orange" : "bg-white text-ink", className)}>{children}</span>
+    <span className={cn("px-2.5 py-1.5 font-mono text-11 font-semibold tracking-[0.08em] uppercase", hot ? "bg-ink text-orange" : "bg-white text-ink", className)} {...rest}>
+      {children}
+    </span>
   );
 }
 
@@ -55,7 +57,7 @@ const STATUS_TONES = {
  * "chipta" tishlari va uzuq chiziqdan keyin biznes, nom va holat. Ota fon: paper.
  * T4 (telefon) va WT2 (panjara) uchun bir xil.
  */
-export function FeedCard({ href, badge, store, where, title, price, note, saves, tag, status, statusTone, image, pendingLabel, tileColor, inkColor }: FeedCardProps) {
+export function FeedCard({ href, badge, store, where, title, price, note, saves, marks, status, statusTone, image, pendingLabel, tileColor, inkColor }: FeedCardProps) {
   const letter = store.trim().charAt(0).toUpperCase();
   return (
     <Link
@@ -76,16 +78,12 @@ export function FeedCard({ href, badge, store, where, title, price, note, saves,
               <span aria-hidden="true" className="absolute -top-10 -right-2.5 text-[260px] leading-none font-black opacity-[0.14] font-stretch-125%" style={{ color: inkColor }}>
                 {letter}
               </span>
-              <span className={cn("absolute left-3.5 font-mono text-10 tracking-[0.1em] uppercase", tag ? "top-11" : "top-3.5")} style={{ color: inkColor }}>
+              <span className={cn("absolute left-3.5 font-mono text-10 tracking-[0.1em] uppercase", marks ? "bottom-[62px]" : "top-3.5")} style={{ color: inkColor }}>
                 {pendingLabel}
               </span>
             </>
           )}
-          {tag ? (
-            <DealTag hot={tag.hot} className="absolute top-0 left-0">
-              {tag.text}
-            </DealTag>
-          ) : null}
+          {marks}
           <div className="absolute bottom-0 left-0 flex max-w-full items-baseline gap-2 bg-white px-3.5 pt-2.5 pb-2">
             {price ? (
               <>

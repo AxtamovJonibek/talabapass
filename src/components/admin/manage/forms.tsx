@@ -248,7 +248,7 @@ export function BusinessAdminForm({ business, kindLabels }: { business: Business
         {text("typeLabel", { max: 40 })}
         {text("workingHours", { max: 60 })}
         {text("address", { max: 160 })}
-        {text("landmark", { max: 80 })}
+        {text("landmark", { max: 140 })}
         {text("contactName", { max: 60 })}
         {text("contactPhone", { mono: 14, type: "tel" })}
         {text("publicPhone", { mono: 14, type: "tel" })}

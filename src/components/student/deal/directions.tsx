@@ -1,35 +1,47 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Chip } from "@/components/ui/chip";
 import { Icon } from "@/components/ui/icon";
 import { toast } from "@/components/ui/toast";
-import { detectPlatform, directionsUrl, orderProviders, type DirectionsProvider, type Platform } from "@/lib/directions";
-import { formatKm, type Point } from "@/lib/geo";
+import {
+  defaultRouteMode,
+  detectPlatform,
+  directionsUrl,
+  formatDistance,
+  orderProviders,
+  ROUTE_MODES,
+  type DirectionsProvider,
+  type Platform,
+  type RouteMode,
+} from "@/lib/directions";
+import type { Point } from "@/lib/geo";
+import { formatMetroDistance, nearestMetro } from "@/lib/transit/metro";
 
-const STORAGE_KEY = "tp:yonalish";
+const PROVIDER_KEY = "tp:yonalish";
+const MODE_KEY = "tp:yonalish-turi";
 
 const LOGOS: Record<DirectionsProvider, string> = {
   yandex: "/brands/yandex-maps.svg",
   google: "/brands/google-maps.svg",
-  dgis: "/brands/2gis.svg",
   yandexGo: "/brands/yandex-go.svg",
 };
 
-function readRecent(): string | null {
+function read(key: string): string | null {
   try {
-    return localStorage.getItem(STORAGE_KEY);
+    return localStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
-function writeRecent(provider: DirectionsProvider) {
+function write(key: string, value: string) {
   try {
-    localStorage.setItem(STORAGE_KEY, provider);
+    localStorage.setItem(key, value);
   } catch {
-    // saqlab bo'lmasa — tartib o'zgarmaydi, xolos
+    // saqlab bo'lmasa — keyingi safar standart tanlov, xolos
   }
 }
 
@@ -54,38 +66,47 @@ async function copyText(text: string): Promise<boolean> {
 
 type Props = {
   name: string;
-  /** To'liq manzil (mo'ljal bilan) — sarlavha ostida va nusxalash uchun */
   address: string;
+  /** Biznes mo'ljali ("Chilonzor metrosidan 5 daqiqa") — bo'lsa oynada ko'rsatiladi */
+  landmark?: string | null;
   point: Point | null;
-  /** Tanlangan joydan to'g'ri chiziq bo'yicha; noma'lum bo'lsa ko'rsatilmaydi */
+  /** Tanlangan joydan; noma'lum bo'lsa ko'rsatilmaydi */
   distanceKm: number | null;
   className?: string;
-  children: ReactNode;
 };
 
 /**
- * "Yo'l ko'rsatish" (T5 / WT3 manzil qatori, xaritadagi tanlangan joy): tugma `BottomSheet` ochadi — Yandex Xaritalar,
- * Google Maps, 2GIS, Yandex Go va manzilni nusxalash. Havolalar `src/lib/directions.ts` da (ilova bo'lsa ilova,
- * bo'lmasa sayt). Oxirgi tanlangan variant tepada, "Oxirgi ishlatilgan" belgisi bilan. Dizaynda chizilmagan.
+ * "Borish · 6 km" tugmasi va "Qanday boraman?" oynasi (T5 / WT3 manzil qatori, xaritadagi tanlangan joy): tepada biznes,
+ * manzil, masofa, eng yaqin metro va mo'ljal; marshrut turi (mashinada / jamoat transporti / piyoda); Yandex Xaritalar,
+ * Google Maps, taksi (Yandex Go), manzilni nusxalash. Havolalar `src/lib/directions.ts` da (ilova bo'lsa ilova, bo'lmasa sayt —
+ * foydalanuvchiga aytilmaydi). Oxirgi tanlangan xizmat va tur eslab qolinadi. Dizaynda chizilmagan.
  */
-export function DirectionsButton({ name, address, point, distanceKm, className, children }: Props) {
+export function DirectionsButton({ name, address, landmark, point, distanceKm, className }: Props) {
   const t = useTranslations("directions");
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [recent, setRecent] = useState<string | null>(null);
+  const [mode, setMode] = useState<RouteMode>(() => defaultRouteMode(null, distanceKm));
   const [platform, setPlatform] = useState<Platform>("desktop");
 
   const show = () => {
-    setRecent(readRecent());
+    setRecent(read(PROVIDER_KEY));
+    setMode(defaultRouteMode(read(MODE_KEY), distanceKm));
     setPlatform(detectPlatform(navigator.userAgent, navigator.maxTouchPoints));
     setOpen(true);
   };
 
+  const pickMode = (next: RouteMode) => {
+    setMode(next);
+    write(MODE_KEY, next);
+  };
+
   const target = { point, address };
   const options = orderProviders(recent).flatMap((p) => {
-    const href = directionsUrl(p, target, platform);
+    const href = directionsUrl(p, target, platform, mode);
     return href ? [{ provider: p, href }] : [];
   });
+  const metro = point ? nearestMetro(point) : null;
 
   const copy = async () => {
     const ok = await copyText([name, address].join(", "));
@@ -93,67 +114,75 @@ export function DirectionsButton({ name, address, point, distanceKm, className, 
     toast(ok ? t("copied") : t("copyFailed"), ok ? "ok" : "info");
   };
 
+  const row = "tp-row flex min-h-13 items-center gap-3 rounded-14 bg-white px-3 py-2 text-ink no-underline";
   return (
     <>
-      <button ref={trigger} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={show} className={className}>
-        {children}
+      <button ref={trigger} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={show} className={className} data-testid="directions-open">
+        <Icon name="navigate" size={15} strokeWidth={2.4} />
+        {distanceKm !== null ? t("button", { distance: formatDistance(distanceKm) }) : t("buttonShort")}
       </button>
       <BottomSheet
         open={open}
         onClose={() => setOpen(false)}
-        title={name}
+        title={t("title")}
         closeLabel={t("close")}
         anchor={trigger}
-        width={400}
+        width={380}
         description={
-          <span className="flex flex-col items-start gap-2">
-            <span>{address}</span>
-            {distanceKm !== null ? (
-              <span className="rounded-8 bg-surface px-2 py-1 font-mono text-11 font-bold tracking-[0.08em] text-ink uppercase">
-                {t("distance", { km: formatKm(distanceKm) })}
+          <span className="flex flex-col gap-1 text-ink" data-testid="directions-place">
+            <span className="text-15 font-bold">{name}</span>
+            <span className="text-13 text-muted">{address}</span>
+            {distanceKm !== null || metro ? (
+              <span className="flex flex-wrap gap-x-3 gap-y-0.5 text-13 font-semibold">
+                {distanceKm !== null ? <span>{t("away", { distance: formatDistance(distanceKm) })}</span> : null}
+                {metro ? <span data-testid="directions-metro">{t("metro", { station: metro.name, distance: formatMetroDistance(metro.km) })}</span> : null}
               </span>
             ) : null}
+            {landmark ? <span className="text-13 text-muted" data-testid="directions-landmark">{t("landmark", { text: landmark })}</span> : null}
           </span>
         }
       >
-        <ul aria-label={t("options")} className="m-0 flex list-none flex-col gap-2 px-4 pt-1 pb-2">
-          {options.map(({ provider, href }) => (
-            <li key={provider}>
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => {
-                  writeRecent(provider);
-                  setOpen(false);
-                }}
-                data-provider={provider}
-                className="tp-row flex min-h-16 items-center gap-3.5 rounded-16 bg-white px-3.5 py-3 text-ink no-underline"
-              >
-                <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-12 border-hair border-line-soft bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- kichik SVG logotip, optimallashtirish kerak emas */}
-                  <img src={LOGOS[provider]} alt="" width={provider === "yandexGo" ? 44 : 26} height={provider === "yandexGo" ? 44 : 26} className="block" />
+        <div className="flex flex-col gap-3 px-4 pb-2">
+          <div role="radiogroup" aria-label={t("modeLabel")} className="flex flex-wrap gap-1.5">
+            {ROUTE_MODES.map((m) => (
+              <Chip key={m} selected={mode === m} role="radio" aria-checked={mode === m} aria-pressed={undefined} size="sm" onClick={() => pickMode(m)}>
+                {t(`modes.${m}`)}
+              </Chip>
+            ))}
+          </div>
+          <ul aria-label={t("options")} className="m-0 flex list-none flex-col gap-1.5 p-0">
+            {options.map(({ provider, href }) => (
+              <li key={provider}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    write(PROVIDER_KEY, provider);
+                    setOpen(false);
+                  }}
+                  data-provider={provider}
+                  className={row}
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-10 border-hair border-line-soft bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- kichik SVG logotip, optimallashtirish kerak emas */}
+                    <img src={LOGOS[provider]} alt="" width={provider === "yandexGo" ? 36 : 22} height={provider === "yandexGo" ? 36 : 22} className="block" />
+                  </span>
+                  <span className="flex-1 text-15 font-bold">{t(`providers.${provider}`)}</span>
+                  {provider === recent ? <span className="rounded-6 bg-info-bg px-1.5 py-[3px] text-11 font-bold text-blue">{t("recent")}</span> : null}
+                </a>
+              </li>
+            ))}
+            <li>
+              <button type="button" onClick={copy} className={`${row} w-full text-left font-sans`}>
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-10 bg-surface">
+                  <Icon name="copy" size={18} strokeWidth={2.2} />
                 </span>
-                <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
-                  {provider === recent ? (
-                    <span className="mb-0.5 rounded-6 bg-info-bg px-1.5 py-[3px] font-mono text-10 font-bold tracking-[0.08em] text-blue uppercase">{t("recent")}</span>
-                  ) : null}
-                  <span className="text-16 font-bold">{t(`providers.${provider}`)}</span>
-                  <span className="text-13 text-muted">{t(provider === "yandexGo" ? "taxiHint" : "mapHint")}</span>
-                </span>
-                <Icon name="chevronRight" size={18} strokeWidth={2.2} className="shrink-0 text-placeholder" />
-              </a>
+                <span className="flex-1 text-15 font-bold">{t("copy")}</span>
+              </button>
             </li>
-          ))}
-          <li>
-            <button type="button" onClick={copy} className="tp-row flex min-h-16 w-full items-center gap-3.5 rounded-16 bg-white px-3.5 py-3 text-left font-sans text-ink">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-12 bg-surface">
-                <Icon name="copy" size={20} strokeWidth={2.2} />
-              </span>
-              <span className="flex-1 text-16 font-bold">{t("copy")}</span>
-            </button>
-          </li>
-        </ul>
+          </ul>
+        </div>
       </BottomSheet>
     </>
   );

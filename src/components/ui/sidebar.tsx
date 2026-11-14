@@ -27,13 +27,18 @@ type SidebarProps = {
 
 /**
  * Qora yon panel (B6, A1). `flex: 1 1 220px` — tor ekranda dizayndagidek tabiiy ravishda tepaga o'raladi.
- * Ota element: `flex flex-wrap`.
+ * Ota element: `@container flex flex-wrap`. Kontent yonida turganda (konteyner ≥ 780px = 220 + 560, o'ralish chegarasi)
+ * panel qotadi: `sticky top-0 h-dvh` — tepada logo, o'rtada menyu (sig'masa o'zi skroll bo'ladi), pastda "Hisobdan chiqish"
+ * doim ko'rinadi; sahifaning o'zi (o'ng tomon) oyna bilan skroll bo'ladi, ichidagi sticky elementlar o'zgarmaydi.
  */
 export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProps) {
   return (
-    <aside className="box-border flex max-w-full flex-[1_1_220px] flex-col gap-[22px] bg-ink px-4 py-6 text-paper">
-      {header}
-      <nav aria-label={navLabel} className="flex flex-col gap-0.5">
+    <aside
+      className="box-border flex max-w-full flex-[1_1_220px] flex-col gap-[22px] bg-ink px-4 py-6 text-paper @min-[780px]:sticky @min-[780px]:top-0 @min-[780px]:z-30 @min-[780px]:h-dvh @min-[780px]:self-start"
+      data-testid="sidebar"
+    >
+      <div className="shrink-0">{header}</div>
+      <nav aria-label={navLabel} className="flex flex-col gap-0.5 @min-[780px]:-mx-1 @min-[780px]:min-h-0 @min-[780px]:flex-1 @min-[780px]:overflow-y-auto @min-[780px]:overscroll-contain @min-[780px]:px-1">
         {items.map((item) =>
           item.disabled ? (
             <span
@@ -68,7 +73,11 @@ export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProp
           ),
         )}
       </nav>
-      {footer ? <div className="mt-auto">{footer}</div> : null}
+      {footer ? (
+        <div className="mt-auto shrink-0" data-testid="sidebar-footer">
+          {footer}
+        </div>
+      ) : null}
     </aside>
   );
 }

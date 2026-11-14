@@ -10,8 +10,8 @@ import { isIconName } from "@/components/ui/icons";
 import type { FeedDeal } from "@/lib/feed";
 import { formatKm, type Point } from "@/lib/geo";
 import { formatSom } from "@/lib/format";
-import { Icon } from "@/components/ui/icon";
 import { DirectionsButton } from "../deal/directions";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useDealText } from "./labels";
 
 /** Ochiq vektor xarita (kalitsiz). Uslub OpenStreetMap ma'lumotlari asosida, atributsiya xaritaning o'zida. */
@@ -97,7 +97,7 @@ export default function DealsMap({ deals, origin, now, className }: { deals: Fee
   }, [selected]);
 
   const deal = located.find((d) => d.id === selected);
-  const status = deal ? text.phoneStatus(deal, now) : null;
+  const status = deal ? text.pill(deal, now) : null;
 
   return (
     <section aria-label={t("map.title")} className={cn("relative overflow-hidden rounded-18 bg-surface", className)}>
@@ -109,13 +109,11 @@ export default function DealsMap({ deals, origin, now, className }: { deals: Fee
           <DirectionsButton
             name={deal.store}
             address={deal.address}
+            landmark={deal.landmark}
             point={deal.point}
             distanceKm={deal.distanceKm}
             className="tp-lift flex h-11 items-center gap-2 self-end rounded-full bg-ink px-4 font-sans text-14 font-bold text-white"
-          >
-            <Icon name="pin" size={16} strokeWidth={2.2} />
-            {t("map.route")}
-          </DirectionsButton>
+          />
           <DealCard
             href={`/chegirmalar/${deal.id}`}
             badge={deal.badge}
@@ -124,9 +122,7 @@ export default function DealsMap({ deals, origin, now, className }: { deals: Fee
             title={deal.title}
             price={deal.price ? { now: formatSom(deal.price.now), old: deal.price.old ? formatSom(deal.price.old) : undefined, currency: text.currency } : undefined}
             note={deal.price ? undefined : text.note(deal)}
-            live={deal.live}
-            status={status.status}
-            when={status.when}
+            status={<StatusPill tone={status.tone}>{status.text}</StatusPill>}
             left={deal.left}
             total={deal.total}
             icon={isIconName(deal.icon) ? deal.icon : "bowl"}

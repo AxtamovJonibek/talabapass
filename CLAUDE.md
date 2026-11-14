@@ -129,12 +129,23 @@ Landing'dagi ma'lumotlar bazadan (`src/server/landing.ts`, har biri o'z `<Suspen
   popover (pastda joy kam bo'lsa tepasida). Dialog: fokus ichida, Esc, fokus tugmaga qaytadi. Joy tanlovi va yo'nalish shundan; bron oynasi ham shundan bo'ladi.
 - Joy tanlovi (`feed/location-select.tsx`): qidiruv, "Mening joylashuvim" (xato — sababi va qayta urinish), "Toshkent tumanlari", "Viloyatlar". Tanlov
   `localStorage` `tp:joy` da ham — cookie yo'q bo'lsa tiklanadi.
-- "Yo'l ko'rsatish" (`deal/directions.tsx`, havolalar `src/lib/directions.ts`): Yandex Xaritalar, Google Maps, 2GIS, Yandex Go, manzilni nusxalash; oxirgi
-  tanlangani tepada (`tp:yonalish`). Havolalar oddiy https — ilova bo'lsa universal/App Links ochadi (yandex.uz/maps, 2gis.uz domenlari tekshirilgan);
-  Yandex Go: telefonda do'kon, kompyuterda sayt `appmetrica_tracking_id`. Logotiplar `public/brands/`. T5/WT3 manzil qatori va xaritadagi tanlangan joy.
-  Test: `e2e/location-directions.spec.ts`.
+- "Qanday boraman?" (`deal/directions.tsx`, havolalar `src/lib/directions.ts`): tugma "Borish · 6 km" (navigatsiya o'qi); oynada biznes, manzil,
+  "6 km uzoqlikda" (`formatDistance`, "~"siz), eng yaqin metro (`src/lib/transit/metro.ts`, 1.5 km gacha, 100 m ga yaxlit) va mo'ljal; marshrut turi
+  (mashinada / jamoat transporti / piyoda; standart — 1 km dan yaqin piyoda, aks holda transport; `tp:yonalish-turi`); Yandex Xaritalar (`rtt` auto|mt|pd),
+  Google Maps (`travelmode` driving|transit|walking), "Taksi chaqirish" (Yandex Go), manzilni nusxalash; oxirgi tanlangani tepada (`tp:yonalish`). 2GIS yo'q.
+  Havolalar oddiy https — ilova bo'lsa universal/App Links ochadi (foydalanuvchiga yozilmaydi). Yandex'da boshlang'ich nuqta bo'sh (`rtext=~…`) — hujjatda
+  tasvirlanmagan, amalda joriy joy; Google'da `origin` berilmasa qurilma joyi (hujjatda bor, brauzerda tekshirilgan). Avtobus marshrutlari saqlanmaydi.
+  Metro koordinatalari Wikidata'dan (Overpass ishlab chiqish muhitidan ochilmadi), shubhalilari `UNVERIFIED`. T5/WT3 manzil qatori va xaritadagi tanlangan joy.
+  Test: `e2e/location-directions.spec.ts`, `src/lib/transit/metro.test.ts`.
+- Mo'ljal: `Business.landmark` (ixtiyoriy, `LANDMARK_MAX` 140), egasi `/biznes/profil/tahrir` da ("Mo'ljal (ixtiyoriy)", tekshiruvsiz), admin ham; talabada
+  manzil ostida "Mo'ljal: …" (bo'sh bo'lsa qator yo'q) va "Qanday boraman?" oynasida.
+- Holat pilyulkasi `StatusPill` (`ui/status-pill.tsx`, mantiq `src/lib/open-status.ts` — `dealTiming` ustida, yarim tun ham): "Hozir ochiq · 23:00 gacha"
+  (yashil nuqta sekin pulslanadi, `live-dot`), "45 daqiqadan keyin ochiladi" / "Bugun 16:00 da ochiladi" (to'q sariq), "Yopiq · ertaga 09:00 da" /
+  "Yopiq · Dushanba 09:00 da" (kulrang). Matnlar `useDealText().pill`. Rasm ustida — yarim shaffof oq, blur, ichki chiziq, `shadow-pill`; aks holda `surface`.
+  Lenta kartasi, chegirma sahifasi (rasm va veb narx bloki) va xarita kartasida bir xil. Zaxira yorlig'i ("Tez tugayapti · 2/20") alohida — pilyulka ostida.
+  Admin moderatsiya belgisi — `ToneBadge` (`ui/badge.tsx`, eski nomi StatusPill). Test: `src/lib/open-status.test.ts`.
 - **Lenta B · Jurnal** (`design/talabaPass – Lenta B · Jurnal (1).html`, T4/WT2 kartalari va T5/WT3 rasm qismi): `FeedCard` (`ui/feed-card.tsx`) — 210px rasm,
-  tepada yorliq (`DealTag`: "Tez tugaydi · 2/20" qora fonda, "Ertaga 08:00" oq fonda), o'ngda foiz (`PctBadge`: −30%, 1+1), pastda narx plitkasi;
+  tepada chapda holat pilyulkasi va (oz qolganda) zaxira yorlig'i (`DealImageMarks`), o'ngda foiz (`PctBadge`: −30%, 1+1), pastda narx plitkasi;
   holatlar `useDealMarks` da. Rasmsiz karta — katta bosh harf + "Rasm kutilmoqda" (dizayndagi noImg). Telefon lentasi sarlavhasi
   "Bugun arzon.", tagchiziqli qidiruv, `CategoryPill` chiplari. Dizayndan chetlanishlar (ruxsat berilgan): "Tez tugaydi" gorizontal qatori telefonda yo'q
   (yorliq o'rnini bosadi), vebda qoldi; sarlavhada xarita va qo'ng'iroq tugmalari, sana yonida vaqt; "Yaqinidan" o'rniga saralashga mos yozuv;
@@ -395,6 +406,9 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Kupon: bekor qilish `confirm` so'raydi; QR ekranida Screen Wake Lock (`useWakeLock`); sotilganda tebranish va `/tarix?chek=<id>&yangi=1` —
   "Sotuv tasdiqlandi" bloki (`data-testid="redeemed"`) va chek animatsiyasi. Yopiq chegirmada telefon CTA ostida ochilish vaqti.
 - Dizaynda chizilmagan: toast, tasdiq bloki, `/kuponlar` bo'sh holati (chipta), `/kuponlar` veb ko'rinishi (WT4 sarlavhasi).
+- Biznes va admin yon paneli (`ui/sidebar.tsx`): kontent yonida (konteyner ≥ 780px) `sticky top-0 h-dvh` — logo, menyu (sig'masa ichida skroll), pastda
+  "Hisobdan chiqish" doim ko'rinadi; sahifa oyna bilan skroll bo'ladi (ichki sticky'lar buzilmaydi). Ota element `@container`. Tor ekranda o'zgarmagan.
+  Test: `e2e/panel-sidebar.spec.ts` (1440×900 va 360px).
 
 ## Profil, PWA, holatlar, navigatsiya testi (11-bosqich)
 - Profil: `/profil` (T8 telefon; veb — WT4 yon paneli + "Shaxsiy ma'lumotlar" formasi), `/profil/tahrir`, `/profil/guvohnoma` (faqat ko'rish).

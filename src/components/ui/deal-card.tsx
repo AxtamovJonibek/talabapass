@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Link } from "@/i18n/navigation";
-import { DealBadge, LiveDot } from "./badge";
+import { DealBadge } from "./badge";
 import { Icon } from "./icon";
 import type { IconName } from "./icons";
 
@@ -15,9 +15,8 @@ export type DealCardProps = {
   price?: { now: string; old?: string; currency: string };
   /** Narxsiz chegirma matni: "Ikkinchi lavash bepul" */
   note?: ReactNode;
-  live: boolean;
+  /** Holat pilyulkasi (`StatusPill`) */
   status: ReactNode;
-  when: ReactNode;
   left: number;
   total: number;
   icon: IconName;
@@ -71,13 +70,7 @@ export function DealCard(props: DealCardProps) {
       <div className="absolute top-[108px] -left-2 size-4 rounded-8 bg-paper" />
       <div className="absolute top-[108px] -right-2 size-4 rounded-8 bg-paper" />
       <div className="flex items-center justify-between gap-2.5 px-3.5 pt-2.5 pb-3">
-        <div className="flex min-w-0 items-center gap-1.5 text-12">
-          <LiveDot live={props.live} />
-          <span className={cn("font-bold whitespace-nowrap", props.live ? "text-green-text" : "text-muted")}>
-            {props.status}
-          </span>
-          <span className="truncate text-muted">{props.when}</span>
-        </div>
+        <div className="min-w-0">{props.status}</div>
         <div className="flex shrink-0 items-center gap-1.5">
           <div className="h-1 w-11 overflow-hidden rounded-2 bg-bar">
             <div className="h-1 bg-ink" style={{ width: `${pct}%` }} />

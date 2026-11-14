@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import { seedPhones, signIn } from "./helpers";
+import { seedPhones, signIn, withDb } from "./helpers";
 
-// Joy tanlovi (T4 / WT2 sarlavhasidagi tugma) va "Yo'l ko'rsatish" oynasi (T5 / WT3, xarita) — umumiy BottomSheet.
+// Joy tanlovi (T4 / WT2 sarlavhasidagi tugma) va "Qanday boraman?" oynasi (T5 / WT3, xarita) — umumiy BottomSheet.
 test.describe.configure({ mode: "serial" });
 test.setTimeout(90_000);
 
@@ -86,41 +86,70 @@ test("kompyuter: klaviatura bilan tanlash, fokus oyna ichida qoladi", async ({ p
   await expect(trigger(page)).toHaveAttribute("aria-label", "Joy: Chilonzor");
 });
 
-test("yo'l ko'rsatish: rasmiy havolalar, oxirgi ishlatilgani tepada, manzil nusxalanadi", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await signIn(page, (await seedPhones()).student);
-  await page.goto("/chegirmalar");
-  // Masofa tanlangan joydan hisoblanadi
-  await trigger(page).click();
-  await sheet(page).getByRole("option", { name: "Chilonzor" }).click();
-  await expect(trigger(page)).toHaveAttribute("aria-label", "Joy: Chilonzor");
-  await page.getByRole("link", { name: /Kapuchino 300 ml/ }).locator("visible=true").first().click();
-  const route = page.getByRole("button", { name: "Yo'l", exact: true }).locator("visible=true");
-  await route.click();
+test("qanday boraman: uch tur uchun Yandex va Google havolalari, 2GIS yo'q, mo'ljal, oxirgi ishlatilgani tepada, nusxalash", async ({ page, context }) => {
+  const LANDMARK = "Chilonzor metrosidan 5 daqiqa, Mevazor yonida";
+  const before = await withDb(async (db) => (await db.query<{ landmark: string | null }>(`SELECT landmark FROM "Business" WHERE name = 'Qahva Bekati'`)).rows[0]!.landmark);
+  await withDb((db) => db.query(`UPDATE "Business" SET landmark = $1 WHERE name = 'Qahva Bekati'`, [LANDMARK]));
+  try {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await signIn(page, (await seedPhones()).student);
+    await page.goto("/chegirmalar");
+    // Masofa tanlangan joydan hisoblanadi
+    await trigger(page).click();
+    await sheet(page).getByRole("option", { name: "Chilonzor" }).click();
+    await expect(trigger(page)).toHaveAttribute("aria-label", "Joy: Chilonzor");
+    await page.evaluate(() => localStorage.removeItem("tp:yonalish-turi"));
+    await page.getByRole("link", { name: /Kapuchino 300 ml/ }).locator("visible=true").first().click();
+    // Mo'ljal manzil ostida
+    await expect(page.getByTestId("deal-landmark").locator("visible=true")).toHaveText(`Mo'ljal: ${LANDMARK}`);
+    const go = page.getByTestId("directions-open").locator("visible=true");
+    await expect(go).toHaveText(/^Borish · \d+(\.\d)? (km|m)$/);
+    await go.click();
 
-  const dialog = sheet(page).getByRole("dialog", { name: "Qahva Bekati" });
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByText("to'g'ri chiziq bo'yicha")).toBeVisible();
-  const links = dialog.locator("a[data-provider]");
-  await expect(links).toHaveCount(4);
-  const hrefs = Object.fromEntries(await links.evaluateAll((els) => els.map((a) => [(a as HTMLElement).dataset.provider, (a as HTMLAnchorElement).href])));
-  expect(hrefs.yandex).toMatch(/^https:\/\/yandex\.uz\/maps\/\?rtext=~41\.\d+,69\.\d+&rtt=auto$/);
-  expect(hrefs.google).toMatch(/^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=41\.\d+%2C69\.\d+$/);
-  expect(hrefs.dgis).toMatch(/^https:\/\/2gis\.uz\/routeSearch\/rsType\/car\/to\/69\.\d+,41\.\d+$/);
-  expect(hrefs.yandexGo).toMatch(/^https:\/\/3\.redirect\.appmetrica\.yandex\.com\/route\?end-lat=41\.\d+&end-lon=69\.\d+&ref=talabapass&appmetrica_tracking_id=\d+$/);
+    const dialog = sheet(page).getByRole("dialog", { name: "Qanday boraman?" });
+    await expect(dialog).toBeVisible();
+    const place = dialog.getByTestId("directions-place");
+    await expect(place).toContainText("Qahva Bekati");
+    await expect(place).toContainText(/\d+(\.\d)? (km|m) uzoqlikda/);
+    await expect(place).toContainText(`Mo'ljal: ${LANDMARK}`);
+    await expect(dialog).not.toContainText("to'g'ri chiziq");
+    await expect(dialog).not.toContainText("Ilovada");
+    await expect(dialog).not.toContainText("2GIS");
 
-  // Tashqi sahifa ochilmasin — faqat tanlov eslab qolinadi
-  await context.route(/2gis\.uz/, (r) => r.abort());
-  const popup = context.waitForEvent("page");
-  await dialog.locator('a[data-provider="dgis"]').click();
-  await (await popup).close();
-  await expect(sheet(page)).toHaveCount(0);
+    const links = dialog.locator("a[data-provider]");
+    await expect(links).toHaveCount(3);
+    const hrefs = async () => Object.fromEntries(await links.evaluateAll((els) => els.map((a) => [(a as HTMLElement).dataset.provider, (a as HTMLAnchorElement).href])));
+    // Chilonzordan 1 km dan uzoq — standart: jamoat transporti
+    await expect(dialog.getByRole("radio", { name: "Jamoat transporti" })).toHaveAttribute("aria-checked", "true");
+    let h = await hrefs();
+    expect(Object.keys(h)).toEqual(["yandex", "google", "yandexGo"]);
+    expect(h.yandex).toMatch(/^https:\/\/yandex\.uz\/maps\/\?rtext=~41\.\d+,69\.\d+&rtt=mt$/);
+    expect(h.google).toMatch(/^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=41\.\d+%2C69\.\d+&travelmode=transit$/);
+    expect(h.yandexGo).toMatch(/^https:\/\/3\.redirect\.appmetrica\.yandex\.com\/route\?end-lat=41\.\d+&end-lon=69\.\d+&ref=talabapass&appmetrica_tracking_id=\d+$/);
+    await dialog.getByRole("radio", { name: "Mashinada" }).click();
+    h = await hrefs();
+    expect([h.yandex.endsWith("&rtt=auto"), h.google.endsWith("&travelmode=driving")]).toEqual([true, true]);
+    await dialog.getByRole("radio", { name: "Piyoda" }).click();
+    h = await hrefs();
+    expect([h.yandex.endsWith("&rtt=pd"), h.google.endsWith("&travelmode=walking")]).toEqual([true, true]);
 
-  await route.click();
-  await expect(links.first()).toHaveAttribute("data-provider", "dgis");
-  await expect(links.first()).toContainText("Oxirgi ishlatilgan");
+    // Tashqi sahifa ochilmasin — faqat tanlov eslab qolinadi
+    await context.route(/google\.com/, (r) => r.abort());
+    const popup = context.waitForEvent("page");
+    await dialog.locator('a[data-provider="google"]').click();
+    await (await popup).close();
+    await expect(sheet(page)).toHaveCount(0);
 
-  await dialog.getByRole("button", { name: "Manzilni nusxalash" }).click();
-  await expect(page.getByTestId("toast")).toHaveText(/Nusxalandi/);
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("Qahva Bekati");
+    await go.click();
+    await expect(links.first()).toHaveAttribute("data-provider", "google");
+    await expect(links.first()).toContainText("Oxirgi ishlatilgan");
+    // Oxirgi tur ham eslab qolingan
+    await expect(dialog.getByRole("radio", { name: "Piyoda" })).toHaveAttribute("aria-checked", "true");
+
+    await dialog.getByRole("button", { name: "Manzilni nusxalash" }).click();
+    await expect(page.getByTestId("toast")).toHaveText(/Nusxalandi/);
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("Qahva Bekati");
+  } finally {
+    await withDb((db) => db.query(`UPDATE "Business" SET landmark = $1 WHERE name = 'Qahva Bekati'`, [before]));
+  }
 });

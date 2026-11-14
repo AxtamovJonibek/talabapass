@@ -171,6 +171,8 @@
   --shadow-card: 0 14px 24px -18px rgb(20 20 20 / 0.55);
   --shadow-card-hover: 0 18px 40px -8px color-mix(in srgb, var(--color-ink) 12%, transparent), 0 6px 16px -4px color-mix(in srgb, var(--color-ink) 8%, transparent);
   --shadow-chip-hover: 0 6px 12px -8px rgb(20 20 20 / 0.5);
+  /* Holat pilyulkasi rasm ustida — juda yengil */
+  --shadow-pill: 0 1px 3px color-mix(in srgb, var(--color-ink) 10%, transparent);
 }
 
 /*
@@ -661,6 +663,23 @@
 
 @utility tear-r {
   animation: tp-tear-r 2.4s ease-in-out infinite;
+}
+
+/* Holat pilyulkasidagi "ochiq" nuqta: sekin, yumshoq (prefers-reduced-motion'da global qoida to'xtatadi) */
+@keyframes tp-live {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+}
+
+@utility live-dot {
+  animation: tp-live 2.4s ease-in-out infinite;
 }
 
 @utility pulse-bar {

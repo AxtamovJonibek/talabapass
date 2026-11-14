@@ -5,13 +5,13 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { AvatarEditor } from "@/components/profile-image/avatar-editor";
 import { Field, Input, Textarea } from "@/components/ui/field";
-import { DESCRIPTION_MAX } from "@/lib/business";
+import { DESCRIPTION_MAX, LANDMARK_MAX } from "@/lib/business";
 import { editBusinessAction, type BusinessEditState } from "@/server/actions/business-profile";
 
-type Initial = { name: string; address: string; workingHours: string; description: string; phone: string; telegram: string; instagram: string };
+type Initial = { name: string; address: string; landmark: string; workingHours: string; description: string; phone: string; telegram: string; instagram: string };
 const IDLE: BusinessEditState = { status: "idle" };
 
-/** B5 "Tahrirlash": nom, manzil, ish vaqti, tavsif. Nom/manzil o'zgarsa biznes qayta tekshiruvga tushadi. */
+/** B5 "Tahrirlash": nom, manzil, mo'ljal, ish vaqti, tavsif. Nom/manzil o'zgarsa biznes qayta tekshiruvga tushadi. */
 export function BusinessEditForm({ initial, logoUrl, idPrefix }: { initial: Initial; logoUrl: string | null; idPrefix: string }) {
   const t = useTranslations("businessOnboarding");
   const e = useTranslations("businessProfile");
@@ -28,6 +28,9 @@ export function BusinessEditForm({ initial, logoUrl, idPrefix }: { initial: Init
       </Field>
       <Field label={t("address")} htmlFor={id("address")} error={err("address")}>
         <Input id={id("address")} name="address" defaultValue={initial.address} maxLength={160} invalid={bad("address")} />
+      </Field>
+      <Field label={e("landmark")} htmlFor={id("landmark")} error={bad("landmark") ? e("errors.landmark") : null}>
+        <Input id={id("landmark")} name="landmark" defaultValue={initial.landmark} maxLength={LANDMARK_MAX} placeholder={e("landmarkPlaceholder")} invalid={bad("landmark")} />
       </Field>
       <Field label={t("workingHours")} htmlFor={id("hours")} error={err("workingHours")}>
         <Input id={id("hours")} name="workingHours" mono={14} defaultValue={initial.workingHours} placeholder={t("workingHoursPlaceholder")} invalid={bad("workingHours")} />

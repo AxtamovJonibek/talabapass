@@ -49,6 +49,19 @@ describe("biznes ma'lumotlarini tahrirlash", () => {
     expect(await auditOf()).toHaveLength(1);
   });
 
+  it("mo'ljal — tekshiruvsiz saqlanadi, bo'sh qator o'chiradi, 140 belgidan uzuni rad etiladi", async () => {
+    const landmark = "Chilonzor metrosidan 5 daqiqa, Mevazor yonida";
+    expect(await editBusinessInfo(OWNER, { ...info, landmark: `  ${landmark} ` })).toEqual({ ok: true, rereview: false });
+    expect(await load()).toMatchObject({ status: "APPROVED", landmark });
+    expect((await auditOf())[0]?.meta).toMatchObject({ changed: ["landmark"], rereview: false });
+    // berilmasa — o'zgarmaydi
+    expect(await editBusinessInfo(OWNER, info)).toEqual({ ok: true, rereview: false });
+    expect(await load()).toMatchObject({ landmark });
+    expect(await editBusinessInfo(OWNER, { ...info, landmark: "x".repeat(141) })).toEqual({ ok: false, fields: ["landmark"] });
+    expect(await editBusinessInfo(OWNER, { ...info, landmark: "" })).toEqual({ ok: true, rereview: false });
+    expect(await load()).toMatchObject({ landmark: null });
+  });
+
   it("o'zgarishsiz saqlash — hech narsa yozilmaydi", async () => {
     expect(await editBusinessInfo(OWNER, info)).toEqual({ ok: true, rereview: false });
     expect(await auditOf()).toHaveLength(0);

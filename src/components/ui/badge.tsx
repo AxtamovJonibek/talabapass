@@ -45,14 +45,14 @@ const TONES = {
   info: "bg-info-bg text-blue",
 } as const;
 
-type StatusPillProps = {
+type ToneBadgeProps = {
   tone: keyof typeof TONES;
   /** lg — A2 ariza holati; sm — jadval qatorlari */
   size?: "sm" | "lg";
   children: ReactNode;
 };
 
-export function StatusPill({ tone, size = "sm", children }: StatusPillProps) {
+export function ToneBadge({ tone, size = "sm", children }: ToneBadgeProps) {
   return (
     <span
       className={cn(

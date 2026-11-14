@@ -1,7 +1,9 @@
 import { useTranslations } from "next-intl";
 import type { FeedDeal, Urgency } from "@/lib/feed";
 import { formatSom, FREE_BADGE } from "@/lib/format";
+import { openStatus } from "@/lib/open-status";
 import { formatMinute, toTashkent } from "@/lib/time";
+import type { StatusTone } from "@/components/ui/status-pill";
 
 const DAY_MS = 86_400_000;
 const clock = (iso: string) => formatMinute(toTashkent(new Date(iso)).minute);
@@ -22,6 +24,30 @@ export function useDealText() {
   };
 
   return {
+    /**
+     * Holat pilyulkasi (`StatusPill`): "Hozir ochiq · 23:00 gacha", "45 daqiqadan keyin ochiladi", "Bugun 16:00 da ochiladi",
+     * "Yopiq · ertaga 09:00 da" / "Yopiq · Dushanba 09:00 da" (kartada foiz belgisi yonida sig'ishi uchun qisqa).
+     */
+    pill(deal: Pick<FeedDeal, "live" | "closesAt" | "opensAt">, now: Date): { tone: StatusTone; text: string } {
+      const s = openStatus(deal, now);
+      const time = (d: Date) => formatMinute(toTashkent(d).minute);
+      switch (s.kind) {
+        case "open":
+          return { tone: "open", text: t("deal.status.open", { time: time(s.closesAt) }) };
+        case "soon":
+          return { tone: "soon", text: t("deal.status.soon", { minutes: s.minutes }) };
+        case "today":
+          return { tone: "soon", text: t("deal.status.today", { time: time(s.opensAt) }) };
+        case "closed": {
+          if (s.inDays === 1) return { tone: "closed", text: t("deal.status.tomorrow", { time: time(s.opensAt) }) };
+          if (s.inDays < 7) return { tone: "closed", text: t("deal.status.weekday", { day: t(`weekday.long.${s.weekday}` as "weekday.long.1"), time: time(s.opensAt) }) };
+          const d = toTashkent(s.opensAt).date;
+          return { tone: "closed", text: t("deal.status.date", { date: `${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}` }) };
+        }
+        case "ended":
+          return { tone: "closed", text: t("deal.status.ended") };
+      }
+    },
     /** T4: "Hozir · 15:00 gacha" yoki "Ertaga · 08:00–11:00" */
     phoneStatus(deal: FeedDeal, now: Date): { status: string; when: string } {
       if (deal.live && deal.closesAt) return { status: t("deal.now"), when: t("deal.until", { time: clock(deal.closesAt) }) };

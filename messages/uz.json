@@ -434,17 +434,25 @@
     "toOrder": "Buyurtmaga qaytish"
   },
   "directions": {
+    "button": "Borish · {distance}",
+    "buttonShort": "Borish",
+    "title": "Qanday boraman?",
     "close": "Yopish",
-    "distance": "~{km} · to'g'ri chiziq bo'yicha",
-    "options": "Yo'l ko'rsatish usullari",
+    "away": "{distance} uzoqlikda",
+    "metro": "{station} metrosidan ~{distance}",
+    "landmark": "Mo'ljal: {text}",
+    "modeLabel": "Marshrut turi",
+    "modes": {
+      "car": "Mashinada",
+      "transit": "Jamoat transporti",
+      "walk": "Piyoda"
+    },
+    "options": "Qayerda ochish",
     "providers": {
       "yandex": "Yandex Xaritalar",
       "google": "Google Maps",
-      "dgis": "2GIS",
-      "yandexGo": "Yandex Go"
+      "yandexGo": "Taksi chaqirish"
     },
-    "mapHint": "Ilovada, bo'lmasa saytda ochiladi",
-    "taxiHint": "Taksi chaqirish",
     "recent": "Oxirgi ishlatilgan",
     "copy": "Manzilni nusxalash",
     "copied": "Nusxalandi",
@@ -556,12 +564,19 @@
     "bogo": "Ikkinchisi bepul",
     "free": "Bepul",
     "fromDate": "{date} dan",
+    "status": {
+      "open": "Hozir ochiq · {time} gacha",
+      "soon": "{minutes} daqiqadan keyin ochiladi",
+      "today": "Bugun {time} da ochiladi",
+      "tomorrow": "Yopiq · ertaga {time} da",
+      "weekday": "Yopiq · {day} {time} da",
+      "date": "Yopiq · {date} dan",
+      "ended": "Yopiq"
+    },
     "card": {
-      "open": "Hozir ochiq · {left}/{total}",
-      "openLow": "Hozir ochiq · {left}/{total} qoldi",
-      "later": "{when} · {left}/{total}",
-      "hot": "Tez tugaydi · {left}/{total}",
-      "hotClosing": "Tez tugaydi · {minutes} daq",
+      "left": "{left}/{total} qoldi",
+      "leftLow": "Atigi {left}/{total} qoldi",
+      "hot": "Tez tugayapti · {left}/{total}",
       "pending": "Rasm kutilmoqda"
     }
   },
@@ -1546,6 +1561,8 @@
     "notEditable": "Bu biznesni hozir tahrirlab bo'lmaydi.",
     "contactTitle": "Talabalar uchun aloqa",
     "contactHint": "Ixtiyoriy. Chegirma sahifasida ko'rsatiladi; tekshiruvsiz darhol o'zgaradi.",
+    "landmark": "Mo'ljal (ixtiyoriy)",
+    "landmarkPlaceholder": "Masalan: Chilonzor metrosidan 5 daqiqa, Mevazor yonida",
     "phone": "Telefon",
     "phonePlaceholder": "+998 90 123 45 67",
     "telegram": "Telegram",
@@ -1553,6 +1570,7 @@
     "instagram": "Instagram",
     "instagramPlaceholder": "@akkaunt",
     "errors": {
+      "landmark": "Mo'ljal 140 belgidan oshmasin.",
       "phone": "Telefonni +998 bilan, 9 raqam qilib kiriting.",
       "telegram": "Telegram nomi 5–32 belgi: harf, raqam, pastki chiziq.",
       "instagram": "Instagram nomi harf, raqam, nuqta yoki pastki chiziqdan iborat."
@@ -2072,8 +2090,7 @@
     "map": {
       "title": "Xaritada",
       "close": "Yopish",
-      "nothing": "Xaritada ko'rsatadigan joy yo'q",
-      "route": "Yo'l ko'rsatish"
+      "nothing": "Xaritada ko'rsatadigan joy yo'q"
     }
   },
   "dealPage": {
@@ -2098,12 +2115,10 @@
     "untilValue": "{day}-{month}gacha",
     "open": "Ochiq · {hours}",
     "openWeb": "· ochiq {hours}",
-    "route": "Yo'l",
     "contactCall": "Qo'ng'iroq qilish",
     "contactTelegram": "Telegram",
     "contactInstagram": "Instagram",
     "contactLabel": "Biznes bilan aloqa",
-    "routeWeb": "Yo'nalish",
     "claim": "Chegirmani olish",
     "claimHint": "QR kod 10 daqiqa amal qiladi — kassada ko'rsating",
     "claimHintWeb": "QR kod 10 daqiqa amal qiladi va telefoningizdagi ilovaga ham tushadi.",

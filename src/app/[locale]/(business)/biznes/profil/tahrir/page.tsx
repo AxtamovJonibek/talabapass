@@ -17,7 +17,7 @@ async function EditContent() {
   const info = await editableInfo(user.id);
   if (!info) return redirect({ href: "/biznes", locale: await getLocale() });
   const t = await getTranslations("businessProfile");
-  const initial = { name: info.name, address: info.address, workingHours: info.workingHours, description: info.description ?? "",
+  const initial = { name: info.name, address: info.address, landmark: info.landmark ?? "", workingHours: info.workingHours, description: info.description ?? "",
     phone: info.publicPhone ? formatPhone(info.publicPhone) : "",
     telegram: info.telegram ? `@${info.telegram}` : "",
     instagram: info.instagram ? `@${info.instagram}` : "",

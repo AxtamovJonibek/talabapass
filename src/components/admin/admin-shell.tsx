@@ -37,7 +37,7 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
   return (
-    <div className="flex min-h-screen flex-wrap bg-admin-bg text-ink">
+    <div className="@container flex min-h-screen flex-wrap bg-admin-bg text-ink">
       <Sidebar
         accent="blue"
         navLabel={t("nav.label")}

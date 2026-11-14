@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { StatusPill } from "@/components/ui/badge";
+import { ToneBadge } from "@/components/ui/badge";
 import { useRouter } from "@/i18n/navigation";
 import { pct } from "@/lib/stats";
 import { cn } from "@/lib/cn";
@@ -89,7 +89,7 @@ export function NotificationHistory({ rows }: { rows: HistoryRow[] }) {
                   <td className={cn(td, "text-right font-mono")}>{done ? formatSom(row.delivered) : "—"}</td>
                   <td className={cn(td, "text-right font-mono")}>{done && row.delivered > 0 ? `${pct(row.opened, row.delivered)}%` : "—"}</td>
                   <td className={td}>
-                    <StatusPill tone={TONE[row.status]}>{t(`history.state.${row.status}`)}</StatusPill>
+                    <ToneBadge tone={TONE[row.status]}>{t(`history.state.${row.status}`)}</ToneBadge>
                   </td>
                   <td className={cn(td, "text-right")}>{row.status === "SCHEDULED" ? <Cancel id={row.id} /> : null}</td>
                 </tr>

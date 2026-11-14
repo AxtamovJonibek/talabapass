@@ -12,6 +12,7 @@ function deal(over: Partial<FeedDeal> & { id: string }): FeedDeal {
     typeLabel: "Choyxona",
     district: "Chilonzor",
     address: "Bunyodkor ko'chasi 14",
+    landmark: null,
     category: "taom",
     icon: "bowl",
     images: [],

@@ -4,11 +4,13 @@ import { LIFT } from "./motion";
 
 const CHIP_SIZES = {
   /** T4 kategoriyalar */
-  md: "h-[38px] rounded-19 px-3.5",
+  md: "h-[38px] rounded-19 px-3.5 text-14",
   /** B1 biznes turi (telefon formasi) */
-  form: "h-[38px] rounded-19 px-[13px]",
+  form: "h-[38px] rounded-19 px-[13px] text-14",
   /** WB1 biznes turi (veb formasi) */
-  lg: "h-10 rounded-20 px-3.5",
+  lg: "h-10 rounded-20 px-3.5 text-14",
+  /** "Qanday boraman?" marshrut turi — ixcham */
+  sm: "h-9 rounded-18 px-3 text-13",
 } as const;
 
 type ChipProps = Omit<ComponentProps<"button">, "children"> & {
@@ -26,7 +28,7 @@ export function Chip({ selected = false, size = "md", count, children, className
       type={type}
       aria-pressed={selected}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 border-hair font-sans text-14 font-semibold",
+        "flex shrink-0 items-center gap-1.5 border-hair font-sans font-semibold",
         LIFT,
         CHIP_SIZES[size],
         selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink",

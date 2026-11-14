@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { StatusPill } from "@/components/ui/status-pill";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { DealBadge, LiveDot, StatusPill } from "@/components/ui/badge";
+import { DealBadge, LiveDot, ToneBadge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/ui/bottom-nav";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -172,16 +173,16 @@ export default async function DesignSystemPage({ params }: PageProps<"/[locale]/
         <div className="flex flex-wrap items-center gap-4">
           <DealBadge>{MINUS}30%</DealBadge>
           <DealBadge>1+1</DealBadge>
-          <StatusPill tone="ok">{t("status.active")}</StatusPill>
-          <StatusPill tone="warn">Ogohlantirish</StatusPill>
-          <StatusPill tone="bad">{t("status.rejected")}</StatusPill>
-          <StatusPill tone="info">{t("status.scheduled")}</StatusPill>
-          <StatusPill tone="warn" size="lg">
+          <ToneBadge tone="ok">{t("status.active")}</ToneBadge>
+          <ToneBadge tone="warn">Ogohlantirish</ToneBadge>
+          <ToneBadge tone="bad">{t("status.rejected")}</ToneBadge>
+          <ToneBadge tone="info">{t("status.scheduled")}</ToneBadge>
+          <ToneBadge tone="warn" size="lg">
             {t("status.inReview")}
-          </StatusPill>
-          <StatusPill tone="ok" size="lg">
+          </ToneBadge>
+          <ToneBadge tone="ok" size="lg">
             {t("status.approved")}
-          </StatusPill>
+          </ToneBadge>
           <span className="flex items-center gap-1.5 text-12 font-bold text-green-text">
             <LiveDot live /> {t("deal.now")}
           </span>
@@ -201,9 +202,7 @@ export default async function DesignSystemPage({ params }: PageProps<"/[locale]/
               distance="0.6 km"
               title="Osh 0.5 porsiya + choy"
               price={{ now: formatSom(26600), old: formatSom(38000), currency: t("common.currency") }}
-              live
-              status={t("deal.now")}
-              when={t("deal.until", { time: "15:00" })}
+              status={<StatusPill tone="open">{t("deal.status.open", { time: "15:00" })}</StatusPill>}
               left={26}
               total={60}
               icon="bowl"
@@ -217,9 +216,7 @@ export default async function DesignSystemPage({ params }: PageProps<"/[locale]/
               distance="0.9 km"
               title="Lavash + ayron"
               note="Ikkinchi lavash bepul"
-              live={false}
-              status={t("deal.tomorrow")}
-              when="10:00–17:00"
+              status={<StatusPill tone="closed">{t("deal.status.tomorrow", { time: "10:00" })}</StatusPill>}
               left={31}
               total={50}
               icon="wrap"

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { PhotoOr } from "@/components/ui/avatar";
-import { StatusPill } from "@/components/ui/badge";
+import { ToneBadge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 
@@ -128,9 +128,9 @@ export function DetailCard({
             <div className="mt-0.5 text-14 text-muted">{meta}</div>
           </div>
         </div>
-        <StatusPill tone={stateTone} size="lg">
+        <ToneBadge tone={stateTone} size="lg">
           {state}
-        </StatusPill>
+        </ToneBadge>
       </div>
       <div className="mt-[18px] flex flex-wrap gap-4">
         <div className="min-w-0 flex-[1_1_280px]">{left}</div>
