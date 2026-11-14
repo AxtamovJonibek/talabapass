@@ -1,0 +1,54 @@
+# Airnet VPS (talabapass.uz): main'ga push → SSH orqali serverda deploy/deploy.sh. Batafsil: docs/server.md.
+# Repo sozlamalari → Secrets and variables → Actions:
+#   DEPLOY_SSH_KEY     — deploy foydalanuvchisining shaxsiy kaliti (faqat shu server uchun)
+#   DEPLOY_HOST        — server manzili
+#   DEPLOY_USER        — serverdagi foydalanuvchi
+#   DEPLOY_KNOWN_HOSTS — `ssh-keyscan -t ed25519 <host>` natijasi (barmoq izini serverda tekshirib qo'ying)
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: SSH kaliti va known_hosts
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          if [ -z "$DEPLOY_SSH_KEY" ] || [ -z "$DEPLOY_KNOWN_HOSTS" ] || [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_USER" ]; then
+            echo "DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS, DEPLOY_HOST, DEPLOY_USER secret'lari o'rnatilmagan" >&2
+            exit 1
+          fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Serverda deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o ServerAliveInterval=30 -o ServerAliveCountMax=4 \
+            "$DEPLOY_USER@$DEPLOY_HOST" 'bash /var/www/talabapass/deploy/deploy.sh'
+
+      - name: Kalitni o'chirish
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

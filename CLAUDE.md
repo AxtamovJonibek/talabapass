@@ -18,6 +18,10 @@ tekshiruvimiz uchun.
 Next.js App Router · TypeScript strict · Tailwind v4 · PostgreSQL (Neon) + Prisma 7 ·
 next-intl · Cloudflare R2 · Serwist (PWA) · Vitest + Playwright. Deploy: Vercel. Paket menejeri: npm.
 
+Deploy: Vercel (staging, main) + Airnet VPS talabapass.uz (main push → GitHub Actions → deploy.sh); serverda APP_ENV=staging.
+Server: `ecosystem.config.cjs` (PM2), `deploy/deploy.sh`, `.github/workflows/deploy.yml`, sirlar `/etc/talabapass/env` da — batafsil `docs/server.md`.
+`deploy.sh` da seed, `migrate dev`/`reset` hech qachon bo'lmaydi; migratsiyalar orqaga mos yozilsin (orqaga qaytishda baza qaytmaydi).
+
 ## Buyruqlar
 ```
 npm run dev          ishlab chiqish serveri
