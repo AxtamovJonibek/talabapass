@@ -1,6 +1,6 @@
 import "server-only";
 import { paymentProvider, providerByName, type CallbackEvent } from "@/lib/payments";
-import type { Settlement } from "@/lib/preorder";
+import { captureOnPay, type Settlement } from "@/lib/preorder";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "../db";
 
@@ -60,6 +60,22 @@ export async function applyCallback(providerName: string, body: string, headers:
 }
 
 /**
+ * Pul ushlangandan keyin: buyurtma provayder ushlab tura oladigan muddatdan uzoq yashasa (`holdMaxDays`) — darhol to'liq
+ * yechiladi (CAPTURED); keyingi qaytarishlar `settlePayment` → refund. Aks holda hold qoladi.
+ */
+export async function captureIfLongLived(orderId: string, holdUntil: Date, now = new Date()): Promise<boolean> {
+  const payment = await db.payment.findUnique({ where: { orderId } });
+  if (!payment || payment.status !== "HELD" || !payment.providerPaymentId) return false;
+  const provider = providerByName(payment.provider);
+  if (!provider || !captureOnPay(holdUntil, now, provider.holdMaxDays)) return false;
+  const result = await provider.capture(payment.providerPaymentId, payment.amount);
+  await log(payment.id, "capture-now", { amount: payment.amount, holdUntil: holdUntil.toISOString(), holdMaxDays: provider.holdMaxDays, result });
+  if (!result.ok) return false;
+  const updated = await db.payment.updateMany({ where: { id: payment.id, status: "HELD" }, data: { status: "CAPTURED", captured: payment.amount } });
+  return updated.count === 1;
+}
+
+/**
  * Buyurtma yopilganda pul: `keep` biznesga yechiladi (capture), qolgani bo'shatiladi. Hali to'lanmagan bo'lsa —
  * to'lov bekor. Allaqachon yechilgan bo'lsa va qaytarish kerak bo'lsa — refund.
  */
@@ -88,7 +104,8 @@ export async function settlePayment(orderId: string, money: Settlement): Promise
     }
     return;
   }
-  if (payment.status === "CAPTURED" && money.refund > 0) await refundPayment(payment.id, money.refund);
+  // Darhol yechilgan (uzoq muddatli) to'lov: biznes ulushi joyida qoladi, talabaniki — refund
+  if (payment.status === "CAPTURED" && money.refund > 0) await refundPayment(payment.id, Math.min(money.refund, payment.captured - money.keep));
 }
 
 /** Yechilgan puldan qaytarish (to'liq yoki qisman). */

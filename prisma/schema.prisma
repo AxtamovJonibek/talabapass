@@ -315,7 +315,6 @@ model Business {
   scanAttempts ScanAttempt[]
   preorder     PreorderSettings?
   orders       Order[]
-  slots        PreorderSlot[]
 
   @@index([status, submittedAt])
   @@index([ownerId])
@@ -431,8 +430,24 @@ model Discount {
   startsOn        DateTime       @db.Date
   endsOn          DateTime       @db.Date
   terms           String?
-  /// "Oldindan band qilish mumkin" — biznes sozlamasi yoqilgan bo'lsa talabaga "Band qilish" chiqadi (tekshiruvsiz)
-  preorder        Boolean        @default(false)
+  // ── Oldindan band qilish (biznes sozlamasi yoqilgan bo'lsa; tekshiruvsiz). Maydonlar `src/lib/preorder.ts` (`discountBookingInput`)
+  bookingMode       BookingMode @default(NONE)
+  /// APPOINTMENT: xizmat davomiyligi, daqiqa — slot uzunligi
+  serviceMinutes    Int         @default(30)
+  /// APPOINTMENT: parallel sig'im (mutaxassis / ish joyi) — bir slotga shuncha buyurtma
+  staffCount        Int         @default(1)
+  /// PREPAID_PICKUP: to'lovdan keyin necha kun ichida olib ketiladi
+  validDays         Int         @default(7)
+  /// PREPAID_PICKUP: zaxira (dona) — buyurtmada atom kamayadi, bekor/muddati o'tganda qaytadi
+  stock             Int         @default(0)
+  /// PREPAID_PICKUP / PICKUP_WINDOW: bir talabaga jami (dona)
+  perStudentMax     Int         @default(2)
+  /// PREPAID_PICKUP: muddat o'tsa (yoki talaba bekor qilsa) biznesda qoladigan ulush, % (0 — to'liq qaytadi, 100 — qaytmaydi)
+  expireKeepPercent Int         @default(0)
+  /// PICKUP_WINDOW: kunlik olib ketish oynasi (Toshkent, daqiqa) va kunlik son (dona)
+  windowFrom        Int         @default(840)
+  windowTo          Int         @default(1200)
+  windowCapacity    Int         @default(20)
   status          DiscountStatus @default(DRAFT)
   rejectReason    String?
   reviewedById    String?
@@ -449,6 +464,7 @@ model Discount {
   coupons     Coupon[]
   redemptions Redemption[]
   orders      Order[]
+  seats       BookingSeat[]
 
   @@index([status, endsOn])
   @@index([businessId])
@@ -700,12 +716,15 @@ model AuditLog {
 
 // ───────────── Oldindan band qilish (buyurtma) va to'lov ─────────────
 
-enum PreorderMode {
-  PICKUP
-  DINE_IN
-  BOTH
+/// Chegirmani qanday band qilinadi: yo'q · vaqtli uchrashuv (slot) · to'lab, muddat ichida olib ketish · kunlik olib ketish oynasi
+enum BookingMode {
+  NONE
+  APPOINTMENT
+  PREPAID_PICKUP
+  PICKUP_WINDOW
 }
 
+/// Eski (rejimlargacha) buyurtmalar uchun: olib ketish yoki joyida
 enum OrderMode {
   PICKUP
   DINE_IN
@@ -727,6 +746,8 @@ enum OrderStatus {
   REJECTED
   CANCELLED
   NO_SHOW
+  /// PREPAID_PICKUP: muddat ichida olib ketilmadi
+  EXPIRED
 }
 
 enum PaymentStatus {
@@ -743,11 +764,8 @@ enum PaymentStatus {
 model PreorderSettings {
   businessId        String       @id
   enabled           Boolean      @default(false)
-  mode              PreorderMode @default(BOTH)
-  /// Hafta kunlari bo'yicha qabul oralig'i (Toshkent vaqti, daqiqa): [{ "day": 1..7, "from": 840, "to": 1200 }]
+  /// Ish jadvali (vaqtli uchrashuv slotlari shu oraliqda), Toshkent vaqti, daqiqa: [{ "day": 1..7, "from": 840, "to": 1200 }]
   schedule          Json
-  slotMinutes       Int          @default(30)
-  slotCapacity      Int          @default(10)
   /// Slot boshlanishidan kamida shuncha daqiqa oldin band qilinadi (tayyorlash vaqti)
   leadMinutes       Int          @default(30)
   /// 0 — faqat bugun, 1 — bugun va ertaga
@@ -767,15 +785,16 @@ model PreorderSettings {
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }
 
-/// Slot sig'imi hisoblagichi: band qilish `INSERT … ON CONFLICT DO UPDATE … WHERE booked < sig'im` bilan atom.
-model PreorderSlot {
-  businessId String
+/// Sig'im hisoblagichi (chegirma × slot yoki kunlik oyna boshi): `INSERT … ON CONFLICT DO UPDATE … WHERE booked + n <= sig'im` bilan atom.
+/// APPOINTMENT — buyurtma soni, PICKUP_WINDOW — dona.
+model BookingSeat {
+  discountId String
   startsAt   DateTime
   booked     Int      @default(0)
 
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
 
-  @@id([businessId, startsAt])
+  @@id([discountId, startsAt])
 }
 
 model Order {
@@ -785,7 +804,10 @@ model Order {
   businessId        String
   discountId        String
   studentId         String
-  mode              OrderMode
+  kind              BookingMode
+  /// Faqat eski buyurtmalarda (rejimlargacha)
+  mode              OrderMode?
+  /// APPOINTMENT — slot; PICKUP_WINDOW — kunlik oyna; PREPAID_PICKUP — to'lov vaqti … muddat oxiri
   slotStart         DateTime
   slotEnd           DateTime
   quantity          Int
@@ -812,6 +834,8 @@ model Order {
 
   /// Qo'lda tasdiqlashda javob muddati — o'tsa avtomatik bekor
   confirmBy         DateTime?
+  /// PREPAID_PICKUP: yuborilgan muddat eslatmalari (1 — "2 kun qoldi", 2 — "1 kun qoldi")
+  reminders         Int         @default(0)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
@@ -826,6 +850,7 @@ model Order {
   @@index([status, confirmBy])
   @@index([status, slotEnd])
   @@index([status, createdAt])
+  @@index([kind, status, slotEnd])
 }
 
 /// Holat vaqt chizig'i (kim, qachon, qaysi holatdan qaysiga). actorId null — tizim (cron, to'lov).

@@ -294,13 +294,13 @@ function OrderCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="font-mono text-14 font-semibold">
-            {when(o.slotStart, o.slotEnd)}
+            {when(o.slotStart, o.slotEnd, o.kind)}
           </span>
           <span className="text-18 font-extrabold">
             {o.title} × {o.quantity}
           </span>
           <span className="text-13 text-muted">
-            {tb(`modes.${o.mode}`)} · {o.student} ·{" "}
+            {o.mode ? tb(`modes.${o.mode}`) : tb(`kinds.${o.kind}.short`)} · {o.student} ·{" "}
             <a
               href={`tel:${o.phone}`}
               className="tp-link font-mono text-muted no-underline"

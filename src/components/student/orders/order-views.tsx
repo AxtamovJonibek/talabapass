@@ -11,7 +11,7 @@ import { formatPhone, formatSom, MINUS } from "@/lib/format";
 import { formatMinute, toTashkent } from "@/lib/time";
 import { cancelOrderAction, payOrderAction } from "@/server/actions/preorder";
 import type { StudentOrderRow, StudentOrderView } from "@/server/preorder/views";
-import type { OrderStatus } from "@/lib/preorder";
+import type { BookingKind, OrderStatus } from "@/lib/preorder";
 import { QrImage } from "../coupon/coupon-ticket";
 import { useCouponToken } from "../coupon/use-coupon-token";
 import { StudentBottomNav, StudentWebNav } from "../app-chrome";
@@ -28,6 +28,7 @@ const STATUS_TONE: Record<OrderStatus, string> = {
   REJECTED: "bg-danger-bg text-danger",
   CANCELLED: "bg-surface text-muted",
   NO_SHOW: "bg-danger-bg text-danger",
+  EXPIRED: "bg-danger-bg text-danger",
 };
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
@@ -39,9 +40,14 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
   );
 }
 
+/** "Bugun, 14:00–14:30" (uchrashuv, oyna) yoki "21-noyabrgacha" (to'lab olib ketish — muddat oxirgi kuni) */
 function useWhen() {
   const t = useTranslations();
-  return (startIso: string, endIso: string) => {
+  return (startIso: string, endIso: string, kind?: BookingKind) => {
+    if (kind === "PREPAID_PICKUP") {
+      const last = new Date(toTashkent(new Date(endIso)).date.getTime() - 86_400_000);
+      return t("orders.validUntil", { date: `${last.getUTCDate()}-${t(`month.name.${last.getUTCMonth() + 1}` as "month.name.1")}` });
+    }
     const start = toTashkent(new Date(startIso));
     const today = toTashkent(new Date()).date.getTime();
     const day =
@@ -108,7 +114,7 @@ export function OrderList({ orders }: { orders: StudentOrderRow[] }) {
               <span className="truncate text-16 font-bold">
                 {o.title} × {o.quantity}
               </span>
-              <span className="font-mono text-13">{when(o.slotStart, o.slotEnd)}</span>
+              <span className="font-mono text-13">{when(o.slotStart, o.slotEnd, o.kind)}</span>
             </span>
             <StatusBadge status={o.status} />
           </Link>
@@ -193,7 +199,9 @@ export function OrderDetail({ order }: { order: StudentOrderView }) {
           <span className="text-18 font-extrabold">
             {order.title} × {order.quantity}
           </span>
-          <span className="font-mono text-14">{when(order.slotStart, order.slotEnd)}</span>
+          <span className="font-mono text-14" data-testid="order-when">
+            {when(order.slotStart, order.slotEnd, order.kind)}
+          </span>
         </div>
         <StatusBadge status={order.status} />
       </div>
@@ -237,8 +245,9 @@ export function OrderDetail({ order }: { order: StudentOrderView }) {
       </section>
 
       <section className="flex flex-col gap-2 rounded-16 bg-white px-4 py-3.5 text-14">
-        <Row label={t("mode")}>{tb(`modes.${order.mode}`)}</Row>
+        <Row label={t("kind")}>{order.mode ? tb(`modes.${order.mode}`) : tb(`kinds.${order.kind}.short`)}</Row>
         <Row label={t("address")}>{order.address}</Row>
+        {order.kind === "PREPAID_PICKUP" ? <Row label={t("pickupHours")}>{order.workingHours}</Row> : null}
         <Row label={t("phone")}>
           <span className="font-mono">{formatPhone(order.phone)}</span>
         </Row>
@@ -275,7 +284,15 @@ export function OrderDetail({ order }: { order: StudentOrderView }) {
               <b className="text-14" data-testid="cancel-refund">
                 {t("cancelRefund", { refund: formatSom(order.cancel.refund) })}
               </b>
-              <span className="text-13 text-muted">{order.cancel.keep > 0 ? t("cancelKeep", { keep: formatSom(order.cancel.keep), time: freeUntil }) : t("cancelFreeUntil", { time: freeUntil })}</span>
+              <span className="text-13 text-muted">
+                {order.kind === "PREPAID_PICKUP"
+                  ? order.cancel.keep > 0
+                    ? t("cancelKeepPrepaid", { keep: formatSom(order.cancel.keep), pct: order.keepPercent })
+                    : null
+                  : order.cancel.keep > 0
+                    ? t("cancelKeep", { keep: formatSom(order.cancel.keep), time: freeUntil })
+                    : t("cancelFreeUntil", { time: freeUntil })}
+              </span>
             </>
           ) : null}
           <Button variant="danger-outline" size="md" block loading={pending} onClick={cancel}>
@@ -291,7 +308,7 @@ export function OrderDetail({ order }: { order: StudentOrderView }) {
   );
 }
 
-const REASONS = { unpaid: 1, noResponse: 1, paymentFailed: 1, student: 1, auto: 1, noShow: 1 } as const;
+const REASONS = { unpaid: 1, noResponse: 1, paymentFailed: 1, student: 1, auto: 1, noShow: 1, expired: 1 } as const;
 
 /** Biznes paneli ham ishlatadi: "Bugun, 14:00–14:30" */
 export const useOrderWhen = useWhen;

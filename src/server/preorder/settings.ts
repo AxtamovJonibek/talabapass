@@ -4,11 +4,19 @@ import { paymentProvider } from "@/lib/payments";
 import {
   bookingBlock,
   DEFAULT_SETTINGS,
+  discountBookingInput,
   discountSlots,
   parseSchedule,
+  pickupWindows,
+  prepaidExpiry,
+  prepayFor,
   preorderSettingsInput,
+  quantityMax,
+  windowBlock,
   type BookingBlock,
   type BookingConfig,
+  type BookingKind,
+  type DiscountBooking,
   type PreorderSettingsInput,
 } from "@/lib/preorder";
 import { toTashkent, type Schedule } from "@/lib/time";
@@ -19,8 +27,9 @@ import { ownerBusinessForDiscounts } from "../business/discounts";
 import { visibleDiscountWhere } from "../student/feed";
 
 /**
- * Biznesning "Oldindan band qilish" sozlamalari (Biznes → Sozlamalar) va talabaga taklif (qaysi kun/slot bo'sh).
- * Sozlama yo'q/o'chiq, chegirma belgilanmagan yoki narxi aniq emas — talabaga "Band qilish" umuman ko'rinmaydi.
+ * Biznesning "Oldindan band qilish" sozlamalari (Biznes → Sozlamalar): umumiy (yoqish, ish jadvali, to'lov, bekor qilish,
+ * tasdiqlash) — biznesda; rejim va uning maydonlari — har chegirmada. Talabaga taklif va tugma holati ham shu yerda.
+ * Sozlama yo'q/o'chiq, chegirmada rejim yo'q yoki narxi aniq emas — talabaga tugma umuman ko'rinmaydi.
  * Qolgan holatlarda tugma ko'rinadi; hozir band qilib bo'lmasa — o'chiq tugma va sababi (`bookingAvailability`).
  */
 
@@ -28,10 +37,7 @@ export function toInput(row: PreorderSettings | null): PreorderSettingsInput {
   if (!row) return DEFAULT_SETTINGS;
   return {
     enabled: row.enabled,
-    mode: row.mode,
     schedule: parseSchedule(row.schedule),
-    slotMinutes: row.slotMinutes as PreorderSettingsInput["slotMinutes"],
-    slotCapacity: row.slotCapacity,
     leadMinutes: row.leadMinutes,
     daysAhead: row.daysAhead === 0 ? 0 : 1,
     prepay: row.prepay,
@@ -42,8 +48,9 @@ export function toInput(row: PreorderSettings | null): PreorderSettingsInput {
   };
 }
 
-export function bookingConfig(row: Pick<PreorderSettings, "schedule" | "slotMinutes" | "leadMinutes" | "daysAhead" | "pausedOn">): BookingConfig {
-  return { schedule: parseSchedule(row.schedule), slotMinutes: row.slotMinutes as 15 | 30 | 60, leadMinutes: row.leadMinutes, daysAhead: row.daysAhead === 0 ? 0 : 1, pausedOn: row.pausedOn };
+/** Slot hisobi: biznes jadvali + chegirmadagi xizmat davomiyligi (slot uzunligi). */
+export function bookingConfig(row: Pick<PreorderSettings, "schedule" | "leadMinutes" | "daysAhead" | "pausedOn">, slotMinutes: number): BookingConfig {
+  return { schedule: parseSchedule(row.schedule), slotMinutes, leadMinutes: row.leadMinutes, daysAhead: row.daysAhead === 0 ? 0 : 1, pausedOn: row.pausedOn };
 }
 
 /** Narxi aniq chegirma (talaba oldindan to'laydigan summa hisoblanadi). Narxsiz ("chekdan −15%") — band qilib bo'lmaydi. */
@@ -52,11 +59,50 @@ export function unitPrice(d: { type: "PERCENT" | "FIXED_PRICE" | "BOGO"; origina
   return terms.finalPrice !== null && terms.originalPrice !== null && terms.finalPrice > 0 ? { original: terms.originalPrice, final: terms.finalPrice } : null;
 }
 
+const BOOKING_FIELDS = {
+  bookingMode: true,
+  serviceMinutes: true,
+  staffCount: true,
+  validDays: true,
+  stock: true,
+  perStudentMax: true,
+  expireKeepPercent: true,
+  windowFrom: true,
+  windowTo: true,
+  windowCapacity: true,
+} as const;
+
+const SCHEDULE_FIELDS = { weekdays: true, fromMinute: true, toMinute: true, startsOn: true, endsOn: true } as const;
+const PRICE_FIELDS = { type: true, originalPrice: true, percent: true, newPrice: true } as const;
+
+const scheduleOf = (d: Schedule): Schedule => ({ weekdays: d.weekdays, fromMinute: d.fromMinute, toMinute: d.toMinute, startsOn: d.startsOn, endsOn: d.endsOn });
+const bookingOf = (d: DiscountBooking): DiscountBooking => ({
+  bookingMode: d.bookingMode,
+  serviceMinutes: d.serviceMinutes,
+  staffCount: d.staffCount,
+  validDays: d.validDays,
+  stock: d.stock,
+  perStudentMax: d.perStudentMax,
+  expireKeepPercent: d.expireKeepPercent,
+  windowFrom: d.windowFrom,
+  windowTo: d.windowTo,
+  windowCapacity: d.windowCapacity,
+});
+
+export type OwnerDiscount = {
+  id: string;
+  title: string;
+  status: string;
+  price: { original: number; final: number } | null;
+  schedule: Schedule;
+  booking: DiscountBooking;
+};
+
 export type OwnerPreorder = {
   businessId: string;
   settings: PreorderSettingsInput;
   pausedToday: boolean;
-  discounts: { id: string; title: string; preorder: boolean; price: { original: number; final: number } | null; status: string; schedule: Schedule }[];
+  discounts: OwnerDiscount[];
 };
 
 export async function ownerPreorder(ownerId: string, now = new Date()): Promise<OwnerPreorder | null> {
@@ -67,35 +113,14 @@ export async function ownerPreorder(ownerId: string, now = new Date()): Promise<
     db.discount.findMany({
       where: { businessId: business.id, status: { in: ["ACTIVE", "PENDING_REVIEW", "PAUSED", "DRAFT"] } },
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        preorder: true,
-        status: true,
-        type: true,
-        originalPrice: true,
-        percent: true,
-        newPrice: true,
-        weekdays: true,
-        fromMinute: true,
-        toMinute: true,
-        startsOn: true,
-        endsOn: true,
-      },
+      select: { id: true, title: true, status: true, ...PRICE_FIELDS, ...SCHEDULE_FIELDS, ...BOOKING_FIELDS },
     }),
   ]);
   return {
     businessId: business.id,
     settings: toInput(row),
     pausedToday: row?.pausedOn?.getTime() === toTashkent(now).date.getTime(),
-    discounts: discounts.map((d) => ({
-      id: d.id,
-      title: d.title,
-      preorder: d.preorder,
-      status: d.status,
-      price: unitPrice(d),
-      schedule: { weekdays: d.weekdays, fromMinute: d.fromMinute, toMinute: d.toMinute, startsOn: d.startsOn, endsOn: d.endsOn },
-    })),
+    discounts: discounts.map((d) => ({ id: d.id, title: d.title, status: d.status, price: unitPrice(d), schedule: scheduleOf(d), booking: bookingOf(d) })),
   };
 }
 
@@ -132,111 +157,169 @@ export async function setPreorderPaused(ownerId: string, paused: boolean, now = 
   return true;
 }
 
-/** Chegirmadagi "Oldindan band qilish mumkin" belgisi (mazmun emas — qayta tekshiruvsiz). */
-export async function setDiscountPreorder(ownerId: string, discountId: string, on: boolean): Promise<boolean> {
-  const discount = await db.discount.findFirst({
-    where: { id: discountId, business: { ownerId } },
-    select: { id: true, type: true, originalPrice: true, percent: true, newPrice: true },
-  });
-  if (!discount || (on && !unitPrice(discount))) return false;
+export type SaveDiscountBookingResult = { ok: true } | { ok: false; error: "notFound" | "invalid" | "noPrice" };
+
+/** Chegirmaning band qilish rejimi va maydonlari (mazmun emas — qayta tekshiruvsiz). Audit'da oldin → keyin. */
+export async function saveDiscountBooking(ownerId: string, discountId: string, raw: unknown): Promise<SaveDiscountBookingResult> {
+  const parsed = discountBookingInput.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const discount = await db.discount.findFirst({ where: { id: discountId, business: { ownerId } }, select: { id: true, ...PRICE_FIELDS, ...BOOKING_FIELDS } });
+  if (!discount) return { ok: false, error: "notFound" };
+  if (parsed.data.bookingMode !== "NONE" && !unitPrice(discount)) return { ok: false, error: "noPrice" };
+  const data = bookingOf(parsed.data);
   await db.$transaction(async (tx) => {
-    await tx.discount.update({ where: { id: discount.id }, data: { preorder: on } });
-    await audit({ actorId: ownerId, action: "discount.preorder", entity: "Discount", entityId: discount.id, meta: { preorder: on } }, tx);
+    await tx.discount.update({ where: { id: discount.id }, data });
+    await audit({ actorId: ownerId, action: "discount.booking", entity: "Discount", entityId: discount.id, meta: { before: bookingOf(discount), after: data } }, tx);
   });
-  return true;
+  return { ok: true };
 }
 
 // ───────── talabaga taklif ─────────
 
 export type BookingSlot = { start: string; end: string; left: number; disabled: boolean };
 export type BookingOffer = {
+  kind: BookingKind;
   discountId: string;
   businessName: string;
+  workingHours: string;
   title: string;
-  modes: ("PICKUP" | "DINE_IN")[];
   unit: { original: number; final: number };
   prepay: PreorderSettingsInput["prepay"];
   prepayPercent: number;
   freeCancelMinutes: number;
+  /** Kech bekor qilinsa / kelmasa (PREPAID_PICKUP — muddat o'tsa yoki bekor qilinsa) biznesda qoladigan ulush */
   keepPercent: number;
   autoConfirm: boolean;
+  /** Bir buyurtmada eng ko'p (talabaning qolgan chegarasi va zaxira bilan) */
+  maxQuantity: number;
+  /** APPOINTMENT: kunlar va slotlar */
   days: { date: string; slots: BookingSlot[] }[];
+  /** PICKUP_WINDOW: bugun/ertangi oynalar (`left` — bo'sh dona) */
+  windows: (BookingSlot & { date: string })[];
+  /** PREPAID_PICKUP: muddat va zaxira */
+  prepaid: { validDays: number; validUntil: string; stockLeft: number } | null;
 };
 
 const BOOKABLE_SELECT = {
   id: true,
   title: true,
-  preorder: true,
-  type: true,
-  originalPrice: true,
-  percent: true,
-  newPrice: true,
-  weekdays: true,
-  fromMinute: true,
-  toMinute: true,
-  startsOn: true,
-  endsOn: true,
   businessId: true,
-  business: { select: { name: true, preorder: true } },
+  ...PRICE_FIELDS,
+  ...SCHEDULE_FIELDS,
+  ...BOOKING_FIELDS,
+  business: { select: { name: true, workingHours: true, preorder: true } },
 } as const;
 
-/** Chegirma band qilinadimi: biznes sozlamasi yoqilgan, chegirma belgilangan, talabaga ko'rinadi, narxi aniq. */
+/** Chegirma band qilinadimi: biznes sozlamasi yoqilgan, chegirmada rejim tanlangan, talabaga ko'rinadi, narxi aniq. */
 export async function bookableDiscount(discountId: string, now = new Date()) {
-  const discount = await db.discount.findFirst({ where: { AND: [{ id: discountId, preorder: true }, visibleDiscountWhere(now)] }, select: BOOKABLE_SELECT });
+  const discount = await db.discount.findFirst({ where: { AND: [{ id: discountId, bookingMode: { not: "NONE" } }, visibleDiscountWhere(now)] }, select: BOOKABLE_SELECT });
   const settings = discount?.business.preorder;
   const unit = discount ? unitPrice(discount) : null;
-  if (!discount || !settings?.enabled || !unit) return null;
-  return { discount, settings, unit };
+  if (!discount || !settings?.enabled || !unit || discount.bookingMode === "NONE") return null;
+  return { discount, settings, unit, kind: discount.bookingMode as BookingKind };
 }
+export type Bookable = NonNullable<Awaited<ReturnType<typeof bookableDiscount>>>;
 
-/** Band qilingan joylar: slot boshi → band soni */
-async function slotUsage(businessId: string, starts: Date[]): Promise<Map<number, number>> {
+/** Band qilingan joylar (chegirma × slot/oyna boshi) → band soni */
+async function seatUsage(discountId: string, starts: Date[]): Promise<Map<number, number>> {
   if (starts.length === 0) return new Map();
-  const rows = await db.preorderSlot.findMany({ where: { businessId, startsAt: { in: starts } }, select: { startsAt: true, booked: true } });
+  const rows = await db.bookingSeat.findMany({ where: { discountId, startsAt: { in: starts } }, select: { startsAt: true, booked: true } });
   return new Map(rows.map((r) => [r.startsAt.getTime(), r.booked]));
 }
 
-export async function bookingOffer(discountId: string, now = new Date()): Promise<BookingOffer | null> {
-  const found = await bookableDiscount(discountId, now);
-  if (!found) return null;
-  const { discount, settings, unit } = found;
-  const days = discountSlots(bookingConfig(settings), discount, now);
-  if (days.length === 0) return null;
-  const used = await slotUsage(discount.businessId, days.flatMap((d) => d.slots.map((s) => s.start)));
-  return {
-    discountId: discount.id,
-    businessName: discount.business.name,
-    title: discount.title,
-    modes: settings.mode === "BOTH" ? ["PICKUP", "DINE_IN"] : [settings.mode],
-    unit,
-    prepay: settings.prepay,
-    prepayPercent: settings.prepayPercent,
-    freeCancelMinutes: settings.freeCancelMinutes,
-    keepPercent: settings.keepPercent,
-    autoConfirm: settings.autoConfirm,
-    days: days.map(({ date, slots }) => ({
-      date: date.toISOString().slice(0, 10),
-      slots: slots.map((s) => {
-        const left = Math.max(0, settings.slotCapacity - (used.get(s.start.getTime()) ?? 0));
-        return { start: s.start.toISOString(), end: s.end.toISOString(), left, disabled: s.late || left === 0 };
-      }),
-    })),
-  };
+/** Talaba shu chegirmadan olgan (bekor/rad/muddati o'tganlarsiz) dona */
+export async function studentUnits(studentId: string, discountId: string): Promise<number> {
+  const sum = await db.order.aggregate({ where: { studentId, discountId, status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] } }, _sum: { quantity: true } });
+  return sum._sum.quantity ?? 0;
 }
 
-export type BookingAvailability = { open: true } | { open: false; reason: BookingBlock };
+/** Talabaga hozir nechta dona mumkin (uchrashuv — 1; qolganlari — chegara, o'zi olgani va zaxira bilan) */
+async function allowedUnits(found: Bookable, studentId: string | null): Promise<number> {
+  const { discount, kind } = found;
+  if (kind === "APPOINTMENT") return 1;
+  const left = discount.perStudentMax - (studentId ? await studentUnits(studentId, discount.id) : 0);
+  const max = Math.min(quantityMax(kind, discount.perStudentMax), left);
+  return Math.max(0, kind === "PREPAID_PICKUP" ? Math.min(max, discount.stock) : max);
+}
 
-/**
- * Chegirma sahifasidagi tugma uchun. null — tugma umuman yo'q (funksiya o'chiq, chegirma belgilanmagan, narxsiz);
- * aks holda ochiq yoki sababi bilan yopiq ("Hozir bo'sh slot yo'q" va h.k.) — jimgina yashirilmaydi.
- */
-export async function bookingAvailability(discountId: string, now = new Date()): Promise<BookingAvailability | null> {
+export async function bookingOffer(discountId: string, studentId: string | null, now = new Date()): Promise<BookingOffer | null> {
   const found = await bookableDiscount(discountId, now);
   if (!found) return null;
-  const { discount, settings } = found;
-  if (settings.prepay !== "NONE" && !paymentProvider()) return { open: false, reason: "payment" };
-  const config = bookingConfig(settings);
-  const used = await slotUsage(discount.businessId, discountSlots(config, discount, now).flatMap((d) => d.slots.map((s) => s.start)));
-  const reason = bookingBlock(config, discount, now, (start) => settings.slotCapacity - (used.get(start.getTime()) ?? 0));
-  return reason ? { open: false, reason } : { open: true };
+  const { discount, settings, unit, kind } = found;
+  const prepay = prepayFor(kind, settings);
+  const base = {
+    kind,
+    discountId: discount.id,
+    businessName: discount.business.name,
+    workingHours: discount.business.workingHours,
+    title: discount.title,
+    unit,
+    prepay: prepay.type,
+    prepayPercent: prepay.percent,
+    freeCancelMinutes: kind === "PREPAID_PICKUP" ? 0 : settings.freeCancelMinutes,
+    keepPercent: kind === "PREPAID_PICKUP" ? discount.expireKeepPercent : settings.keepPercent,
+    autoConfirm: settings.autoConfirm,
+    maxQuantity: await allowedUnits(found, studentId),
+    days: [] as BookingOffer["days"],
+    windows: [] as BookingOffer["windows"],
+    prepaid: null as BookingOffer["prepaid"],
+  };
+  if (base.maxQuantity === 0) return null;
+
+  if (kind === "APPOINTMENT") {
+    const days = discountSlots(bookingConfig(settings, discount.serviceMinutes), discount, now);
+    if (days.length === 0) return null;
+    const used = await seatUsage(discount.id, days.flatMap((d) => d.slots.map((s) => s.start)));
+    base.days = days.map(({ date, slots }) => ({
+      date: date.toISOString().slice(0, 10),
+      slots: slots.map((s) => {
+        const left = Math.max(0, discount.staffCount - (used.get(s.start.getTime()) ?? 0));
+        return { start: s.start.toISOString(), end: s.end.toISOString(), left, disabled: s.late || left === 0 };
+      }),
+    }));
+    return base;
+  }
+  if (kind === "PICKUP_WINDOW") {
+    const windows = pickupWindows(bookingConfig(settings, 0), discount, { from: discount.windowFrom, to: discount.windowTo }, now);
+    if (windows.length === 0) return null;
+    const used = await seatUsage(discount.id, windows.map((w) => w.start));
+    base.windows = windows.map((w) => {
+      const left = Math.max(0, discount.windowCapacity - (used.get(w.start.getTime()) ?? 0));
+      return { date: w.date.toISOString().slice(0, 10), start: w.start.toISOString(), end: w.end.toISOString(), left, disabled: w.late || left === 0 };
+    });
+    return base;
+  }
+  if (settings.pausedOn?.getTime() === toTashkent(now).date.getTime()) return null;
+  base.prepaid = { validDays: discount.validDays, validUntil: prepaidExpiry(now, discount.validDays).toISOString(), stockLeft: discount.stock };
+  return base;
+}
+
+export type BookingAvailability = { kind: BookingKind; open: true } | { kind: BookingKind; open: false; reason: BookingBlock };
+
+/**
+ * Chegirma sahifasidagi tugma uchun. null — tugma umuman yo'q (funksiya o'chiq, rejim tanlanmagan, narxsiz);
+ * aks holda ochiq yoki sababi bilan yopiq ("Hozir bo'sh slot yo'q", "Zaxira tugadi" va h.k.) — jimgina yashirilmaydi.
+ */
+export async function bookingAvailability(discountId: string, studentId: string | null, now = new Date()): Promise<BookingAvailability | null> {
+  const found = await bookableDiscount(discountId, now);
+  if (!found) return null;
+  const { discount, settings, kind } = found;
+  const closed = (reason: BookingBlock): BookingAvailability => ({ kind, open: false, reason });
+  if (prepayFor(kind, settings).type !== "NONE" && !paymentProvider()) return closed("payment");
+
+  let reason: BookingBlock | null;
+  if (kind === "APPOINTMENT") {
+    const config = bookingConfig(settings, discount.serviceMinutes);
+    const used = await seatUsage(discount.id, discountSlots(config, discount, now).flatMap((d) => d.slots.map((s) => s.start)));
+    reason = bookingBlock(config, discount, now, (start) => discount.staffCount - (used.get(start.getTime()) ?? 0));
+  } else if (kind === "PICKUP_WINDOW") {
+    const config = bookingConfig(settings, 0);
+    const window = { from: discount.windowFrom, to: discount.windowTo };
+    const used = await seatUsage(discount.id, pickupWindows(config, discount, window, now).map((w) => w.start));
+    reason = windowBlock(config, discount, window, now, (start) => discount.windowCapacity - (used.get(start.getTime()) ?? 0));
+  } else {
+    reason = discount.stock <= 0 ? "soldOut" : settings.pausedOn?.getTime() === toTashkent(now).date.getTime() ? "paused" : null;
+  }
+  if (!reason && kind !== "APPOINTMENT" && (await allowedUnits(found, studentId)) === 0) reason = "limit";
+  return reason ? closed(reason) : { kind, open: true };
 }

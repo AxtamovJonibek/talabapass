@@ -12,6 +12,8 @@ export const MOCK_SIGNATURE_HEADER = "x-mock-signature";
 
 export class MockProvider implements PaymentProvider {
   readonly name = "mock";
+  /** Haqiqiy kartalarda ushlash odatda bir necha kun — sinovda ham shunday: 3 kundan uzoq buyurtma darhol yechiladi */
+  readonly holdMaxDays = 3;
 
   constructor(private readonly secret: string) {}
 

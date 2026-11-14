@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatPhone, formatSom } from "@/lib/format";
 import { completeOrderAction } from "@/server/actions/preorder";
 import type { OrderScanPreview } from "@/server/preorder/scan";
+import { useLastDay } from "@/components/student/booking/use-last-day";
 
 /**
  * Skanerda oldindan band qilingan buyurtma (B4 uslubida, dizaynda chizilmagan): nima, nechta, kim uchun, vaqt,
@@ -13,6 +14,7 @@ import type { OrderScanPreview } from "@/server/preorder/scan";
  */
 export function OrderPreview({ order: o, at, onCancel, onDone }: { order: OrderScanPreview; at: string; onCancel: () => void; onDone: () => void }) {
   const t = useTranslations("scanner");
+  const lastDay = useLastDay();
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const complete = () =>
@@ -50,7 +52,7 @@ export function OrderPreview({ order: o, at, onCancel, onDone }: { order: OrderS
         </div>
 
         <div className="rounded-16 bg-white px-4 py-3.5">
-          <div className="text-12 text-muted">{t("order.mode." + o.mode as "order.mode.PICKUP")}</div>
+          <div className="text-12 text-muted">{o.mode ? t(`order.mode.${o.mode}`) : t(`order.kind.${o.kind}`)}</div>
           <div className="mt-0.5 flex items-baseline justify-between gap-3">
             <div className="text-20 font-extrabold">{o.title}</div>
             <div className="font-mono text-28 font-semibold" data-testid="order-quantity">
@@ -59,8 +61,8 @@ export function OrderPreview({ order: o, at, onCancel, onDone }: { order: OrderS
           </div>
           <div className="mt-3 flex flex-col gap-2 font-mono text-14">
             <div className="flex justify-between">
-              <span className="text-muted">{t("order.slot")}</span>
-              <span>{o.slot}</span>
+              <span className="text-muted">{o.validUntil ? t("order.validUntil") : t("order.slot")}</span>
+              <span data-testid="order-when">{o.validUntil ? lastDay(o.validUntil) : o.slot}</span>
             </div>
             {o.note ? (
               <div className="flex justify-between gap-3">

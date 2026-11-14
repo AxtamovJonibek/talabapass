@@ -4,18 +4,41 @@ import { useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import type { IconName } from "@/components/ui/icons";
+import { LIFT } from "@/components/ui/motion";
 import { Segmented } from "@/components/ui/segmented";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toast";
+import { BookingRules } from "@/components/student/booking/booking-sheet";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 import { formatSom } from "@/lib/format";
-import { bookingBlock, bookingDays, orderAmounts, slotsOn, type DaySchedule, type PreorderSettingsInput } from "@/lib/preorder";
+import {
+  BOOKING_KINDS,
+  bookingBlock,
+  discountSlots,
+  orderAmounts,
+  PER_STUDENT_MAX,
+  pickupWindows,
+  prepaidExpiry,
+  prepayFor,
+  quantityMax,
+  SERVICE_MINUTES,
+  STAFF_MAX,
+  VALID_DAYS_MAX,
+  windowBlock,
+  type BookingKind,
+  type DaySchedule,
+  type DiscountBooking,
+  type PreorderSettingsInput,
+} from "@/lib/preorder";
 import { formatMinute, parseMinute, toTashkent } from "@/lib/time";
-import { savePreorderSettingsAction, setDiscountPreorderAction, setPreorderPausedAction } from "@/server/actions/preorder";
-import type { OwnerPreorder } from "@/server/preorder/settings";
+import { saveDiscountBookingAction, savePreorderSettingsAction, setPreorderPausedAction } from "@/server/actions/preorder";
+import type { OwnerDiscount, OwnerPreorder } from "@/server/preorder/settings";
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
+const KIND_ICON: Record<BookingKind, IconName> = { APPOINTMENT: "cut", PREPAID_PICKUP: "book", PICKUP_WINDOW: "bowl" };
 /** "gacha" maydonida 00:00 — kun oxiri (24:00) */
 const endMinute = (value: number | null, fallback: number) => (value === 0 ? 1440 : (value ?? fallback));
 
@@ -35,9 +58,9 @@ function Block({ title, hint, children, aside }: { title: string; hint?: string;
   );
 }
 
-function NumberField({ id, label, value, onChange, min, max }: { id: string; label: string; value: number; onChange: (v: number) => void; min: number; max: number }) {
+function NumberField({ id, label, value, onChange, min, max, hint }: { id: string; label: string; value: number; onChange: (v: number) => void; min: number; max: number; hint?: string }) {
   return (
-    <Field label={label} htmlFor={id}>
+    <Field label={label} htmlFor={id} hint={hint}>
       <Input
         id={id}
         type="number"
@@ -54,10 +77,46 @@ function NumberField({ id, label, value, onChange, min, max }: { id: string; lab
   );
 }
 
+/** "14:00 dan — 20:00 gacha" (vaqt maydonlari juftligi) */
+function TimeRange({ label, from, to, onChange }: { label: string; from: number; to: number; onChange: (from: number, to: number) => void }) {
+  const t = useTranslations("preorder");
+  return (
+    <span className="grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr_auto] items-center gap-1.5 text-13 text-muted">
+      <Input
+        type="time"
+        step={900}
+        aria-label={`${label} ${t("from")}`}
+        compact
+        tight
+        mono={14}
+        className="min-w-0"
+        invalid={to <= from}
+        value={formatMinute(from)}
+        onChange={(e) => onChange(parseMinute(e.target.value) ?? from, to)}
+      />
+      {t("from")}
+      <Input
+        type="time"
+        step={900}
+        aria-label={`${label} ${t("to")}`}
+        compact
+        tight
+        mono={14}
+        className="min-w-0"
+        invalid={to <= from}
+        value={formatMinute(to % 1440)}
+        onChange={(e) => onChange(from, endMinute(parseMinute(e.target.value), to))}
+      />
+      {t("to")}
+    </span>
+  );
+}
+
 /**
- * Biznes → Sozlamalar → "Oldindan band qilish": har band yonida izoh, o'ngda (telefonda pastda) talabaga qanday
- * ko'rinishining jonli preview'i (`src/lib/preorder` dagi bir xil hisob). Chegirmalar belgisi va "Bugun qabul
- * qilmayman" — darhol saqlanadi; qolganlari "Saqlash" bilan. Dizaynda chizilmagan — mavjud primitivlardan.
+ * Biznes → Sozlamalar → "Oldindan band qilish". Umumiy qoidalar (yoqish, ish jadvali, tayyorlash vaqti, to'lov, bekor qilish,
+ * tasdiqlash) — "Saqlash" bilan; har chegirmaning rejimi (3 karta: vaqtli uchrashuv / to'lab olib ketish / olib ketish oynasi)
+ * va maydonlari — chegirma kartasidagi "Saqlash" bilan; "Bugun qabul qilmayman" — darhol. O'ngda (telefonda pastda) tanlangan
+ * chegirma talabaga qanday ko'rinishining jonli preview'i (`src/lib/preorder` dagi bir xil hisob). Dizaynda chizilmagan.
  */
 export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
   const t = useTranslations("preorder");
@@ -66,6 +125,8 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
   const [form, setForm] = useState<PreorderSettingsInput>(data.settings);
   const [paused, setPaused] = useState(data.pausedToday);
   const [discounts, setDiscounts] = useState(data.discounts);
+  const [drafts, setDrafts] = useState<Record<string, DiscountBooking>>(() => Object.fromEntries(data.discounts.map((d) => [d.id, d.booking])));
+  const [editing, setEditing] = useState<string | null>(() => (data.discounts.find((d) => d.booking.bookingMode !== "NONE") ?? data.discounts.find((d) => d.price))?.id ?? null);
   const [error, setError] = useState<string | null>(null);
   const [saving, startSaving] = useTransition();
   const set = <K extends keyof PreorderSettingsInput>(key: K, value: PreorderSettingsInput[K]) => setForm((f) => ({ ...f, [key]: value }));
@@ -74,11 +135,8 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
   const setDay = (day: number, next: DaySchedule | null) =>
     set("schedule", [...form.schedule.filter((d) => d.day !== day), ...(next ? [next] : [])].sort((a, b) => a.day - b.day));
   const rangeBad = form.schedule.some((d) => d.to <= d.from);
-  const noneMarked = form.enabled && !discounts.some((d) => d.preorder && d.price);
-  // Belgilangan chegirma soatlari jadvalga to'g'ri kelmasa — talabada tugma o'chiq turadi; egasiga shu yerda aytamiz
-  const now = new Date();
-  const config = { ...form, pausedOn: null };
-  const offHours = (d: OwnerPreorder["discounts"][number]) => d.preorder && bookingBlock(config, d.schedule, now, () => form.slotCapacity) === "hours";
+  const noneMarked = form.enabled && !discounts.some((d) => d.booking.bookingMode !== "NONE" && d.price);
+  const editingDiscount = discounts.find((d) => d.id === editing) ?? null;
 
   const save = () =>
     startSaving(async () => {
@@ -96,12 +154,6 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
     const result = await setPreorderPausedAction(next);
     if (!result.ok) setPaused(!next);
     else toast(next ? t("paused") : t("resumed"), next ? "info" : "ok");
-  };
-
-  const toggleDiscount = async (id: string, on: boolean) => {
-    setDiscounts((list) => list.map((d) => (d.id === id ? { ...d, preorder: on } : d)));
-    const result = await setDiscountPreorderAction(id, on);
-    if (!result.ok) setDiscounts((list) => list.map((d) => (d.id === id ? { ...d, preorder: !on } : d)));
   };
 
   return (
@@ -128,64 +180,52 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
             <p className="m-0 text-14 text-muted">{t("noDiscounts")}</p>
           ) : (
             <ul className="m-0 flex list-none flex-col p-0">
-              {discounts.map((d, i) => (
-                <li key={d.id} className={cn("flex min-h-13 items-center gap-3 py-2", i > 0 && "border-0 border-t border-solid border-line-soft")}>
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-15 font-semibold">{d.title}</span>
-                    <span className="font-mono text-12 text-muted">{d.price ? `${formatSom(d.price.final)} ${tt("common.currency")}` : t("noPrice")}</span>
-                    {offHours(d) ? (
-                      <span className="text-12 font-semibold text-warn" data-testid="preorder-off-hours">
-                        {t("offHours", { hours: `${formatMinute(d.schedule.fromMinute)}–${formatMinute(d.schedule.toMinute)}` })}
+              {discounts.map((d, i) => {
+                const open = editing === d.id;
+                return (
+                  <li key={d.id} className={cn("flex flex-col gap-3 py-2.5", i > 0 && "border-0 border-t border-solid border-line-soft")} data-testid="preorder-discount">
+                    <div className="flex min-h-11 items-center gap-3">
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate text-15 font-semibold">{d.title}</span>
+                        <span className="font-mono text-12 text-muted">
+                          {d.price ? `${formatSom(d.price.final)} ${tt("common.currency")}` : t("noPrice")} ·{" "}
+                          <span className={d.booking.bookingMode === "NONE" ? "" : "font-sans font-bold text-ink"}>{t(`kindShort.${d.booking.bookingMode}`)}</span>
+                        </span>
                       </span>
+                      <Button variant="outline-soft" size="sm" disabled={!d.price} aria-expanded={open} onClick={() => setEditing(open ? null : d.id)}>
+                        {open ? t("close") : t("configure")}
+                      </Button>
+                    </div>
+                    {open ? (
+                      <DiscountBookingEditor
+                        discount={d}
+                        draft={drafts[d.id] ?? d.booking}
+                        settings={form}
+                        onChange={(next) => setDrafts((all) => ({ ...all, [d.id]: next }))}
+                        onSaved={(booking) => setDiscounts((list) => list.map((x) => (x.id === d.id ? { ...x, booking } : x)))}
+                      />
                     ) : null}
-                  </span>
-                  <Switch small checked={d.preorder} disabled={!d.price} onChange={(v) => void toggleDiscount(d.id, v)} label={d.title} />
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Block>
 
-        <Block title={t("mode")} hint={t("modeHint")}>
-          <Segmented size="choice" label={t("mode")} value={form.mode} onChange={(v) => set("mode", v)} options={(["PICKUP", "DINE_IN", "BOTH"] as const).map((m) => ({ value: m, label: t(`modes.${m}`) }))} />
-        </Block>
+        <h2 className="m-0 mt-2 px-1 text-18 font-extrabold">{t("general")}</h2>
 
         <Block title={t("schedule")} hint={t("scheduleHint")}>
           <ul className="m-0 flex list-none flex-col gap-2 p-0">
             {DAYS.map((day) => {
               const row = dayRow(day);
+              const name = tt(`weekday.long.${day}`);
               return (
                 <li key={day} className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <span className="w-[92px] text-14 font-bold">{tt(`weekday.long.${day}`)}</span>
-                  <Switch small checked={Boolean(row)} onChange={(on) => setDay(day, on ? { day, from: 14 * 60, to: 20 * 60 } : null)} label={tt(`weekday.long.${day}`)} />
+                  <span className="w-[92px] text-14 font-bold">{name}</span>
+                  <Switch small checked={Boolean(row)} onChange={(on) => setDay(day, on ? { day, from: 14 * 60, to: 20 * 60 } : null)} label={name} />
                   {row ? (
-                    <span className="grid min-w-[240px] flex-1 grid-cols-[1fr_auto_1fr_auto] items-center gap-1.5 text-13 text-muted">
-                      <Input
-                        type="time"
-                        step={900}
-                        aria-label={`${tt(`weekday.long.${day}`)} ${t("from")}`}
-                        compact
-                        tight
-                        mono={14}
-                        className="min-w-0"
-                        invalid={row.to <= row.from}
-                        value={formatMinute(row.from)}
-                        onChange={(e) => setDay(day, { ...row, from: parseMinute(e.target.value) ?? row.from })}
-                      />
-                      {t("from")}
-                      <Input
-                        type="time"
-                        step={900}
-                        aria-label={`${tt(`weekday.long.${day}`)} ${t("to")}`}
-                        compact
-                        tight
-                        mono={14}
-                        className="min-w-0"
-                        invalid={row.to <= row.from}
-                        value={formatMinute(row.to % 1440)}
-                        onChange={(e) => setDay(day, { ...row, to: endMinute(parseMinute(e.target.value), row.to) })}
-                      />
-                      {t("to")}
+                    <span className="flex min-w-[240px] flex-1">
+                      <TimeRange label={name} from={row.from} to={row.to} onChange={(from, to) => setDay(day, { ...row, from, to })} />
                     </span>
                   ) : (
                     <span className="text-13 text-muted">{t("closed")}</span>
@@ -196,24 +236,13 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
           </ul>
         </Block>
 
-        <Block title={t("slotMinutes")} hint={t("slotMinutesHint")}>
-          <Segmented
-            size="choice"
-            label={t("slotMinutes")}
-            value={String(form.slotMinutes) as "15" | "30" | "60"}
-            onChange={(v) => set("slotMinutes", Number(v) as 15 | 30 | 60)}
-            options={(["15", "30", "60"] as const).map((m) => ({ value: m, label: t("minutes", { n: m }) }))}
-          />
+        <Block title={t("lead")} hint={t("leadHint")}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(160px,100%),1fr))] gap-3">
-            <NumberField id="preorder-capacity" label={t("capacity")} value={form.slotCapacity} min={1} max={500} onChange={(v) => set("slotCapacity", v)} />
-            <NumberField id="preorder-lead" label={t("lead")} value={form.leadMinutes} min={0} max={1440} onChange={(v) => set("leadMinutes", v)} />
+            <NumberField id="preorder-lead" label={t("leadMinutes")} value={form.leadMinutes} min={0} max={1440} onChange={(v) => set("leadMinutes", v)} />
           </div>
-          <p className="m-0 text-13 text-muted">
-            {t("capacityHint")} {t("leadHint")}
-          </p>
         </Block>
 
-        <Block title={t("daysAhead")}>
+        <Block title={t("daysAhead")} hint={t("daysAheadHint")}>
           <Segmented size="choice" label={t("daysAhead")} value={String(form.daysAhead) as "0" | "1"} onChange={(v) => set("daysAhead", v === "0" ? 0 : 1)} options={(["0", "1"] as const).map((d) => ({ value: d, label: t(`days.${d}`) }))} />
         </Block>
 
@@ -246,73 +275,251 @@ export function PreorderSettingsForm({ data }: { data: OwnerPreorder }) {
 
       <aside className="sticky top-5 flex min-w-0 flex-[2_1_300px] flex-col gap-2">
         <h3 className="m-0 font-mono text-11 tracking-[0.1em] text-muted uppercase">{t("preview")}</h3>
-        <StudentPreview form={form} paused={paused} sample={discounts.find((d) => d.preorder && d.price) ?? null} />
+        <StudentPreview settings={form} paused={paused} discount={editingDiscount} draft={editingDiscount ? (drafts[editingDiscount.id] ?? editingDiscount.booking) : null} />
       </aside>
     </div>
   );
 }
 
-/** Talabaning band qilish oynasi qanday ko'rinadi: usullar, kunlar, birinchi kunning slotlari, narx va qoida. */
-function StudentPreview({ form, paused, sample }: { form: PreorderSettingsInput; paused: boolean; sample: OwnerPreorder["discounts"][number] | null }) {
+/** Bir chegirmaning rejimi: 3 karta (misollar bilan), faqat tanlangan rejim maydonlari, "Saqlash". */
+function DiscountBookingEditor({
+  discount,
+  draft,
+  settings,
+  onChange,
+  onSaved,
+}: {
+  discount: OwnerDiscount;
+  draft: DiscountBooking;
+  settings: PreorderSettingsInput;
+  onChange: (next: DiscountBooking) => void;
+  onSaved: (booking: DiscountBooking) => void;
+}) {
+  const t = useTranslations("preorder");
+  const [saving, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const set = <K extends keyof DiscountBooking>(key: K, value: DiscountBooking[K]) => onChange({ ...draft, [key]: value });
+  const mode = draft.bookingMode;
+  const id = (name: string) => `${name}-${discount.id}`;
+
+  // Jadval/oyna chegirma soatlariga to'g'ri kelmasa — talabada tugma o'chiq turadi; egasiga shu yerda aytamiz
+  const now = new Date();
+  const offHours =
+    mode === "APPOINTMENT"
+      ? bookingBlock({ ...settings, slotMinutes: draft.serviceMinutes, pausedOn: null }, discount.schedule, now, () => draft.staffCount) === "hours"
+      : mode === "PICKUP_WINDOW"
+        ? windowBlock({ ...settings, pausedOn: null }, discount.schedule, { from: draft.windowFrom, to: draft.windowTo }, now, () => draft.windowCapacity) === "hours"
+        : false;
+  const hours = `${formatMinute(discount.schedule.fromMinute)}–${formatMinute(discount.schedule.toMinute % 1440)}`;
+  const keepRule = draft.expireKeepPercent === 0 ? "refund" : draft.expireKeepPercent >= 100 ? "none" : "partial";
+
+  const save = () =>
+    start(async () => {
+      setError(null);
+      const result = await saveDiscountBookingAction(discount.id, draft);
+      if (result.ok) {
+        onSaved(draft);
+        toast(t("discountSaved"));
+      } else setError(t(`discountErrors.${result.error}`));
+    });
+
+  return (
+    <div className="flex flex-col gap-3 rounded-16 bg-paper p-3" data-testid="booking-editor">
+      <div role="radiogroup" aria-label={t("kindTitle")} className="grid grid-cols-[repeat(auto-fit,minmax(min(170px,100%),1fr))] gap-2">
+        {BOOKING_KINDS.map((kind) => {
+          const selected = mode === kind;
+          return (
+            <button
+              key={kind}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => set("bookingMode", kind)}
+              className={cn("box-border flex flex-col items-start gap-1 rounded-14 border-hair bg-white px-3.5 py-3 text-left font-sans text-ink", selected ? "border-ink" : "border-line", LIFT)}
+              data-testid={`kind-${kind}`}
+            >
+              <span className="flex w-full items-center justify-between gap-2">
+                <Icon name={KIND_ICON[kind]} size={22} />
+                <span className={cn("flex size-5 items-center justify-center rounded-full border-hair", selected ? "border-ink bg-ink text-white" : "border-line")}>
+                  {selected ? <Icon name="check" size={12} strokeWidth={3} /> : null}
+                </span>
+              </span>
+              <span className="text-15 font-extrabold">{t(`kinds.${kind}.title`)}</span>
+              <span className="text-12 leading-[1.35] text-muted">{t(`kinds.${kind}.example`)}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {mode === "NONE" ? (
+        <p className="m-0 text-13 text-muted">{t("kindNone")}</p>
+      ) : (
+        <>
+          <p className="m-0 text-13 leading-[1.4] text-muted">{t(`kinds.${mode}.hint`)}</p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-3">
+            {mode === "APPOINTMENT" ? (
+              <>
+                <NumberField id={id("service")} label={t("serviceMinutes")} value={draft.serviceMinutes} min={SERVICE_MINUTES.min} max={SERVICE_MINUTES.max} onChange={(v) => set("serviceMinutes", v)} />
+                <NumberField id={id("staff")} label={t("staffCount")} value={draft.staffCount} min={1} max={STAFF_MAX} onChange={(v) => set("staffCount", v)} />
+              </>
+            ) : mode === "PREPAID_PICKUP" ? (
+              <>
+                <NumberField id={id("valid")} label={t("validDays")} value={draft.validDays} min={1} max={VALID_DAYS_MAX} onChange={(v) => set("validDays", v)} />
+                <NumberField id={id("stock")} label={t("stock")} value={draft.stock} min={0} max={100_000} onChange={(v) => set("stock", v)} />
+                <NumberField id={id("per-student")} label={t("perStudentMax")} value={draft.perStudentMax} min={1} max={PER_STUDENT_MAX} onChange={(v) => set("perStudentMax", v)} />
+              </>
+            ) : (
+              <>
+                <NumberField id={id("window-cap")} label={t("windowCapacity")} value={draft.windowCapacity} min={1} max={500} onChange={(v) => set("windowCapacity", v)} />
+                <NumberField id={id("per-student")} label={t("perStudentMax")} value={draft.perStudentMax} min={1} max={PER_STUDENT_MAX} onChange={(v) => set("perStudentMax", v)} />
+              </>
+            )}
+          </div>
+          {mode === "APPOINTMENT" ? <p className="m-0 text-13 text-muted">{t("appointmentFieldsHint")}</p> : null}
+          {mode === "PICKUP_WINDOW" ? (
+            <Field label={t("window")} hint={t("windowHint")}>
+              <span className="flex">
+                <TimeRange label={t("window")} from={draft.windowFrom} to={draft.windowTo} onChange={(from, to) => onChange({ ...draft, windowFrom: from, windowTo: to })} />
+              </span>
+            </Field>
+          ) : null}
+          {mode === "PREPAID_PICKUP" ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-13 font-bold">{t("expireRule")}</span>
+              <Segmented
+                size="choice"
+                label={t("expireRule")}
+                value={keepRule}
+                onChange={(v) => set("expireKeepPercent", v === "refund" ? 0 : v === "none" ? 100 : 50)}
+                options={(["refund", "partial", "none"] as const).map((r) => ({ value: r, label: t(`expireRules.${r}`) }))}
+              />
+              {keepRule === "partial" ? (
+                <NumberField id={id("expire-keep")} label={t("expireKeep")} value={draft.expireKeepPercent} min={1} max={99} onChange={(v) => set("expireKeepPercent", v)} />
+              ) : null}
+              <p className="m-0 text-13 text-muted">{t("expireHint")}</p>
+            </div>
+          ) : null}
+          {offHours ? (
+            <p className="m-0 rounded-12 bg-warn-bg px-3.5 py-2.5 text-13 font-semibold text-warn" data-testid="preorder-off-hours">
+              {t(mode === "APPOINTMENT" ? "offHours" : "offHoursWindow", { hours })}
+            </p>
+          ) : null}
+        </>
+      )}
+
+      {error ? (
+        <div role="alert" className="rounded-12 bg-danger-bg px-3.5 py-2.5 text-13 font-semibold text-danger">
+          {error}
+        </div>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="orange" size="md" loading={saving} onClick={save} className="flex-1" data-testid="booking-editor-save">
+          {t("discountSave")}
+        </Button>
+        {mode !== "NONE" ? (
+          <Button variant="outline-soft" size="md" onClick={() => set("bookingMode", "NONE")}>
+            {t("kindOff")}
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** Talabaning band qilish oynasi qanday ko'rinadi (tanlangan chegirma, saqlanmagan o'zgarishlar bilan). */
+function StudentPreview({ settings, paused, discount, draft }: { settings: PreorderSettingsInput; paused: boolean; discount: OwnerDiscount | null; draft: DiscountBooking | null }) {
   const t = useTranslations("booking");
   const tp = useTranslations("preorder");
   const tt = useTranslations();
+  if (!discount || !draft || draft.bookingMode === "NONE" || !discount.price) {
+    return <p className="m-0 rounded-22 border-hair border-line bg-paper p-4 text-13 text-muted">{tp("previewNone")}</p>;
+  }
+  const kind = draft.bookingMode;
   const now = new Date();
-  const config = { ...form, pausedOn: paused ? toTashkent(now).date : null };
-  const days = bookingDays(config, now);
-  const first = days[0];
-  const slots = first ? slotsOn(config, first, now) : [];
-  const unit = sample?.price ?? { original: 40_000, final: 30_000 };
-  const amounts = orderAmounts(unit, 1, { type: form.prepay, percent: form.prepayPercent });
+  const pausedOn = paused ? toTashkent(now).date : null;
+  const prepay = prepayFor(kind, settings);
+  const amounts = orderAmounts(discount.price, 1, prepay);
   const today = toTashkent(now).date.getTime();
-  const modes = form.mode === "BOTH" ? (["PICKUP", "DINE_IN"] as const) : [form.mode];
+  const dayName = (d: Date) => `${d.getTime() === today ? t("today") : t("tomorrow")} · ${tt(`weekday.short.${d.getUTCDay() === 0 ? 7 : d.getUTCDay()}` as "weekday.short.1")}`;
+  const chip = "rounded-10 bg-white px-3 py-1.5 text-13 font-bold";
+  const validUntil = prepaidExpiry(now, draft.validDays).toISOString();
 
-  return (
-    <div className={cn("flex flex-col gap-3 rounded-22 border-hair border-line bg-paper p-4", !form.enabled && "opacity-50")} aria-hidden="true">
-      <div className="mx-auto h-[5px] w-10 rounded-3 bg-line" />
-      <div className="text-18 font-extrabold">{t("title")}</div>
-      <div className="flex flex-wrap gap-1.5">
-        {modes.map((m) => (
-          <span key={m} className="rounded-10 border-hair border-line bg-white px-3 py-1.5 text-13 font-bold">
-            {t(`modes.${m}`)}
-          </span>
-        ))}
-      </div>
-      {days.length === 0 ? (
+  let body: ReactNode;
+  if (kind === "APPOINTMENT") {
+    const days = discountSlots({ ...settings, slotMinutes: draft.serviceMinutes, pausedOn }, discount.schedule, now);
+    const first = days[0];
+    body =
+      first === undefined ? (
         <p className="m-0 text-13 text-muted">{tp("previewEmpty")}</p>
       ) : (
         <>
           <div className="flex flex-wrap gap-1.5">
             {days.map((d) => (
-              <span key={d.getTime()} className="rounded-10 bg-white px-3 py-1.5 text-13 font-bold">
-                {d.getTime() === today ? t("today") : t("tomorrow")} · {tt(`weekday.short.${d.getUTCDay() === 0 ? 7 : d.getUTCDay()}` as "weekday.short.1")}
+              <span key={d.date.getTime()} className={chip}>
+                {dayName(d.date)}
               </span>
             ))}
           </div>
           <div className="grid grid-cols-4 gap-1.5">
-            {slots.slice(0, 8).map((s) => (
+            {first.slots.slice(0, 8).map((s) => (
               <span key={s.start.getTime()} className={cn("flex h-11 flex-col items-center justify-center rounded-10 border-hair font-mono text-13 font-semibold", s.late ? "border-line-soft bg-surface text-placeholder" : "border-line bg-white")}>
                 {formatMinute(toTashkent(s.start).minute)}
-                <span className="font-sans text-10 text-muted">{s.late ? t("late") : t("left", { n: form.slotCapacity })}</span>
+                <span className="font-sans text-10 text-muted">{s.late ? t("late") : t("left", { n: draft.staffCount })}</span>
               </span>
             ))}
           </div>
         </>
-      )}
+      );
+  } else if (kind === "PICKUP_WINDOW") {
+    const windows = pickupWindows({ ...settings, pausedOn }, discount.schedule, { from: draft.windowFrom, to: draft.windowTo }, now);
+    body =
+      windows.length === 0 ? (
+        <p className="m-0 text-13 text-muted">{tp("previewEmpty")}</p>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {windows.map((w) => (
+            <span key={w.start.getTime()} className={cn("flex items-center justify-between rounded-10 border-hair px-3 py-2 text-13", w.late ? "border-line-soft bg-surface text-placeholder" : "border-line bg-white")}>
+              <b>{dayName(w.date)}</b>
+              <span className="font-mono">{t("window", { from: formatMinute(draft.windowFrom), to: formatMinute(draft.windowTo % 1440) })}</span>
+            </span>
+          ))}
+        </div>
+      );
+  } else {
+    body = (
+      <div className="flex items-center justify-between rounded-10 bg-white px-3 py-2 text-13">
+        <b>{t("quantity")}</b>
+        <span className="font-mono">1 / {Math.min(quantityMax(kind, draft.perStudentMax), Math.max(draft.stock, 0))}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 rounded-22 border-hair border-line bg-paper p-4" aria-hidden="true" data-testid="booking-preview">
+      <div className="mx-auto h-[5px] w-10 rounded-3 bg-line" />
+      <div className="text-18 font-extrabold">{t(`kinds.${kind}.title`)}</div>
+      {body}
       <div className="rounded-14 bg-white px-3.5 py-3 font-mono text-13">
-        <div className="flex justify-between">
-          <span className="font-sans text-muted">{sample?.title ?? t("total")}</span>
+        <div className="flex justify-between gap-3">
+          <span className="truncate font-sans text-muted">{discount.title}</span>
           <span>{formatSom(amounts.totalFinal)}</span>
         </div>
         <div className="mt-1 flex justify-between font-sans font-bold">
-          <span>{form.prepay === "NONE" ? t("payLater") : t("payNow")}</span>
-          <span className="font-mono">{formatSom(form.prepay === "NONE" ? amounts.totalFinal : amounts.prepayAmount)}</span>
+          <span>{prepay.type === "NONE" ? t("payLater") : t("payNow")}</span>
+          <span className="font-mono">{formatSom(prepay.type === "NONE" ? amounts.totalFinal : amounts.prepayAmount)}</span>
         </div>
       </div>
-      <p className="m-0 rounded-12 bg-info-bg px-3 py-2.5 text-12 leading-[1.45]">
-        {t("freeCancel", { minutes: form.freeCancelMinutes })} {form.prepay === "NONE" ? null : form.keepPercent > 0 ? t("lateKeep", { pct: form.keepPercent }) : t("lateFree")}
-        {!form.autoConfirm ? ` ${t("manualConfirm")}` : null}
-      </p>
+      <BookingRules
+        offer={{
+          kind,
+          prepay: prepay.type,
+          freeCancelMinutes: kind === "PREPAID_PICKUP" ? 0 : settings.freeCancelMinutes,
+          keepPercent: kind === "PREPAID_PICKUP" ? draft.expireKeepPercent : settings.keepPercent,
+          autoConfirm: settings.autoConfirm,
+          prepaid: kind === "PREPAID_PICKUP" ? { validDays: draft.validDays, validUntil, stockLeft: draft.stock } : null,
+        }}
+      />
+      {!settings.enabled ? <p className="m-0 text-12 font-semibold text-warn">{tp("previewDisabled")}</p> : null}
     </div>
   );
 }

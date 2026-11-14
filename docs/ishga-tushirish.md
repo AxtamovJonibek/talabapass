@@ -62,6 +62,9 @@ To'ldirilmagan joylar (egasidan kutilmoqda, o'ylab topilmaydi): `[EMAIL]`, `[TEL
       serverida yoqiladi. Production'da provayder ulanmaguncha oldindan to'lovli band qilish yopiq ("Onlayn to'lov hozircha ulanmagan"),
       to'lovsiz bron ishlaydi. Provayder `PaymentProvider` interfeysiga (`src/lib/payments/types.ts`) ulanadi: hold → capture/cancelHold, refund,
       `verifyCallback` (callback: `POST /api/tolov/<provayder>`). Ulangach: callback imzosi, summa mosligi va idempotentlik qayta tekshirilsin.
+- [ ] **[BLOK]** Provayderning `holdMaxDays` qiymati — kartada pulni necha kun ushlab tura oladi (provayder hujjatidan). Shundan uzoq yashaydigan
+      "To'lab olib ketish" buyurtmalari to'lovdan keyin darhol yechiladi va qaytarish refund bilan bo'ladi; qiymat noto'g'ri bo'lsa hold muddatidan
+      oldin o'z-o'zidan bekor bo'lib, biznes pulni ololmasligi mumkin. Refund komissiyasi va muddati oferta matnida.
 - [ ] **[BLOK]** Bekor qilish/kelmaslik qoidasi va to'lov shartlari biznes shartnomasi va oferta matnida yozilgan (yurist).
 
 ## 5. Muhit va deploy

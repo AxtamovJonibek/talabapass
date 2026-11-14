@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 import { weekdaysLabel } from "@/lib/discount";
 import { formatSom } from "@/lib/format";
 import { formatKm } from "@/lib/geo";
-import type { BookingBlock } from "@/lib/preorder";
+import type { BookingBlock, BookingKind } from "@/lib/preorder";
 import { formatMinute, toTashkent } from "@/lib/time";
 import type { DealDetail } from "@/server/student/feed";
 import { DealHeroTag } from "../feed/feed-deal-card";
@@ -32,7 +32,7 @@ type Props = {
   initials: string;
   avatarUrl: string | null;
   claim: ClaimState;
-  booking: { phone: string; blocked: BookingBlock | null } | null;
+  booking: { phone: string; kind: BookingKind; blocked: BookingBlock | null } | null;
 };
 
 /** Ikkala ko'rinish uchun umumiy yozuvlar. */
@@ -179,7 +179,7 @@ function DealPhone({ detail, now, saved, claim, booking }: Props) {
       </div>
 
       <div className="flex flex-col gap-2 border-0 border-t border-solid border-line-soft bg-paper px-4 pt-3 pb-[30px]">
-        {booking ? <BookingButton discountId={deal.id} phone={booking.phone} blocked={booking.blocked} /> : null}
+        {booking ? <BookingButton discountId={deal.id} phone={booking.phone} kind={booking.kind} blocked={booking.blocked} /> : null}
         <PhoneClaim state={claim} />
         {/* Yopiq chegirma: kulrang tugma ostida nega — "Dushanba 12:00 ochiladi" (tugaganda xato matni o'zi chiqadi) */}
         {claim.available || claim.coupon ? (
@@ -308,9 +308,9 @@ function DealWeb({ detail, now, initials, avatarUrl, claim, booking }: Props) {
             <div className="flex flex-col gap-3 rounded-22 bg-white p-[18px]">
               <div className="flex items-center gap-2 text-15 font-bold">
                 <Icon name="clock" size={18} strokeWidth={2.2} />
-                {booking.blocked ? t("booking.title") : t("booking.available")}
+                {t(`booking.kinds.${booking.kind}.title`)}
               </div>
-              <BookingButton discountId={deal.id} phone={booking.phone} blocked={booking.blocked} />
+              <BookingButton discountId={deal.id} phone={booking.phone} kind={booking.kind} blocked={booking.blocked} />
             </div>
           ) : null}
 

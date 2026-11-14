@@ -28,32 +28,24 @@
     "COMPLETED": "Berildi",
     "REJECTED": "Rad etildi",
     "CANCELLED": "Bekor qilindi",
-    "NO_SHOW": "Kelmadi"
+    "NO_SHOW": "Kelmadi",
+    "EXPIRED": "Muddati tugadi"
   },
   "booking": {
-    "button": "Band qilish",
-    "available": "Oldindan band qilish mumkin",
-    "title": "Oldindan band qilish",
     "close": "Yopish",
     "back": "Orqaga",
     "next": "Keyingi",
     "step": "{n}/{total}",
     "loading": "Bo'sh vaqtlar yuklanmoqda…",
     "steps": {
-      "mode": "Qanday olasiz?",
       "day": "Qaysi kun?",
       "slot": "Qaysi vaqtda?",
-      "quantity": "Nechta?",
-      "contact": "Aloqa uchun telefon",
+      "details": "Tafsilotlar",
       "summary": "Hammasi to'g'rimi?"
     },
     "modes": {
       "PICKUP": "Olib ketaman",
       "DINE_IN": "Joyida yeyman"
-    },
-    "modeHints": {
-      "PICKUP": "Tayyor bo'lganda kelib olasiz",
-      "DINE_IN": "Kelganingizda joyingiz tayyor turadi"
     },
     "today": "Bugun",
     "tomorrow": "Ertaga",
@@ -61,14 +53,10 @@
     "full": "To'lgan",
     "late": "O'tgan",
     "noSlots": "Bu kunga bo'sh vaqt qolmadi.",
-    "quantity": {
-      "PICKUP": "Porsiya soni",
-      "DINE_IN": "Odam soni"
-    },
+    "quantity": "Soni",
     "less": "Kamaytirish",
     "more": "Ko'paytirish",
     "note": "Izoh (ixtiyoriy)",
-    "notePlaceholder": "Masalan: achchiq bo'lmasin",
     "phone": "Telefon raqam",
     "phoneHint": "Kerak bo'lsa, biznes shu raqamga qo'ng'iroq qiladi.",
     "summaryWhen": "{day}, {time}",
@@ -90,24 +78,61 @@
       "paused": "Biznes bugun oldindan buyurtma qabul qilmayapti.",
       "hours": "Chegirma amal qiladigan soatlarda band qilish vaqti yo'q.",
       "closed": "Hozircha band qilish yopiq.",
-      "payment": "Onlayn to'lov hozircha ishlamayapti — band qilib bo'lmaydi."
+      "payment": "Onlayn to'lov hozircha ishlamayapti — band qilib bo'lmaydi.",
+      "soldOut": "Zaxira tugadi.",
+      "limit": "Siz bu chegirmadan eng ko'p miqdorni olib bo'lgansiz."
     },
     "errors": {
       "invalid": "Ma'lumotlarni tekshiring.",
       "notAvailable": "Bu chegirmani hozir band qilib bo'lmaydi.",
-      "mode": "Bu usul mavjud emas.",
       "slot": "Bu vaqt endi mavjud emas — boshqasini tanlang.",
       "slotFull": "Bu vaqt hozirgina to'ldi — boshqasini tanlang.",
       "phone": "Telefon raqamni to'g'ri kiriting.",
       "tooMany": "Sizda 3 ta ochiq buyurtma bor. Avval ularni yakunlang.",
       "paymentUnavailable": "Onlayn to'lov hozircha ulanmagan.",
-      "loadFailed": "Yuklab bo'lmadi. Qayta urining."
-    }
+      "loadFailed": "Yuklab bo'lmadi. Qayta urining.",
+      "soldOut": "Zaxira tugadi.",
+      "quantity": "Bu miqdorni band qilib bo'lmaydi.",
+      "limit": "Siz bu chegirmadan eng ko'p miqdorni olgansiz."
+    },
+    "kinds": {
+      "APPOINTMENT": {
+        "button": "Vaqt band qilish",
+        "title": "Vaqt band qilish",
+        "short": "Vaqtli uchrashuv",
+        "notePlaceholder": "Masalan: soqolni ham olish kerak"
+      },
+      "PREPAID_PICKUP": {
+        "button": "Oldindan to'lash",
+        "title": "Oldindan to'lash",
+        "short": "To'lab olib ketish",
+        "notePlaceholder": "Masalan: o'lchami M"
+      },
+      "PICKUP_WINDOW": {
+        "button": "Olib ketishga buyurtma",
+        "title": "Olib ketishga buyurtma",
+        "short": "Olib ketish oynasi",
+        "notePlaceholder": "Masalan: achchiq bo'lmasin"
+      }
+    },
+    "leftTimes": "{n} ta bo'sh vaqt",
+    "leftPieces": "{n} ta qoldi",
+    "window": "{from}–{to}",
+    "windowLate": "Vaqt o'tdi",
+    "perStudent": "Bir talabaga {n} tagacha",
+    "summaryWindow": "{day}, {time} oralig'ida olib ketasiz",
+    "summaryPrepaid": "{date} gacha ({days} kun) istalgan kuni olib ketasiz",
+    "prepaidHours": "Ish vaqtida keling: {hours}",
+    "prepaidUntil": "To'lovdan keyin {date} gacha olib keting.",
+    "expireRefund": "Muddatda kelmasangiz yoki bekor qilsangiz — pul to'liq qaytadi.",
+    "expireNoRefund": "Muddatda kelmasangiz yoki bekor qilsangiz — pul qaytarilmaydi.",
+    "expireKeep": "Muddatda kelmasangiz yoki bekor qilsangiz — to'lovning {pct}% biznesda qoladi, qolgani qaytadi.",
+    "lateKeepWindow": "Kechroq bekor qilsangiz yoki oyna tugaguncha kelmasangiz, oldindan to'lovning {pct}% biznesda qoladi."
   },
   "orders": {
     "title": "Mening buyurtmalarim",
     "empty": "Hali buyurtma yo'q",
-    "emptyHint": "Chegirma sahifasida “Band qilish” tugmasini bosing.",
+    "emptyHint": "Chegirma sahifasida band qilish tugmasini bosing.",
     "browse": "Chegirmalarga",
     "back": "Buyurtmalar",
     "code": "Buyurtma kodi",
@@ -115,7 +140,6 @@
     "totp": "6 raqamli kod",
     "refreshIn": "{s} s da yangilanadi",
     "when": "Vaqt",
-    "mode": "Usul",
     "quantity": "Soni",
     "note": "Izoh",
     "phone": "Telefon",
@@ -143,7 +167,8 @@
       "paymentFailed": "To'lov rad etildi",
       "student": "Siz bekor qildingiz",
       "auto": "Avtomatik tasdiqlandi",
-      "noShow": "Vaqt tugadi"
+      "noShow": "Vaqt tugadi",
+      "expired": "Muddat tugadi"
     },
     "statusNote": {
       "PENDING_PAYMENT": "To'lov tugatilgach buyurtma biznesga ketadi.",
@@ -153,9 +178,11 @@
       "COMPLETED": "Buyurtma berildi.",
       "REJECTED": "Biznes rad etdi — to'lov to'liq qaytariladi.",
       "CANCELLED": "Buyurtma bekor qilindi.",
-      "NO_SHOW": "Vaqt tugadi, buyurtma olib ketilmadi."
+      "NO_SHOW": "Vaqt tugadi, buyurtma olib ketilmadi.",
+      "EXPIRED": "Muddat ichida olib ketilmadi — qoidaga ko'ra hisoblandi."
     },
     "notify": {
+      "until": "{date} gacha",
       "student": {
         "PENDING_PAYMENT": {
           "title": "To'lov kutilmoqda",
@@ -188,6 +215,14 @@
         "NO_SHOW": {
           "title": "Buyurtma olib ketilmadi",
           "body": "{business}: {title} ({time}) — vaqt tugadi, qoidaga ko'ra hisoblandi."
+        },
+        "EXPIRED": {
+          "title": "Muddat tugadi",
+          "body": "{business}: {title} — muddat ichida olib ketilmadi, qoidaga ko'ra hisoblandi."
+        },
+        "reminder": {
+          "title": "Olib ketish muddati tugayapti",
+          "body": "{business}: {title} × {n} — {days} kun qoldi ({until} gacha)."
         }
       },
       "business": {
@@ -222,9 +257,17 @@
         "NO_SHOW": {
           "title": "Talaba kelmadi",
           "body": "{student}: {title} × {n}, {time}."
+        },
+        "EXPIRED": {
+          "title": "Muddat tugadi",
+          "body": "{student}: {title} × {n} olib ketilmadi."
         }
       }
-    }
+    },
+    "kind": "Turi",
+    "pickupHours": "Olib ketish vaqti",
+    "validUntil": "{date} gacha",
+    "cancelKeepPrepaid": "{keep} so'm biznesda qoladi (chegirma qoidasi: {pct}%)."
   },
   "preorder": {
     "title": "Sozlamalar",
@@ -237,32 +280,20 @@
     "pauseHint": "Faqat bugungi yangi buyurtmalar to'xtaydi; ertaga o'zi qayta ochiladi.",
     "paused": "Bugun yangi buyurtma olinmaydi",
     "resumed": "Buyurtmalar qayta ochildi",
-    "mode": "Qanday beriladi",
-    "modeHint": "Talaba shulardan birini tanlaydi.",
-    "modes": {
-      "PICKUP": "Olib ketish",
-      "DINE_IN": "Joyida",
-      "BOTH": "Ikkalasi"
-    },
-    "schedule": "Ish kunlari va vaqti",
-    "scheduleHint": "Har kun uchun alohida. Belgilanmagan kunda band qilib bo'lmaydi.",
+    "schedule": "Ish jadvali",
+    "scheduleHint": "Vaqtli uchrashuv slotlari shu oraliqda. Belgilanmagan kunda uchrashuv band qilinmaydi.",
     "from": "dan",
     "to": "gacha",
     "closed": "Yopiq",
-    "slotMinutes": "Slot uzunligi",
-    "slotMinutesHint": "Talaba shu oraliqlardan birini tanlaydi: 14:00–14:30, 14:30–15:00…",
-    "minutes": "{n} daq",
-    "capacity": "Bitta slotga buyurtma",
-    "capacityHint": "Slot to'lsa talabaga “To'lgan” deb ko'rinadi.",
-    "lead": "Tayyorlash vaqti, daqiqa",
-    "leadHint": "Slot boshlanishidan kamida shuncha oldin band qilinadi.",
+    "lead": "Tayyorlash vaqti",
+    "leadHint": "Uchrashuv boshlanishidan (yoki olib ketish oynasi tugashidan) kamida shuncha oldin band qilinadi.",
     "daysAhead": "Qachongacha band qilinadi",
     "days": {
       "0": "Faqat bugun",
       "1": "Bugun va ertaga"
     },
     "prepay": "To'lov",
-    "prepayHint": "Qisman — talaba ulushni oldindan, qolganini joyida to'laydi.",
+    "prepayHint": "Qisman — talaba ulushni oldindan, qolganini joyida to'laydi. “To'lab olib ketish”da doim to'liq.",
     "prepayTypes": {
       "FULL": "To'liq oldindan",
       "PARTIAL": "Qisman",
@@ -279,14 +310,14 @@
       "auto": "Avtomatik",
       "manual": "Qo'lda"
     },
-    "discounts": "Qaysi chegirmalar band qilinadi",
-    "discountsHint": "Belgilangan chegirmada talabaga “Band qilish” chiqadi. Faqat narxi aniq chegirmalar.",
+    "discounts": "Chegirmalar va band qilish turi",
+    "discountsHint": "Har chegirma uchun turini tanlang — talabaga shunga mos tugma chiqadi. Faqat narxi aniq chegirmalar.",
     "noDiscounts": "Hali chegirma yo'q.",
     "noPrice": "Narxi aniq emas",
-    "noneMarked": "Hech bir chegirma belgilanmagan — talabalar “Band qilish” tugmasini ko'rmaydi. Quyidan kamida bittasini yoqing.",
-    "offHours": "Chegirma soatlari ({hours}) band qilish jadvaliga to'g'ri kelmaydi — talabaga tugma o'chiq ko'rinadi.",
+    "noneMarked": "Hech bir chegirmada band qilish turi tanlanmagan — talabalar tugmani ko'rmaydi. Chegirmani “Sozlash” orqali yoqing.",
+    "offHours": "Chegirma soatlari ({hours}) ish jadvaliga to'g'ri kelmaydi — talabaga tugma o'chiq ko'rinadi.",
     "preview": "Talabaga shunday ko'rinadi",
-    "previewEmpty": "Jadvalda kun belgilanmagan.",
+    "previewEmpty": "Bugun va ertaga mos vaqt yo'q.",
     "save": "Saqlash",
     "saved": "Sozlamalar saqlandi",
     "errors": {
@@ -294,7 +325,65 @@
       "noSchedule": "Kamida bitta kunni belgilang.",
       "noBusiness": "Biznes topilmadi.",
       "range": "“gacha” vaqti “dan” dan keyin bo'lsin."
-    }
+    },
+    "offHoursWindow": "Olib ketish oynasi chegirma soatlari ({hours}) ichida emas — talabaga tugma o'chiq ko'rinadi.",
+    "kindShort": {
+      "NONE": "Band qilinmaydi",
+      "APPOINTMENT": "Vaqtli uchrashuv",
+      "PREPAID_PICKUP": "To'lab olib ketish",
+      "PICKUP_WINDOW": "Olib ketish oynasi"
+    },
+    "configure": "Sozlash",
+    "close": "Yopish",
+    "kindTitle": "Band qilish turi",
+    "kinds": {
+      "APPOINTMENT": {
+        "title": "Vaqtli uchrashuv",
+        "example": "Sartarosh, shifoxona, salon, stol",
+        "hint": "Talaba kun va vaqtni tanlaydi. Slot uzunligi — xizmat davomiyligi; bir vaqtga mutaxassislar sonicha buyurtma olinadi."
+      },
+      "PREPAID_PICKUP": {
+        "title": "To'lab olib ketish",
+        "example": "Kitob, kiyim, mahsulot",
+        "hint": "Talaba oldindan to'liq to'laydi va muddat ichida ish vaqtida kelib oladi. Zaxira har buyurtmada kamayadi."
+      },
+      "PICKUP_WINDOW": {
+        "title": "Olib ketish oynasi",
+        "example": "Ovqat (masalan 14:00–20:00)",
+        "hint": "Talaba bugun yoki ertaga uchun buyurtma beradi va oyna ichida istalgan paytda olib ketadi. Vaqt tanlanmaydi."
+      }
+    },
+    "kindNone": "Bu chegirmani band qilib bo'lmaydi. Yuqoridan turini tanlang.",
+    "kindOff": "O'chirish",
+    "serviceMinutes": "Xizmat davomiyligi, daqiqa",
+    "staffCount": "Mutaxassislar soni",
+    "appointmentFieldsHint": "Masalan: 45 daqiqa va 3 ta usta — har 45 daqiqada 3 ta mijoz.",
+    "validDays": "Amal qilish muddati, kun",
+    "stock": "Zaxira, dona",
+    "perStudentMax": "Bir talabaga, dona",
+    "windowCapacity": "Kunlik son, dona",
+    "window": "Olib ketish oynasi",
+    "windowHint": "chegirma soatlari ichida",
+    "expireRule": "Muddat o'tsa yoki talaba bekor qilsa",
+    "expireRules": {
+      "refund": "To'liq qaytadi",
+      "partial": "Qismi qoladi",
+      "none": "Qaytmaydi"
+    },
+    "expireKeep": "Sizda qoladigan ulush, %",
+    "expireHint": "Muddat tugashiga 2 va 1 kun qolganda talabaga eslatma boradi; muddat o'tsa tizim o'zi hisob-kitob qiladi.",
+    "discountSave": "Saqlash",
+    "discountSaved": "Band qilish turi saqlandi",
+    "discountErrors": {
+      "notFound": "Chegirma topilmadi.",
+      "invalid": "Qiymatlarni tekshiring.",
+      "noPrice": "Narxi aniq bo'lmagan chegirmani band qilib bo'lmaydi."
+    },
+    "general": "Umumiy qoidalar",
+    "leadMinutes": "Daqiqa",
+    "daysAheadHint": "Vaqtli uchrashuv va olib ketish oynasi uchun.",
+    "previewNone": "Chegirmada band qilish turini tanlang — talabaga qanday ko'rinishi shu yerda chiqadi.",
+    "previewDisabled": "Oldindan band qilish hozir o'chiq — talabalar ko'rmaydi."
   },
   "businessOrders": {
     "title": "Buyurtmalar",
@@ -2130,7 +2219,13 @@
       "nothingDue": "To'liq to'langan — pul olinmaydi",
       "complete": "Berildi",
       "done": "Buyurtma berildi",
-      "doneHint": "Talabaga xabar yuborildi, to'lov yakunlandi."
+      "doneHint": "Talabaga xabar yuborildi, to'lov yakunlandi.",
+      "kind": {
+        "APPOINTMENT": "Vaqtli uchrashuv",
+        "PREPAID_PICKUP": "To'lab olib ketish",
+        "PICKUP_WINDOW": "Olib ketish oynasi"
+      },
+      "validUntil": "Olib ketish muddati"
     }
   },
   "history": {

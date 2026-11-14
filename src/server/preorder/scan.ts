@@ -1,7 +1,7 @@
 import "server-only";
 import { formatMinute, toTashkent } from "@/lib/time";
 import { normalizeCouponCode, parseQr, verifyCode, verifyQr } from "@/lib/totp";
-import { ORDER_CODE_RE } from "@/lib/preorder";
+import { ORDER_CODE_RE, type BookingKind } from "@/lib/preorder";
 import type { ScanResult } from "@/generated/prisma/client";
 import { decryptSecret } from "../coupons/coupons";
 import { checkTicket, signTicket, type Scanner } from "../coupons/scan";
@@ -20,9 +20,12 @@ export type OrderScanPreview = {
   ticket: string;
   title: string;
   quantity: number;
-  mode: "PICKUP" | "DINE_IN";
-  /** "14:00–14:30" */
+  kind: BookingKind;
+  mode: "PICKUP" | "DINE_IN" | null;
+  /** "14:00–14:30" (uchrashuv, oyna) */
   slot: string;
+  /** To'lab olib ketish: muddat oxiri (ISO) */
+  validUntil: string | null;
   student: { name: string; initials: string; phone: string };
   note: string | null;
   prepayAmount: number;
@@ -54,7 +57,7 @@ export async function scanOrder(scanner: Scanner, input: { qr: string } | { code
   const order = await db.order.findUnique({
     where: { code },
     select: {
-      id: true, code: true, businessId: true, status: true, secret: true, title: true, quantity: true, mode: true, slotStart: true, slotEnd: true,
+      id: true, code: true, businessId: true, status: true, secret: true, title: true, quantity: true, kind: true, mode: true, slotStart: true, slotEnd: true,
       note: true, phone: true, prepayAmount: true, totalFinal: true, student: { select: { firstName: true, lastName: true } },
     },
   });
@@ -86,8 +89,10 @@ export async function scanOrder(scanner: Scanner, input: { qr: string } | { code
       ticket: signTicket(order.id, scanner, nowMs),
       title: order.title,
       quantity: order.quantity,
+      kind: order.kind as BookingKind,
       mode: order.mode,
       slot: `${minute(order.slotStart)}–${minute(order.slotEnd)}`,
+      validUntil: order.kind === "PREPAID_PICKUP" ? order.slotEnd.toISOString() : null,
       student: { name: [first, last].filter(Boolean).join(" "), initials: `${first.charAt(0)}${last.charAt(0)}`.toUpperCase(), phone: order.phone },
       note: order.note,
       prepayAmount: order.prepayAmount,

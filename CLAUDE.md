@@ -457,35 +457,49 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   maslahati yo'q (muddat sozlanmaydi); yon panelda biznes kartasi va "Kassa ilovasi" bloki yo'q; "Skaner" bandi qo'shilgan.
 
 ## Oldindan band qilish (buyurtma) va to'lov
-- Biznes yoqadi: `/biznes/sozlamalar` (Sozlamalar → "Oldindan band qilish", jonli preview) — rejim, har kun uchun oraliq, slot 15/30/60 va sig'im,
-  tayyorlash vaqti, bugun/ertaga, to'lov (to'liq/qisman %/to'lovsiz), bepul bekor qilish muddati va kech bekor/kelmaslikda qoladigan %, avto/qo'lda
-  tasdiq, "Bugun qabul qilmayman" (`pausedOn`), chegirmalarda "Oldindan band qilish mumkin" (`Discount.preorder`, faqat narxi aniq chegirma, tekshiruvsiz).
-  Tugma `bookingAvailability` (`settings.ts`) dan: sozlama yo'q/o'chiq, chegirma belgilanmagan yoki narxsiz — umuman chiqmaydi (null); qolganida
-  tugma bor, hozir band qilib bo'lmasa o'chiq + sababi (`BookingBlock`: `full` bo'sh slot yo'q, `paused`, `hours` jadval chegirma soatlariga
-  to'g'ri kelmaydi, `closed`, `payment` provayder yo'q) — jimgina yashirilmaydi. Slot chegirma oralig'i ichida bo'lishi shart (`slotInDiscount`:
-  kun, muddat, soat, yarim tundan o'tish; `discountSlots`). Sozlamalarda egasiga: hech bir chegirma belgilanmagan / chegirma soatlari jadvalga mos emas.
-- Qoidalar bitta joyda: `src/lib/preorder.ts` — holat mashinasi `ORDER_TRANSITIONS` (kim, qaysi holatga, qaysidan), slotlar, narx, `settlement`
-  (bekor qilish/kelmaslik puli). Server: `src/server/preorder/` — `orders.ts` (`transitionOrder` — yagona o'tish joyi: shartli UPDATE + `OrderEvent`
-  vaqt chizig'i + `AuditLog` + slot joyini bo'shatish bitta tranzaksiyada, keyin pul va xabarnoma), `settings.ts`, `views.ts`, `scan.ts`, `payments.ts`, `notify.ts`.
-- Holatlar: `PENDING_PAYMENT → PAID → CONFIRMED → READY → COMPLETED`; yon: `REJECTED`, `CANCELLED`, `NO_SHOW`. Holatni hech qachon to'g'ridan-to'g'ri
-  `update` qilmang — faqat `transitionOrder`.
-- Slot sig'imi atom: `PreorderSlot` ga `INSERT … ON CONFLICT DO UPDATE SET booked = booked + 1 WHERE booked < sig'im`; bekor/rad — `booked − 1` o'tish
-  tranzaksiyasida (bir marta). Narx va qoidalar buyurtmada snapshot.
+- **Rejim chegirmada** (`Discount.bookingMode`, tekshiruvsiz, faqat narxi aniq chegirma; `saveDiscountBooking`, audit `discount.booking` oldin→keyin):
+  `APPOINTMENT` — vaqtli uchrashuv (sartarosh, shifoxona, stol): slot uzunligi = `serviceMinutes`, bir slotga `staffCount` (1–20) buyurtma, biznes ish jadvali;
+  `PREPAID_PICKUP` — to'lab, muddat ichida (`validDays` 1–60) ish vaqtida olib ketish: zaxira `stock` (atom kamayadi), `perStudentMax`, muddat o'tsa/bekor
+  qilinsa `expireKeepPercent` (0 — to'liq qaytadi, 100 — qaytmaydi), oldindan to'lov doim to'liq; `PICKUP_WINDOW` — bugun/ertaga kunlik oyna
+  (`windowFrom/To`, chegirma soatlari ichida), kunlik son `windowCapacity` (dona), slot tanlanmaydi. `NONE` — tugma yo'q.
+- **Biznesda umumiy** (`/biznes/sozlamalar`, `PreorderSettings`): yoqish kaliti, ish jadvali (uchrashuv slotlari), tayyorlash vaqti (uchrashuv boshidan /
+  oyna oxiridan oldin), bugun/ertaga, to'lov (to'liq/qisman %/to'lovsiz — uchrashuv va oyna uchun), bepul bekor qilish muddati va kech bekor/kelmaslik %,
+  avto/qo'lda tasdiq, "Bugun qabul qilmayman" (`pausedOn`). Sahifada har chegirma kartasi: 3 rejim kartasi (misollar bilan), faqat tanlangan rejim
+  maydonlari, jonli preview (tanlangan chegirma, saqlanmagan o'zgarishlar bilan). Migratsiya: eski belgilangan chegirmalar `APPOINTMENT` (slot va sig'im
+  biznes sozlamasidan), eski buyurtmalar `kind = APPOINTMENT`, `Order.mode` (olib ketish/joyida) faqat eskilarida.
+- Tugma `bookingAvailability` (`settings.ts`) dan: sozlama o'chiq, rejim `NONE` yoki narxsiz — umuman chiqmaydi (null); qolganida tugma (matni rejimga
+  qarab: "Vaqt band qilish" / "Oldindan to'lash" / "Olib ketishga buyurtma"), hozir band qilib bo'lmasa o'chiq + sababi (`BookingBlock`: `full`, `paused`,
+  `hours` jadval/oyna chegirma soatlariga to'g'ri kelmaydi, `closed`, `payment` provayder yo'q, `soldOut` zaxira tugagan, `limit` talaba chegarasi) —
+  jimgina yashirilmaydi. Slot/oyna chegirma oralig'i ichida bo'lishi shart (`slotInDiscount`: kun, muddat, soat, yarim tundan o'tish).
+- Qoidalar bitta joyda: `src/lib/preorder.ts` — holat mashinasi `ORDER_TRANSITIONS` (kim, qaysi holatga, qaysidan) + rejimga xos holatlar (`KIND_ONLY`:
+  `NO_SHOW` — uchrashuv/oyna, `EXPIRED` — to'lab olib ketish), slotlar (`discountSlots`), oynalar (`pickupWindows`), muddat (`prepaidExpiry`), narx,
+  `settlement`/`expiredSettlement`, sig'im qaytishi (`releasesCapacity`, `capacityUnits`). Server: `src/server/preorder/` — `orders.ts` (`transitionOrder` — yagona
+  o'tish joyi: shartli UPDATE + `OrderEvent` vaqt chizig'i + `AuditLog` + sig'im/zaxira qaytishi bitta tranzaksiyada, keyin pul va xabarnoma), `settings.ts`,
+  `views.ts`, `scan.ts`, `payments.ts`, `notify.ts`.
+- Holatlar: `PENDING_PAYMENT → PAID → CONFIRMED → READY → COMPLETED`; yon: `REJECTED`, `CANCELLED`, `NO_SHOW`, `EXPIRED` ("Muddati tugadi"). Holatni hech
+  qachon to'g'ridan-to'g'ri `update` qilmang — faqat `transitionOrder`.
+- Sig'im atom, bitta SQL: slot/oyna — `BookingSeat (discountId, startsAt)` ga `INSERT … ON CONFLICT DO UPDATE SET booked = booked + n WHERE booked + n <= sig'im`
+  (uchrashuv n = 1, oyna n = dona); zaxira — `UPDATE "Discount" SET stock = stock - n WHERE stock >= n`. Bekor/rad (zaxira — muddati o'tganda ham) — o'tish
+  tranzaksiyasida qaytadi (bir marta). Narx va qoidalar buyurtmada snapshot (to'lab olib ketishda `freeCancelMinutes = 0`, `keepPercent = expireKeepPercent`).
+- Pul: `PaymentProvider.holdMaxDays` (ixtiyoriy xususiyat, metodlar o'zgarmagan; soxta — 3 kun). Buyurtma shundan uzoq yashasa (uzoq muddatli to'lab olib
+  ketish) — to'lov kelishi bilan darhol capture (`captureIfLongLived`), qaytarish refund; aks holda hold (uchrashuv, oyna, qisqa muddat).
 - To'lov: `src/lib/payments/` — `PaymentProvider` (createPayment, hold, capture, cancelHold, refund, verifyCallback, getStatus); hozir faqat SOXTA
   `MockProvider` (`devShortcutsAllowed` — lokal va sinov serveri), to'lov sahifasi `/test-tolov/<paymentId>` ("Muvaffaqiyatli"/"Rad etildi").
   Callback `POST /api/tolov/<provayder>` (imzo, `PaymentLog` ga xom yozuv, idempotent). Model: to'lov ushlanadi (HELD), berilganda yechiladi;
   bekor/kelmaslikda qoidaga ko'ra qismi yechiladi, qolgani bo'shatiladi. Production'da provayder yo'q — to'lovli band qilish yopiq.
-- Talaba: T5/WT3 da "Band qilish" → `BookingButton` (`student/booking/booking-sheet.tsx`, `BottomSheet`, 6 bosqich) → to'lov → `/buyurtmalar/<id>`
+- Talaba: T5/WT3 da band qilish tugmasi → `BookingButton` (`student/booking/booking-sheet.tsx`, `BottomSheet`; bosqichlar rejimga qarab — uchrashuv: kun → vaqt → tafsilot → yakun, oyna: kun → tafsilot → yakun, to'lab olib ketish: tafsilot → yakun; muddat va qaytarish qoidasi yakunda, to'lovdan oldin) → to'lov → `/buyurtmalar/<id>`
   (vaqt chizig'i, QR — kupon kabi TOTP, `TB-` kodi; bekor qilishda qaytadigan summa oldindan; 5 s da yangilanadi). Ro'yxat `/buyurtmalar` (profil menyusida).
 - Biznes: `/biznes/buyurtmalar` — jonli ro'yxat `GET /api/biznes/buyurtmalar?holat=` (server action emas: action'lar navbatda bajariladi va 5 s so'rov
   bosishlarni ushlab qoladi), yangi buyurtmada ovoz (WebAudio) va belgi, Qabul/Rad (sabab)/Tayyor, bugungi hisobot. Kassir: mavjud skaner `TB-` QR'ni
   taniydi (`scanAction` → `scanOrder`), tafsilot va "Berildi" → BERILDI + capture. Buyurtma sahifalari `BusinessShell phoneTab` / `OrdersFrame` bilan
   bir marta chiziladi (PhoneOrWeb emas — polling ikki nusxa bo'lmasin); `@container` ichida pastki nav `sticky` (fixed konteynerga bog'lanadi).
-- Avtomatika: `runOrderAutomation` — to'lanmagan 15 daq, qo'lda tasdiq 10 daq → bekor (pul qaytadi), slot tugab 15 daq → `NO_SHOW`. Cron
-  `/api/cron/buyurtmalar` (GitHub Actions `orders`), sahifalarda lazy.
+- Avtomatika: `runOrderAutomation` — to'lanmagan 15 daq, qo'lda tasdiq 10 daq → bekor (pul qaytadi), slot/oyna tugab 15 daq → `NO_SHOW`, to'lab olib
+  ketish muddati o'tsa → `EXPIRED` (qoidaga ko'ra yechiladi/qaytadi, zaxira qaytadi), muddat tugashiga 2 va 1 kun qolganda eslatma (`Order.reminders`, har biri
+  bir marta). Cron `/api/cron/buyurtmalar` (GitHub Actions `orders`), sahifalarda lazy.
 - Xabarnomalar: har o'zgarishda ilova ichi + push + Telegram (`User.telegramChatId` va `TELEGRAM_BOT_TOKEN` bo'lsa; Telegram kirishi hali yo'q).
   O'zi qilgan o'zgarish haqida xabar yo'q (`recipientsFor`).
-- Testlar: `src/lib/preorder.test.ts`, `src/server/preorder/preorder.itest.ts` (20 parallel → 10, o'tishlar, pul, cron, kassir), `e2e/preorder.spec.ts`.
+- Testlar: `src/lib/preorder.test.ts`, `src/server/preorder/preorder.itest.ts` (20 parallel → 10, davomiylik = slot, mutaxassislar = sig'im, zaxira 5 / 12 parallel → 5,
+  muddat o'tgach refund, eslatmalar, oyna, o'tishlar, pul, cron, kassir), `e2e/preorder.spec.ts` (uch rejimning to'liq oqimi, rejimni UI'da tanlash, sabablar).
 - Dizaynda chizilmagan (hammasi mavjud primitivlardan): band qilish oynasi, buyurtmalar sahifalari, biznes buyurtmalar paneli va sozlamalari,
   test to'lov sahifasi, skanerdagi buyurtma tafsiloti; biznes pastki navigatsiyasiga "Buyurtmalar", yon panelga "Buyurtmalar" va "Sozlamalar" qo'shilgan.
 

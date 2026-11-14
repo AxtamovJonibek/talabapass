@@ -29,9 +29,17 @@ export function recipientsFor(from: OrderStatus, to: OrderStatus, by: OrderActor
 }
 
 export async function notifyOrder(orderId: string, from: OrderStatus, to: OrderStatus, by: OrderActor, actorId: string | null): Promise<void> {
+  const targets = recipientsFor(from, to, by);
+  if (targets.length > 0) await deliver(orderId, targets, to, actorId);
+}
+
+/** To'lab olib ketish: "muddat tugashiga N kun qoldi" — faqat talabaga. */
+export async function notifyOrderReminder(orderId: string, days: number): Promise<void> {
+  await deliver(orderId, ["student"], "reminder", null, { days });
+}
+
+async function deliver(orderId: string, targets: Target[], key: OrderStatus | "reminder", actorId: string | null, extra: { days?: number } = {}): Promise<void> {
   try {
-    const targets = recipientsFor(from, to, by);
-    if (targets.length === 0) return;
     const order = await db.order.findUnique({
       where: { id: orderId },
       select: {
@@ -39,6 +47,8 @@ export async function notifyOrder(orderId: string, from: OrderStatus, to: OrderS
         title: true,
         quantity: true,
         slotStart: true,
+        slotEnd: true,
+        kind: true,
         rejectReason: true,
         studentId: true,
         student: { select: { firstName: true, telegramChatId: true, status: true } },
@@ -48,13 +58,19 @@ export async function notifyOrder(orderId: string, from: OrderStatus, to: OrderS
     if (!order) return;
     const t = createTranslator({ locale: "uz", messages, namespace: "orders.notify" });
     const slot = toTashkent(order.slotStart);
+    // To'lab olib ketish muddatining oxirgi kuni (slotEnd — keyingi kunning yarim tuni)
+    const last = new Date(toTashkent(order.slotEnd).date.getTime() - 86_400_000);
+    const until = `${last.getUTCDate()}.${String(last.getUTCMonth() + 1).padStart(2, "0")}`;
     const params = {
       title: order.title,
       business: order.business.name,
       student: order.student.firstName ?? "",
       n: order.quantity,
-      time: formatMinute(slot.minute),
+      // To'lab olib ketishda aniq vaqt yo'q — muddat ("20.11 gacha")
+      time: order.kind === "PREPAID_PICKUP" ? t("until", { date: until }) : formatMinute(slot.minute),
       reason: order.rejectReason ?? "",
+      days: extra.days ?? 0,
+      until,
     };
     const now = new Date();
 
@@ -62,8 +78,8 @@ export async function notifyOrder(orderId: string, from: OrderStatus, to: OrderS
       const userId = target === "student" ? order.studentId : order.business.ownerId;
       const user = target === "student" ? order.student : order.business.owner;
       if (user.status !== "ACTIVE") continue;
-      const title = clip(t(`${target}.${to}.title`, params), TITLE_MAX);
-      const body = clip(t(`${target}.${to}.body`, params), BODY_MAX);
+      const title = clip(t(`${target}.${key}.title` as "student.PAID.title", params), TITLE_MAX);
+      const body = clip(t(`${target}.${key}.body` as "student.PAID.body", params), BODY_MAX);
       const href = target === "student" ? `/buyurtmalar/${order.id}` : `/biznes/buyurtmalar`;
       const notification = await db.notification.create({
         data: {
@@ -87,6 +103,6 @@ export async function notifyOrder(orderId: string, from: OrderStatus, to: OrderS
       ]);
     }
   } catch (error) {
-    console.error("[notifyOrder] xabar yuborilmadi:", orderId, to, error);
+    console.error("[notifyOrder] xabar yuborilmadi:", orderId, key, error);
   }
 }

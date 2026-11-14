@@ -1,5 +1,5 @@
 import "server-only";
-import { ORDER_FILTERS, settlement, freeCancelUntil, type OrderFilter, type OrderStatus } from "@/lib/preorder";
+import { ORDER_FILTERS, settlement, freeCancelUntil, type BookingKind, type OrderFilter, type OrderStatus } from "@/lib/preorder";
 import { toTashkent, fromTashkent } from "@/lib/time";
 import { toBase64Url } from "@/lib/totp";
 import { decryptSecret } from "../coupons/coupons";
@@ -16,7 +16,9 @@ export type StudentOrderRow = {
   status: OrderStatus;
   title: string;
   businessName: string;
-  mode: "PICKUP" | "DINE_IN";
+  kind: BookingKind;
+  /** Faqat eski buyurtmalarda */
+  mode: "PICKUP" | "DINE_IN" | null;
   slotStart: string;
   slotEnd: string;
   quantity: number;
@@ -29,9 +31,15 @@ export async function studentOrders(studentId: string, now = new Date()): Promis
     where: { studentId },
     orderBy: { createdAt: "desc" },
     take: 50,
-    select: { id: true, status: true, title: true, mode: true, slotStart: true, slotEnd: true, quantity: true, totalFinal: true, business: { select: { name: true } } },
+    select: { id: true, status: true, title: true, kind: true, mode: true, slotStart: true, slotEnd: true, quantity: true, totalFinal: true, business: { select: { name: true } } },
   });
-  return rows.map((o) => ({ ...o, businessName: o.business.name, slotStart: o.slotStart.toISOString(), slotEnd: o.slotEnd.toISOString() }));
+  return rows.map(({ business, ...o }) => ({
+    ...o,
+    kind: o.kind as BookingKind,
+    businessName: business.name,
+    slotStart: o.slotStart.toISOString(),
+    slotEnd: o.slotEnd.toISOString(),
+  }));
 }
 
 export type StudentOrderView = StudentOrderRow & {
@@ -39,6 +47,8 @@ export type StudentOrderView = StudentOrderRow & {
   /** QR uchun (faqat tasdiqlangan/tayyor buyurtmada) */
   secret: string | null;
   address: string;
+  /** Biznes ish vaqti (to'lab olib ketishda — shu vaqtda kelinadi) */
+  workingHours: string;
   note: string | null;
   phone: string;
   unitOriginal: number;
@@ -60,7 +70,7 @@ export async function studentOrder(studentId: string, orderId: string, now = new
   await runOrderAutomation(now, { id: orderId, studentId });
   const o = await db.order.findFirst({
     where: { id: orderId, studentId },
-    include: { business: { select: { name: true, address: true, landmark: true } }, events: { orderBy: { createdAt: "asc" }, select: { to: true, createdAt: true, reason: true } } },
+    include: { business: { select: { name: true, address: true, landmark: true, workingHours: true } }, events: { orderBy: { createdAt: "asc" }, select: { to: true, createdAt: true, reason: true } } },
   });
   if (!o) return null;
   const cancellable = OPEN_STATUSES.includes(o.status);
@@ -70,6 +80,8 @@ export async function studentOrder(studentId: string, orderId: string, now = new
     title: o.title,
     businessName: o.business.name,
     address: [o.business.address, o.business.landmark].filter(Boolean).join(", "),
+    workingHours: o.business.workingHours,
+    kind: o.kind as BookingKind,
     mode: o.mode,
     slotStart: o.slotStart.toISOString(),
     slotEnd: o.slotEnd.toISOString(),
@@ -104,7 +116,8 @@ export type BusinessOrderRow = {
   status: OrderStatus;
   title: string;
   quantity: number;
-  mode: "PICKUP" | "DINE_IN";
+  kind: BookingKind;
+  mode: "PICKUP" | "DINE_IN" | null;
   slotStart: string;
   slotEnd: string;
   note: string | null;
@@ -137,7 +150,7 @@ export async function dailyReport(businessId: string, now = new Date()): Promise
     SELECT count(*) AS orders,
            count(*) FILTER (WHERE o.status = 'COMPLETED') AS completed,
            count(*) FILTER (WHERE o.status IN ('CANCELLED', 'REJECTED')) AS cancelled,
-           count(*) FILTER (WHERE o.status = 'NO_SHOW') AS no_show,
+           count(*) FILTER (WHERE o.status IN ('NO_SHOW', 'EXPIRED')) AS no_show,
            sum(COALESCE(p.captured - p.refunded, 0) + CASE WHEN o.status = 'COMPLETED' THEN o."totalFinal" - o."prepayAmount" ELSE 0 END) AS revenue
     FROM "Order" o LEFT JOIN "Payment" p ON p."orderId" = o.id
     WHERE o."businessId" = ${businessId} AND o."slotStart" >= ${from} AND o."slotStart" < ${to} AND o.status <> 'PENDING_PAYMENT'
@@ -165,7 +178,7 @@ export async function businessOrders(businessId: string, filter: OrderFilter, no
       orderBy: filter === "done" ? { updatedAt: "desc" } : { slotStart: "asc" },
       take: 100,
       select: {
-        id: true, code: true, status: true, title: true, quantity: true, mode: true, slotStart: true, slotEnd: true, note: true, phone: true,
+        id: true, code: true, status: true, title: true, quantity: true, kind: true, mode: true, slotStart: true, slotEnd: true, note: true, phone: true,
         totalFinal: true, prepay: true, prepayAmount: true, confirmBy: true, rejectReason: true,
         student: { select: { firstName: true, lastName: true } },
       },
@@ -177,6 +190,7 @@ export async function businessOrders(businessId: string, filter: OrderFilter, no
   return {
     orders: rows.map(({ student, ...o }) => ({
       ...o,
+      kind: o.kind as BookingKind,
       slotStart: o.slotStart.toISOString(),
       slotEnd: o.slotEnd.toISOString(),
       confirmBy: o.confirmBy?.toISOString() ?? null,

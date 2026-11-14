@@ -4,7 +4,17 @@ import {
   bookingBlock,
   bookingDays,
   canTransition,
+  capacityUnits,
+  captureOnPay,
+  DEFAULT_DISCOUNT_BOOKING,
+  discountBookingInput,
   discountSlots,
+  pickupWindows,
+  prepaidExpiry,
+  prepayFor,
+  quantityMax,
+  releasesCapacity,
+  windowBlock,
   findSlot,
   FINAL_STATUSES,
   freeCancelUntil,
@@ -145,10 +155,76 @@ describe("bekor qilish qoidasi", () => {
 describe("sozlamalar sxemasi", () => {
   it("standart qiymatlar to'g'ri; noto'g'ri qiymatlar rad etiladi", () => {
     expect(preorderSettingsInput.safeParse(DEFAULT_SETTINGS).success).toBe(true);
-    expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, slotMinutes: 20 }).success).toBe(false);
+    expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, leadMinutes: -1 }).success).toBe(false);
     expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, keepPercent: 101 }).success).toBe(false);
     expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, schedule: [{ day: 1, from: 900, to: 840 }] }).success).toBe(false);
     expect(preorderSettingsInput.safeParse({ ...DEFAULT_SETTINGS, schedule: [{ day: 1, from: 840, to: 900 }, { day: 1, from: 960, to: 1000 }] }).success).toBe(false);
+  });
+});
+
+describe("rejimlar", () => {
+  it("chegirma maydonlari: chegaralar va oyna tartibi", () => {
+    expect(discountBookingInput.safeParse(DEFAULT_DISCOUNT_BOOKING).success).toBe(true);
+    expect(discountBookingInput.safeParse({ ...DEFAULT_DISCOUNT_BOOKING, bookingMode: "APPOINTMENT", staffCount: 21 }).success).toBe(false);
+    expect(discountBookingInput.safeParse({ ...DEFAULT_DISCOUNT_BOOKING, validDays: 61 }).success).toBe(false);
+    expect(discountBookingInput.safeParse({ ...DEFAULT_DISCOUNT_BOOKING, serviceMinutes: 4 }).success).toBe(false);
+    expect(discountBookingInput.safeParse({ ...DEFAULT_DISCOUNT_BOOKING, windowFrom: 1200, windowTo: 840 }).success).toBe(false);
+    expect(discountBookingInput.safeParse({ ...DEFAULT_DISCOUNT_BOOKING, bookingMode: "OTHER" }).success).toBe(false);
+  });
+
+  it("rejimga xos holatlar: KELMADI — slot/oyna, MUDDATI_TUGADI — faqat to'lab olib ketish", () => {
+    expect(canTransition("system", "CONFIRMED", "EXPIRED", "PREPAID_PICKUP")).toBe(true);
+    expect(canTransition("system", "READY", "EXPIRED", "PREPAID_PICKUP")).toBe(true);
+    expect(canTransition("system", "CONFIRMED", "EXPIRED", "APPOINTMENT")).toBe(false);
+    expect(canTransition("system", "CONFIRMED", "EXPIRED", "PICKUP_WINDOW")).toBe(false);
+    expect(canTransition("system", "CONFIRMED", "NO_SHOW", "PREPAID_PICKUP")).toBe(false);
+    expect(canTransition("system", "CONFIRMED", "NO_SHOW", "PICKUP_WINDOW")).toBe(true);
+    expect(canTransition("student", "CONFIRMED", "EXPIRED", "PREPAID_PICKUP")).toBe(false);
+    expect(canTransition("system", "PAID", "EXPIRED", "PREPAID_PICKUP")).toBe(false);
+    expect(FINAL_STATUSES).toContain("EXPIRED");
+  });
+
+  it("sig'im qaytishi: joy — bekor/rad; zaxira — muddati o'tganda ham; birlik — uchrashuvda 1, qolganida dona", () => {
+    expect(releasesCapacity("APPOINTMENT", "CANCELLED")).toBe(true);
+    expect(releasesCapacity("APPOINTMENT", "NO_SHOW")).toBe(false);
+    expect(releasesCapacity("PICKUP_WINDOW", "NO_SHOW")).toBe(false);
+    expect(releasesCapacity("PREPAID_PICKUP", "EXPIRED")).toBe(true);
+    expect(releasesCapacity("PREPAID_PICKUP", "COMPLETED")).toBe(false);
+    expect([capacityUnits("APPOINTMENT", 3), capacityUnits("PICKUP_WINDOW", 3), capacityUnits("PREPAID_PICKUP", 3)]).toEqual([1, 3, 3]);
+    expect([quantityMax("APPOINTMENT", 5), quantityMax("PREPAID_PICKUP", 5), quantityMax("PICKUP_WINDOW", 20)]).toEqual([1, 5, 20]);
+  });
+
+  it("to'lab olib ketish: doim to'liq oldindan; muddat — oxirgi kun tugaguncha", () => {
+    expect(prepayFor("PREPAID_PICKUP", { prepay: "NONE", prepayPercent: 30 })).toEqual({ type: "FULL", percent: 100 });
+    expect(prepayFor("APPOINTMENT", { prepay: "PARTIAL", prepayPercent: 30 })).toEqual({ type: "PARTIAL", percent: 30 });
+    // juma 12:00 + 3 kun → dushanba 00:00 (Toshkent), ya'ni yakshanba oxirgi kun
+    const until = prepaidExpiry(NOW, 3);
+    expect(until.getTime()).toBe(fromTashkent(new Date(TODAY.getTime() + 3 * DAY), 0).getTime());
+    expect(toTashkent(until).minute).toBe(0);
+  });
+
+  it("hold yoki darhol capture: provayder ushlab tura oladigan muddatdan uzoq bo'lsa — capture", () => {
+    expect(captureOnPay(new Date(NOW.getTime() + 2 * DAY), NOW, 3)).toBe(false);
+    expect(captureOnPay(new Date(NOW.getTime() + 30 * DAY), NOW, 3)).toBe(true);
+    expect(captureOnPay(new Date(NOW.getTime() + 30 * DAY), NOW, undefined)).toBe(false);
+  });
+
+  it("olib ketish oynasi: chegirma soatlari ichida, oyna tugashidan tayyorlash vaqti oldin yopiladi", () => {
+    const schedule: Schedule = { weekdays: [1, 2, 3, 4, 5, 6, 7], fromMinute: 600, toMinute: 1260, startsOn: new Date(TODAY.getTime() - DAY), endsOn: new Date(TODAY.getTime() + 10 * DAY) };
+    const window = { from: 840, to: 1200 };
+    const windows = pickupWindows(config(), schedule, window, NOW);
+    expect(windows.map((w) => [toTashkent(w.start).minute, toTashkent(w.end).minute, w.late])).toEqual([
+      [840, 1200, false],
+      [840, 1200, false],
+    ]);
+    // bugun 19:45, tayyorlash 30 daq — bugungi oyna yopiq, ertangisi ochiq
+    const late = pickupWindows(config(), schedule, window, fromTashkent(TODAY, 1185));
+    expect(late.map((w) => w.late)).toEqual([true, false]);
+    expect(windowBlock(config({ daysAhead: 0 }), schedule, window, fromTashkent(TODAY, 1185), () => 5)).toBe("full");
+    expect(windowBlock(config(), schedule, window, NOW, () => 0)).toBe("full");
+    expect(windowBlock(config(), schedule, window, NOW, () => 1)).toBeNull();
+    expect(windowBlock(config({ daysAhead: 0, pausedOn: TODAY }), schedule, window, NOW, () => 1)).toBe("paused");
+    expect(windowBlock(config(), { ...schedule, toMinute: 1000 }, window, NOW, () => 1)).toBe("hours");
   });
 });
 

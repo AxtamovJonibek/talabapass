@@ -35,6 +35,11 @@ export type CallbackEvent = {
 
 export interface PaymentProvider {
   readonly name: string;
+  /**
+   * Pulni necha kungacha ushlab tura oladi (karta tizimi chegarasi). Buyurtma bundan uzoq yashasa (uzoq muddatli
+   * PREPAID_PICKUP) — to'langanda darhol yechiladi, qaytarish refund orqali. Berilmasa — cheklovsiz (doim hold).
+   */
+  readonly holdMaxDays?: number;
   createPayment(input: CreatePaymentInput): Promise<CreatedPayment>;
   /** Avtorizatsiya: pul kartada ushlanadi (ko'p provayderlarda createPayment bilan birga — callback HELD keladi) */
   hold(providerPaymentId: string, amount: number): Promise<OperationResult>;

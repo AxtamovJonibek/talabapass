@@ -23,7 +23,7 @@ async function DealPageContent({ params }: { params: PageProps<"/[locale]/chegir
     isSaved(user.id, id),
     activeCouponFor(user.id, id),
     getTranslations("dealPage"),
-    bookingAvailability(id, now),
+    bookingAvailability(id, user.id, now),
   ]);
   if (!detail) notFound();
   await countView(id, now);
@@ -36,7 +36,7 @@ async function DealPageContent({ params }: { params: PageProps<"/[locale]/chegir
     coupon,
     renderedAt: now.getTime(),
   };
-  return <DealDetailScreen detail={detail} now={now} saved={saved} claim={claim} booking={booking ? { phone: user.phone, blocked: booking.open ? null : booking.reason } : null} initials={initials(user.firstName, user.lastName)} avatarUrl={studentAvatarUrl(user.id, user.student.avatarKey)} />;
+  return <DealDetailScreen detail={detail} now={now} saved={saved} claim={claim} booking={booking ? { phone: user.phone, kind: booking.kind, blocked: booking.open ? null : booking.reason } : null} initials={initials(user.firstName, user.lastName)} avatarUrl={studentAvatarUrl(user.id, user.student.avatarKey)} />;
 }
 
 export default function DealPage({ params }: PageProps<"/[locale]/chegirmalar/[id]">) {

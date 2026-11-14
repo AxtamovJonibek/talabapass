@@ -9,7 +9,15 @@ import { db } from "../db";
 import { devShortcutsAllowed } from "../env-check";
 import { createOrder, handlePaymentCallback, resumePayment, type CreateOrderResult } from "../preorder/orders";
 import { completeOrderScan, type CompleteResult } from "../preorder/scan";
-import { bookingOffer, savePreorderSettings, setDiscountPreorder, setPreorderPaused, type BookingOffer, type SaveSettingsResult } from "../preorder/settings";
+import {
+  bookingOffer,
+  saveDiscountBooking,
+  savePreorderSettings,
+  setPreorderPaused,
+  type BookingOffer,
+  type SaveDiscountBookingResult,
+  type SaveSettingsResult,
+} from "../preorder/settings";
 import { cancelOrderByStudent, decideOrder, type BusinessDecision } from "../preorder/views";
 
 const id = z.string().regex(/^[a-z0-9_]{10,40}$/);
@@ -18,9 +26,9 @@ const id = z.string().regex(/^[a-z0-9_]{10,40}$/);
 
 /** Band qilish oynasi ochilganda: kunlar, bo'sh slotlar, narx va qoidalar (har ochilishda yangi). */
 export async function bookingOfferAction(discountId: unknown): Promise<BookingOffer | null> {
-  await requireActiveStudent();
+  const user = await requireActiveStudent();
   const parsed = id.safeParse(discountId);
-  return parsed.success ? bookingOffer(parsed.data) : null;
+  return parsed.success ? bookingOffer(parsed.data, user.id) : null;
 }
 
 export async function createOrderAction(input: unknown): Promise<CreateOrderResult> {
@@ -76,10 +84,11 @@ export async function setPreorderPausedAction(paused: unknown): Promise<{ ok: bo
   return { ok: typeof paused === "boolean" && (await setPreorderPaused(user.id, paused)) };
 }
 
-export async function setDiscountPreorderAction(discountId: unknown, on: unknown): Promise<{ ok: boolean }> {
+/** Chegirmaning band qilish rejimi va maydonlari (Sozlamalar → chegirma kartasi). */
+export async function saveDiscountBookingAction(discountId: unknown, input: unknown): Promise<SaveDiscountBookingResult> {
   const user = await requireRole("BUSINESS_OWNER");
   const parsed = id.safeParse(discountId);
-  return { ok: parsed.success && typeof on === "boolean" && (await setDiscountPreorder(user.id, parsed.data, on)) };
+  return parsed.success ? saveDiscountBooking(user.id, parsed.data, input) : { ok: false, error: "notFound" };
 }
 
 export async function decideOrderAction(orderId: unknown, decision: unknown, reason?: unknown): Promise<{ ok: boolean; error?: string }> {

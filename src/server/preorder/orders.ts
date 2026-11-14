@@ -5,42 +5,51 @@ import { normalizePhone } from "@/lib/format";
 import { paymentProvider } from "@/lib/payments";
 import {
   canTransition,
+  capacityUnits,
   completedSettlement,
   CONFIRM_TIMEOUT_MS,
+  EXPIRY_REMINDER_DAYS,
+  expiredSettlement,
   findSlot,
+  NO_SHOW_GRACE_MS,
   NOTE_MAX,
   noShowSettlement,
   orderAmounts,
   PAYMENT_TIMEOUT_MS,
+  pickupWindows,
+  prepaidExpiry,
+  prepayFor,
   QUANTITY_MAX,
-  RELEASES_SEAT,
+  releasesCapacity,
   settlement,
   slotInDiscount,
+  type BookingKind,
   type OrderActor,
   type OrderStatus,
 } from "@/lib/preorder";
+import { toTashkent } from "@/lib/time";
 import type { Prisma } from "@/generated/prisma/client";
 import { audit } from "../audit";
 import { encryptSecret } from "../coupons/coupons";
 import { db } from "../db";
-import { notifyOrder } from "./notify";
-import { applyCallback, settlePayment, startPayment } from "./payments";
-import { bookableDiscount, bookingConfig } from "./settings";
+import { notifyOrder, notifyOrderReminder } from "./notify";
+import { applyCallback, captureIfLongLived, settlePayment, startPayment } from "./payments";
+import { bookableDiscount, bookingConfig, studentUnits } from "./settings";
+
+export { NO_SHOW_GRACE_MS };
 
 /**
  * Buyurtma hayoti. Holat faqat `transitionOrder` orqali o'zgaradi: `ORDER_TRANSITIONS` (src/lib/preorder) bo'yicha
- * ruxsat, shartli UPDATE (joriy holatdan), vaqt chizig'i (`OrderEvent`) va audit — bitta tranzaksiyada; slot joyi
- * bo'shashi ham shu yerda. Pul harakati va xabarnoma — tranzaksiyadan keyin.
- * Slot sig'imi: `INSERT … ON CONFLICT DO UPDATE SET booked = booked + 1 WHERE booked < sig'im` — bitta atom so'rov,
- * oxirgi joyni ikki kishi bir vaqtda ololmaydi.
+ * ruxsat (rejimga xos holatlar ham), shartli UPDATE (joriy holatdan), vaqt chizig'i (`OrderEvent`) va audit — bitta
+ * tranzaksiyada; sig'im/zaxira qaytishi ham shu yerda. Pul harakati va xabarnoma — tranzaksiyadan keyin.
+ * Sig'im atom, bitta so'rov: slot/oyna — `INSERT … ON CONFLICT DO UPDATE SET booked = booked + n WHERE booked + n <= sig'im`,
+ * zaxira — `UPDATE "Discount" SET stock = stock - n WHERE stock >= n`. Oxirgi joyni ikki kishi bir vaqtda ololmaydi.
  */
 
 const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 const SECRET_BYTES = 20;
 /** Bir talabaning bir vaqtdagi ochiq buyurtmalari */
 export const ACTIVE_ORDERS_MAX = 3;
-/** Slot tugagach shuncha kutiladi, keyin "Kelmadi" */
-export const NO_SHOW_GRACE_MS = 15 * 60_000;
 export const OPEN_STATUSES: OrderStatus[] = ["PENDING_PAYMENT", "PAID", "CONFIRMED", "READY"];
 
 export function newOrderCode(): string {
@@ -53,6 +62,9 @@ export function newOrderCode(): string {
 const ORDER_MONEY_SELECT = {
   id: true,
   status: true,
+  kind: true,
+  quantity: true,
+  discountId: true,
   businessId: true,
   studentId: true,
   slotStart: true,
@@ -81,7 +93,8 @@ export async function transitionOrder(args: TransitionArgs): Promise<TransitionR
   const now = args.now ?? new Date();
   const order = await db.order.findFirst({ where: { id: orderId, ...scope }, select: ORDER_MONEY_SELECT });
   if (!order) return { ok: false, error: "notFound" };
-  if (!canTransition(actor, order.status, to)) return { ok: false, error: "forbidden" };
+  if (!canTransition(actor, order.status, to, order.kind as BookingKind)) return { ok: false, error: "forbidden" };
+  const kind = order.kind as BookingKind;
 
   const changed = await db.$transaction(async (tx) => {
     const updated = await tx.order.updateMany({
@@ -91,15 +104,25 @@ export async function transitionOrder(args: TransitionArgs): Promise<TransitionR
     if (updated.count === 0) return false;
     await tx.orderEvent.create({ data: { orderId: order.id, from: order.status, to, actorId, reason } });
     await tx.auditLog.create({ data: { actorId, action: "order.transition", entity: "Order", entityId: order.id, meta: { from: order.status, to, by: actor, reason } } });
-    if (RELEASES_SEAT.includes(to)) {
-      await tx.$executeRaw`UPDATE "PreorderSlot" SET booked = booked - 1 WHERE "businessId" = ${order.businessId} AND "startsAt" = ${order.slotStart} AND booked > 0`;
+    if (releasesCapacity(kind, to)) {
+      const units = capacityUnits(kind, order.quantity);
+      if (kind === "PREPAID_PICKUP") await tx.$executeRaw`UPDATE "Discount" SET stock = stock + ${units} WHERE id = ${order.discountId}`;
+      else await tx.$executeRaw`UPDATE "BookingSeat" SET booked = booked - ${units} WHERE "discountId" = ${order.discountId} AND "startsAt" = ${order.slotStart} AND booked >= ${units}`;
     }
     return true;
   });
   if (!changed) return { ok: false, error: "conflict" };
 
   const money =
-    to === "COMPLETED" ? completedSettlement(order) : to === "NO_SHOW" ? noShowSettlement(order) : to === "CANCELLED" || to === "REJECTED" ? settlement(order, actor, now) : null;
+    to === "COMPLETED"
+      ? completedSettlement(order)
+      : to === "NO_SHOW"
+        ? noShowSettlement(order)
+        : to === "EXPIRED"
+          ? expiredSettlement(order)
+          : to === "CANCELLED" || to === "REJECTED"
+            ? settlement(order, actor, now)
+            : null;
   if (money) await settlePayment(order.id, money).catch((error) => console.error("[orders] pul harakati bajarilmadi:", order.id, to, error));
   await notifyOrder(order.id, order.status, to, actor, actorId);
   return { ok: true, from: order.status };
@@ -124,17 +147,46 @@ export async function markPaid(orderId: string, now = new Date()): Promise<boole
 
 // ───────── yaratish ─────────
 
+/** Talaba yuboradi: APPOINTMENT — slot boshi, PICKUP_WINDOW — oyna boshi (kun), PREPAID_PICKUP — vaqtsiz. */
 export const createOrderInput = z.object({
   discountId: z.string().regex(/^[a-z0-9_]{10,40}$/),
-  mode: z.enum(["PICKUP", "DINE_IN"]),
-  slotStart: z.iso.datetime(),
+  slotStart: z.iso.datetime().optional(),
   quantity: z.number().int().min(1).max(QUANTITY_MAX),
   note: z.string().trim().max(NOTE_MAX).optional(),
   phone: z.string().max(24),
 });
 
-export type CreateOrderError = "invalid" | "notAvailable" | "mode" | "slot" | "slotFull" | "phone" | "tooMany" | "paymentUnavailable";
+export type CreateOrderError =
+  | "invalid"
+  | "notAvailable"
+  | "slot"
+  | "slotFull"
+  | "soldOut"
+  | "quantity"
+  | "limit"
+  | "phone"
+  | "tooMany"
+  | "paymentUnavailable";
 export type CreateOrderResult = { ok: true; orderId: string; checkoutUrl: string | null } | { ok: false; error: CreateOrderError };
+
+/** Qaysi vaqt oralig'i va sig'im: slot (uchrashuv), kunlik oyna yoki muddat (to'lab olib ketish). */
+type Placement = { start: Date; end: Date; capacity: { seat: number } | { stock: true } };
+
+function placementFor(found: NonNullable<Awaited<ReturnType<typeof bookableDiscount>>>, slotStart: string | undefined, now: Date): Placement | null {
+  const { discount, settings, kind } = found;
+  if (kind === "PREPAID_PICKUP") {
+    if (settings.pausedOn?.getTime() === toTashkent(now).date.getTime()) return null;
+    return { start: now, end: prepaidExpiry(now, discount.validDays), capacity: { stock: true } };
+  }
+  if (!slotStart) return null;
+  const start = new Date(slotStart);
+  if (kind === "APPOINTMENT") {
+    const slot = findSlot(bookingConfig(settings, discount.serviceMinutes), start, now);
+    return slot && slotInDiscount(discount, slot) ? { start: slot.start, end: slot.end, capacity: { seat: discount.staffCount } } : null;
+  }
+  const window = pickupWindows(bookingConfig(settings, 0), discount, { from: discount.windowFrom, to: discount.windowTo }, now).find((w) => w.start.getTime() === start.getTime());
+  return window && !window.late ? { start: window.start, end: window.end, capacity: { seat: discount.windowCapacity } } : null;
+}
 
 export async function createOrder(studentId: string, raw: unknown, now = new Date()): Promise<CreateOrderResult> {
   const parsed = createOrderInput.safeParse(raw);
@@ -145,30 +197,37 @@ export async function createOrder(studentId: string, raw: unknown, now = new Dat
 
   const found = await bookableDiscount(input.discountId, now);
   if (!found) return { ok: false, error: "notAvailable" };
-  const { discount, settings, unit } = found;
-  if (settings.mode !== "BOTH" && settings.mode !== input.mode) return { ok: false, error: "mode" };
-  const slot = findSlot(bookingConfig(settings), new Date(input.slotStart), now);
-  if (!slot || !slotInDiscount(discount, slot)) return { ok: false, error: "slot" };
-  if (settings.prepay !== "NONE" && !paymentProvider()) return { ok: false, error: "paymentUnavailable" };
+  const { discount, settings, unit, kind } = found;
+  if (kind === "APPOINTMENT" ? input.quantity !== 1 : input.quantity > discount.perStudentMax) return { ok: false, error: "quantity" };
+  const place = placementFor(found, input.slotStart, now);
+  if (!place) return { ok: false, error: "slot" };
+  const prepay = prepayFor(kind, settings);
+  if (prepay.type !== "NONE" && !paymentProvider()) return { ok: false, error: "paymentUnavailable" };
   if ((await db.order.count({ where: { studentId, status: { in: OPEN_STATUSES } } })) >= ACTIVE_ORDERS_MAX) return { ok: false, error: "tooMany" };
+  if (kind !== "APPOINTMENT" && (await studentUnits(studentId, discount.id)) + input.quantity > discount.perStudentMax) return { ok: false, error: "limit" };
 
-  const amounts = orderAmounts(unit, input.quantity, { type: settings.prepay, percent: settings.prepayPercent });
+  const units = capacityUnits(kind, input.quantity);
+  const amounts = orderAmounts(unit, input.quantity, prepay);
   const order = await db.$transaction(async (tx) => {
-    const seat = await tx.$queryRaw<{ booked: number }[]>`
-      INSERT INTO "PreorderSlot" ("businessId", "startsAt", "booked") VALUES (${discount.businessId}, ${slot.start}, 1)
-      ON CONFLICT ("businessId", "startsAt") DO UPDATE SET booked = "PreorderSlot".booked + 1
-      WHERE "PreorderSlot".booked < ${settings.slotCapacity}
-      RETURNING booked`;
-    if (seat.length === 0) return null;
+    const taken =
+      "stock" in place.capacity
+        ? await tx.$queryRaw<{ stock: number }[]>`UPDATE "Discount" SET stock = stock - ${units} WHERE id = ${discount.id} AND stock >= ${units} RETURNING stock`
+        : await tx.$queryRaw<{ booked: number }[]>`
+            INSERT INTO "BookingSeat" ("discountId", "startsAt", "booked")
+            SELECT ${discount.id}, ${place.start}, ${units} WHERE ${units}::int <= ${place.capacity.seat}::int
+            ON CONFLICT ("discountId", "startsAt") DO UPDATE SET booked = "BookingSeat".booked + ${units}
+            WHERE "BookingSeat".booked + ${units} <= ${place.capacity.seat}
+            RETURNING booked`;
+    if (taken.length === 0) return null;
     const created = await tx.order.create({
       data: {
         code: newOrderCode(),
         businessId: discount.businessId,
         discountId: discount.id,
         studentId,
-        mode: input.mode,
-        slotStart: slot.start,
-        slotEnd: slot.end,
+        kind,
+        slotStart: place.start,
+        slotEnd: place.end,
         quantity: input.quantity,
         note: input.note || null,
         phone,
@@ -178,22 +237,30 @@ export async function createOrder(studentId: string, raw: unknown, now = new Dat
         unitFinal: unit.final,
         totalOriginal: amounts.totalOriginal,
         totalFinal: amounts.totalFinal,
-        prepay: settings.prepay,
+        prepay: prepay.type,
         prepayAmount: amounts.prepayAmount,
-        freeCancelMinutes: settings.freeCancelMinutes,
-        keepPercent: settings.keepPercent,
+        // To'lab olib ketishda bepul bekor qilish yo'q: bekor qilinsa ham, muddat o'tsa ham chegirmadagi qoida
+        freeCancelMinutes: kind === "PREPAID_PICKUP" ? 0 : settings.freeCancelMinutes,
+        keepPercent: kind === "PREPAID_PICKUP" ? discount.expireKeepPercent : settings.keepPercent,
         autoConfirm: settings.autoConfirm,
       },
       select: { id: true, title: true, prepayAmount: true },
     });
     await tx.orderEvent.create({ data: { orderId: created.id, from: null, to: "PENDING_PAYMENT", actorId: studentId } });
     await audit(
-      { actorId: studentId, action: "order.create", entity: "Order", entityId: created.id, meta: { discountId: discount.id, slot: slot.start.toISOString(), quantity: input.quantity, ...amounts } },
+      {
+        actorId: studentId,
+        action: "order.create",
+        entity: "Order",
+        entityId: created.id,
+        meta: { discountId: discount.id, kind, start: place.start.toISOString(), end: place.end.toISOString(), quantity: input.quantity, ...amounts },
+      },
       tx,
     );
     return created;
-  });
-  if (!order) return { ok: false, error: "slotFull" };
+    // Bitta slotga bir vaqtda ko'p so'rov — ulanish navbatini kutadi (atomlik so'rovning o'zida)
+  }, { maxWait: 10_000 });
+  if (!order) return { ok: false, error: kind === "PREPAID_PICKUP" ? "soldOut" : "slotFull" };
 
   if (order.prepayAmount === 0) {
     await markPaid(order.id, now);
@@ -212,14 +279,15 @@ export async function resumePayment(studentId: string, orderId: string): Promise
 
 // ───────── avtomatika (cron va lazy) ─────────
 
-export type AutomationResult = { unpaid: number; unanswered: number; autoConfirmed: number; noShow: number };
+export type AutomationResult = { unpaid: number; unanswered: number; autoConfirmed: number; noShow: number; expired: number; reminded: number };
 
 /**
- * To'lanmagan (15 daq) — bekor; qo'lda tasdiqlanmagan (10 daq) — bekor, pul to'liq qaytadi; slot tugab, talaba
- * kelmagan — "Kelmadi" (qoidaga ko'ra yechiladi/qaytadi). Idempotent: har biri shartli o'tish.
+ * To'lanmagan (15 daq) — bekor; qo'lda tasdiqlanmagan (10 daq) — bekor, pul to'liq qaytadi; slot/oyna tugab, talaba
+ * kelmagan — "Kelmadi"; to'lab olib ketish muddati o'tgan — "Muddati tugadi" (ikkalasi qoidaga ko'ra yechiladi/qaytadi);
+ * muddat tugashiga 2 va 1 kun qolganda eslatma. Idempotent: har biri shartli o'tish yoki shartli UPDATE.
  */
 export async function runOrderAutomation(now = new Date(), where: Prisma.OrderWhereInput = {}, limit = 200): Promise<AutomationResult> {
-  const result: AutomationResult = { unpaid: 0, unanswered: 0, autoConfirmed: 0, noShow: 0 };
+  const result: AutomationResult = { unpaid: 0, unanswered: 0, autoConfirmed: 0, noShow: 0, expired: 0, reminded: 0 };
   const run = async (filter: Prisma.OrderWhereInput, to: OrderStatus, reason: string, key: keyof AutomationResult) => {
     const due = await db.order.findMany({ where: { AND: [where, filter] }, select: { id: true }, take: limit, orderBy: { createdAt: "asc" } });
     for (const { id } of due) {
@@ -229,8 +297,41 @@ export async function runOrderAutomation(now = new Date(), where: Prisma.OrderWh
   await run({ status: "PENDING_PAYMENT", createdAt: { lt: new Date(now.getTime() - PAYMENT_TIMEOUT_MS) } }, "CANCELLED", "unpaid", "unpaid");
   await run({ status: "PAID", autoConfirm: false, confirmBy: { lt: now } }, "CANCELLED", "noResponse", "unanswered");
   await run({ status: "PAID", autoConfirm: true }, "CONFIRMED", "auto", "autoConfirmed");
-  await run({ status: { in: ["CONFIRMED", "READY"] }, slotEnd: { lt: new Date(now.getTime() - NO_SHOW_GRACE_MS) } }, "NO_SHOW", "noShow", "noShow");
+  await run({ kind: { in: ["APPOINTMENT", "PICKUP_WINDOW"] }, status: { in: ["CONFIRMED", "READY"] }, slotEnd: { lt: new Date(now.getTime() - NO_SHOW_GRACE_MS) } }, "NO_SHOW", "noShow", "noShow");
+  await run({ kind: "PREPAID_PICKUP", status: { in: ["CONFIRMED", "READY"] }, slotEnd: { lte: now } }, "EXPIRED", "expired", "expired");
+  result.reminded = await remindExpiring(now, where, limit);
   return result;
+}
+
+/**
+ * To'lab olib ketish: muddat tugashiga 2 va 1 kun qolganda talabaga eslatma (har biri bir marta — `reminders` shartli
+ * UPDATE). Shu chegaradan keyin yaratilgan buyurtmaga (masalan 1 kunlik) o'sha eslatma yuborilmaydi.
+ */
+async function remindExpiring(now: Date, where: Prisma.OrderWhereInput, limit: number): Promise<number> {
+  let sent = 0;
+  // Avval yaqinrog'i: 1 kun qolganida 2 kunlik eslatma endi kerak emas
+  for (const days of [...EXPIRY_REMINDER_DAYS].sort((a, b) => a - b)) {
+    const level = EXPIRY_REMINDER_DAYS.indexOf(days) + 1;
+    const edge = new Date(now.getTime() + days * 86_400_000);
+    const due = await db.order.findMany({
+      where: { AND: [where, { kind: "PREPAID_PICKUP", status: { in: ["CONFIRMED", "READY"] }, reminders: { lt: level }, slotEnd: { gt: now, lte: edge } }] },
+      select: { id: true, slotEnd: true, createdAt: true },
+      take: limit,
+    });
+    for (const order of due) {
+      const reached = order.slotEnd.getTime() - days * 86_400_000;
+      if (order.createdAt.getTime() >= reached) {
+        await db.order.updateMany({ where: { id: order.id, reminders: { lt: level } }, data: { reminders: level } });
+        continue;
+      }
+      const marked = await db.order.updateMany({ where: { id: order.id, reminders: { lt: level } }, data: { reminders: level } });
+      if (marked.count === 1) {
+        await notifyOrderReminder(order.id, days);
+        sent++;
+      }
+    }
+  }
+  return sent;
 }
 
 // ───────── to'lov callback'i ─────────
@@ -239,7 +340,12 @@ export async function runOrderAutomation(now = new Date(), where: Prisma.OrderWh
 export async function handlePaymentCallback(providerName: string, body: string, headers: Headers): Promise<{ ok: boolean; orderId?: string }> {
   const outcome = await applyCallback(providerName, body, headers);
   if (!outcome.ok) return { ok: false };
-  if (outcome.changed && outcome.event === "HELD") await markPaid(outcome.orderId);
+  if (outcome.changed && outcome.event === "HELD") {
+    // Uzoq yashaydigan buyurtma (to'lab olib ketish) — provayder ushlab tura olmaydi: darhol yechiladi
+    const order = await db.order.findUnique({ where: { id: outcome.orderId }, select: { slotEnd: true } });
+    if (order) await captureIfLongLived(outcome.orderId, new Date(order.slotEnd.getTime() + NO_SHOW_GRACE_MS));
+    await markPaid(outcome.orderId);
+  }
   if (outcome.changed && outcome.event === "FAILED") {
     await transitionOrder({ orderId: outcome.orderId, to: "CANCELLED", actor: "system", actorId: null, reason: "paymentFailed" });
   }
