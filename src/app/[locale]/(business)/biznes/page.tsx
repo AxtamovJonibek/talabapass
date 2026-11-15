@@ -1,10 +1,12 @@
 import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
+import { AppBusinessRegister, AppBusinessReview } from "@/components/app/business-register";
 import { BusinessPendingScreen } from "@/components/business/pending-screen";
 import { BusinessRegisterScreen } from "@/components/business/register-screen";
 import { StatsScreen } from "@/components/business/stats/stats-screen";
 import { resolveLocale } from "@/i18n/locale";
 import { parsePeriod } from "@/lib/stats";
+import { isAppRequest } from "@/server/app-mode";
 import { requireRole } from "@/server/auth/session";
 import { ownBusiness } from "@/server/business/registration";
 import { businessStats } from "@/server/business/stats";
@@ -17,13 +19,16 @@ import { businessStats } from "@/server/business/stats";
 async function BusinessHome({ searchParams }: { searchParams: PageProps<"/[locale]/biznes">["searchParams"] }) {
   const user = await requireRole("BUSINESS_OWNER");
   const business = await ownBusiness(user.id);
+  // Ilovada ariza va tekshiruv — design/app-flow ekranlari (B6–B9)
+  const app = await isAppRequest();
+  const Register = app ? AppBusinessRegister : BusinessRegisterScreen;
   // Egasi bor, biznesi yo'q (ariza hali boshlanmagan) — forma, bo'sh ma'lumot bilan
-  if (!business) return <BusinessRegisterScreen signedIn verifiedPhone={user.phone} />;
+  if (!business) return <Register signedIn verifiedPhone={user.phone} />;
 
   const editable = (business.status === "PENDING" && !business.submittedAt) || business.status === "REJECTED";
   if (editable) {
     return (
-      <BusinessRegisterScreen
+      <Register
         signedIn
         verifiedPhone={user.phone}
         rejectReason={business.status === "REJECTED" ? business.rejectReason : null}
@@ -41,7 +46,7 @@ async function BusinessHome({ searchParams }: { searchParams: PageProps<"/[local
       />
     );
   }
-  if (business.status === "PENDING") return <BusinessPendingScreen />;
+  if (business.status === "PENDING") return app ? <AppBusinessReview /> : <BusinessPendingScreen />;
 
   const now = new Date();
   const stats = await businessStats(business.id, parsePeriod((await searchParams).davr), now);

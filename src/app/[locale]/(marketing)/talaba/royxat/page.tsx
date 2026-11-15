@@ -1,10 +1,12 @@
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
+import { AppStudentRegister } from "@/components/app/student-register";
 import { RegisterScreen } from "@/components/student/register-screen";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/locale";
 import { getCurrentUser, getVerifiedPhone, homePathFor } from "@/server/auth/session";
 import { effectiveStudentStatus, studentPathFor } from "@/server/auth/student-status";
+import { isAppRequest } from "@/server/app-mode";
 import { db } from "@/server/db";
 
 async function Register() {
@@ -15,10 +17,16 @@ async function Register() {
       : homePathFor(user.role);
     redirect({ href, locale: await getLocale() });
   }
-  const [universities, verifiedPhone] = await Promise.all([
+  const [universities, verifiedPhone, app] = await Promise.all([
     db.university.findMany({ where: { active: true, kind: { not: "OTHER" } }, orderBy: { name: "asc" }, select: { id: true, name: true, shortName: true, region: true, kind: true } }),
     getVerifiedPhone(),
+    isAppRequest(),
   ]);
+  // Ilova (design/app-flow RoyxatTalaba): raqam kirishda SMS bilan tasdiqlangan bo'lishi kerak
+  if (app) {
+    if (!verifiedPhone) redirect({ href: "/kirish", locale: await getLocale() });
+    return <AppStudentRegister universities={universities} verifiedPhone={verifiedPhone} />;
+  }
   return <RegisterScreen universities={universities} verifiedPhone={verifiedPhone} />;
 }
 

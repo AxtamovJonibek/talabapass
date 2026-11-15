@@ -3,11 +3,13 @@ import { Suspense } from "react";
 import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import QRCode from "qrcode";
+import { AppCardCapture } from "@/components/app/student-card";
 import { CaptureScreen } from "@/components/student/capture-screen";
 import { CardUploadDesktop } from "@/components/student/card-upload-desktop";
 import { PhoneOrWeb } from "@/components/student/responsive";
 import { redirect } from "@/i18n/navigation";
 import { localizedPath, type Locale } from "@/i18n/routing";
+import { isAppRequest } from "@/server/app-mode";
 import { requireStudent } from "@/server/auth/student";
 import { canUploadCard } from "@/server/auth/student-status";
 import { authSecret } from "@/server/env";
@@ -28,6 +30,8 @@ async function StudentCardPageContent() {
 
   const hasSubmission = status === "PENDING" || status === "REJECTED";
   const backHref = hasSubmission ? "/talaba/tekshiruv" : null;
+  // Ilova (design/app-flow Guvohnoma): bitta telefon ko'rinishi, kompyuterga o'tkazish QR'i yo'q
+  if (await isAppRequest()) return <AppCardCapture backHref={backHref} expired={status === "EXPIRED"} />;
   const pending = status === "PENDING" ? await latestVerification(user.id) : null;
 
   // Havola shu so'rov kelgan manzilga quriladi (lokalda — kompyuterning tarmoq manzili bilan ochilgan bo'lsa telefon ham kira oladi).

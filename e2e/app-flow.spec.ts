@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
-import { clearOtp, FIXED_CODE, local, seedPhones, withDb } from "./helpers";
+import { clearOtp, FIXED_CODE, local, sampleJpeg, seedPhones, withDb } from "./helpers";
 
 /**
  * Capacitor ilovasidagi oqim (design/app-flow). Ilova `CapacitorCustomPlatform` bilan taqlid qilinadi:
@@ -171,5 +171,69 @@ test.describe("ilova: parol", () => {
     await page.locator("#app-repeat-password").fill("Talaba2026");
     await page.getByRole("button", { name: "Davom etish" }).click();
     await page.waitForURL(/\/uz\/talaba\/royxat/);
+
+    // RoyxatTalaba → Guvohnoma → Tekshiruv (saytdagi maydonlar va action'lar)
+    await expect(page.getByRole("heading", { name: /haqingizda/ })).toBeVisible();
+    await page.getByRole("button", { name: "Davom etish" }).click();
+    await expect(page.getByText("Ismingizni kiriting.")).toBeVisible();
+    await page.locator("#app-first").fill("Dilnoza");
+    await page.locator("#app-last").fill("Karimova");
+    await page.locator("#app-uni").click();
+    await page.keyboard.type("TATU");
+    await page.getByRole("option").first().click();
+    await page.getByRole("button", { name: "3", exact: true }).click();
+    await page.getByRole("button", { name: "Davom etish" }).click();
+
+    await page.waitForURL(/\/uz\/talaba\/guvohnoma/);
+    await expect(page.getByRole("heading", { name: /ramkaga/ })).toBeVisible();
+    await page.getByTestId("card-file").setInputFiles({ name: "guvohnoma.jpg", mimeType: "image/jpeg", buffer: await sampleJpeg() });
+    await page.waitForURL(/\/uz\/talaba\/tekshiruv/);
+    await expect(page.getByTestId("status-stamp")).toHaveText("TEKSHIRUVDA");
+    await expect(page.getByText("Ma'lumotlar yuborildi")).toBeVisible();
+
+    // Ilovada o'rnatilgan parol hisob ochilganda yozilgan
+    expect((await passwordState(phone)).hash).toMatch(/^scrypt:/);
+  });
+
+  test("yangi biznes: kod → parol → 3 qadam → tekshiruvda", async ({ page, context }) => {
+    const phone = `+99897${String(Date.now()).slice(-7)}`;
+    const tin = String(Date.now()).slice(-9);
+    const jpg = { name: "guvohnoma.jpg", mimeType: "image/jpeg", buffer: await sampleJpeg() };
+    await asNativeApp(context);
+    await page.goto("/uz/kirish?rol=biznes", { waitUntil: "networkidle" });
+    await appCode(page, phone);
+    await expect(page.getByText("Biznes", { exact: true })).toBeVisible();
+    await page.locator("#app-new-password").fill("Biznes2026");
+    await page.locator("#app-repeat-password").fill("Biznes2026");
+    await page.getByRole("button", { name: "Davom etish" }).click();
+    await page.waitForURL(/\/uz\/biznes\/royxat/);
+
+    // 1/4: nom, kategoriya, manzil — qadam maydonlari brauzerda tekshiriladi
+    await page.getByRole("button", { name: "Davom etish" }).click();
+    await expect(page.locator("#app-biz-name")).toBeVisible();
+    await page.locator("#app-biz-name").fill("Ilova Kofe");
+    await page.getByRole("button", { name: "Kafe / restoran" }).click();
+    await page.locator("#app-biz-address").fill("Toshkent, Chilonzor 9");
+    await page.getByRole("button", { name: "Davom etish" }).click();
+
+    // 2/4: ish vaqti, STIR, tavsif
+    await expect(page.getByRole("heading", { name: /STIR/ })).toBeVisible();
+    await page.locator("#app-biz-hours").fill("09:00 – 23:00");
+    await page.locator("#app-biz-tin").fill(tin);
+    await page.locator("#app-biz-desc").fill("Qahva va desert");
+    await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
+
+    // 3/4: mas'ul shaxs, guvohnoma, foto, rozilik
+    await page.locator("#app-biz-contact").fill("Aziz Karimov");
+    await page.getByText("Faylni tanlang").locator("..").locator("..").locator("input[type=file]").setInputFiles(jpg);
+    await page.getByLabel("Foto qo'shish").locator("input[type=file]").setInputFiles({ ...jpg, name: "zal.jpg" });
+    await page.getByText("bilan tanishdim va roziman").click();
+    await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
+
+    // 4/4: tekshiruvda
+    await page.waitForURL((url) => url.pathname === "/uz/biznes");
+    await expect(page.getByTestId("business-stamp")).toHaveText("TEKSHIRUVDA");
+    await expect(page.getByRole("link", { name: "Chegirma yaratish" })).toBeVisible();
+    expect((await passwordState(phone)).hash).toMatch(/^scrypt:/);
   });
 });

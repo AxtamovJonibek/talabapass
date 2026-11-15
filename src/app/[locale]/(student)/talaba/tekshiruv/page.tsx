@@ -1,11 +1,13 @@
 import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
+import { AppStudentReview } from "@/components/app/student-card";
 import { PhoneOrWeb } from "@/components/student/responsive";
 import { StatusDesktop } from "@/components/student/status-desktop";
 import { StatusScreen } from "@/components/student/status-screen";
 import { redirect } from "@/i18n/navigation";
 import { formatMinute, toTashkent } from "@/lib/time";
+import { isAppRequest } from "@/server/app-mode";
 import { requireStudent } from "@/server/auth/student";
 import { studentPathFor } from "@/server/auth/student-status";
 import { formatFileSize } from "@/server/storage/file-rules";
@@ -38,6 +40,7 @@ async function StudentReviewPageContent() {
         : `${String(sent.date.getUTCDate()).padStart(2, "0")}.${String(sent.date.getUTCMonth() + 1).padStart(2, "0")}, ${time}`;
 
   const rejected = status === "REJECTED" ? { reason: verification.rejectReason ?? "" } : undefined;
+  if (await isAppRequest()) return <AppStudentReview sentAt={sentAt} rejected={rejected} />;
 
   return (
     <PhoneOrWeb

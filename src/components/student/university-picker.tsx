@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { BoxInput, FieldBox } from "@/components/ui/app-kit";
 import { Input } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
@@ -13,6 +14,7 @@ const LIMIT = 60;
  * Qidiruvli universitet tanlovi: nom, qisqa nom yoki viloyat yoziladi, ro'yxat o'zgaradi.
  * Oxirgi qator — "Ro'yxatda yo'q": nom matn bilan kiritiladi, admin ko'rib chiqib ro'yxatga qo'shadi.
  * Forma qiymatlari: `universityId` (id yoki "other") va `universityOther` (matn).
+ * `look="app"` — ilova ko'rinishi (RoyxatTalaba: 58px quti, chapda qidiruv, o'ngda strelka).
  */
 export function UniversityPicker({
   id,
@@ -21,6 +23,7 @@ export function UniversityPicker({
   defaultOther = "",
   invalid,
   otherInvalid,
+  look = "site",
 }: {
   id: string;
   universities: UniversityOption[];
@@ -28,6 +31,7 @@ export function UniversityPicker({
   defaultOther?: string;
   invalid?: boolean;
   otherInvalid?: boolean;
+  look?: "site" | "app";
 }) {
   const t = useTranslations("onboarding.register");
   const kinds = useTranslations("universityKind");
@@ -35,15 +39,50 @@ export function UniversityPicker({
   const [selected, setSelected] = useState<string | null>(defaultId === OTHER_UNIVERSITY ? OTHER_UNIVERSITY : (initial?.id ?? null));
   const [query, setQuery] = useState(initial?.name ?? "");
   const [open, setOpen] = useState(false);
+  /** "Ro'yxatda yo'q" maydonining boshlang'ich matni: qidiruvga yozilgani o'tadi */
+  const [otherText, setOtherText] = useState(defaultOther);
   const [active, setActive] = useState(0);
   const found = useMemo(() => searchUniversities(universities, selected && selected !== OTHER_UNIVERSITY && query === initialName(universities, selected) ? "" : query), [universities, query, selected]);
   const shown = found.slice(0, LIMIT);
   const rows = shown.length + 1; // oxirgisi — "Ro'yxatda yo'q"
   const listId = `${id}-list`;
 
+  // Qidiruv maydoni (combobox) — ikkala ko'rinishda bir xil
+  const combo = {
+    id,
+    role: "combobox",
+    "aria-expanded": open,
+    "aria-controls": listId,
+    "aria-autocomplete": "list",
+    autoComplete: "off",
+    value: query,
+    onFocus: () => setOpen(true),
+    onBlur: () => setOpen(false),
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      setQuery(e.target.value);
+      setSelected(null);
+      setActive(0);
+      setOpen(true);
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setOpen(true);
+        setActive((a) => Math.min(rows - 1, a + 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActive((a) => Math.max(0, a - 1));
+      } else if (e.key === "Enter" && open) {
+        e.preventDefault();
+        pick(active);
+      } else if (e.key === "Escape") setOpen(false);
+    },
+  } as const;
+
   function pick(index: number) {
     if (index >= shown.length) {
       setSelected(OTHER_UNIVERSITY);
+      if (query.trim()) setOtherText(query);
       setQuery("");
     } else {
       const u = shown[index]!;
@@ -58,15 +97,21 @@ export function UniversityPicker({
       <input type="hidden" name="universityId" value={selected ?? ""} />
       {selected === OTHER_UNIVERSITY ? (
         <div className="flex flex-col gap-1.5">
-          <Input
-            id={id}
-            name="universityOther"
-            placeholder={t("universityOtherPlaceholder")}
-            maxLength={UNIVERSITY_NAME_MAX}
-            defaultValue={defaultOther}
-            autoFocus
-            invalid={otherInvalid}
-          />
+          {look === "app" ? (
+            <FieldBox invalid={otherInvalid}>
+              <BoxInput id={id} name="universityOther" text={17} placeholder={t("universityOtherPlaceholder")} maxLength={UNIVERSITY_NAME_MAX} defaultValue={otherText} autoFocus />
+            </FieldBox>
+          ) : (
+            <Input
+              id={id}
+              name="universityOther"
+              placeholder={t("universityOtherPlaceholder")}
+              maxLength={UNIVERSITY_NAME_MAX}
+              defaultValue={otherText}
+              autoFocus
+              invalid={otherInvalid}
+            />
+          )}
           <p className="m-0 text-12 leading-[1.4] text-muted">{t("universityOtherHint")}</p>
           <button
             type="button"
@@ -82,40 +127,18 @@ export function UniversityPicker({
         </div>
       ) : (
         <div className="relative">
-          <Input
-            id={id}
-            role="combobox"
-            aria-expanded={open}
-            aria-controls={listId}
-            aria-autocomplete="list"
-            autoComplete="off"
-            placeholder={t("universitySearchPlaceholder")}
-            value={query}
-            invalid={invalid}
-            className="pr-10"
-            onFocus={() => setOpen(true)}
-            onBlur={() => setOpen(false)}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSelected(null);
-              setActive(0);
-              setOpen(true);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowDown") {
-                e.preventDefault();
-                setOpen(true);
-                setActive((a) => Math.min(rows - 1, a + 1));
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                setActive((a) => Math.max(0, a - 1));
-              } else if (e.key === "Enter" && open) {
-                e.preventDefault();
-                pick(active);
-              } else if (e.key === "Escape") setOpen(false);
-            }}
-          />
-          <Icon name="search" size={18} className="pointer-events-none absolute top-[17px] right-3.5" />
+          {look === "app" ? (
+            <FieldBox invalid={invalid} className="gap-3">
+              <Icon name="search" size={22} strokeWidth={2.4} className="shrink-0 text-muted-2" />
+              <BoxInput {...combo} text={17} placeholder={t("universityPlaceholder")} />
+              <Icon name="chevronDown" size={20} strokeWidth={2.6} className="shrink-0" />
+            </FieldBox>
+          ) : (
+            <>
+              <Input {...combo} placeholder={t("universitySearchPlaceholder")} invalid={invalid} className="pr-10" />
+              <Icon name="search" size={18} className="pointer-events-none absolute top-[17px] right-3.5" />
+            </>
+          )}
           {open ? (
             // onMouseDown: tanlash `blur` dan oldin ishlashi uchun
             <ul

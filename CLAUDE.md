@@ -485,6 +485,14 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   Qadam holati imzolangan cookie'larda: `tp_pw_step` (10 daq: `login` | `set` | `new:student|business`), `tp_new_pw` (yangi raqam xeshi, 30 daq) —
   ro'yxat action'lari hisob ochganda `applyPendingPassword`. "Parolni unutdim" — SMS tasdig'i amal qilsa yangi parol, boshqa sessiyalar yopiladi.
   Admin ilovada ham o'z yo'li (SMS → `/kirish/admin`). Audit: `user.password.set|reset|locked`. `NativeApp` cookie birinchi qo'yilganda sahifani bir marta qayta yuklaydi.
+- **Ilova ro'yxati** (`isAppRequest()` bo'lsa shu sahifalar ilova ko'rinishini beradi; holat, action va qoidalar saytdagi bilan bitta):
+  `/talaba/royxat` → RoyxatTalaba (`app/student-register.tsx`, `useRegistration`; tasdiqlangan raqamsiz → `/kirish`), `/talaba/guvohnoma` → Guvohnoma
+  (`app/student-card.tsx`; kamera/yuklash mantiqi `student/use-card-capture.ts` — sayt T2 ham shundan), `/talaba/tekshiruv` → Tekshiruv;
+  `/biznes/royxat` va `/biznes` (forma) → B6–B8 (`app/business-register.tsx`; `useBusinessRegistration` `view="app"` — 3 qadam: nom/kategoriya/manzil,
+  ish vaqti/STIR/tavsif, mas'ul/guvohnoma/fotolar/rozilik; fotolar bittadan qo'shiladi `pickFiles(…, { append: true })`), `/biznes` PENDING → BizTekshiruv.
+  OTM tanlovi `UniversityPicker look="app"`; "Ro'yxatda yo'q" tanlanganda qidiruv matni nom maydoniga ataylab o'tadi (`otherText`).
+  Dizayndan chetlanishlar: Guvohnoma ramkasidagi yozuv statik ("Ramkaga to'g'rilab…", aniqlash yo'q); DRAFT talabada Guvohnomada ← yo'q (hisob ochilgan);
+  rad etilgan holat (Tekshiruv) va yuklangan fotolar (ochiq manzili yo'q — belgi) chizilmagan.
 
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).

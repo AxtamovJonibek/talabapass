@@ -17,8 +17,22 @@ type Failure =
   | { kind: "save"; error: Exclude<SaveError, AuthError> | "noRegistration" | "noPhotos" | "consent" }
   | { kind: "upload"; problem: UploadProblem };
 
-/** Qaysi ko'rinish: telefonda (B1) STIR birinchi qadamda, vebda (WB1) — ikkinchisida. */
-export type View = "phone" | "web";
+/** Qaysi ko'rinish: telefonda (B1) STIR birinchi qadamda, vebda (WB1) — ikkinchisida; ilovada (design/app-flow) 3 qadam. */
+export type View = "phone" | "web" | "app";
+export type Step = 1 | 2 | 3;
+
+/** Har bir ko'rinishdagi qadamlar maydonlari (oxirgi qadam — hujjatlar va yuborish). */
+const STEPS: Record<View, readonly (readonly BusinessField[])[]> = {
+  phone: [[...INFO_FIELDS, "tin"], ["contactName"]],
+  web: [INFO_FIELDS, ["tin", "contactName"]],
+  app: [["name", "kind", "address"], ["workingHours", "tin", "description"], ["contactName"]],
+};
+
+/** Shu maydonlardan birinchisi turgan qadam (topilmasa — null). */
+function stepWith(fields: readonly string[], view: View): Step | null {
+  const index = STEPS[view].findIndex((group) => group.some((f) => fields.includes(f)));
+  return index < 0 ? null : ((index + 1) as Step);
+}
 const MAX_BYTES = 10 * 1024 * 1024;
 
 type Options = {
@@ -56,7 +70,7 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
   const t = useTranslations("businessOnboarding");
   const auth = useTranslations("auth");
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<Step>(1);
   const [values, setValues] = useState(initial ?? { ...EMPTY, phone: verifiedPhone ?? "" });
   const [invalid, setInvalid] = useState<SaveField[]>([]);
   const [failure, setFailure] = useState<Failure | null>(null);
@@ -71,14 +85,14 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
   const [resendIn, setResendIn] = useState(0);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [pending, startTransition] = useTransition();
-  /** Bir qadam orqaga: kod → 2-qadam → 1-qadam (holat; tarix yozuvini `goBack` boshqaradi) */
+  /** Bir qadam orqaga: kod → oxirgi qadam → … → 1-qadam (holat; tarix yozuvini `goBack` boshqaradi) */
   function stepBack() {
     setFailure(null);
     if (codePhone) setCodePhone(null);
-    else setStep(1);
+    else setStep((s) => Math.max(1, s - 1) as Step);
   }
   // Telefondagi "orqaga" ham shu qadamlar bo'ylab yuradi; 1-qadamda — bosh sahifaga
-  const goBack = useStepHistory((step === 2 ? 1 : 0) + (codePhone ? 1 : 0), stepBack);
+  const goBack = useStepHistory(step - 1 + (codePhone ? 1 : 0), stepBack);
   // Hisob shu sahifada ochilgan bo'lsa — keyingi urinishlarda kod qayta so'ralmaydi
   const [hasAccount, setHasAccount] = useState(signedIn);
 
@@ -99,7 +113,11 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
     return next;
   }
 
-  const stepOneFields = (view: View): BusinessField[] => (view === "phone" ? [...INFO_FIELDS, "tin"] : [...INFO_FIELDS]);
+  /** Xato maydon oldingi qadamda bo'lsa — o'sha qadamga qaytish */
+  const showStepOf = (fields: readonly string[], view: View) => {
+    const at = stepWith(fields, view);
+    if (at && at < step) setStep(at);
+  };
   const hasRegistration = Boolean(registration) || docs.some((d) => d.kind === "REGISTRATION");
   const savedPhotos = docs.filter((d) => d.kind === "PHOTO");
 
@@ -115,12 +133,12 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
         if ("fields" in saved) {
           setInvalid(saved.fields);
           setCodePhone(null);
-          if (saved.fields.some((f) => (stepOneFields(view) as string[]).includes(f))) setStep(1);
+          showStepOf(saved.fields, view);
         } else if (saved.error === "tinTaken") {
           setInvalid(["tin"]);
           setCodePhone(null);
           setFailure({ kind: "save", error: "tinTaken" });
-          if (view === "phone") setStep(1);
+          showStepOf(["tin"], view);
         } else if (saved.error === "phoneInUse" || saved.error === "notEditable") {
           setCodePhone(null);
           setFailure({ kind: "save", error: saved.error });
@@ -172,7 +190,8 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
     });
   }
 
-  function pickFiles(kind: "registration" | "photo" | "logo", files: FileList | null) {
+  /** `append` — fotolar oldingilariga qo'shiladi (ilova: bittadan qo'shish); aks holda tanlov almashadi (sayt). */
+  function pickFiles(kind: "registration" | "photo" | "logo", files: FileList | null, { append = false } = {}) {
     const list = [...(files ?? [])];
     if (list.length === 0) return;
     if (list.some((f) => f.size > MAX_BYTES)) return setFailure({ kind: "upload", problem: "too_large" });
@@ -180,9 +199,9 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
     if (kind === "registration") setRegistration(list[0]);
     if (kind === "logo") setLogo(list[0]);
     if (kind === "photo") {
-      const room = PHOTOS_MAX - savedPhotos.length;
+      const room = PHOTOS_MAX - savedPhotos.length - (append ? photos.length : 0);
       if (list.length > room) return setFailure({ kind: "upload", problem: "too_many" });
-      setPhotos(list);
+      setPhotos(append ? [...photos, ...list] : list);
     }
   }
 
@@ -220,19 +239,22 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
     kind: values.kind,
     pickKind: (kind: string) => setValues((v) => ({ ...v, kind })),
     pickFiles,
+    /** Hali yuklanmagan (tanlangan) faylni olib tashlash */
+    dropPhoto: (file: File) => setPhotos((list) => list.filter((f) => f !== file)),
+    clearRegistration: () => setRegistration(null),
     removeDoc(id: string) {
       startTransition(async () => {
         const removed = await removeBusinessDocAction(id);
         if (removed.ok) setDocs((list) => list.filter((d) => d.id !== id));
       });
     },
-    /** 1-qadam → 2-qadam (shu qadam maydonlari brauzerda tekshiriladi) */
+    /** Keyingi qadamga (shu qadam maydonlari brauzerda tekshiriladi) */
     next(form: FormData, view: View) {
       const info = read(form);
-      const wrong = validateBusiness(info, stepOneFields(view));
+      const wrong = validateBusiness(info, STEPS[view][step - 1]);
       setInvalid(wrong);
       setFailure(null);
-      if (wrong.length === 0) setStep(2);
+      if (wrong.length === 0) setStep((step + 1) as Step);
     },
     back: goBack,
     submit(form: FormData, view: View) {
@@ -242,7 +264,7 @@ export function useBusinessRegistration({ verifiedPhone, initial, docs: initialD
       setInvalid(wrong);
       setFailure(null);
       if (wrong.length > 0) {
-        if (wrong.some((f) => (stepOneFields(view) as string[]).includes(f))) setStep(1);
+        showStepOf(wrong, view);
         return;
       }
       send(info, undefined, view);

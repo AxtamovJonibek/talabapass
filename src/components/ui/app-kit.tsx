@@ -276,3 +276,29 @@ export function TickDot({ size = 20, tone = "green" }: { size?: 18 | 20 | 22 | 2
     </span>
   );
 }
+
+const CHOICE = {
+  /** Kurs: 1–4 (54px, 20px) */
+  square: "h-[54px] flex-1 rounded-16 text-20 font-black",
+  /** Kurs: "Mag." (kengroq, 16px) */
+  wide: "h-[54px] flex-[1.3] rounded-16 text-16 font-black",
+  /** Biznes kategoriyasi */
+  pill: "min-h-11 rounded-full px-4 text-15 font-extrabold",
+} as const;
+
+/** Bitta tanlov tugmasi: tanlangani qora, qolgani oq (2px qora chegara). */
+export function Choice({ shape, selected, className, ...props }: ComponentProps<"button"> & { shape: keyof typeof CHOICE; selected: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      className={cn(
+        "tp-lift flex items-center justify-center border-2 border-solid border-ink font-sans",
+        CHOICE[shape],
+        selected ? "bg-ink text-white" : "bg-white text-ink",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
