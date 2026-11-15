@@ -501,6 +501,11 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - Dizayn design/app-flow dan (`mobile/src/theme.ts`, `src/ui/kit.tsx`); Archivo — statik nusxalar (`mobile/assets/fonts`). Matnlar `mobile/src/copy.ts`
   (messages/uz.json `app` nusxasi — saytda o'zgarsa u yerda ham).
 - Tekshiruv: `cd mobile && npm run check` (tsc + expo lint), `npx expo-doctor`.
+- Talaba ilovasi (`src/app/(tabs)`: Chegirmalar, Yaqin, Kupon, Saralangan, Profil) — faqat APPROVED. Kupon QR'i `mobile/src/lib/totp.ts` da
+  (saytdagi `src/lib/totp.ts` bilan AYNAN bir xil algoritm — birini o'zgartirsangiz ikkinchisini ham, tengligini tekshiring); faol kupon
+  AsyncStorage'da (internetsiz ko'rinadi). Xarita — react-native-maps (Android build uchun Google Maps kaliti kerak), push — Expo push tokeni.
+  `/api/v1` ga ilova uchun qo'shilganlar: `GET /districts`, `POST /notifications/read { ids }`, `CouponView.discountId`.
+- Render paytida `router.canGoBack()` chaqirmang (navigation.isFocused() ogohlantirishi) — `useCanGoBack()` hook.
 
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).

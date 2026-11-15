@@ -29,7 +29,9 @@ export default function StudentTabs() {
     <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.paper } }}>
       <Tabs.Screen name="deals" options={{ title: copy.tabs.deals }} />
       <Tabs.Screen name="nearby" options={{ title: copy.tabs.nearby }} />
+      <Tabs.Screen name="coupon" options={{ title: copy.tabs.coupon }} />
       <Tabs.Screen name="saved" options={{ title: copy.tabs.saved }} />
+      <Tabs.Screen name="profile" options={{ title: copy.tabs.profile }} />
     </Tabs>
   );
 }

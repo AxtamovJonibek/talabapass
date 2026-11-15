@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { appApi, type FeedDeal } from "@/api/endpoints";
@@ -27,6 +27,13 @@ export default function Deals() {
   const inbox = useLoad(useCallback(() => appApi.notifications(), []));
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("all");
+  // Bildirishnomadan kategoriya bilan kelganda (`/deals?category=kofe`) — o'sha kategoriya tanlanadi
+  const { category: linked } = useLocalSearchParams<{ category?: string }>();
+  const [seenLink, setSeenLink] = useState<string | undefined>(undefined);
+  if (linked !== seenLink) {
+    setSeenLink(linked);
+    if (linked) setCategory(linked);
+  }
   const [liveOnly, setLiveOnly] = useState(false);
   const [sort, setSort] = useState<FeedSort>("near");
   const [sheet, setSheet] = useState<"sort" | "place" | null>(null);

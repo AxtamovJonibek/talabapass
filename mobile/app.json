@@ -63,7 +63,13 @@
           "locationWhenInUsePermission": "Yaqin chegirmalarni ko'rsatish va masofani hisoblash uchun joylashuvingiz kerak."
         }
       ],
-      "react-native-maps"
+      "react-native-maps",
+      [
+        "expo-notifications",
+        {
+          "color": "#2432D6"
+        }
+      ]
     ]
   }
 }

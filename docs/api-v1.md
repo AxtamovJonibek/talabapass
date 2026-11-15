@@ -164,6 +164,7 @@ shu sababli Expo Push API orqali yozilishi kerak.
 
 - Push yuborish (Expo Push API yoki FCM/APNs) — `PushDevice` tayyor, yuboruvchi yo'q.
 - Kassir/biznes ilovasi: skaner, sotuvni tasdiqlash, statistika, chegirma muharriri; oldindan band qilish (buyurtmalar, to'lov).
-- Talaba: kupon tarixi va chek PDF (`/api/chek/<id>` cookie bilan ishlaydi), profilni tahrirlash, profil rasmi
-  (`/api/avatar/<id>` cookie talab qiladi), yo'nalish ("Qanday boraman?" — havolalar mijozda).
+- Talaba: kupon tarixi va chek PDF (`/api/chek/<id>` cookie bilan ishlaydi), profilni tahrirlash (ism, kurs, fakultet, tuman),
+  profil rasmi (`/api/avatar/<id>` cookie talab qiladi), bildirishnoma sozlamasi (saytdagi "Yangi chegirmalar haqida xabar"),
+  eng yaqin metro (yo'nalish oynasida; havolalar mijozda). Ilovada shular hozircha yo'q yoki saytga ochiladi.
 - Qurilmalar ro'yxati va boshqa sessiyalarni yopish; ru/en matnlar (xato matnlari faqat o'zbekcha).

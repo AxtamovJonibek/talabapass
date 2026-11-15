@@ -431,6 +431,7 @@ export const copy = {
     title: "Profil",
     university: "Universitet",
     course: "Kurs",
+    faculty: "Fakultet",
     status: "Holat",
     statuses: { DRAFT: "Guvohnoma kutilmoqda", PENDING: "Tekshiruvda", APPROVED: "Tasdiqlangan", REJECTED: "Rad etilgan", EXPIRED: "Muddati o'tgan", BLOCKED: "Bloklangan" } as Record<string, string>,
     id: "talabaPass ID",
