@@ -33,14 +33,14 @@ test.describe("jonli kamera bor", () => {
 
   test("ramkada jonli tasvir, tugma kadrni olib yuklaydi", async ({ page, context, baseURL }) => {
     await draftStudentSession(context, baseURL!);
-    await page.goto("/talaba/guvohnoma", { waitUntil: "networkidle" });
+    await page.goto("/uz/talaba/guvohnoma", { waitUntil: "networkidle" });
     const video = page.locator("video").locator("visible=true");
     await expect(video).toBeVisible();
     await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.videoWidth)).toBeGreaterThan(0);
     await expect(page.getByTestId("camera-issue")).toHaveCount(0);
 
     await page.getByRole("button", { name: "Rasmga olish" }).click();
-    await expect(page).toHaveURL("/talaba/tekshiruv");
+    await expect(page).toHaveURL("/uz/talaba/tekshiruv");
     const stored = await withDb(async (db) => (await db.query(`SELECT mime, "fileSize" FROM "Verification" WHERE "studentId" = 'e2e_camera'`)).rows[0]);
     expect(stored.mime).toBe("image/jpeg");
     expect(stored.fileSize).toBeGreaterThan(1000);
@@ -53,7 +53,7 @@ test.describe("kameraga ruxsat berilmagan", () => {
 
   test("tushunarli xabar chiqadi, fayl tanlash ishlaydi", async ({ page, context, baseURL }) => {
     await draftStudentSession(context, baseURL!);
-    await page.goto("/talaba/guvohnoma", { waitUntil: "networkidle" });
+    await page.goto("/uz/talaba/guvohnoma", { waitUntil: "networkidle" });
     await expect(page.getByTestId("camera-issue")).toContainText("Kameraga ruxsat berilmadi");
     await expect(page.getByRole("button", { name: "Fayl" })).toBeEnabled();
   });

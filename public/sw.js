@@ -1,9 +1,11 @@
 /* talabaPass service worker: (1) oflayn rejim — statik fayllar keshi, /oflayn sahifasi, ochilgan kupon sahifasi; (2) Web Push. */
-const VERSION = "tp-v3";
+const VERSION = "tp-v4";
 const STATIC = VERSION + "-static";
 const PAGES = VERSION + "-pages";
-const OFFLINE = "/oflayn";
-const COUPON = /^\/kuponlar\/[^/]+$/;
+// Sahifalar til prefiksi bilan (src/i18n/routing.ts: localePrefix "always")
+const LOCALE = "/uz";
+const OFFLINE = LOCALE + "/oflayn";
+const COUPON = /^\/uz\/kuponlar\/[^/]+$/;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -45,7 +47,7 @@ async function navigate(request) {
     const pages = await caches.open(PAGES);
     const cached = await pages.match(url.pathname);
     if (cached) return cached;
-    if (url.pathname === "/kuponlar") {
+    if (url.pathname === LOCALE + "/kuponlar") {
       const latest = await latestCouponPage();
       if (latest) return latest;
     }
@@ -111,14 +113,14 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title || "talabaPass", {
       body: data.body || "",
       tag: data.tag,
-      data: { url: data.url || "/" },
+      data: { url: data.url || LOCALE },
     }),
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || "/";
+  const url = (event.notification.data && event.notification.data.url) || LOCALE;
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
       for (const client of windows) {

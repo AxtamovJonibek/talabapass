@@ -8,7 +8,7 @@ test.beforeAll(async () => {
 
 test("talaba: profildagi 'Yordam markazi' ilova ichidagi /yordam ga olib boradi (landing'ga emas)", async ({ page }) => {
   await signIn(page, phones.student);
-  await page.goto("/profil", { waitUntil: "networkidle" });
+  await page.goto("/uz/profil", { waitUntil: "networkidle" });
   await page.getByRole("link", { name: "Yordam markazi" }).locator("visible=true").click();
   await expect(page).toHaveURL(/\/yordam$/);
   await expect(page.getByRole("heading", { name: "Yordam markazi" }).locator("visible=true")).toBeVisible();

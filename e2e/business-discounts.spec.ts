@@ -17,8 +17,8 @@ test.describe("veb (WB2)", () => {
     test.slow(); // dev serverda birinchi kompilyatsiya uzoq
     const { owner } = await seedPhones();
     await signIn(page, owner);
-    await expect(page).toHaveURL("/biznes");
-    await page.goto("/biznes/chegirma/yangi", { waitUntil: "networkidle" });
+    await expect(page).toHaveURL("/uz/biznes");
+    await page.goto("/uz/biznes/chegirma/yangi", { waitUntil: "networkidle" });
 
     await page.getByRole("button", { name: "E'lon qilish" }).locator("visible=true").click();
     await expect(page.getByText("Mahsulot nomini kiriting").locator("visible=true")).toBeVisible();
@@ -59,7 +59,7 @@ test.describe("veb (WB2)", () => {
     await expect(page.getByRole("img", { name: "1-rasm" }).locator("visible=true")).toBeVisible();
 
     await page.getByRole("button", { name: "E'lon qilish" }).locator("visible=true").click();
-    await expect(page).toHaveURL("/biznes/chegirmalar");
+    await expect(page).toHaveURL("/uz/biznes/chegirmalar");
     const row = page.getByTestId("discount-row").locator("visible=true").filter({ hasText: TITLE });
     await expect(row).toContainText("Tekshiruvda");
 
@@ -78,14 +78,14 @@ test.describe("veb (WB2)", () => {
 test("telefon (B2): qoralama saqlanadi va talabalarga chiqmaydi", async ({ page }) => {
   const { owner } = await seedPhones();
   await signIn(page, owner);
-  await expect(page).toHaveURL("/biznes");
-  await page.goto("/biznes/chegirma/yangi", { waitUntil: "networkidle" });
+  await expect(page).toHaveURL("/uz/biznes");
+  await page.goto("/uz/biznes/chegirma/yangi", { waitUntil: "networkidle" });
   await page.locator("#b2-title").fill(`${TITLE} 2`);
   await page.locator("#b2-price").fill("20000");
   await page.locator("#b2-limit").fill("10");
   await page.getByRole("radio", { name: "1 + 1" }).locator("visible=true").click();
   await page.getByRole("button", { name: "Qoralama" }).locator("visible=true").click();
-  await expect(page).toHaveURL("/biznes/chegirmalar");
+  await expect(page).toHaveURL("/uz/biznes/chegirmalar");
   await expect(page.getByTestId("discount-row").locator("visible=true").filter({ hasText: `${TITLE} 2` })).toContainText("Qoralama");
   const saved = await withDb(async (db) => (await db.query(`SELECT status, type FROM "Discount" WHERE title = $1`, [`${TITLE} 2`])).rows[0]);
   expect(saved).toEqual({ status: "DRAFT", type: "BOGO" });
@@ -112,14 +112,14 @@ test.describe("admin chegirmalar navbati", () => {
     const b = await pending(`${TITLE} B`);
     const { admin, owner } = await seedPhones();
     await signIn(page, admin);
-    await expect(page).toHaveURL("/admin");
+    await expect(page).toHaveURL("/uz/admin");
 
-    await page.goto(`/admin/chegirmalar?id=${a}`);
+    await page.goto(`/uz/admin/chegirmalar?id=${a}`);
     await expect(page.getByRole("heading", { name: `${TITLE} A` })).toBeVisible();
     await page.getByRole("button", { name: "Tasdiqlash" }).click();
     await expect.poll(async () => (await statusOf(a)).status).toBe("ACTIVE");
 
-    await page.goto(`/admin/chegirmalar?id=${b}`);
+    await page.goto(`/uz/admin/chegirmalar?id=${b}`);
     await page.locator("#reject-reason-discount").selectOption("unclear");
     await page.getByRole("button", { name: "Rad etish" }).click();
     await expect.poll(async () => (await statusOf(b)).status).toBe("REJECTED");
@@ -127,8 +127,8 @@ test.describe("admin chegirmalar navbati", () => {
 
     await page.context().clearCookies();
     await signIn(page, owner);
-    await expect(page).toHaveURL("/biznes");
-    await page.goto("/biznes/chegirmalar");
+    await expect(page).toHaveURL("/uz/biznes");
+    await page.goto("/uz/biznes/chegirmalar");
     const rows = page.getByTestId("discount-row").locator("visible=true");
     await expect(rows.filter({ hasText: `${TITLE} B` })).toContainText("Rad etildi: Nom yoki shartlar tushunarsiz");
     // Faol chegirmani to'xtatish — tekshiruvsiz

@@ -31,7 +31,7 @@ test.describe("telefon (T4 / T5)", () => {
   test("lentada faqat tasdiqlangan chegirmalar; kategoriya, qidiruv va tafsilot", async ({ page }) => {
     const { student } = await seedPhones();
     await signIn(page, student);
-    await expect(page).toHaveURL("/chegirmalar");
+    await expect(page).toHaveURL("/uz/chegirmalar");
 
     await expect(card(page, /Kino chiptasi, 2D seans/).first()).toBeVisible();
     await expect(card(page, /Lavash \+ ayron/).first()).toBeVisible();
@@ -56,14 +56,14 @@ test.describe("telefon (T4 / T5)", () => {
     await expect(page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true")).toBeDisabled();
 
     await page.getByRole("link", { name: "Orqaga" }).click();
-    await expect(page).toHaveURL("/chegirmalar");
+    await expect(page).toHaveURL("/uz/chegirmalar");
   });
 
   test("tekshiruvdagi chegirma tafsiloti ochilmaydi (404)", async ({ page }) => {
     const { student } = await seedPhones();
     await signIn(page, student);
     // Sahifa oqim bilan beriladi — holat kodi emas, 404 sahifasi tekshiriladi
-    await page.goto(`/chegirmalar/${PENDING_ID}`);
+    await page.goto(`/uz/chegirmalar/${PENDING_ID}`);
     await expect(page.getByTestId("not-found-page")).toBeVisible();
     await expect(page.getByText(PENDING_TITLE)).toHaveCount(0);
   });
@@ -75,20 +75,20 @@ test.describe("veb (WT2 / WT3)", () => {
   test("saralash, 'faqat hozir ochiq' va tafsilot", async ({ page }) => {
     const { student } = await seedPhones();
     await signIn(page, student);
-    await expect(page).toHaveURL("/chegirmalar");
+    await expect(page).toHaveURL("/uz/chegirmalar");
     await expect(page.getByRole("heading", { name: /^Salom, / })).toBeVisible();
 
     await page.locator("#wt2-sort").click();
     await page.getByRole("option", { name: "Eng katta chegirma" }).click();
     await expect(page).toHaveURL(/saralash=biggest/);
     // 1+1 (50%) eng katta, keyin kino (−44%)
-    const tiles = page.locator("section a[href^='/chegirmalar/']");
+    const tiles = page.locator("section a[href^='/uz/chegirmalar/']");
     await expect(tiles.first()).toContainText("1+1");
 
     await page.getByRole("button", { name: "Hozir ochiq" }).locator("visible=true").click();
     await expect(page).toHaveURL(/ochiq=1/);
 
-    await page.goto(`/chegirmalar/${await discountId("Osh 0.5 porsiya + ko'k choy")}`);
+    await page.goto(`/uz/chegirmalar/${await discountId("Osh 0.5 porsiya + ko'k choy")}`);
     await expect(page.getByRole("heading", { name: "Osh 0.5 porsiya + ko'k choy" }).locator("visible=true")).toBeVisible();
     await expect(page.getByText("Yaqin atrofda")).toBeVisible();
     await expect(page.getByRole("link", { name: /Barcha chegirmalar/ })).toBeVisible();

@@ -88,7 +88,7 @@ test("kassir kamerada talaba QR'ini o'qiydi va B4 ochiladi", async () => {
     const context = await browser.newContext({ baseURL: test.info().project.use.baseURL, viewport: { width: 390, height: 844 }, permissions: ["camera"] });
     const page = await context.newPage();
     await signIn(page, phones.cashier);
-    await expect(page).toHaveURL("/biznes/skaner");
+    await expect(page).toHaveURL("/uz/biznes/skaner");
     await expect(page.getByText("QR haqiqiy")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(CODE)).toBeVisible();
     await expect(page.getByTestId("sale-total")).toHaveText("26 600");

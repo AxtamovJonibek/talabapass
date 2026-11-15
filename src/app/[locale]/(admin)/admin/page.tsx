@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CategoriesAndUniversities, OverviewKpis, RatingTable, SalesTrend, type RatingRow } from "@/components/admin/overview/blocks";
 import { Icon } from "@/components/ui/icon";
+import { localizedPath } from "@/i18n/routing";
 import { categoryShares, weekOverWeek } from "@/lib/admin-stats";
 import { formatMinute, toTashkent } from "@/lib/time";
 import { businessRating, platformOverview } from "@/server/admin/overview";
@@ -53,7 +54,7 @@ async function OverviewContent() {
           <h1 className="mt-1 mb-0 text-36 leading-none font-black tracking-[-0.035em] font-stretch-112%">{t("title")}</h1>
         </div>
         {/* Qidiruv — tranzaksiyalar sahifasiga (chek №, talaba, biznes, STIR) */}
-        <form action="/admin/tranzaksiyalar" method="get" role="search" className="flex h-11 min-w-[260px] items-center gap-2.5 rounded-12 bg-white px-3.5">
+        <form action={localizedPath("/admin/tranzaksiyalar")} method="get" role="search" className="flex h-11 min-w-[260px] items-center gap-2.5 rounded-12 bg-white px-3.5">
           <Icon name="search" size={18} className="text-muted" />
           <label htmlFor="admin-search" className="sr-only">
             {t("search")}

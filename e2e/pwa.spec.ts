@@ -37,7 +37,7 @@ test.afterAll(cleanup);
 test("ochilgan kupon internetsiz ochiladi; boshqa sahifa — oflayn ekran", async ({ page, context }) => {
   const { student } = await seedPhones();
   await signIn(page, student);
-  await page.goto(`/chegirmalar/${DISCOUNT_ID}`);
+  await page.goto(`/uz/chegirmalar/${DISCOUNT_ID}`);
   await page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
   await expect(page).toHaveURL(/\/kuponlar\/[a-z0-9]+$/);
   const couponPath = new URL(page.url()).pathname;
@@ -48,7 +48,7 @@ test("ochilgan kupon internetsiz ochiladi; boshqa sahifa — oflayn ekran", asyn
     .poll(async () => page.evaluate(async (path) => {
       const reg = await navigator.serviceWorker.getRegistration();
       if (!reg?.active) return "sw yo'q";
-      const hit = await caches.open("tp-v2-pages").then((c) => c.match(path));
+      const hit = await caches.open("tp-v4-pages").then((c) => c.match(path));
       return hit ? "ok" : "kesh yo'q";
     }, couponPath), { timeout: 30_000 })
     .toBe("ok");
@@ -63,7 +63,7 @@ test("ochilgan kupon internetsiz ochiladi; boshqa sahifa — oflayn ekran", asyn
   await expect(page.getByTestId("coupon-timer")).toHaveText(/^\d\d:\d\d$/);
 
   // Kesh'da yo'q sahifa — oflayn ekran
-  await page.goto("/tarix");
+  await page.goto("/uz/tarix");
   await expect(page.getByTestId("offline-page")).toBeVisible();
 
   await context.setOffline(false);

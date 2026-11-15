@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { localizedPath } from "@/i18n/routing";
 import { fromTashkent, parseMinute, toTashkent } from "./time";
 
 /** Bildirishnoma qoidalari (forma va server bitta): uzunliklar, auditoriya, havola, vaqt. */
@@ -82,11 +83,11 @@ export function notificationHref(link: { type: "HOME" | "CATEGORY" | "DISCOUNT";
   return home;
 }
 
-/** Push yuklamasi (service worker o'qiydi) — kichik: brauzer chegarasi ~4 KB. */
+/** Push yuklamasi (service worker o'qiydi) — kichik: brauzer chegarasi ~4 KB. `url` — til prefiksi bilan (bildirishnoma bosilganda to'g'ridan-to'g'ri ochiladi). */
 export type PushPayload = { title: string; body: string; url: string; tag: string };
 
 export function pushPayload(n: { id: string; title: string; body: string }, url: string): string {
-  return JSON.stringify({ title: n.title, body: n.body, url, tag: n.id } satisfies PushPayload);
+  return JSON.stringify({ title: n.title, body: n.body, url: localizedPath(url), tag: n.id } satisfies PushPayload);
 }
 
 /** Matnni `max` belgigacha qisqartiradi (oxirida "…"). */

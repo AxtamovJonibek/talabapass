@@ -19,8 +19,8 @@ test("taklif → qabul → o'chirish: sessiya darhol yopiladi, havola qayta ishl
   test.slow();
   const { owner } = await seedPhones();
   await signIn(page, owner);
-  await expect(page).toHaveURL("/biznes");
-  await page.goto("/biznes/kassirlar", { waitUntil: "networkidle" });
+  await expect(page).toHaveURL("/uz/biznes");
+  await page.goto("/uz/biznes/kassirlar", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "+ Taklif qilish" }).locator("visible=true").click();
   const link = (await page.getByTestId("invite-link").locator("visible=true").locator("code").textContent())!.trim();
   expect(link).toMatch(/\/kassir\/[A-Za-z0-9_-]{20,}$/);
@@ -37,11 +37,11 @@ test("taklif → qabul → o'chirish: sessiya darhol yopiladi, havola qayta ishl
   await cashier.getByRole("button", { name: "SMS kod olish" }).click();
   await expect(codeBox(cashier)).toBeEnabled();
   await enterCode(cashier, FIXED_CODE);
-  await expect(cashier).toHaveURL("/biznes/skaner");
+  await expect(cashier).toHaveURL("/uz/biznes/skaner");
   await expect(cashier.getByTestId("cashier-business")).toHaveText("Bodom Choyxonasi");
   // Kassir biznes kabinetiga kira olmaydi
-  await cashier.goto("/biznes/profil");
-  await expect(cashier).toHaveURL("/biznes/skaner");
+  await cashier.goto("/uz/biznes/profil");
+  await expect(cashier).toHaveURL("/uz/biznes/skaner");
 
   // Havola ikkinchi marta ishlamaydi
   const other = await browser.newContext();
@@ -59,7 +59,7 @@ test("taklif → qabul → o'chirish: sessiya darhol yopiladi, havola qayta ishl
 
   // Kassirning ochiq sessiyasi darhol ishlamay qoladi
   await cashier.reload();
-  await expect(cashier).toHaveURL("/kirish");
+  await expect(cashier).toHaveURL("/uz/kirish");
   // (sessiyalar bazadan o'chirilgani — cashiers.itest.ts da)
 
   await cashierContext.close();
@@ -73,11 +73,11 @@ test("o'chirilgan kassir qayta kira olmaydi", async ({ page }) => {
       [rows[0].id],
     );
   });
-  await page.goto("/kirish", { waitUntil: "networkidle" });
+  await page.goto("/uz/kirish", { waitUntil: "networkidle" });
   await page.locator("#login-phone").fill(local(CASHIER));
   await page.getByRole("button", { name: "SMS kod olish" }).click();
   await expect(codeBox(page)).toBeEnabled();
   await enterCode(page, FIXED_CODE);
   await expect(page.getByText("hech qaysi biznesga kassir sifatida biriktirilmagansiz")).toBeVisible();
-  expect(page.url()).toContain("/kirish");
+  expect(page.url()).toContain("/uz/kirish");
 });

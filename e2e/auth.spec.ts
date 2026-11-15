@@ -7,7 +7,7 @@ test.beforeAll(async () => {
   phones = await seedPhones();
 });
 
-const HOME = { student: "/chegirmalar", owner: "/biznes", cashier: "/biznes/skaner", admin: "/admin" } as const;
+const HOME = { student: "/uz/chegirmalar", owner: "/uz/biznes", cashier: "/uz/biznes/skaner", admin: "/uz/admin" } as const;
 
 test.describe("kirish", () => {
   for (const role of ["student", "owner", "cashier", "admin"] as const) {
@@ -31,16 +31,16 @@ test.describe("kirish", () => {
     const nav = page.getByRole("navigation", { name: "Admin menyu" });
     // [band, manzil, sahifa sarlavhasi]
     const sections = [
-      ["Umumiy", "/admin", "Platforma"],
-      ["Talabalar tekshiruvi", "/admin/talabalar", "Talabalar tekshiruvi"],
-      ["Bizneslar", "/admin/bizneslar", "Bizneslar tekshiruvi"],
-      ["Chegirmalar", "/admin/chegirmalar", "Chegirmalar tekshiruvi"],
-      ["Tranzaksiyalar", "/admin/tranzaksiyalar", "Tranzaksiyalar"],
-      ["Bildirishnomalar", "/admin/bildirishnomalar", "Bildirishnoma yuborish"],
-      ["Bloklanganlar", "/admin/bloklanganlar", "Bloklanganlar"],
-      ["Foydalanuvchilar", "/admin/foydalanuvchilar", "Foydalanuvchilar"],
-      ["Universitetlar", "/admin/universitetlar", "Universitetlar"],
-      ["Profil va adminlar", "/admin/profil", "Profil va adminlar"],
+      ["Umumiy", "/uz/admin", "Platforma"],
+      ["Talabalar tekshiruvi", "/uz/admin/talabalar", "Talabalar tekshiruvi"],
+      ["Bizneslar", "/uz/admin/bizneslar", "Bizneslar tekshiruvi"],
+      ["Chegirmalar", "/uz/admin/chegirmalar", "Chegirmalar tekshiruvi"],
+      ["Tranzaksiyalar", "/uz/admin/tranzaksiyalar", "Tranzaksiyalar"],
+      ["Bildirishnomalar", "/uz/admin/bildirishnomalar", "Bildirishnoma yuborish"],
+      ["Bloklanganlar", "/uz/admin/bloklanganlar", "Bloklanganlar"],
+      ["Foydalanuvchilar", "/uz/admin/foydalanuvchilar", "Foydalanuvchilar"],
+      ["Universitetlar", "/uz/admin/universitetlar", "Universitetlar"],
+      ["Profil va adminlar", "/uz/admin/profil", "Profil va adminlar"],
     ] as const;
     for (const [label, href, heading] of sections) {
       await nav.getByRole("link", { name: new RegExp(label) }).click();
@@ -55,16 +55,16 @@ test.describe("kirish", () => {
     await signIn(page, phones.admin);
     await expect(page).toHaveURL(HOME.admin);
     await page.getByRole("button", { name: "Hisobdan chiqish" }).click();
-    await expect(page).toHaveURL("/");
-    await page.goto("/admin/talabalar");
-    await expect(page).toHaveURL("/kirish");
+    await expect(page).toHaveURL("/uz");
+    await page.goto("/uz/admin/talabalar");
+    await expect(page).toHaveURL("/uz/kirish");
   });
 
   test("noto'g'ri kod rad etiladi, to'g'risi qabul qilinadi", async ({ page }) => {
     await requestCode(page, phones.student);
     await enterCode(page, "123456");
     await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
-    await expect(page).toHaveURL("/kirish");
+    await expect(page).toHaveURL("/uz/kirish");
     await enterCode(page, FIXED_CODE);
     await expect(page).toHaveURL(HOME.student);
   });
@@ -82,7 +82,7 @@ test.describe("kirish", () => {
 
     await enterCode(page, FIXED_CODE);
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
-    await expect(page).toHaveURL("/kirish");
+    await expect(page).toHaveURL("/uz/kirish");
 
     // yangi kod so'rash ham blok tugaguncha rad etiladi
     await page.getByRole("button", { name: "Raqamni o'zgartirish" }).click();
@@ -114,7 +114,7 @@ test.describe("kirish", () => {
     await requestCode(page, phones.student);
     // Shu brauzer IP'si nomidan yana 9 ta so'rov yozib qo'yamiz (jami 10)
     await withDb((db) => db.query(`INSERT INTO "RateLimitHit" (id, key) SELECT 'e2e_hit_' || n, (SELECT key FROM "RateLimitHit" LIMIT 1) FROM generate_series(1, 9) n`));
-    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
     await page.locator("#login-phone").fill("90 555 09 96");
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Juda ko'p so'rov yuborildi")).toBeVisible();
@@ -123,7 +123,7 @@ test.describe("kirish", () => {
   });
 
   test("faqat +998: boshqa davlat raqamiga kod yuborilmaydi", async ({ page }) => {
-    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
     await page.locator("#login-phone").fill("+7 904 123 78 56");
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
@@ -144,15 +144,15 @@ test.describe("kirish", () => {
   });
 
   test("/kirish?rol=biznes Biznes tabini ochadi", async ({ page }) => {
-    await page.goto("/kirish?rol=biznes", { waitUntil: "networkidle" });
+    await page.goto("/uz/kirish?rol=biznes", { waitUntil: "networkidle" });
     await expect(page.getByRole("tab", { name: "Biznes" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { name: "Biznes kabinetiga kirish" })).toBeVisible();
-    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
     await expect(page.getByRole("tab", { name: "Talaba" })).toHaveAttribute("aria-selected", "true");
   });
 
   test("noto'g'ri raqam uchun kod yuborilmaydi", async ({ page }) => {
-    await page.goto("/kirish", { waitUntil: "networkidle" });
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
     await page.locator("#login-phone").fill("90 412");
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
@@ -171,7 +171,7 @@ test.describe("kirish", () => {
       await requestCode(page, blocked);
       await enterCode(page, FIXED_CODE);
       await expect(page.getByText("Bu hisob bloklangan")).toBeVisible();
-      await expect(page).toHaveURL("/kirish");
+      await expect(page).toHaveURL("/uz/kirish");
     } finally {
       await clearOtp(blocked);
       await withDb((db) => db.query(`DELETE FROM "User" WHERE id = 'e2e_blocked'`));
@@ -181,7 +181,7 @@ test.describe("kirish", () => {
   test("ro'yxatda yo'q raqam: kod tasdiqlangach ro'yxat formasiga o'tadi", async ({ page }) => {
     const fresh = "+998905550998";
     await signIn(page, fresh);
-    await expect(page).toHaveURL("/talaba/royxat");
+    await expect(page).toHaveURL("/uz/talaba/royxat");
     // Tasdiqlangan raqam formada tayyor turadi va o'zgartirib bo'lmaydi
     await expect(page.locator("#reg-phone")).toHaveValue("90 555 09 98");
     await expect(page.locator("#reg-phone")).toHaveAttribute("readonly", "");
@@ -192,7 +192,7 @@ test.describe("kirish", () => {
     const fresh = "+998905550997";
     await requestCode(page, fresh, "Biznes");
     await enterCode(page, FIXED_CODE);
-    await expect(page).toHaveURL("/biznes/royxat");
+    await expect(page).toHaveURL("/uz/biznes/royxat");
     // Tasdiqlangan raqam ariza formasiga o'zgartirib bo'lmaydigan qilib qo'yiladi (2-qadam)
     await page.locator("#b1-name").fill("Test");
     await page.getByRole("button", { name: "Kafe / restoran" }).locator("visible=true").click();
@@ -209,31 +209,31 @@ test.describe("kirish", () => {
     await signIn(page, phones.student);
     await expect(page).toHaveURL(HOME.student);
     // Chiqish talaba profilida
-    await page.goto("/profil");
+    await page.goto("/uz/profil");
     await page.getByRole("button", { name: "Hisobdan chiqish" }).click();
-    await expect(page).toHaveURL("/");
-    await page.goto("/chegirmalar");
-    await expect(page).toHaveURL("/kirish");
+    await expect(page).toHaveURL("/uz");
+    await page.goto("/uz/chegirmalar");
+    await expect(page).toHaveURL("/uz/kirish");
   });
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/chegirmalar", "/kuponlar", "/tarix", "/profil", "/profil/tahrir", "/profil/guvohnoma", "/yordam", "/biznes/profil/tahrir", "/biznes", "/biznes/skaner", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/kassirlar", "/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/admin/tranzaksiyalar", "/admin/bildirishnomalar", "/admin/bloklanganlar", "/admin/foydalanuvchilar", "/admin/universitetlar", "/admin/profil", "/bildirishnomalar", "/biznes/bildirishnomalar", "/talaba/guvohnoma", "/talaba/tekshiruv", "/buyurtmalar", "/biznes/buyurtmalar", "/biznes/sozlamalar"];
+  const PROTECTED = ["/uz/chegirmalar", "/uz/kuponlar", "/uz/tarix", "/uz/profil", "/uz/profil/tahrir", "/uz/profil/guvohnoma", "/uz/yordam", "/uz/biznes/profil/tahrir", "/uz/biznes", "/uz/biznes/skaner", "/uz/biznes/chegirmalar", "/uz/biznes/chegirma/yangi", "/uz/biznes/profil", "/uz/biznes/kassirlar", "/uz/admin", "/uz/admin/talabalar", "/uz/admin/bizneslar", "/uz/admin/chegirmalar", "/uz/admin/tranzaksiyalar", "/uz/admin/bildirishnomalar", "/uz/admin/bloklanganlar", "/uz/admin/foydalanuvchilar", "/uz/admin/universitetlar", "/uz/admin/profil", "/uz/bildirishnomalar", "/uz/biznes/bildirishnomalar", "/uz/talaba/guvohnoma", "/uz/talaba/tekshiruv", "/uz/buyurtmalar", "/uz/biznes/buyurtmalar", "/uz/biznes/sozlamalar"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
     test.setTimeout(180_000); // ko'p sahifa — dev serverda birinchi kompilyatsiya uzoq
     for (const path of PROTECTED) {
       await page.goto(path);
-      await expect(page, path).toHaveURL("/kirish");
+      await expect(page, path).toHaveURL("/uz/kirish");
     }
   });
 
   // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
   const MATRIX = {
-    student: { "/admin/foydalanuvchilar": "/chegirmalar", "/admin/universitetlar": "/chegirmalar", "/admin/profil": "/chegirmalar", "/biznes/chegirma/yangi": "/chegirmalar", "/biznes/profil/tahrir": "/chegirmalar", "/biznes": "/chegirmalar", "/biznes/skaner": "/chegirmalar", "/admin": "/chegirmalar", "/admin/talabalar": "/chegirmalar", "/admin/bizneslar": "/chegirmalar", "/admin/tranzaksiyalar": "/chegirmalar", "/admin/bildirishnomalar": "/chegirmalar", "/admin/bloklanganlar": "/chegirmalar", "/biznes/bildirishnomalar": "/chegirmalar", "/biznes/buyurtmalar": "/chegirmalar", "/biznes/sozlamalar": "/chegirmalar" },
-    owner: { "/admin/foydalanuvchilar": "/biznes", "/admin/universitetlar": "/biznes", "/admin/profil": "/biznes", "/yordam": "/biznes", "/chegirmalar": "/biznes", "/profil": "/biznes", "/profil/tahrir": "/biznes", "/profil/guvohnoma": "/biznes", "/bildirishnomalar": "/biznes", "/admin": "/biznes", "/admin/bildirishnomalar": "/biznes", "/admin/tranzaksiyalar": "/biznes", "/biznes/skaner": "/biznes/skaner", "/buyurtmalar": "/biznes" },
-    cashier: { "/admin/foydalanuvchilar": "/biznes/skaner", "/admin/universitetlar": "/biznes/skaner", "/admin/profil": "/biznes/skaner", "/yordam": "/biznes/skaner", "/kuponlar": "/biznes/skaner", "/profil/tahrir": "/biznes/skaner", "/biznes/profil": "/biznes/skaner", "/biznes/profil/tahrir": "/biznes/skaner", "/biznes/kassirlar": "/biznes/skaner", "/biznes/chegirmalar": "/biznes/skaner", "/biznes/chegirma/yangi": "/biznes/skaner", "/chegirmalar": "/biznes/skaner", "/admin": "/biznes/skaner", "/biznes": "/biznes/skaner", "/admin/talabalar": "/biznes/skaner", "/admin/chegirmalar": "/biznes/skaner", "/admin/tranzaksiyalar": "/biznes/skaner", "/admin/bildirishnomalar": "/biznes/skaner", "/admin/bloklanganlar": "/biznes/skaner", "/bildirishnomalar": "/biznes/skaner", "/biznes/bildirishnomalar": "/biznes/skaner", "/biznes/buyurtmalar": "/biznes/skaner", "/biznes/sozlamalar": "/biznes/skaner", "/buyurtmalar": "/biznes/skaner" },
-    admin: { "/yordam": "/admin", "/profil": "/admin", "/profil/guvohnoma": "/admin", "/biznes/profil/tahrir": "/admin", "/tarix": "/admin", "/chegirmalar": "/admin", "/bildirishnomalar": "/admin", "/biznes": "/admin", "/biznes/bildirishnomalar": "/admin", "/biznes/skaner": "/admin", "/buyurtmalar": "/admin", "/biznes/buyurtmalar": "/admin" },
+    student: { "/uz/admin/foydalanuvchilar": "/uz/chegirmalar", "/uz/admin/universitetlar": "/uz/chegirmalar", "/uz/admin/profil": "/uz/chegirmalar", "/uz/biznes/chegirma/yangi": "/uz/chegirmalar", "/uz/biznes/profil/tahrir": "/uz/chegirmalar", "/uz/biznes": "/uz/chegirmalar", "/uz/biznes/skaner": "/uz/chegirmalar", "/uz/admin": "/uz/chegirmalar", "/uz/admin/talabalar": "/uz/chegirmalar", "/uz/admin/bizneslar": "/uz/chegirmalar", "/uz/admin/tranzaksiyalar": "/uz/chegirmalar", "/uz/admin/bildirishnomalar": "/uz/chegirmalar", "/uz/admin/bloklanganlar": "/uz/chegirmalar", "/uz/biznes/bildirishnomalar": "/uz/chegirmalar", "/uz/biznes/buyurtmalar": "/uz/chegirmalar", "/uz/biznes/sozlamalar": "/uz/chegirmalar" },
+    owner: { "/uz/admin/foydalanuvchilar": "/uz/biznes", "/uz/admin/universitetlar": "/uz/biznes", "/uz/admin/profil": "/uz/biznes", "/uz/yordam": "/uz/biznes", "/uz/chegirmalar": "/uz/biznes", "/uz/profil": "/uz/biznes", "/uz/profil/tahrir": "/uz/biznes", "/uz/profil/guvohnoma": "/uz/biznes", "/uz/bildirishnomalar": "/uz/biznes", "/uz/admin": "/uz/biznes", "/uz/admin/bildirishnomalar": "/uz/biznes", "/uz/admin/tranzaksiyalar": "/uz/biznes", "/uz/biznes/skaner": "/uz/biznes/skaner", "/uz/buyurtmalar": "/uz/biznes" },
+    cashier: { "/uz/admin/foydalanuvchilar": "/uz/biznes/skaner", "/uz/admin/universitetlar": "/uz/biznes/skaner", "/uz/admin/profil": "/uz/biznes/skaner", "/uz/yordam": "/uz/biznes/skaner", "/uz/kuponlar": "/uz/biznes/skaner", "/uz/profil/tahrir": "/uz/biznes/skaner", "/uz/biznes/profil": "/uz/biznes/skaner", "/uz/biznes/profil/tahrir": "/uz/biznes/skaner", "/uz/biznes/kassirlar": "/uz/biznes/skaner", "/uz/biznes/chegirmalar": "/uz/biznes/skaner", "/uz/biznes/chegirma/yangi": "/uz/biznes/skaner", "/uz/chegirmalar": "/uz/biznes/skaner", "/uz/admin": "/uz/biznes/skaner", "/uz/biznes": "/uz/biznes/skaner", "/uz/admin/talabalar": "/uz/biznes/skaner", "/uz/admin/chegirmalar": "/uz/biznes/skaner", "/uz/admin/tranzaksiyalar": "/uz/biznes/skaner", "/uz/admin/bildirishnomalar": "/uz/biznes/skaner", "/uz/admin/bloklanganlar": "/uz/biznes/skaner", "/uz/bildirishnomalar": "/uz/biznes/skaner", "/uz/biznes/bildirishnomalar": "/uz/biznes/skaner", "/uz/biznes/buyurtmalar": "/uz/biznes/skaner", "/uz/biznes/sozlamalar": "/uz/biznes/skaner", "/uz/buyurtmalar": "/uz/biznes/skaner" },
+    admin: { "/uz/yordam": "/uz/admin", "/uz/profil": "/uz/admin", "/uz/profil/guvohnoma": "/uz/admin", "/uz/biznes/profil/tahrir": "/uz/admin", "/uz/tarix": "/uz/admin", "/uz/chegirmalar": "/uz/admin", "/uz/bildirishnomalar": "/uz/admin", "/uz/biznes": "/uz/admin", "/uz/biznes/bildirishnomalar": "/uz/admin", "/uz/biznes/skaner": "/uz/admin", "/uz/buyurtmalar": "/uz/admin", "/uz/biznes/buyurtmalar": "/uz/admin" },
   } as const;
 
   for (const [role, routes] of Object.entries(MATRIX) as [keyof typeof MATRIX, Record<string, string>][]) {
@@ -251,7 +251,7 @@ test.describe("rol himoyasi", () => {
   test("kirgan foydalanuvchi kirish sahifasidan o'z bosh sahifasiga o'tkaziladi", async ({ page }) => {
     await signIn(page, phones.admin);
     await expect(page).toHaveURL(HOME.admin);
-    await page.goto("/kirish");
+    await page.goto("/uz/kirish");
     await expect(page).toHaveURL(HOME.admin);
   });
 
@@ -260,8 +260,8 @@ test.describe("rol himoyasi", () => {
     await expect(page).toHaveURL(HOME.cashier);
     await withDb((db) => db.query(`UPDATE "User" SET status = 'BLOCKED' WHERE phone = $1`, [phones.cashier]));
     try {
-      await page.goto("/biznes/skaner");
-      await expect(page).toHaveURL("/kirish");
+      await page.goto("/uz/biznes/skaner");
+      await expect(page).toHaveURL("/uz/kirish");
     } finally {
       await withDb((db) => db.query(`UPDATE "User" SET status = 'ACTIVE' WHERE phone = $1`, [phones.cashier]));
     }

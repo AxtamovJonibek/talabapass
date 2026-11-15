@@ -72,7 +72,8 @@ describe("havola va push yuklamasi", () => {
   });
   it("yuklama kichik va to'liq", () => {
     const payload = pushPayload({ id: "n1", title: "A", body: "B" }, "/x");
-    expect(JSON.parse(payload)).toEqual({ title: "A", body: "B", url: "/x", tag: "n1" });
+    // url til prefiksi bilan — service worker uni to'g'ridan-to'g'ri ochadi
+    expect(JSON.parse(payload)).toEqual({ title: "A", body: "B", url: "/uz/x", tag: "n1" });
     expect(Buffer.byteLength(pushPayload({ id: "n1", title: "ы".repeat(50), body: "ы".repeat(150) }, "/chegirmalar/x"))).toBeLessThan(4000);
   });
 });

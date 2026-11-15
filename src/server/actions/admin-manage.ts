@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { localizedPath } from "@/i18n/routing";
 import { requireRole } from "../auth/session";
 import { createAdmin, deleteUniversity, editBusiness, editUser, rejectUniversityRequest, resolveUniversityRequest, saveUniversity, updateOwnName, type ManageResult } from "../admin/manage";
 
@@ -18,7 +19,7 @@ function raw(formData: FormData): Record<string, unknown> {
 
 const done = (result: ManageResult, paths: string[]): ManageState => {
   if (!result.ok) return IDLE_ERROR(result);
-  for (const path of paths) revalidatePath(path);
+  for (const path of paths) revalidatePath(localizedPath(path));
   return { status: "saved", id: result.id };
 };
 

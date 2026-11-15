@@ -59,7 +59,7 @@ const sheet = (page: Page) => page.getByTestId("booking-sheet");
 async function openSheet(browser: Browser, button: string): Promise<Page> {
   const student = await (await browser.newContext()).newPage();
   await signIn(student, phones.student);
-  await student.goto(`/chegirmalar/${discountId}`);
+  await student.goto(`/uz/chegirmalar/${discountId}`);
   // Dev serverdagi Next.js belgisi ("Insight") oyna pastidagi tugmani to'sadi
   await student.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   const open = student.getByTestId("booking-open").locator("visible=true");
@@ -94,7 +94,7 @@ async function pay(student: Page, amount: string): Promise<string> {
 async function ownerAccepts(browser: Browser, expectText: string[], ready: boolean) {
   const owner = await (await browser.newContext()).newPage();
   await signIn(owner, phones.owner);
-  await owner.goto("/biznes/buyurtmalar");
+  await owner.goto("/uz/biznes/buyurtmalar");
   const card = owner.getByTestId("order-card").filter({ hasText: TITLE });
   for (const text of expectText) await expect(card).toContainText(text);
   await card.getByRole("button", { name: "Qabul qilish" }).click();
@@ -114,7 +114,7 @@ async function cashierGives(browser: Browser, student: Page, orderUrl: string, e
 
   const cashier = await (await browser.newContext()).newPage();
   await signIn(cashier, phones.cashier);
-  await cashier.goto("/biznes/skaner");
+  await cashier.goto("/uz/biznes/skaner");
   await cashier.getByRole("button", { name: "Kodni kiritish" }).click();
   await cashier.locator("#manual-code").fill(code);
   await cashier.locator("#manual-totp").fill(totp);
@@ -157,7 +157,7 @@ test("to'lab olib ketish: biznes rejimni tanlaydi → talaba 2 dona to'laydi →
   // Biznes: Sozlamalar → chegirma → "To'lab olib ketish" kartasi, zaxira 5, muddat 7 kun, muddat o'tsa 50% qoladi
   const owner = await (await browser.newContext()).newPage();
   await signIn(owner, phones.owner);
-  await owner.goto("/biznes/sozlamalar");
+  await owner.goto("/uz/biznes/sozlamalar");
   const row = owner.getByTestId("preorder-discount").filter({ hasText: TITLE }).locator("visible=true");
   if ((await row.getByTestId("booking-editor").count()) === 0) await row.getByRole("button", { name: "Sozlash" }).click();
   const editor = row.getByTestId("booking-editor");
@@ -205,7 +205,7 @@ test("funksiya o'chiq bo'lsa band qilish tugmasi umuman ko'rinmaydi", async ({ p
   await setMode("APPOINTMENT");
   await withDb((db) => db.query(`UPDATE "PreorderSettings" SET enabled = false WHERE "businessId" = $1`, [businessId]));
   await signIn(page, phones.student);
-  await page.goto(`/chegirmalar/${discountId}`);
+  await page.goto(`/uz/chegirmalar/${discountId}`);
   await expect(page.getByRole("heading", { name: TITLE }).locator("visible=true")).toBeVisible();
   await expect(page.getByTestId("booking-open")).toHaveCount(0);
   await expect(page.getByTestId("booking-blocked")).toHaveCount(0);
@@ -222,7 +222,7 @@ test("hozir band qilib bo'lmasa — tugma o'chiq, ostida sababi; zaxira tugasa �
   );
   const student = await (await browser.newContext()).newPage();
   await signIn(student, phones.student);
-  await student.goto(`/chegirmalar/${discountId}`);
+  await student.goto(`/uz/chegirmalar/${discountId}`);
   const blocked = student.getByTestId("booking-blocked").locator("visible=true");
   await expect(blocked).toHaveText("Biznes bugun oldindan buyurtma qabul qilmayapti.");
   await expect(student.getByRole("button", { name: "Vaqt band qilish" }).locator("visible=true")).toBeDisabled();
@@ -238,7 +238,7 @@ test("hozir band qilib bo'lmasa — tugma o'chiq, ostida sababi; zaxira tugasa �
   await withDb((db) => db.query(`UPDATE "Discount" SET "bookingMode" = 'NONE' WHERE "businessId" = $1`, [businessId]));
   const owner = await (await browser.newContext()).newPage();
   await signIn(owner, phones.owner);
-  await owner.goto("/biznes/sozlamalar");
+  await owner.goto("/uz/biznes/sozlamalar");
   await expect(owner.getByTestId("preorder-none-marked").locator("visible=true")).toBeVisible();
   await student.reload();
   await expect(student.getByTestId("booking-blocked")).toHaveCount(0);

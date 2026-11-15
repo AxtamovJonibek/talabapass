@@ -3,6 +3,7 @@
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { localizedPath } from "@/i18n/routing";
 import { AUDIENCES } from "@/lib/notifications";
 import { audit } from "../audit";
 import { requireRole } from "../auth/session";
@@ -16,7 +17,7 @@ export async function sendNotificationAction(raw: unknown): Promise<CreateResult
   const result = await createNotification(raw, admin.id);
   if (result.ok) {
     if (result.immediate) after(() => dispatchNotification(result.id));
-    revalidatePath("/admin/bildirishnomalar");
+    revalidatePath(localizedPath("/admin/bildirishnomalar"));
   }
   return result;
 }
@@ -37,6 +38,6 @@ export async function cancelNotificationAction(raw: unknown): Promise<{ ok: bool
   const removed = await db.notification.deleteMany({ where: { id: input.data.id, status: "SCHEDULED", audience: { not: "USER" } } });
   if (removed.count === 0) return { ok: false };
   await audit({ actorId: admin.id, action: "notification.cancel", entity: "Notification", entityId: input.data.id });
-  revalidatePath("/admin/bildirishnomalar");
+  revalidatePath(localizedPath("/admin/bildirishnomalar"));
   return { ok: true };
 }

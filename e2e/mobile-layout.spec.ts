@@ -8,9 +8,9 @@ import { seedPhones, signIn, type SeedPhones } from "./helpers";
 const WIDTHS = [360, 390, 430] as const;
 
 const PAGES = {
-  guest: ["/", "/kirish", "/kirish?rol=biznes", "/talaba/royxat", "/biznes/royxat", "/huquqiy/maxfiylik", "/huquqiy/shartlar", "/huquqiy/biznes"],
-  student: ["/chegirmalar", "/kuponlar", "/tarix", "/profil", "/profil/tahrir", "/bildirishnomalar", "/yordam"],
-  owner: ["/biznes", "/biznes/chegirmalar", "/biznes/chegirma/yangi", "/biznes/profil", "/biznes/profil/tahrir", "/biznes/kassirlar", "/biznes/sotuvlar", "/biznes/bildirishnomalar"],
+  guest: ["/uz", "/uz/kirish", "/uz/kirish?rol=biznes", "/uz/talaba/royxat", "/uz/biznes/royxat", "/uz/huquqiy/maxfiylik", "/uz/huquqiy/shartlar", "/uz/huquqiy/biznes"],
+  student: ["/uz/chegirmalar", "/uz/kuponlar", "/uz/tarix", "/uz/profil", "/uz/profil/tahrir", "/uz/bildirishnomalar", "/uz/yordam"],
+  owner: ["/uz/biznes", "/uz/biznes/chegirmalar", "/uz/biznes/chegirma/yangi", "/uz/biznes/profil", "/uz/biznes/profil/tahrir", "/uz/biznes/kassirlar", "/uz/biznes/sotuvlar", "/uz/biznes/bildirishnomalar"],
 } as const;
 
 async function overflowOf(page: Page): Promise<number> {
@@ -43,7 +43,7 @@ for (const width of WIDTHS) {
 
     for (const rol of ["student", "biznes"] as const) {
       test(`kirish (${rol}): bezak matn ustiga tushmaydi`, async ({ page }) => {
-        await page.goto(`/kirish?rol=${rol}`, { waitUntil: "networkidle" });
+        await page.goto(`/uz/kirish?rol=${rol}`, { waitUntil: "networkidle" });
         const covered = await page.evaluate(() => {
           const panel = document.querySelector("h1")!.closest("div.relative")!.parentElement!;
           const targets = [...panel.querySelectorAll<HTMLElement>("a, h1, p")];
@@ -63,11 +63,11 @@ for (const width of WIDTHS) {
 test("biznes telefon profilida 'Hisobdan chiqish' bor va ishlaydi", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page, phones.owner);
-  await page.goto("/biznes/profil", { waitUntil: "networkidle" });
+  await page.goto("/uz/biznes/profil", { waitUntil: "networkidle" });
   const logout = page.getByRole("button", { name: "Hisobdan chiqish" }).locator("visible=true");
   await logout.scrollIntoViewIfNeeded();
   await logout.click();
-  await page.waitForURL((url) => url.pathname === "/" || url.pathname === "/kirish");
-  await page.goto("/biznes");
+  await page.waitForURL((url) => url.pathname === "/uz" || url.pathname === "/uz/kirish");
+  await page.goto("/uz/biznes");
   await expect(page).toHaveURL(/\/kirish/);
 });

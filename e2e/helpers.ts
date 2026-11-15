@@ -69,7 +69,7 @@ export const codeBox = (page: Page) => page.getByLabel("1-raqam").locator("visib
 export async function requestCode(page: Page, phone: string, role: "Talaba" | "Biznes" = "Talaba") {
   await clearOtp(phone);
   // Tugma React ulanmasdan bosilsa forma oddiy GET bilan yuboriladi — avval sahifa tinchishini kutamiz.
-  await page.goto("/kirish", { waitUntil: "networkidle" });
+  await page.goto("/uz/kirish", { waitUntil: "networkidle" });
   if (role === "Biznes") await page.getByRole("tab", { name: "Biznes" }).click();
   await page.locator("#login-phone").fill(local(phone));
   await page.getByRole("button", { name: "SMS kod olish" }).click();
@@ -93,8 +93,8 @@ export async function enterAdminPassword(page: Page, password: string = ADMIN_PA
 export async function signIn(page: Page, phone: string, { adminPassword = true } = {}) {
   await requestCode(page, phone);
   await enterCode(page, FIXED_CODE);
-  await page.waitForURL((url) => url.pathname !== "/kirish");
-  if (adminPassword && new URL(page.url()).pathname === "/kirish/admin") await enterAdminPassword(page);
+  await page.waitForURL((url) => url.pathname !== "/uz/kirish");
+  if (adminPassword && new URL(page.url()).pathname === "/uz/kirish/admin") await enterAdminPassword(page);
 }
 
 /** Haqiqiy (o'qiladigan) kichik JPEG — yuklash testlari uchun. Tozalash soxta baytlarni rad etadi. */

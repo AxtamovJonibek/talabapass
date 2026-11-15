@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { useLocale } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
+import { localizedPath, type Locale } from "@/i18n/routing";
 
 const COUPON_PAGE = /^\/kuponlar\/[^/]+$/;
 
@@ -12,6 +14,7 @@ const COUPON_PAGE = /^\/kuponlar\/[^/]+$/;
  */
 export function ServiceWorkerRegister() {
   const pathname = usePathname();
+  const locale = useLocale() as Locale;
 
   useEffect(() => {
     if ((process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_SW !== "1") || !("serviceWorker" in navigator)) return;
@@ -30,7 +33,8 @@ export function ServiceWorkerRegister() {
           .getEntriesByType("resource")
           .map((e) => new URL(e.name).pathname)
           .filter((p) => p.startsWith("/_next/static/"));
-        worker.postMessage({ type: "warm", page: pathname, assets });
+        // SW keshi haqiqiy manzil (til prefiksi bilan) bo'yicha; usePathname prefikssiz qaytaradi
+        worker.postMessage({ type: "warm", page: localizedPath(pathname, locale), assets });
       } else if (pathname.startsWith("/kirish")) {
         worker.postMessage({ type: "clear" });
       }
@@ -38,7 +42,7 @@ export function ServiceWorkerRegister() {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, locale]);
 
   return null;
 }

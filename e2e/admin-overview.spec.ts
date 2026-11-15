@@ -29,7 +29,7 @@ test.afterAll(cleanup);
 /** Admin kirishi: SMS + parol; parol yuborilguncha kutiladi (aks holda keyingi goto uni uzib qo'yadi) */
 async function adminIn(page: Page) {
   await signIn(page, phones.admin);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/uz/admin");
 }
 
 /** KPI kartasi qiymati: yorliq → shu karta ichidagi birinchi katta raqam */
@@ -38,7 +38,7 @@ const kpi = (page: Page, label: string) => page.getByText(label, { exact: true }
 test.describe("A1 — umumiy", () => {
   test("ko'rsatkichlar bazadagi mustaqil hisob bilan mos", async ({ page }) => {
     await adminIn(page);
-    await expect(page).toHaveURL("/admin");
+    await expect(page).toHaveURL("/uz/admin");
     await expect(page.getByRole("heading", { level: 1, name: "Platforma" })).toBeVisible();
 
     const [students, businesses, salesToday] = await withDb(async (db) => [
@@ -73,7 +73,7 @@ test.describe("A1 — umumiy", () => {
   test("kartadagi 'Tekshiruv navbati' tekshiruvga olib boradi", async ({ page }) => {
     await adminIn(page);
     await page.getByRole("link", { name: /Tekshiruv navbati/ }).click();
-    await expect(page).toHaveURL("/admin/talabalar");
+    await expect(page).toHaveURL("/uz/admin/talabalar");
   });
 
   for (const [name, width] of [["telefon", 390], ["kompyuter", 1440]] as const) {
@@ -81,7 +81,7 @@ test.describe("A1 — umumiy", () => {
       test.slow();
       await page.setViewportSize({ width, height: 900 });
       await adminIn(page);
-      for (const path of ["/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/admin/tranzaksiyalar", "/admin/bildirishnomalar", "/admin/bloklanganlar"]) {
+      for (const path of ["/uz/admin", "/uz/admin/talabalar", "/uz/admin/bizneslar", "/uz/admin/chegirmalar", "/uz/admin/tranzaksiyalar", "/uz/admin/bildirishnomalar", "/uz/admin/bloklanganlar"]) {
         await page.goto(path);
         await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -94,7 +94,7 @@ test.describe("A1 — umumiy", () => {
 test.describe("tranzaksiyalar", () => {
   test("filtr holati URL'da saqlanadi; rad etilganlar alohida", async ({ page }) => {
     await adminIn(page);
-    await page.goto("/admin/tranzaksiyalar?davr=all");
+    await page.goto("/uz/admin/tranzaksiyalar?davr=all");
     await expect(page.getByRole("heading", { level: 1, name: "Tranzaksiyalar" })).toBeVisible();
     const total = await withDb(async (db) => (await db.query(`SELECT (SELECT count(*) FROM "Redemption") + (SELECT count(*) FROM "ScanAttempt" WHERE result <> 'OK') AS n`)).rows[0].n as string);
     await expect(page.getByText(`Jami: ${spaced(Number(total))}`)).toBeVisible();
@@ -111,11 +111,11 @@ test.describe("tranzaksiyalar", () => {
 
   test("qidiruv natijani toraytiradi", async ({ page }) => {
     await adminIn(page);
-    await page.goto("/admin/tranzaksiyalar?davr=all&q=Bodom");
+    await page.goto("/uz/admin/tranzaksiyalar?davr=all&q=Bodom");
     const rows = page.locator("tbody tr");
     await expect(rows.first()).toBeVisible();
     for (const text of await page.locator("tbody tr td:nth-child(4)").allTextContents()) expect(text).toContain("Bodom");
-    await page.goto("/admin/tranzaksiyalar?davr=all&q=mavjud-emas-xyz");
+    await page.goto("/uz/admin/tranzaksiyalar?davr=all&q=mavjud-emas-xyz");
     await expect(page.getByText("Bu filtr bo'yicha tranzaksiya yo'q.")).toBeVisible();
   });
 
@@ -142,7 +142,7 @@ test.describe("bloklanganlar", () => {
       );
     });
     await adminIn(page);
-    await page.goto("/admin/bloklanganlar");
+    await page.goto("/uz/admin/bloklanganlar");
     const row = page.getByRole("row", { name: new RegExp(`${BLOCKED.first} ${BLOCKED.last}`) });
     await expect(row).toBeVisible();
     await expect(row.getByText("Takroriy / soxta hujjat")).toBeVisible();
@@ -162,7 +162,7 @@ test.describe("A3 — bildirishnomalar", () => {
     const uni = await withDb(async (db) => (await db.query(`SELECT u."shortName" AS name FROM "StudentProfile" p JOIN "University" u ON u.id = p."universityId" JOIN "User" x ON x.id = p."userId" WHERE x.phone = $1`, [phones.student])).rows[0].name as string);
 
     await adminIn(page);
-    await page.goto("/admin/bildirishnomalar");
+    await page.goto("/uz/admin/bildirishnomalar");
     await expect(page.getByRole("heading", { level: 1, name: "Bildirishnoma yuborish" })).toBeVisible();
     await page.getByRole("button", { name: "Universitet bo'yicha" }).click();
     await page.getByRole("button", { name: new RegExp(`^${uni} ·`) }).click();
@@ -182,9 +182,9 @@ test.describe("A3 — bildirishnomalar", () => {
     const studentCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const student = await studentCtx.newPage();
     await signIn(student, phones.student);
-    await student.goto("/chegirmalar");
+    await student.goto("/uz/chegirmalar");
     await student.getByRole("link", { name: "Bildirishnomalar" }).locator("visible=true").click();
-    await expect(student).toHaveURL("/bildirishnomalar");
+    await expect(student).toHaveURL("/uz/bildirishnomalar");
     await expect(student.getByText(TITLE)).toBeVisible();
     const item = student.getByRole("link", { name: new RegExp(TITLE) });
     await expect(item.getByLabel("Yangi")).toBeVisible();
@@ -201,7 +201,7 @@ test.describe("A3 — bildirishnomalar", () => {
 
   test("rejalashtirish: kelajakdagi vaqt qabul qilinadi va bekor qilinadi; o'tgan vaqt rad etiladi", async ({ page }) => {
     await adminIn(page);
-    await page.goto("/admin/bildirishnomalar");
+    await page.goto("/uz/admin/bildirishnomalar");
     await page.getByRole("button", { name: "Barcha talabalar" }).click();
     await page.getByLabel("Sarlavha").fill(`${TITLE} 2`);
     await page.getByLabel("Matn", { exact: true }).fill("Ertaga yuboriladi");
@@ -232,7 +232,7 @@ test.describe("A3 — bildirishnomalar", () => {
     expect((await request.get("/api/cron/bildirishnomalar")).status()).toBe(404);
     expect((await request.get("/api/cron/bildirishnomalar", { headers: { authorization: "Bearer noto'g'ri" } })).status()).toBe(404);
     await signIn(page, phones.owner);
-    await page.goto("/biznes/bildirishnomalar");
+    await page.goto("/uz/biznes/bildirishnomalar");
     await expect(page.getByRole("heading", { level: 1, name: "Bildirishnomalar" })).toBeVisible();
   });
 });

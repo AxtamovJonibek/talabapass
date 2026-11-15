@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/icon";
 import { Link } from "@/i18n/navigation";
+import { localizedPath } from "@/i18n/routing";
 import { TX_PERIODS, TX_STATUSES, txQuery, type TxFilter } from "@/lib/admin-transactions";
 import { cn } from "@/lib/cn";
 import { formatSom, MINUS } from "@/lib/format";
@@ -39,7 +40,7 @@ export function TransactionFilters({ filter }: { filter: TxFilter }) {
           </Link>
         ))}
       </div>
-      <form action="/admin/tranzaksiyalar" method="get" role="search" className="flex h-[38px] min-w-[240px] flex-1 items-center gap-2.5 rounded-12 bg-white px-3.5">
+      <form action={localizedPath("/admin/tranzaksiyalar")} method="get" role="search" className="flex h-[38px] min-w-[240px] flex-1 items-center gap-2.5 rounded-12 bg-white px-3.5">
         <Icon name="search" size={16} className="text-muted" />
         <label htmlFor="tx-search" className="sr-only">
           {t("search")}

@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import Link from "next/link";
 import { NotFoundScreen } from "@/components/state/not-found-screen";
 import { notFoundText } from "@/components/state/not-found-text";
+import { localizedPath } from "@/i18n/routing";
 import messages from "../../messages/uz.json";
 import "./globals.css";
 
@@ -18,7 +19,7 @@ export default function GlobalNotFound() {
         <NotFoundScreen
           text={notFoundText(messages.state)}
           renderLink={(href, className, label) => (
-            <Link href={href} className={className}>
+            <Link href={localizedPath(href)} className={className}>
               {label}
             </Link>
           )}

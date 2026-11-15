@@ -11,7 +11,7 @@ const sheet = (page: Page) => page.getByTestId("bottom-sheet");
 test("telefon: qidiruv, tanlash, cookie o'chsa ham tiklanadi; Esc va pastga surish yopadi", async ({ page, context }) => {
   await page.setViewportSize({ width: 360, height: 780 });
   await signIn(page, (await seedPhones()).student);
-  await page.goto("/chegirmalar");
+  await page.goto("/uz/chegirmalar");
 
   await trigger(page).click();
   const dialog = sheet(page).getByRole("dialog", { name: "Joylashuvni tanlang" });
@@ -59,7 +59,7 @@ test("telefon: qidiruv, tanlash, cookie o'chsa ham tiklanadi; Esc va pastga suri
 
 test("telefon: geolokatsiyaga ruxsat yo'q — tushunarli xabar va qayta urinish", async ({ page }) => {
   await signIn(page, (await seedPhones()).student);
-  await page.goto("/chegirmalar");
+  await page.goto("/uz/chegirmalar");
   await trigger(page).click();
   await sheet(page).getByRole("option", { name: /Mening joylashuvim/ }).click();
   await expect(sheet(page).getByText("Ruxsat berilmadi").first()).toBeVisible();
@@ -69,7 +69,7 @@ test("telefon: geolokatsiyaga ruxsat yo'q — tushunarli xabar va qayta urinish"
 test("kompyuter: klaviatura bilan tanlash, fokus oyna ichida qoladi", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page, (await seedPhones()).student);
-  await page.goto("/chegirmalar");
+  await page.goto("/uz/chegirmalar");
   await trigger(page).click();
   const input = sheet(page).getByRole("combobox");
   await expect(input).toBeFocused();
@@ -93,7 +93,7 @@ test("qanday boraman: uch tur uchun Yandex va Google havolalari, 2GIS yo'q, mo'l
   try {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await signIn(page, (await seedPhones()).student);
-    await page.goto("/chegirmalar");
+    await page.goto("/uz/chegirmalar");
     // Masofa tanlangan joydan hisoblanadi
     await trigger(page).click();
     await sheet(page).getByRole("option", { name: "Chilonzor" }).click();

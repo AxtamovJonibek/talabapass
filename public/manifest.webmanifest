@@ -3,7 +3,7 @@
   "short_name": "talabaPass",
   "description": "O'zbekiston talabalari uchun chegirmalar",
   "lang": "uz",
-  "start_url": "/chegirmalar",
+  "start_url": "/uz/chegirmalar",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

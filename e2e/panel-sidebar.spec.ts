@@ -28,7 +28,7 @@ test.describe("1440×900", () => {
 
   test("biznes: uzun sahifada yon panel qotgan, faqat kontent skroll bo'ladi", async ({ page }) => {
     await signIn(page, (await seedPhones()).owner);
-    await page.goto("/biznes/sozlamalar");
+    await page.goto("/uz/biznes/sozlamalar");
     const height = await page.evaluate(() => document.documentElement.scrollHeight);
     expect(height).toBeGreaterThan(900 * 1.5);
     await expectPinned(page);
@@ -40,13 +40,13 @@ test.describe("1440×900", () => {
 
   test("admin: yon panel qotgan, chiqish tugmasi pastda doim ko'rinadi", async ({ page }) => {
     await signIn(page, (await seedPhones()).admin);
-    await page.goto("/admin");
+    await page.goto("/uz/admin");
     // Parolsiz admin /kirish/admin ga yo'naltiriladi (yo'naltirish sahifa yuklangandan keyin ham bo'lishi mumkin)
     const password = page.locator("#admin-password");
     await Promise.race([page.getByTestId("sidebar").waitFor(), password.waitFor()]);
     if (await password.isVisible()) {
       await enterAdminPassword(page);
-      await page.waitForURL((url) => url.pathname === "/admin");
+      await page.waitForURL((url) => url.pathname === "/uz/admin");
     }
     await page.getByTestId("sidebar").waitFor();
     await expectPinned(page);
@@ -58,7 +58,7 @@ test.describe("1440×900", () => {
 test("360px: biznes telefonida pastki navigatsiya joyida, yon panel qotmagan", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 });
   await signIn(page, (await seedPhones()).owner);
-  await page.goto("/biznes/buyurtmalar");
+  await page.goto("/uz/biznes/buyurtmalar");
   await expect(page.getByTestId("sidebar").locator("visible=true")).toHaveCount(0);
   const nav = page.getByRole("navigation").filter({ hasText: "Buyurtmalar" }).locator("visible=true").last();
   await expect(nav).toBeInViewport();

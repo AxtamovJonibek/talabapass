@@ -41,7 +41,7 @@ test.describe("veb 1440", () => {
   test("ko'rsatkichlar bazadagi SQL bilan mos: 30 / 7 kun", async ({ page }) => {
     test.slow();
     await signIn(page, phones.owner);
-    await expect(page).toHaveURL("/biznes");
+    await expect(page).toHaveURL("/uz/biznes");
     await expect(page.getByRole("heading", { name: "Statistika" }).locator("visible=true")).toBeVisible();
 
     for (const period of [30, 7] as const) {
@@ -70,7 +70,7 @@ test.describe("veb 1440", () => {
 
   test("bugun: soatlik grafik; issiqlik xaritasi; sotuvlar ro'yxati va PDF", async ({ page }) => {
     await signIn(page, phones.owner);
-    await page.goto("/biznes?davr=1", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes?davr=1", { waitUntil: "networkidle" });
     const today = await sql(1);
     const counts = await page.locator("[data-testid=chart-bar]:visible").evaluateAll((els) => els.map((el) => Number(el.getAttribute("data-count"))));
     expect(counts.length).toBeGreaterThanOrEqual(15);
@@ -80,7 +80,7 @@ test.describe("veb 1440", () => {
     // Oxirgi sotuvlar — 6 ta, "Barcha sotuvlar" sahifasiga o'tadi
     await expect(page.locator("[data-testid=sale-row]:visible")).toHaveCount(6);
     await page.getByRole("link", { name: "Barcha sotuvlar →" }).locator("visible=true").click();
-    await expect(page).toHaveURL("/biznes/sotuvlar");
+    await expect(page).toHaveURL("/uz/biznes/sotuvlar");
     const month = await sql(30);
     await expect(page.getByTestId("sales-summary").locator("visible=true")).toHaveText(`${space(month.n)} ta sotuv · ${space(month.rev)} so'm`);
     await expect(page.locator("[data-testid=sale-row]:visible")).toHaveCount(25);
@@ -98,28 +98,28 @@ test.describe("veb 1440", () => {
     await signIn(page, phones.owner);
     const nav = page.getByRole("navigation", { name: "Asosiy menyu" }).locator("visible=true");
     for (const [path, label] of [
-      ["/biznes", "Statistika"],
-      ["/biznes/chegirmalar", "Chegirmalar"],
-      ["/biznes/sotuvlar", "Sotuvlar va cheklar"],
-      ["/biznes/kassirlar", "Kassirlar"],
-      ["/biznes/profil", "Biznes profili"],
-      ["/biznes/chegirma/yangi", "Chegirmalar"],
+      ["/uz/biznes", "Statistika"],
+      ["/uz/biznes/chegirmalar", "Chegirmalar"],
+      ["/uz/biznes/sotuvlar", "Sotuvlar va cheklar"],
+      ["/uz/biznes/kassirlar", "Kassirlar"],
+      ["/uz/biznes/profil", "Biznes profili"],
+      ["/uz/biznes/chegirma/yangi", "Chegirmalar"],
     ] as const) {
       await page.goto(path, { waitUntil: "networkidle" });
       await expect(nav.getByRole("link", { name: label })).toBeVisible();
       await expect(page.getByText("keyingi bosqichlarda quriladi")).toHaveCount(0);
     }
-    await page.goto("/biznes");
+    await page.goto("/uz/biznes");
     await nav.getByRole("link", { name: "Sotuvlar va cheklar" }).click();
-    await expect(page).toHaveURL("/biznes/sotuvlar");
+    await expect(page).toHaveURL("/uz/biznes/sotuvlar");
     await nav.getByRole("link", { name: "Skaner" }).click();
-    await expect(page).toHaveURL("/biznes/skaner");
+    await expect(page).toHaveURL("/uz/biznes/skaner");
   });
 
   test("Excel hisobot: egasiga fayl, kirmagan va kassirga 404", async ({ page, browser }) => {
     test.slow();
     await signIn(page, phones.owner);
-    await page.goto("/biznes", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes", { waitUntil: "networkidle" });
     const download = page.waitForEvent("download");
     await page.getByRole("link", { name: "Excel hisobot" }).locator("visible=true").click();
     const file = await download;
@@ -142,13 +142,13 @@ test.describe("veb 1440", () => {
 test.describe("mobil 390", () => {
   test("statistika telefonda: pastki navigatsiya, gorizontal aylanish yo'q", async ({ page }) => {
     await signIn(page, phones.owner);
-    await page.goto("/biznes", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes", { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { name: "Statistika" }).locator("visible=true")).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Asosiy menyu" }).locator("visible=true").getByRole("link", { name: "Statistika" })).toHaveAttribute("aria-current", "page");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     await expect(page.locator("[data-testid=chart-bar]:visible")).toHaveCount(30);
-    await page.goto("/biznes/sotuvlar", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes/sotuvlar", { waitUntil: "networkidle" });
     await expect(page.locator("[data-testid=sale-row]:visible").first()).toBeVisible();
   });
 });

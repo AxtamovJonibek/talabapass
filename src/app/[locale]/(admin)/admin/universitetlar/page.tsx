@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { ActionButton, LinkRequestForm, UniversityForm } from "@/components/admin/manage/forms";
 import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Link } from "@/i18n/navigation";
+import { localizedPath } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 import { formatPhone } from "@/lib/format";
 import { listUniversities, lookups, pendingUniversityRequests, PAGE_SIZE, universityOne } from "@/server/admin/directory";
@@ -83,7 +84,7 @@ async function UniversitiesContent({ searchParams }: { searchParams: PageProps<"
 
       <div className="flex flex-wrap items-start gap-3">
         <section className={cn(card, "flex-[2_1_520px]")}>
-          <form action="/admin/universitetlar" method="get" className="flex flex-wrap gap-2">
+          <form action={localizedPath("/admin/universitetlar")} method="get" className="flex flex-wrap gap-2">
             <input
               type="search"
               name="q"

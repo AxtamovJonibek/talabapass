@@ -26,7 +26,7 @@ const student = () =>
   withDb(async (db) => (await db.query(`SELECT u.id, s.status FROM "User" u JOIN "StudentProfile" s ON s."userId" = u.id WHERE u.phone = $1`, [STUDENT])).rows[0] as { id: string; status: string });
 
 async function registerOnWeb(page: Page) {
-  await page.goto("/talaba/royxat", { waitUntil: "networkidle" });
+  await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
   await page.locator("#web-phone").fill(local(STUDENT));
   await page.locator("#web-first").fill("Veb");
   await page.locator("#web-last").fill("Sinovchi");
@@ -36,7 +36,7 @@ async function registerOnWeb(page: Page) {
   await page.getByRole("button", { name: "Davom etish" }).click();
   await expect(codeBox(page)).toBeEnabled();
   await enterCode(page, FIXED_CODE);
-  await expect(page).toHaveURL("/talaba/guvohnoma");
+  await expect(page).toHaveURL("/uz/talaba/guvohnoma");
 }
 
 test("veb: forma → kod → fayl yuklash → tekshiruv", async ({ page }) => {
@@ -49,7 +49,7 @@ test("veb: forma → kod → fayl yuklash → tekshiruv", async ({ page }) => {
   expect((await student()).status).toBe("PENDING");
 
   await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
-  await expect(page).toHaveURL("/talaba/tekshiruv");
+  await expect(page).toHaveURL("/uz/talaba/tekshiruv");
   await expect(page.getByRole("heading", { name: "Hujjatingizni tekshiryapmiz" })).toBeVisible();
   await expect(page.getByText("Moderatorda")).toBeVisible();
   await expect(page.getByText(/^\d+-o'rin$/)).toBeVisible();
@@ -71,14 +71,14 @@ test("telefon bilan rasmga olish: telefonda kirmasdan yuklanadi, kompyuterdagi s
   // Telefon — alohida brauzer, sessiyasiz; ruxsat faqat QR'dagi token
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const phonePage = await phone.newPage();
-  await phonePage.goto(`/talaba/guvohnoma/telefon?t=${encodeURIComponent(createUploadToken(id, SECRET))}`, { waitUntil: "networkidle" });
+  await phonePage.goto(`/uz/talaba/guvohnoma/telefon?t=${encodeURIComponent(createUploadToken(id, SECRET))}`, { waitUntil: "networkidle" });
   await phonePage.waitForLoadState("networkidle");
   await phonePage.getByTestId("card-file").setInputFiles({ name: "telefondan.jpg", mimeType: "image/jpeg", buffer: JPEG });
   await expect(phonePage.getByText("Rasm yuborildi")).toBeVisible();
   // token sessiya bermaydi
   expect((await phone.cookies()).some((c) => c.name === "tp_session")).toBe(false);
-  await phonePage.goto("/chegirmalar");
-  await expect(phonePage).toHaveURL("/kirish");
+  await phonePage.goto("/uz/chegirmalar");
+  await expect(phonePage).toHaveURL("/uz/kirish");
   await phone.close();
 
   await expect(page.getByTestId("upload-row")).toContainText("telefondan.jpg", { timeout: 15_000 });
@@ -101,7 +101,7 @@ test("o'tkazma tokeni: eskirgan, buzilgan va begona tokenlar ishlamaydi", async 
   const approved = await withDb(async (db) => (await db.query(`SELECT id FROM "User" WHERE phone = $1`, [(await seedPhones()).student])).rows[0].id);
   expect((await upload(createUploadToken(approved, SECRET))).status(), "tasdiqlangan talaba").toBe(403);
 
-  await page.goto(`/talaba/guvohnoma/telefon?t=${encodeURIComponent(expired)}`);
+  await page.goto(`/uz/talaba/guvohnoma/telefon?t=${encodeURIComponent(expired)}`);
   await expect(page.getByText("Havola eskirgan")).toBeVisible();
 
   expect((await upload(createUploadToken(id, SECRET))).status(), "to'g'ri token").toBe(201);

@@ -35,7 +35,7 @@ test.afterAll(async () => {
 
 test("telefon: karta, jami va menyu; tahrirlash tumanni saqlaydi, kalit bildirishnomani almashtiradi", async ({ page }) => {
   await signIn(page, phones.student);
-  await page.goto("/profil");
+  await page.goto("/uz/profil");
   await expect(page.getByRole("heading", { name: "Profil", exact: true }).locator("visible=true")).toBeVisible();
   await expect(page.getByText("Tasdiqlangan").locator("visible=true").first()).toBeVisible();
   await expect(page.getByText(/^ID TP-/).locator("visible=true")).toBeVisible();
@@ -77,7 +77,7 @@ test("telefon: karta, jami va menyu; tahrirlash tumanni saqlaydi, kalit bildiris
 
 test("telefon: guvohnoma sahifasi amal muddatini ko'rsatadi", async ({ page }) => {
   await signIn(page, phones.student);
-  await page.goto("/profil/guvohnoma");
+  await page.goto("/uz/profil/guvohnoma");
   await expect(page.getByRole("heading", { name: "Talaba guvohnomasi" }).locator("visible=true")).toBeVisible();
   await expect(page.getByText("Amal qilish muddati").locator("visible=true")).toBeVisible();
   await expect(page.getByText(/^\d{2}\.\d{2}\.\d{4}$/).locator("visible=true")).toBeVisible();
@@ -87,7 +87,7 @@ test.describe("veb (WT4)", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
   test("yon panel va forma; tarix yon paneli bilan bir xil", async ({ page }) => {
     await signIn(page, phones.student);
-    await page.goto("/profil");
+    await page.goto("/uz/profil");
     await expect(page.getByRole("heading", { name: "Shaxsiy ma'lumotlar" }).locator("visible=true")).toBeVisible();
     await expect(page.locator("#w-firstName")).toHaveValue(before.firstName);
     await expect(page.getByRole("link", { name: "Talaba guvohnomasi" }).locator("visible=true")).toBeVisible();

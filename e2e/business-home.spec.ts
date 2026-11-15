@@ -42,40 +42,40 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000
     test("tekshiruvdagi ariza → tekshiruv sahifasi", async ({ page }) => {
       await makeOwner(OWNERS.pending, "PENDING", true);
       await signIn(page, OWNERS.pending);
-      await expect(page).toHaveURL("/biznes");
+      await expect(page).toHaveURL("/uz/biznes");
       await expect(page.getByTestId("business-stamp").locator("visible=true")).toHaveText("TEKSHIRUVDA");
     });
 
     test("yuborilmagan ariza → forma (davom ettirish)", async ({ page }) => {
       await makeOwner(OWNERS.draft, "PENDING", false);
       await signIn(page, OWNERS.draft);
-      await expect(page).toHaveURL("/biznes");
+      await expect(page).toHaveURL("/uz/biznes");
       await expect(page.locator(viewport.width < 700 ? "#b1-name" : "#wb-name")).toHaveValue("Holat PENDING");
     });
 
     test("rad etilgan ariza → sabab bilan forma", async ({ page }) => {
       await makeOwner(OWNERS.rejected, "REJECTED", true);
       await signIn(page, OWNERS.rejected);
-      await expect(page).toHaveURL("/biznes");
+      await expect(page).toHaveURL("/uz/biznes");
       await expect(page.getByText("Guvohnoma o'qilmaydi").locator("visible=true")).toBeVisible();
     });
 
     test("tasdiqlangan (yangi, sotuvsiz) → statistika, 'quriladi' emas", async ({ page }) => {
       await makeOwner(OWNERS.approved, "APPROVED", true);
       await signIn(page, OWNERS.approved);
-      await expect(page).toHaveURL("/biznes");
+      await expect(page).toHaveURL("/uz/biznes");
       await expect(page.getByRole("heading", { name: "Statistika" }).locator("visible=true")).toBeVisible();
       await expect(page.getByText("quriladi")).toHaveCount(0);
       await expect(page.getByText("Hali sotuv yo'q.").locator("visible=true").first()).toBeVisible();
       // Sotuvlar sahifasi ham bo'sh holatda ochiladi
-      await page.goto("/biznes/sotuvlar");
+      await page.goto("/uz/biznes/sotuvlar");
       await expect(page.getByText("Bu davrda sotuv yo'q.").locator("visible=true")).toBeVisible();
     });
 
     test("ogohlantirilgan (WARNED) biznes ham statistikani ko'radi", async ({ page }) => {
       await makeOwner(OWNERS.warned, "WARNED", true);
       await signIn(page, OWNERS.warned);
-      await expect(page).toHaveURL("/biznes");
+      await expect(page).toHaveURL("/uz/biznes");
       await expect(page.getByRole("heading", { name: "Statistika" }).locator("visible=true")).toBeVisible();
     });
   });

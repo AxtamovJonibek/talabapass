@@ -39,7 +39,7 @@ test("kupon: olish → kassir qo'lda kiritadi → tasdiqlash → chek tarixda; t
   const cashier = await cashierContext.newPage();
 
   await signIn(student, phones.student);
-  await student.goto(`/chegirmalar/${DISCOUNT_ID}`);
+  await student.goto(`/uz/chegirmalar/${DISCOUNT_ID}`);
   await student.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
   await expect(student).toHaveURL(/\/kuponlar\/[a-z0-9]+$/);
   await expect(student.getByRole("img", { name: "Chegirma QR kodi" })).toBeVisible();
@@ -49,7 +49,7 @@ test("kupon: olish → kassir qo'lda kiritadi → tasdiqlash → chek tarixda; t
   const totp = (await student.getByTestId("coupon-totp").textContent())!.replace(/\s/g, "");
 
   await signIn(cashier, phones.cashier);
-  await expect(cashier).toHaveURL("/biznes/skaner");
+  await expect(cashier).toHaveURL("/uz/biznes/skaner");
   await cashier.getByRole("button", { name: "Kodni kiritish" }).click();
 
   // Faqat kupon kodi (6 raqamsiz) — o'tmaydi
@@ -94,7 +94,7 @@ test("kupon: olish → kassir qo'lda kiritadi → tasdiqlash → chek tarixda; t
 test("kuponni bekor qilish qoldiqni qaytaradi", async ({ page }) => {
   const { student } = await seedPhones();
   await signIn(page, student);
-  await page.goto(`/chegirmalar/${DISCOUNT_ID}`);
+  await page.goto(`/uz/chegirmalar/${DISCOUNT_ID}`);
   await page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
   await expect(page).toHaveURL(/\/kuponlar\/[a-z0-9]+$/);
   const before = await withDb(async (db) => (await db.query(`SELECT claimed FROM "DiscountDay" WHERE "discountId" = $1`, [DISCOUNT_ID])).rows[0].claimed);
@@ -105,7 +105,7 @@ test("kuponni bekor qilish qoldiqni qaytaradi", async ({ page }) => {
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Kuponni bekor qilish" }).click();
   await expect(page.getByTestId("toast")).toHaveText("Kupon bekor qilindi");
-  await expect(page).toHaveURL(`/chegirmalar/${DISCOUNT_ID}`);
+  await expect(page).toHaveURL(`/uz/chegirmalar/${DISCOUNT_ID}`);
   const after = await withDb(async (db) => (await db.query(`SELECT claimed FROM "DiscountDay" WHERE "discountId" = $1`, [DISCOUNT_ID])).rows[0].claimed);
   expect(after).toBe(before - 1);
 });
@@ -116,7 +116,7 @@ test.describe("veb (WT3 QR paneli)", () => {
   test("kupon olinsa yon panelda QR va taymer chiqadi; bekor qilinsa taklif qaytadi", async ({ page }) => {
     const { student } = await seedPhones();
     await signIn(page, student);
-    await page.goto(`/chegirmalar/${DISCOUNT_ID}`);
+    await page.goto(`/uz/chegirmalar/${DISCOUNT_ID}`);
     await page.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
     await expect(page.getByRole("img", { name: "Chegirma QR kodi" }).locator("visible=true")).toBeVisible();
     await expect(page.getByText("Amal qiladi").locator("visible=true")).toBeVisible();
@@ -135,14 +135,14 @@ test("biznes egasi skanerda qo'lda kiritib sotuvni tasdiqlaydi", async ({ browse
   const owner = await ownerContext.newPage();
 
   await signIn(student, phones.student);
-  await student.goto(`/chegirmalar/${DISCOUNT_ID}`);
+  await student.goto(`/uz/chegirmalar/${DISCOUNT_ID}`);
   await student.getByRole("button", { name: "Chegirmani olish" }).locator("visible=true").click();
   await expect(student.getByTestId("coupon-totp")).toHaveText(/^\d{3} \d{3}$/);
   const code = (await student.getByTestId("coupon-code").textContent())!.trim();
   const totp = (await student.getByTestId("coupon-totp").textContent())!.replace(/\s/g, "");
 
   await signIn(owner, phones.owner);
-  await owner.goto("/biznes/skaner");
+  await owner.goto("/uz/biznes/skaner");
   await expect(owner.getByTestId("cashier-business")).toBeVisible();
   await expect(owner.getByRole("navigation").getByRole("link", { name: "Skaner" })).toHaveAttribute("aria-current", "page");
   await owner.getByRole("button", { name: "Kodni kiritish" }).click();

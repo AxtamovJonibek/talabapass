@@ -48,7 +48,7 @@ test.describe("veb (WB1)", () => {
   test.use({ viewport: { width: 1440, height: 1000 } });
 
   test("to'liq ariza: kod, fayllar, tekshiruvga yuborish → 3-qadam", async ({ page }) => {
-    await page.goto("/biznes/royxat", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
     // 1-qadam tekshiruvi brauzerda: bo'sh forma o'tmaydi
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await expect(page.getByText("Biznes nomini kiriting").locator("visible=true")).toBeVisible();
@@ -77,7 +77,7 @@ test.describe("veb (WB1)", () => {
     expect(await business()).toBeUndefined(); // kod tasdiqlanmaguncha hisob ochilmaydi
     await enterCode(page, FIXED_CODE);
 
-    await expect(page).toHaveURL("/biznes");
+    await expect(page).toHaveURL("/uz/biznes");
     await expect(page.getByTestId("business-stamp").locator("visible=true")).toHaveText("TEKSHIRUVDA");
     const saved = await business();
     expect(saved).toMatchObject({ status: "PENDING", tin: TIN, kind: "CAFE", role: "BUSINESS_OWNER", registration: 1, photos: 2 });
@@ -88,14 +88,14 @@ test.describe("veb (WB1)", () => {
     const admin = await withDb(async (db) => (await db.query(`SELECT phone FROM "User" WHERE role = 'ADMIN' LIMIT 1`)).rows[0].phone as string);
     await page.context().clearCookies();
     await signIn(page, admin);
-    await expect(page).toHaveURL("/admin");
-    await page.goto("/admin/bizneslar");
+    await expect(page).toHaveURL("/uz/admin");
+    await page.goto("/uz/admin/bizneslar");
     await expect(page.getByText("Sinov Kafesi").first()).toBeVisible();
   });
 
   test("yarim yo'lda qolgan ariza navbatga chiqmaydi va /biznes da davom etadi", async ({ page }) => {
     test.slow(); // dev serverda birinchi kompilyatsiya uzoq
-    await page.goto("/biznes/royxat", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
     await fillInfo(page, "wb");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await page.locator("#wb-tin").fill(TIN);
@@ -114,13 +114,13 @@ test.describe("veb (WB1)", () => {
 
     // Sahifani qayta ochganda — o'sha ariza, ma'lumotlari bilan
     await page.unroute("**/api/biznes/hujjat**");
-    await page.goto("/biznes", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes", { waitUntil: "networkidle" });
     await expect(page.locator("#wb-name")).toHaveValue("Sinov Kafesi");
   });
 
   test("band STIR — xato, hisob ochilmaydi", async ({ page }) => {
     const taken = await withDb(async (db) => (await db.query(`SELECT tin FROM "Business" WHERE tin IS NOT NULL LIMIT 1`)).rows[0].tin as string);
-    await page.goto("/biznes/royxat", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
     await fillInfo(page, "wb");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await page.locator("#wb-tin").fill(taken);
@@ -139,7 +139,7 @@ test.describe("veb (WB1)", () => {
 
 test.describe("telefon (B1)", () => {
   test("STIR birinchi qadamda, ariza yuboriladi", async ({ page }) => {
-    await page.goto("/biznes/royxat", { waitUntil: "networkidle" });
+    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
     await fillInfo(page, "b1");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await expect(page.getByText("STIR 9 ta raqamdan iborat.").locator("visible=true")).toBeVisible();
@@ -154,7 +154,7 @@ test.describe("telefon (B1)", () => {
     await phone.locator('input[name="consent"]').check();
     await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
     await enterCode(page, FIXED_CODE);
-    await expect(page).toHaveURL("/biznes");
+    await expect(page).toHaveURL("/uz/biznes");
     await expect(page.getByTestId("business-stamp").locator("visible=true")).toBeVisible();
     expect(await business()).toMatchObject({ status: "PENDING", registration: 1, photos: 1 });
   });

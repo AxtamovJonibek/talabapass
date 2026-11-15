@@ -21,11 +21,11 @@ test("kirish: kod qadamidan brauzer 'orqaga' raqam qadamiga, ← bosh sahifaga",
   await page.getByRole("button", { name: "Orqaga" }).click();
   await expect(page.locator("#login-phone")).toBeVisible();
   await page.getByRole("button", { name: "Orqaga" }).click();
-  await expect(page).toHaveURL("/", { timeout: 60_000 });
+  await expect(page).toHaveURL("/uz", { timeout: 60_000 });
 });
 
 test("biznes ro'yxati: 2-qadamdan ← va brauzer 'orqaga' 1-qadamga, 1-qadamda ← bosh sahifaga", async ({ page }) => {
-  await page.goto("/biznes/royxat", { waitUntil: "networkidle" });
+  await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
   await page.locator("#b1-name").fill("Sinov Kafesi");
   await page.locator("#b1-address").fill("Chilonzor, Bunyodkor ko'chasi 12");
   await page.locator("#b1-hours").fill("09:00 – 22:00");
@@ -40,5 +40,5 @@ test("biznes ro'yxati: 2-qadamdan ← va brauzer 'orqaga' 1-qadamga, 1-qadamda �
   await page.getByRole("button", { name: "Orqaga" }).locator("visible=true").first().click();
   await expect(page.locator("#b1-name")).toBeVisible();
   await page.getByRole("button", { name: "Orqaga" }).locator("visible=true").first().click();
-  await expect(page).toHaveURL("/", { timeout: 60_000 });
+  await expect(page).toHaveURL("/uz", { timeout: 60_000 });
 });

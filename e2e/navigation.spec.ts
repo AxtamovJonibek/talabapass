@@ -21,12 +21,17 @@ const VIEWPORTS = [
   { name: "1440", width: 1440, height: 900 },
 ] as const;
 
+// Manzillar til prefiksi bilan (/uz/...); quyidagi tekshiruvlar prefikssiz ilova yo'llarida ishlaydi.
+const LOCALE = "/uz";
+const appPath = (pathname: string): string => pathname.replace(/^\/uz(?=\/|$)/, "") || "/";
+const localized = (path: string): string => LOCALE + (path === "/" || /^\/[?#]/.test(path) ? path.slice(1) : path);
+
 const normalize = (href: string, base: string): string | null => {
   if (!href || href.startsWith("#") || /^(mailto|tel|javascript):/.test(href)) return null;
   const url = new URL(href, base);
   if (url.origin !== new URL(base).origin) return null;
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/_next/")) return null;
-  return url.pathname + url.search;
+  return appPath(url.pathname) + url.search;
 };
 
 /** Ko'rinib turgan ichki havolalar (PhoneOrWeb ning yashirin ko'rinishidagilari kirmaydi). */
@@ -47,9 +52,9 @@ async function crawl(page: Page, base: string, start: string, homeRoles: RegExp,
       const key = href.split("?")[0]!;
       if (seen.has(key) || seen.size >= MAX_PAGES) continue;
       seen.add(key);
-      const response = await page.goto(href, { waitUntil: "domcontentloaded" });
+      const response = await page.goto(localized(href), { waitUntil: "domcontentloaded" });
       await page.waitForLoadState("networkidle").catch(() => undefined);
-      const path = new URL(page.url()).pathname;
+      const path = appPath(new URL(page.url()).pathname);
       const status = response?.status() ?? 0;
       if (status >= 400) problems.push(`${href}: status ${status}`);
       const expected = REDIRECTS[key];
@@ -96,11 +101,11 @@ for (const viewport of VIEWPORTS) {
       test(`${role}: barcha havolalar ochiladi`, async ({ page, baseURL }) => {
         if (role !== "guest") {
           await signIn(page, phones[role], { adminPassword: false });
-          if (role === "admin" && new URL(page.url()).pathname === "/kirish/admin") {
+          if (role === "admin" && new URL(page.url()).pathname === "/uz/kirish/admin") {
             await page.locator("#admin-password").fill(process.env.E2E_ADMIN_PASSWORD ?? ADMIN_PASSWORD);
             await page.getByRole("button", { name: "Kirish", exact: true }).click();
-            await page.waitForURL((url) => url.pathname !== "/kirish/admin", { timeout: 15_000 }).catch(() => undefined);
-            test.skip(new URL(page.url()).pathname === "/kirish/admin", "Admin paroli ma'lum emas (E2E_ADMIN_PASSWORD)");
+            await page.waitForURL((url) => url.pathname !== "/uz/kirish/admin", { timeout: 15_000 }).catch(() => undefined);
+            test.skip(new URL(page.url()).pathname === "/uz/kirish/admin", "Admin paroli ma'lum emas (E2E_ADMIN_PASSWORD)");
           }
         }
         const problems = await crawl(page, baseURL!, ROLE_PAGES[role].start, ROLE_PAGES[role].areas, role === "guest");
@@ -111,9 +116,9 @@ for (const viewport of VIEWPORTS) {
 }
 
 test("oflayn sahifa va 404 ekrani", async ({ page }) => {
-  await page.goto("/oflayn");
+  await page.goto("/uz/oflayn");
   await expect(page.getByTestId("offline-page")).toBeVisible();
-  const response = await page.goto("/bunday-sahifa-yoq/aslo");
+  const response = await page.goto("/uz/bunday-sahifa-yoq/aslo");
   expect(response?.status()).toBe(404);
   await expect(page.getByTestId("not-found-page")).toBeVisible();
 });

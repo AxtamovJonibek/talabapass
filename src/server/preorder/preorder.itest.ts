@@ -381,7 +381,7 @@ describe("pul qoidasi", () => {
   it("to'lov ushlanadi → avtomatik tasdiq; muddatgacha bekor — ushlangan pul to'liq bo'shaydi", async () => {
     const order = await book(students[0]!);
     if (!order.ok) throw new Error("band qilinmadi");
-    expect(order.checkoutUrl).toMatch(/^\/test-tolov\//);
+    expect(order.checkoutUrl).toMatch(/^\/uz\/test-tolov\//);
     await pay(order.orderId);
     expect(await statusOf(order.orderId)).toBe("CONFIRMED");
     expect((await paymentOf(order.orderId)).status).toBe("HELD");

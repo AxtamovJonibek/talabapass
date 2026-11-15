@@ -2,8 +2,9 @@
 
 import type { ComponentProps } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { localizedPath, type Locale } from "@/i18n/routing";
 
 /** Tarmoq bormi? Service worker aralashmaydigan (navigatsiya emas) so'rov — keshdan javob bermaydi. */
 async function reachable() {
@@ -21,6 +22,7 @@ async function reachable() {
  */
 export function RetryButton({ label, onRetry, size, strong }: { label: string; onRetry?: () => void; size?: ComponentProps<typeof Button>["size"]; strong?: boolean }) {
   const t = useTranslations("state");
+  const locale = useLocale() as Locale;
   const [checking, setChecking] = useState(false);
   const [failed, setFailed] = useState(false);
   const busy = useRef(false);
@@ -33,14 +35,14 @@ export function RetryButton({ label, onRetry, size, strong }: { label: string; o
     const ok = await reachable();
     if (ok) {
       // /oflayn o'zi sahifa emas — asl manzil o'rniga ko'rsatilgan; qayta yuklash asl sahifani ochadi
-      if (window.location.pathname.endsWith("/oflayn")) window.location.replace("/");
+      if (window.location.pathname.endsWith("/oflayn")) window.location.replace(localizedPath("/", locale));
       else window.location.reload();
       return;
     }
     busy.current = false;
     setChecking(false);
     setFailed(true);
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (onRetry) return;

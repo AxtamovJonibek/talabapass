@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { BusinessAdminForm, UserEditForm } from "@/components/admin/manage/forms";
 import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Link } from "@/i18n/navigation";
+import { localizedPath } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 import { formatPhone } from "@/lib/format";
 import { BUSINESS_KINDS } from "@/lib/business";
@@ -63,7 +64,7 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
               </Link>
             ))}
           </div>
-          <form action="/admin/foydalanuvchilar" method="get" className="flex gap-2">
+          <form action={localizedPath("/admin/foydalanuvchilar")} method="get" className="flex gap-2">
             <input type="hidden" name="rol" value={role} />
             <input
               type="search"

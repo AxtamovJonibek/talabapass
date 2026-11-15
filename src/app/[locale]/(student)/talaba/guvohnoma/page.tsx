@@ -7,6 +7,7 @@ import { CaptureScreen } from "@/components/student/capture-screen";
 import { CardUploadDesktop } from "@/components/student/card-upload-desktop";
 import { PhoneOrWeb } from "@/components/student/responsive";
 import { redirect } from "@/i18n/navigation";
+import { localizedPath, type Locale } from "@/i18n/routing";
 import { requireStudent } from "@/server/auth/student";
 import { canUploadCard } from "@/server/auth/student-status";
 import { authSecret } from "@/server/env";
@@ -32,7 +33,7 @@ async function StudentCardPageContent() {
   // Havola shu so'rov kelgan manzilga quriladi (lokalda — kompyuterning tarmoq manzili bilan ochilgan bo'lsa telefon ham kira oladi).
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-  const handoffUrl = `${origin}/talaba/guvohnoma/telefon?t=${encodeURIComponent(createUploadToken(user.id, authSecret()))}`;
+  const handoffUrl = `${origin}${localizedPath("/talaba/guvohnoma/telefon", (await getLocale()) as Locale)}?t=${encodeURIComponent(createUploadToken(user.id, authSecret()))}`;
 
   return (
     <PhoneOrWeb

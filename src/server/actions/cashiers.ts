@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
+import { localizedPath, type Locale } from "@/i18n/routing";
 import { normalizePhone } from "@/lib/format";
 import { confirmPhone } from "../auth/phone-check";
 import { createSession, forgetVerifiedPhone, requireRole } from "../auth/session";
@@ -17,7 +18,7 @@ export async function createInviteAction(): Promise<InviteActionResult> {
   const user = await requireRole("BUSINESS_OWNER");
   const result = await createInvite(user.id);
   if (!result.ok) return result;
-  return { ok: true, path: `/kassir/${result.token}`, expiresAt: result.expiresAt.toISOString() };
+  return { ok: true, path: localizedPath(`/kassir/${result.token}`, (await getLocale()) as Locale), expiresAt: result.expiresAt.toISOString() };
 }
 
 export async function revokeInviteAction(inviteId: string): Promise<{ ok: boolean }> {

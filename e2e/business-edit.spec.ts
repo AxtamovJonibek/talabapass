@@ -21,7 +21,7 @@ test.afterAll(async () => {
 
 test("egasi ish vaqtini o'zgartiradi (holat qoladi), nomni o'zgartirsa qayta tekshiruvga tushadi", async ({ page }) => {
   await signIn(page, phones.owner);
-  await page.goto("/biznes/profil");
+  await page.goto("/uz/biznes/profil");
   await page.getByRole("link", { name: "Tahrirlash" }).locator("visible=true").click();
   await expect(page).toHaveURL(/\/biznes\/profil\/tahrir$/);
 

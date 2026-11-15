@@ -23,19 +23,19 @@ test.afterAll(() => clearPasswordAttempts());
 test("SMS koddan keyin parol so'raladi; parolsiz admin sahifalari va API ochilmaydi", async ({ page }) => {
   test.slow(); // 7 ta sahifa — dev serverda birinchi kompilyatsiya uzoq
   await signIn(page, admin.phone, { adminPassword: false });
-  await expect(page).toHaveURL("/kirish/admin");
+  await expect(page).toHaveURL("/uz/kirish/admin");
   await expect(page.getByRole("heading", { name: "Admin paroli" })).toBeVisible();
 
-  for (const path of ["/admin", "/admin/talabalar", "/admin/bizneslar", "/admin/chegirmalar", "/admin/tranzaksiyalar", "/admin/bildirishnomalar", "/admin/bloklanganlar", "/chegirmalar", "/biznes", "/kirish"]) {
+  for (const path of ["/uz/admin", "/uz/admin/talabalar", "/uz/admin/bizneslar", "/uz/admin/chegirmalar", "/uz/admin/tranzaksiyalar", "/uz/admin/bildirishnomalar", "/uz/admin/bloklanganlar", "/uz/chegirmalar", "/uz/biznes", "/uz/kirish"]) {
     await page.goto(path);
-    await expect(page, path).toHaveURL("/kirish/admin");
+    await expect(page, path).toHaveURL("/uz/kirish/admin");
   }
   const verificationId = await withDb(async (db) => (await db.query(`SELECT id FROM "Verification" LIMIT 1`)).rows[0]?.id as string | undefined);
   const api = await page.request.get(`/api/admin/fayl/guvohnoma/${verificationId ?? "x"}`);
   expect(api.status()).toBe(404);
 
   await enterAdminPassword(page);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/uz/admin");
   await expect(page.getByRole("heading", { name: "Platforma" })).toBeVisible();
   if (verificationId) expect((await page.request.get(`/api/admin/fayl/guvohnoma/${verificationId}`)).status()).toBe(200);
 });
@@ -44,10 +44,10 @@ test("noto'g'ri parol rad etiladi va audit'ga yoziladi", async ({ page }) => {
   await signIn(page, admin.phone, { adminPassword: false });
   await enterAdminPassword(page, "noto'g'ri-parol");
   await expect(page.getByText("Parol noto'g'ri")).toBeVisible();
-  await expect(page).toHaveURL("/kirish/admin");
+  await expect(page).toHaveURL("/uz/kirish/admin");
   await expect.poll(failCount).toBe(1);
   await enterAdminPassword(page);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/uz/admin");
 });
 
 test("5 ta xato: sessiya yopiladi, 15 daqiqa to'g'ri parol ham qabul qilinmaydi", async ({ page }) => {
@@ -66,16 +66,16 @@ test("5 ta xato: sessiya yopiladi, 15 daqiqa to'g'ri parol ham qabul qilinmaydi"
   await signIn(page, admin.phone, { adminPassword: false });
   await enterAdminPassword(page, ADMIN_PASSWORD);
   await expect(page.getByText(/Juda ko'p xato urinish/)).toBeVisible();
-  await page.goto("/admin/talabalar");
-  await expect(page).toHaveURL("/kirish/admin");
+  await page.goto("/uz/admin/talabalar");
+  await expect(page).toHaveURL("/uz/kirish/admin");
 });
 
 test("parol boshqa sessiyaga o'tmaydi: chiqib qayta kirganda yana so'raladi", async ({ page }) => {
   await signIn(page, admin.phone);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/uz/admin");
   await page.getByRole("button", { name: "Hisobdan chiqish" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/uz");
   await signIn(page, admin.phone, { adminPassword: false });
-  await page.goto("/admin/talabalar");
-  await expect(page).toHaveURL("/kirish/admin");
+  await page.goto("/uz/admin/talabalar");
+  await expect(page).toHaveURL("/uz/kirish/admin");
 });

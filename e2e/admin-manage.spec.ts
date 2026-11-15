@@ -34,13 +34,13 @@ test.afterAll(async () => {
 
 async function adminIn(page: Page) {
   await signIn(page, phones.admin);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/uz/admin");
 }
 const saved = (page: Page) => expect(page.getByTestId("manage-saved").first()).toBeVisible();
 
 test("admin o'z ismini o'zgartiradi va yangi admin qo'shadi (audit bilan)", async ({ page }) => {
   await adminIn(page);
-  await page.goto("/admin/profil", { waitUntil: "networkidle" });
+  await page.goto("/uz/admin/profil", { waitUntil: "networkidle" });
   await page.locator("#own-first").fill("Dilnoza");
   await page.locator("#own-last").fill("Karimova");
   await page.getByRole("button", { name: "Saqlash" }).click();
@@ -81,7 +81,7 @@ test("admin o'z ismini o'zgartiradi va yangi admin qo'shadi (audit bilan)", asyn
 
 test("foydalanuvchilar: talabani qidirib telefonini ko'radi va ma'lumotini tahrirlaydi; biznes ma'lumotlari", async ({ page }) => {
   await adminIn(page);
-  await page.goto(`/admin/foydalanuvchilar?q=${encodeURIComponent(phones.student.slice(-9))}`, { waitUntil: "networkidle" });
+  await page.goto(`/uz/admin/foydalanuvchilar?q=${encodeURIComponent(phones.student.slice(-9))}`, { waitUntil: "networkidle" });
   const row = page.getByRole("row").filter({ hasText: "+998 90 412 37 85" });
   await expect(row).toBeVisible();
   await row.getByRole("link").first().click();
@@ -95,7 +95,7 @@ test("foydalanuvchilar: talabani qidirib telefonini ko'radi va ma'lumotini tahri
   await expect(page.getByText("user.edit").first()).toBeVisible();
 
   // Biznes egasi: biznes ma'lumotlari formasi ham ochiladi
-  await page.goto(`/admin/foydalanuvchilar?rol=BUSINESS_OWNER&q=Bodom`, { waitUntil: "networkidle" });
+  await page.goto(`/uz/admin/foydalanuvchilar?rol=BUSINESS_OWNER&q=Bodom`, { waitUntil: "networkidle" });
   await page.getByRole("row").filter({ hasText: "Bodom" }).getByRole("link").first().click();
   await expect(page.locator("#b-name")).toHaveValue("Bodom Choyxonasi");
   await expect(page.locator("#b-publicPhone")).toBeVisible();
@@ -103,7 +103,7 @@ test("foydalanuvchilar: talabani qidirib telefonini ko'radi va ma'lumotini tahri
 
 test("universitetlar: qidiruv, qo'shish, tahrirlash; 'Ro'yxatda yo'q' so'rovi yangi OTM sifatida yopiladi", async ({ page }) => {
   await adminIn(page);
-  await page.goto("/admin/universitetlar?q=tatu", { waitUntil: "networkidle" });
+  await page.goto("/uz/admin/universitetlar?q=tatu", { waitUntil: "networkidle" });
   await expect(page.getByRole("link", { name: "Toshkent axborot texnologiyalari universiteti" }).first()).toBeVisible();
 
   await page.locator("#add-name").fill(UNI);
@@ -111,7 +111,7 @@ test("universitetlar: qidiruv, qo'shish, tahrirlash; 'Ro'yxatda yo'q' so'rovi ya
   await page.locator("#add-region").fill("Samarqand viloyati");
   await page.getByRole("button", { name: "Qo'shish", exact: true }).click();
   await saved(page);
-  await page.goto(`/admin/universitetlar?q=${encodeURIComponent(UNI)}`, { waitUntil: "networkidle" });
+  await page.goto(`/uz/admin/universitetlar?q=${encodeURIComponent(UNI)}`, { waitUntil: "networkidle" });
   await page.getByRole("link", { name: UNI }).click();
   await page.locator("#edit-short").fill("E2E2");
   await page.getByRole("button", { name: "Saqlash" }).click();
@@ -125,7 +125,7 @@ test("universitetlar: qidiruv, qo'shish, tahrirlash; 'Ro'yxatda yo'q' so'rovi ya
     await db.query(`INSERT INTO "StudentProfile" ("userId", "universityId", course, "publicId", status, "updatedAt") VALUES ($1, $2, 'C1', 'TP-E2E-0001', 'DRAFT', now())`, [REQ_STUDENT.id, other]);
     await db.query(`INSERT INTO "UniversityRequest" (id, "userId", name) VALUES ('e2e_mng_req', $1, $2)`, [REQ_STUDENT.id, UNI_REQ]);
   });
-  await page.goto("/admin/universitetlar", { waitUntil: "networkidle" });
+  await page.goto("/uz/admin/universitetlar", { waitUntil: "networkidle" });
   const request = page.getByTestId("university-request").filter({ hasText: UNI_REQ });
   await expect(request).toBeVisible();
   await request.getByText("Yangi universitet sifatida qo'shish").first().click();

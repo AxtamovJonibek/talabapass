@@ -50,7 +50,7 @@ async function sessionCount(userId: string) {
 
 async function asAdmin(page: Page) {
   await signIn(page, (await seedPhones()).admin);
-  await expect(page).toHaveURL("/admin");
+  await expect(page).toHaveURL("/uz/admin");
 }
 
 async function loggedIn(context: BrowserContext, token: string, baseURL: string) {
@@ -77,7 +77,7 @@ test.describe("talaba arizasi", () => {
     expect(before).toBe(0);
 
     await asAdmin(page);
-    await page.goto(`/admin/talabalar?id=${verificationId}`);
+    await page.goto(`/uz/admin/talabalar?id=${verificationId}`);
     await expect(page.getByRole("heading", { name: `${S1.first} ${S1.last}` })).toBeVisible();
     const img = page.locator(`img[src="${fileUrl}"]`);
     await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
@@ -101,7 +101,7 @@ test.describe("talaba arizasi", () => {
     const second = await pendingStudent(request, S2);
     await asAdmin(page);
 
-    await page.goto(`/admin/talabalar?id=${first}`);
+    await page.goto(`/uz/admin/talabalar?id=${first}`);
     await page.getByRole("button", { name: "Tasdiqlash" }).click();
     await expect(page.getByRole("alert").filter({ hasText: "Guvohnoma raqamini" })).toBeVisible();
 
@@ -119,7 +119,7 @@ test.describe("talaba arizasi", () => {
     expect(approved).toEqual({ status: "APPROVED", cardNumber: "TATU-24-E2E01", exp: "2028-06-30" });
 
     // Ikkinchi talaba shu guvohnoma raqami bilan tasdiqlanmaydi
-    await page.goto(`/admin/talabalar?id=${second}`);
+    await page.goto(`/uz/admin/talabalar?id=${second}`);
     await page.getByLabel("Guvohnoma №").fill("TATU-24-E2E01");
     await page.getByLabel("Amal muddati").fill("2028-06-30");
     await page.getByRole("button", { name: "Tasdiqlash" }).click();
@@ -134,7 +134,7 @@ test.describe("talaba arizasi", () => {
   test("tasdiqlangan talabaga ilova ochiladi", async ({ page, request, browser, baseURL }) => {
     const id = await pendingStudent(request, S1);
     await asAdmin(page);
-    await page.goto(`/admin/talabalar?id=${id}`);
+    await page.goto(`/uz/admin/talabalar?id=${id}`);
     await page.getByLabel("Guvohnoma №").fill("TATU-24-E2E02");
     await page.getByLabel("Amal muddati").fill("2028-06-30");
     await page.getByRole("button", { name: "Tasdiqlash" }).click();
@@ -143,11 +143,11 @@ test.describe("talaba arizasi", () => {
     const student = await browser.newContext();
     await loggedIn(student, S1.token, baseURL!);
     const studentPage = await student.newPage();
-    await studentPage.goto("/chegirmalar");
-    await expect(studentPage).toHaveURL("/chegirmalar");
+    await studentPage.goto("/uz/chegirmalar");
+    await expect(studentPage).toHaveURL("/uz/chegirmalar");
     // Tasdiq xabari: ilova ichi (qo'ng'iroq → ro'yxat)
     expect(await inbox(S1.id)).toEqual([{ title: "Guvohnoma tasdiqlandi", body: "Endi talaba chegirmalaridan foydalanishingiz mumkin." }]);
-    await studentPage.goto("/bildirishnomalar");
+    await studentPage.goto("/uz/bildirishnomalar");
     await expect(studentPage.getByText("Guvohnoma tasdiqlandi")).toBeVisible();
     await student.close();
   });
@@ -155,7 +155,7 @@ test.describe("talaba arizasi", () => {
   test("rad etish: sabab talabaga ko'rinadi", async ({ page, request, browser, baseURL }) => {
     const id = await pendingStudent(request, S1);
     await asAdmin(page);
-    await page.goto(`/admin/talabalar?id=${id}`);
+    await page.goto(`/uz/admin/talabalar?id=${id}`);
     await page.getByLabel("Rad etish sababi").selectOption({ label: "Rasm aniq emas" });
     await page.getByRole("button", { name: "Rad etish" }).click();
     await expect(page).not.toHaveURL(new RegExp(id));
@@ -163,13 +163,13 @@ test.describe("talaba arizasi", () => {
     const student = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await loggedIn(student, S1.token, baseURL!);
     const studentPage = await student.newPage();
-    await studentPage.goto("/talaba/tekshiruv");
+    await studentPage.goto("/uz/talaba/tekshiruv");
     await expect(studentPage.getByTestId("status-stamp")).toHaveText("RAD ETILDI");
     await expect(studentPage.getByText("Rasm aniq emas").locator("visible=true")).toBeVisible();
     // Rad xabari sababi bilan
     const [message] = await inbox(S1.id);
     expect(message).toEqual({ title: "Guvohnoma rad etildi", body: "Sabab: Rasm aniq emas. Yangi rasm yuklab, qayta yuboring." });
-    await studentPage.goto("/bildirishnomalar");
+    await studentPage.goto("/uz/bildirishnomalar");
     await expect(studentPage.getByText("Sabab: Rasm aniq emas")).toBeVisible();
     await student.close();
   });
@@ -181,7 +181,7 @@ test.describe("talaba arizasi", () => {
     expect(await sessionCount(S1.id)).toBe(2);
 
     await asAdmin(page);
-    await page.goto(`/admin/talabalar?id=${id}`);
+    await page.goto(`/uz/admin/talabalar?id=${id}`);
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Bloklash" }).click();
     await expect(page).not.toHaveURL(new RegExp(id));
@@ -193,15 +193,15 @@ test.describe("talaba arizasi", () => {
     const student = await browser.newContext();
     await loggedIn(student, S1.token, baseURL!);
     const studentPage = await student.newPage();
-    await studentPage.goto("/talaba/tekshiruv");
-    await expect(studentPage).toHaveURL("/kirish");
+    await studentPage.goto("/uz/talaba/tekshiruv");
+    await expect(studentPage).toHaveURL("/uz/kirish");
     await student.close();
   });
 
   test("bloklashdan voz kechilsa hech narsa o'zgarmaydi", async ({ page, request }) => {
     const id = await pendingStudent(request, S1);
     await asAdmin(page);
-    await page.goto(`/admin/talabalar?id=${id}`);
+    await page.goto(`/uz/admin/talabalar?id=${id}`);
     page.once("dialog", (dialog) => dialog.dismiss());
     await page.getByRole("button", { name: "Bloklash" }).click();
     await expect(page).toHaveURL(new RegExp(id));
@@ -212,9 +212,9 @@ test.describe("talaba arizasi", () => {
     const id = await pendingStudent(request, S1);
     const { owner } = await seedPhones();
     await signIn(page, owner);
-    await expect(page).toHaveURL("/biznes");
-    await page.goto(`/admin/talabalar?id=${id}`);
-    await expect(page).toHaveURL("/biznes");
+    await expect(page).toHaveURL("/uz/biznes");
+    await page.goto(`/uz/admin/talabalar?id=${id}`);
+    await expect(page).toHaveURL("/uz/biznes");
   });
 });
 
@@ -237,7 +237,7 @@ test.describe("biznes arizasi", () => {
   test("tasdiqlash", async ({ page }) => {
     await pendingBusiness();
     await asAdmin(page);
-    await page.goto(`/admin/bizneslar?id=${BUSINESS}`);
+    await page.goto(`/uz/admin/bizneslar?id=${BUSINESS}`);
     await expect(page.getByRole("heading", { name: "E2E Kafe" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "Yagona" })).toBeVisible();
     await page.getByRole("button", { name: "Tasdiqlash" }).click();
@@ -250,7 +250,7 @@ test.describe("biznes arizasi", () => {
   test("rad etish sabab bilan", async ({ page }) => {
     await pendingBusiness();
     await asAdmin(page);
-    await page.goto(`/admin/bizneslar?id=${BUSINESS}`);
+    await page.goto(`/uz/admin/bizneslar?id=${BUSINESS}`);
     await page.getByLabel("Rad etish sababi").selectOption({ label: "Hujjatlar to'liq emas" });
     await page.getByRole("button", { name: "Rad etish" }).click();
     await expect(page).not.toHaveURL(new RegExp(BUSINESS));
@@ -265,7 +265,7 @@ test.describe("biznes arizasi", () => {
     expect(await sessionCount(CASHIER.id)).toBe(1);
 
     await asAdmin(page);
-    await page.goto(`/admin/bizneslar?id=${BUSINESS}`);
+    await page.goto(`/uz/admin/bizneslar?id=${BUSINESS}`);
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Bloklash" }).click();
     await expect(page).not.toHaveURL(new RegExp(BUSINESS));

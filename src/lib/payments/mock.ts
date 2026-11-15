@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { localizedPath } from "@/i18n/routing";
 import type { CallbackEvent, CreatedPayment, CreatePaymentInput, OperationResult, PaymentProvider } from "./types";
 
 /**
@@ -23,7 +24,7 @@ export class MockProvider implements PaymentProvider {
 
   async createPayment(input: CreatePaymentInput): Promise<CreatedPayment> {
     // Idempotent: bir xil to'lov uchun har doim bir xil id (haqiqiy provayder idempotencyKey bo'yicha shunday qiladi)
-    return { providerPaymentId: `mock_${input.paymentId}`, checkoutUrl: `/test-tolov/${input.paymentId}` };
+    return { providerPaymentId: `mock_${input.paymentId}`, checkoutUrl: localizedPath(`/test-tolov/${input.paymentId}`) };
   }
 
   async hold(): Promise<OperationResult> {

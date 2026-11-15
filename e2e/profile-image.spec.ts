@@ -31,7 +31,7 @@ async function crop(page: Page) {
 test("talaba: avatar yuklanadi, 512×512 kvadrat, boshqalarga yopiq, o'chiriladi", async ({ page, browser }) => {
   test.slow();
   await signIn(page, phones.student);
-  await page.goto("/profil/tahrir", { waitUntil: "networkidle" });
+  await page.goto("/uz/profil/tahrir", { waitUntil: "networkidle" });
 
   // Rasm bo'lmagan fayl — kesish oynasida xato
   await pick(page, "Rasm tanlash", "x.jpg", "image/jpeg", Buffer.from("bu rasm emas"));
@@ -59,12 +59,12 @@ test("talaba: avatar yuklanadi, 512×512 kvadrat, boshqalarga yopiq, o'chiriladi
 
   // Lentada ham chiqadi (veb sarlavha doirasi)
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/chegirmalar", { waitUntil: "networkidle" });
-  await expect(page.locator(`header a[href$="/profil"] img[src*="/api/avatar/"]`)).toBeVisible();
+  await page.goto("/uz/chegirmalar", { waitUntil: "networkidle" });
+  await expect(page.locator(`header a[href$="/uz/profil"] img[src*="/api/avatar/"]`)).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
 
   // O'chirish
-  await page.goto("/profil/tahrir", { waitUntil: "networkidle" });
+  await page.goto("/uz/profil/tahrir", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Rasmni o'chirish" }).locator("visible=true").click();
   await expect(page.getByTestId("avatar-preview").locator("visible=true").locator("img")).toHaveCount(0);
   expect((await page.request.get(`/api/avatar/${userId.userId}`)).status()).toBe(404);
@@ -73,7 +73,7 @@ test("talaba: avatar yuklanadi, 512×512 kvadrat, boshqalarga yopiq, o'chiriladi
 test("biznes: logotip yuklanadi; tasdiqlangan biznesniki hammaga ochiq", async ({ page, browser }) => {
   test.slow();
   await signIn(page, phones.owner);
-  await page.goto("/biznes/profil/tahrir", { waitUntil: "networkidle" });
+  await page.goto("/uz/biznes/profil/tahrir", { waitUntil: "networkidle" });
   await pick(page, "Logotip tanlash", "logo.png", "image/png", await sharp({ create: { width: 300, height: 300, channels: 4, background: "#ff5b1f" } }).png().toBuffer());
   await crop(page);
   await expect(page.getByTestId("avatar-preview").locator("visible=true").locator("img")).toBeVisible();
@@ -88,10 +88,10 @@ test("biznes: logotip yuklanadi; tasdiqlangan biznesniki hammaga ochiq", async (
   await guest.close();
 
   // Profil sarlavhasida logotip
-  await page.goto("/biznes/profil", { waitUntil: "networkidle" });
+  await page.goto("/uz/biznes/profil", { waitUntil: "networkidle" });
   await expect(page.locator(`img[src*="/api/biznes/logo/"]`).locator("visible=true").first()).toBeVisible();
 
-  await page.goto("/biznes/profil/tahrir", { waitUntil: "networkidle" });
+  await page.goto("/uz/biznes/profil/tahrir", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Rasmni o'chirish" }).locator("visible=true").click();
   await expect(page.getByTestId("avatar-preview").locator("visible=true").locator("img")).toHaveCount(0);
   expect((await page.request.get(`/api/biznes/logo/${business.id}`)).status()).toBe(404);

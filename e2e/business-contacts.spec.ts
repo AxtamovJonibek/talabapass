@@ -16,7 +16,7 @@ test.afterAll(async () => {
 
 test("egasi aloqani kiritadi (noto'g'ri qiymat rad etiladi), talaba chegirma sahifasida ko'radi", async ({ page, browser }) => {
   await signIn(page, phones.owner);
-  await page.goto("/biznes/profil/tahrir", { waitUntil: "networkidle" });
+  await page.goto("/uz/biznes/profil/tahrir", { waitUntil: "networkidle" });
   const save = () => page.getByRole("button", { name: "Saqlash" }).locator("visible=true").click();
 
   await page.locator("#bp-phone").fill("+7 900 123 45 67");
@@ -39,7 +39,7 @@ test("egasi aloqani kiritadi (noto'g'ri qiymat rad etiladi), talaba chegirma sah
   const student = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const studentPage = await student.newPage();
   await signIn(studentPage, phones.student);
-  await studentPage.goto(`/chegirmalar/${discountId}`, { waitUntil: "networkidle" });
+  await studentPage.goto(`/uz/chegirmalar/${discountId}`, { waitUntil: "networkidle" });
   const call = studentPage.getByRole("link", { name: /Qo'ng'iroq qilish/ }).locator("visible=true");
   await expect(call).toHaveAttribute("href", "tel:+998901234567");
   await expect(studentPage.getByRole("link", { name: "Telegram" }).locator("visible=true")).toHaveAttribute("href", "https://t.me/bodom_choyxona");

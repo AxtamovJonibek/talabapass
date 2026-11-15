@@ -18,19 +18,19 @@ test.describe("1440", () => {
   test("profil: 'Orqaga' lentaga, ichki sahifalardan profilga qaytaradi", async ({ page }) => {
     const { student } = await seedPhones();
     await signIn(page, student);
-    await page.goto("/profil");
+    await page.goto("/uz/profil");
     await visible(page, "link", "Orqaga").click();
-    await expect(page).toHaveURL("/chegirmalar");
+    await expect(page).toHaveURL("/uz/chegirmalar");
 
-    await page.goto("/profil/guvohnoma");
+    await page.goto("/uz/profil/guvohnoma");
     await visible(page, "link", "Orqaga").click();
-    await expect(page).toHaveURL("/profil");
+    await expect(page).toHaveURL("/uz/profil");
   });
 
   test("lenta: karusel tugmasiz, filtr chiplari karuseldan pastda, saralash klaviatura bilan", async ({ page }) => {
     const { student } = await seedPhones();
     await signIn(page, student);
-    await expect(page).toHaveURL("/chegirmalar");
+    await expect(page).toHaveURL("/uz/chegirmalar");
 
     await expect(page.getByRole("button", { name: /kategoriyalar/i })).toHaveCount(0);
     const group = page.getByRole("group", { name: "Kategoriyalar" }).locator("visible=true");
@@ -122,7 +122,7 @@ for (const [width, height] of [
     await page.setViewportSize({ width, height });
     const { student } = await seedPhones();
     await signIn(page, student);
-    await page.goto(`/chegirmalar/${await discountId("Osh 0.5 porsiya + ko'k choy")}`);
+    await page.goto(`/uz/chegirmalar/${await discountId("Osh 0.5 porsiya + ko'k choy")}`);
     const title = page.getByRole("heading", { level: 1 }).locator("visible=true");
     const claim = visible(page, "button", /Chegirmani olish|Olinmoqda/);
     await expect(title).toBeVisible();
@@ -134,7 +134,7 @@ for (const [width, height] of [
 }
 
 test("oflayn: 'Qayta urinish' tarmoq yo'qligini aytadi, tarmoq qaytganda o'zi yangilanadi", async ({ page, context }) => {
-  await page.goto("/oflayn");
+  await page.goto("/uz/oflayn");
   await expect(page.getByTestId("offline-page")).toBeVisible();
   await context.setOffline(true);
   await page.getByRole("button", { name: "Qayta urinish" }).click();
@@ -143,7 +143,7 @@ test("oflayn: 'Qayta urinish' tarmoq yo'qligini aytadi, tarmoq qaytganda o'zi ya
   await expect(page).not.toHaveURL(/oflayn/, { timeout: 15_000 });
 
   // qo'lda: tarmoq qaytgach tugma sahifani ochadi
-  await page.goto("/oflayn");
+  await page.goto("/uz/oflayn");
   await page.getByRole("button", { name: "Qayta urinish" }).click();
   await expect(page).not.toHaveURL(/oflayn/, { timeout: 15_000 });
 });
