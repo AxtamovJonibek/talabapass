@@ -174,6 +174,8 @@ export async function claimCoupon(studentId: string, discountId: string, now = n
 
 export type CouponView = {
   id: string;
+  /** Chegirma — mobil ilova kupon ekranidan "Chegirmaga qaytish" uchun */
+  discountId: string;
   code: string;
   /** base64url — faqat kupon egasiga; QR va kod shu bilan qurilmada hisoblanadi */
   secret: string;
@@ -189,6 +191,7 @@ export type CouponView = {
 
 const COUPON_SELECT = {
   id: true,
+  discountId: true,
   code: true,
   secret: true,
   expiresAt: true,
@@ -221,6 +224,7 @@ function toView(c: CouponRow): CouponView {
   const last = c.student.lastName ?? "";
   return {
     id: c.id,
+    discountId: c.discountId,
     code: c.code,
     secret: toBase64Url(decryptSecret(c.secret)),
     expiresAt: c.expiresAt.toISOString(),

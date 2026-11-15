@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useCanGoBack } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ApiError, errorText } from "@/api/client";
@@ -13,6 +13,7 @@ import { UniversityPicker, type UniversityChoice } from "@/ui/university-picker"
 /** RoyxatTalaba (1/3): ism, familiya, OTM, kurs → hisob ochiladi (DRAFT), keyin guvohnoma. */
 export default function StudentRegister() {
   const { flow, signIn } = useApp();
+  const canGoBack = useCanGoBack();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [university, setUniversity] = useState<UniversityChoice | null>(null);
@@ -60,7 +61,7 @@ export default function StudentRegister() {
   return (
     <Screen>
       <TopBar>
-        {router.canGoBack() ? <BackArrow label={copy.back} onPress={() => router.back()} /> : <TopBarSpacer />}
+        {canGoBack ? <BackArrow label={copy.back} onPress={() => router.back()} /> : <TopBarSpacer />}
         <StepBars total={3} current={1} label={s.steps(1)} />
         <RoleChip tone="student">{copy.role.student}</RoleChip>
       </TopBar>

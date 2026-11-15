@@ -6,6 +6,7 @@ import { GET as deal } from "@/app/api/v1/deals/[id]/route";
 import { GET as nearby } from "@/app/api/v1/deals/nearby/route";
 import { GET as deals } from "@/app/api/v1/deals/route";
 import { GET as notifications } from "@/app/api/v1/notifications/route";
+import { GET as districts } from "@/app/api/v1/districts/route";
 import { POST as markRead } from "@/app/api/v1/notifications/read/route";
 import { DELETE as pushDelete, POST as pushRegister } from "@/app/api/v1/push/devices/route";
 import { DELETE as unsave, PUT as save } from "@/app/api/v1/saved/[id]/route";
@@ -48,6 +49,7 @@ async function cleanup() {
   const users = await db.user.findMany({ where: { phone: { in: PHONES } }, select: { id: true } });
   const ids = users.map((u) => u.id);
   await db.coupon.deleteMany({ where: { studentId: { in: ids } } });
+  await db.notification.deleteMany({ where: { createdById: { in: ids } } });
   await db.business.deleteMany({ where: { tin: TIN } });
   await db.user.deleteMany({ where: { id: { in: ids } } });
   await db.rateLimitHit.deleteMany({ where: { key: { in: ids.flatMap((id) => [limitKey("claim", id), limitKey("write", id)]) } } });
@@ -149,7 +151,7 @@ describe("API: talaba asosiy", () => {
     expect(again.json).toMatchObject({ existing: true, coupon: { id: first.json.coupon.id } });
 
     const id = first.json.coupon.id as string;
-    expect((await call(couponState, `/api/v1/coupons/${id}`, { params: { id } })).json).toMatchObject({ status: "ACTIVE", coupon: { id } });
+    expect((await call(couponState, `/api/v1/coupons/${id}`, { params: { id } })).json).toMatchObject({ status: "ACTIVE", coupon: { id, discountId } });
     expect((await call(coupons, "/api/v1/coupons")).json.coupons).toHaveLength(1);
     expect((await call(deal, `/api/v1/deals/${discountId}`, { params: { id: discountId } })).json.deal.left).toBe(4);
 
@@ -160,6 +162,13 @@ describe("API: talaba asosiy", () => {
     expect((await call(claim, "/api/v1/coupons", { method: "POST", body: { discountId } })).status).toBe(201);
   });
 
+  it("tumanlar va viloyatlar (joy tanlovi)", async () => {
+    const res = await call(districts, "/api/v1/districts", { auth: "" });
+    expect(res.status).toBe(200);
+    expect(res.json.regions.length).toBeGreaterThan(10);
+    expect(res.json.districts).toEqual(expect.arrayContaining([]));
+  });
+
   it("begona kupon ko'rinmaydi; tasdiqlanmagan talaba kupon ololmaydi", async () => {
     const mine = (await call(coupons, "/api/v1/coupons")).json.coupons[0];
     expect((await call(couponState, `/api/v1/coupons/${mine.id}`, { auth: pendingToken, params: { id: mine.id } })).status).toBe(403);
@@ -167,6 +176,24 @@ describe("API: talaba asosiy", () => {
   });
 
   it("bildirishnomalar va push qurilmasi (chiqishda o'chadi)", async () => {
+    // Bittasini o'qilgan qilish (`ids`), keyin hammasini; begona id e'tiborsiz
+    const sent = new Date();
+    const made = await Promise.all(
+      ["a", "b"].map((title) =>
+        db.notification.create({
+          data: { title, body: "b", audience: "USER", scheduledAt: sent, sentAt: sent, status: "SENT", createdById: studentId, recipients: { create: { userId: studentId } } },
+          select: { recipients: { select: { id: true } } },
+        }),
+      ),
+    );
+    const [one, two] = made.map((n) => n.recipients[0]!.id);
+    const before = (await call(notifications, "/api/v1/notifications")).json.unread as number;
+    expect((await call(markRead, "/api/v1/notifications/read", { method: "POST", body: { ids: [one, "cm0000000000000000000000"] } })).json.marked).toBe(1);
+    const items = (await call(notifications, "/api/v1/notifications")).json.items as Json[];
+    expect(items.find((i) => i.id === one)?.unread).toBe(false);
+    expect(items.find((i) => i.id === two)?.unread).toBe(true);
+    expect((await call(notifications, "/api/v1/notifications")).json.unread).toBe(before - 1);
+
     const inbox = await call(notifications, "/api/v1/notifications");
     expect(inbox.json).toMatchObject({ unread: expect.any(Number), items: expect.any(Array) });
     expect((await call(markRead, "/api/v1/notifications/read", { method: "POST" })).status).toBe(200);

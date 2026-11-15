@@ -1,5 +1,5 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { router } from "expo-router";
+import { router, useCanGoBack } from "expo-router";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from "react-native";
 import { errorText } from "@/api/client";
@@ -18,6 +18,7 @@ import { BackArrow, ErrorBox, Eyebrow, Grow, Lead, Note, RoleChip, Screen, StepB
  */
 export default function StudentCard() {
   const { reloadMe } = useApp();
+  const canGoBack = useCanGoBack();
   const camera = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [ready, setReady] = useState(false);
@@ -71,7 +72,7 @@ export default function StudentCard() {
   return (
     <Screen>
       <TopBar>
-        {router.canGoBack() ? <BackArrow label={copy.back} onPress={() => router.back()} /> : <TopBarSpacer />}
+        {canGoBack ? <BackArrow label={copy.back} onPress={() => router.back()} /> : <TopBarSpacer />}
         <StepBars total={3} current={2} label={s.steps(2)} />
         <RoleChip tone="student">{copy.role.student}</RoleChip>
       </TopBar>

@@ -84,6 +84,7 @@ Oqim: `/auth/verify` (intent `student`, yangi raqam) → `/auth/password` → `r
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
 | `GET /universities?q=` | — (kirishsiz) | `{ universities: [{ id, name, shortName, region, kind }], otherId: "other" }` |
+| `GET /districts` | — (kirishsiz) | `{ districts: [{ id, name, lat, lng }], regions: [{ id, name, lat, lng }] }` — joy tanlovi (Toshkent tumanlari va viloyatlar, saytdagi `location-select` guruhlari); tanlangani `districtId` / `regionId` |
 | `POST /student/register` | `{ registrationTicket, firstName, lastName, universityId, universityOther?, course: "C1"\|"C2"\|"C3"\|"C4"\|"MASTER", deviceName? }` | 201 `SignedIn` (talaba `DRAFT`) · xato: `invalid_request` + `fields`, `step_expired` |
 | `POST /student/card` | Bearer (talaba, tasdiqlanmagan ham), multipart `file` (JPG/PNG/HEIC/PDF ≤ 10 MB) | 201 `{ verificationId, status: "PENDING" }` · xato: `file_bad_type`, `file_too_large`, `file_empty`, `upload_not_allowed` (tasdiqlangan), `upload_daily_limit` |
 | `GET /student/status` | Bearer (talaba) | `{ status, cardExpiresAt, verification: { id, status, fileName, rejectReason, createdAt, queuePosition } \| null }` |
@@ -135,7 +136,7 @@ so'rov parametrida: `lat`+`lng` (GPS, ~100 m ga yaxlitlanadi) **yoki** `district
 images, tile, ink, badge, price: { now, old } | null, note, percent, fromMinute, toMinute, live, closesAt, opensAt,
 lastDay, left, total, point: { lat, lng } | null, distanceKm, createdAt`. Vaqtlar ISO (UTC), daqiqalar Toshkent vaqtida.
 
-`CouponView`: `id, code, secret, expiresAt, title, store, badge, price, note, student`. **QR internetsiz** qurilmada
+`CouponView`: `id, discountId, code, secret, expiresAt, title, store, badge, price, note, student`. **QR internetsiz** qurilmada
 hisoblanadi — saytdagi `src/lib/totp.ts` bilan aynan bir xil: 60 s oyna, QR = `kod.oyna.HMAC-SHA256(secret, oyna)` ning
 128 biti, ekranda yana 6 raqamli kod. `secret` — base64url, faqat kupon egasiga; kupon 10 daqiqa amal qiladi. Kassir
 tasdiqlaganini bilish uchun ekran ochiq paytda `GET /coupons/<id>` ni bir necha soniyada so'rang.
@@ -145,7 +146,7 @@ Bildirishnomalar (talaba va biznes egasi):
 | Endpoint | Chiqish |
 |---|---|
 | `GET /notifications` | `{ unread, items: [{ id, title, body, at, unread, link: { type: "HOME"\|"CATEGORY"\|"DISCOUNT", id }, href }] }` |
-| `POST /notifications/read` | `{ marked }` — hammasi o'qilgan |
+| `POST /notifications/read` | tana bo'sh — hammasi, `{ ids: string[] }` (1–100) — faqat shular (begona id e'tiborsiz) → `{ marked }` |
 
 ## Push qurilmalari
 
@@ -155,6 +156,8 @@ Bildirishnomalar (talaba va biznes egasi):
 | `DELETE /push/devices` | Bearer, `{ token }` | `{ ok }` |
 
 Chiqish, bloklash, parolni tiklash yoki hisobni o'chirishda sessiya bilan birga qurilma yozuvi ham o'chadi.
+Ilova (`mobile/`) **Expo push tokenini** yuboradi (`ExponentPushToken[…]`, `getExpoPushTokenAsync`; EAS `projectId` kerak) — yuboruvchi
+shu sababli Expo Push API orqali yozilishi kerak.
 **Hozircha faqat ro'yxatga olish:** xabarlarni Expo/FCM/APNs ga yuborish (`notifications/push.ts` faqat Web Push) — keyingi ish.
 
 ## Hali yo'q

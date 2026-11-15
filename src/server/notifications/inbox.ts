@@ -25,8 +25,9 @@ export async function inboxItems(userId: string, home: string) {
   }));
 }
 
-export async function markInboxRead(userId: string): Promise<number> {
-  const result = await db.userNotification.updateMany({ where: { userId, readAt: null }, data: { readAt: new Date() } });
+/** Hammasi yoki faqat `ids` (o'zinikilar — `userId` sharti bilan, begona id e'tiborsiz). */
+export async function markInboxRead(userId: string, ids?: string[]): Promise<number> {
+  const result = await db.userNotification.updateMany({ where: { userId, readAt: null, ...(ids ? { id: { in: ids } } : {}) }, data: { readAt: new Date() } });
   return result.count;
 }
 

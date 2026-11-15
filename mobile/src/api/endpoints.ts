@@ -61,6 +61,105 @@ export type Application = BusinessInfo & {
   documents: { id: string; kind: "REGISTRATION" | "PHOTO"; fileName: string }[];
 };
 
+export type Point = { lat: number; lng: number };
+
+/** Lenta kartasi — saytdagi `FeedDeal` (src/lib/feed.ts). Vaqtlar ISO (UTC), daqiqalar Toshkent vaqtida. */
+export type FeedDeal = {
+  id: string;
+  title: string;
+  businessId: string;
+  store: string;
+  typeLabel: string | null;
+  district: string | null;
+  address: string;
+  landmark: string | null;
+  category: string;
+  icon: string;
+  /** Nisbiy manzillar (`/api/chegirma/rasm/<id>`) — `API_URL` ga qo'shib */
+  images: string[];
+  tile: string;
+  ink: string;
+  badge: string;
+  price: { now: number; old: number | null } | null;
+  note: string | null;
+  percent: number;
+  fromMinute: number;
+  toMinute: number;
+  live: boolean;
+  closesAt: string | null;
+  opensAt: string | null;
+  lastDay: boolean;
+  left: number;
+  total: number;
+  point: Point | null;
+  distanceKm: number | null;
+  createdAt: string;
+};
+
+export type Category = { slug: string; name: string; icon: string; tileColor: string; inkColor: string };
+
+export type CouponView = {
+  id: string;
+  discountId: string;
+  code: string;
+  /** base64url — QR va 6 raqamli kod shu bilan qurilmada hisoblanadi */
+  secret: string;
+  expiresAt: string;
+  title: string;
+  store: string;
+  badge: string;
+  price: { now: number; old: number | null } | null;
+  note: string | null;
+  student: { name: string; initials: string; university: string; course: string };
+};
+
+export type DealDetail = {
+  deal: FeedDeal;
+  description: string | null;
+  terms: string | null;
+  weekdays: number[];
+  fromMinute: number;
+  toMinute: number;
+  perStudentLimit: string;
+  endsOn: string;
+  business: {
+    name: string;
+    logoUrl: string | null;
+    phone: string | null;
+    telegram: string | null;
+    instagram: string | null;
+    typeLabel: string | null;
+    district: string | null;
+    address: string;
+    landmark: string | null;
+    workingHours: string | null;
+    point: Point | null;
+  };
+  nearby: { id: string; badge: string; store: string; live: boolean; opensAt: string | null; distanceKm: number }[];
+  saved: boolean;
+  coupon: CouponView | null;
+};
+
+export type CouponState = { status: "ACTIVE"; coupon: CouponView } | { status: "REDEEMED"; redemptionId: string | null } | { status: "CLOSED" };
+
+export type InboxItem = { id: string; title: string; body: string; at: string; unread: boolean; link: { type: "HOME" | "CATEGORY" | "DISCOUNT"; id: string | null }; href: string };
+
+export type Place = { id: string; name: string; lat: number; lng: number };
+
+/** Masofa nuqtasi so'rov parametrida: GPS (`lat`/`lng`), tuman yoki viloyat */
+export type Origin = { lat: number; lng: number } | { districtId: string } | { regionId: string } | null;
+
+function originParams(origin: Origin): Record<string, string> {
+  if (!origin) return {};
+  if ("lat" in origin) return { lat: String(origin.lat), lng: String(origin.lng) };
+  return "districtId" in origin ? { districtId: origin.districtId } : { regionId: origin.regionId };
+}
+
+const query = (params: Record<string, string>) => {
+  const s = new URLSearchParams(params).toString();
+  return s ? `?${s}` : "";
+};
+
 /** Qurilmadagi fayl (kamera, galereya, hujjat tanlash) */
 export type LocalFile = { uri: string; name: string; type: string };
 
@@ -75,6 +174,26 @@ export const authApi = {
     api<SetPasswordResult>("/auth/password", { method: "POST", body: { ticket, password, confirm, deviceName }, auth: false }),
   logout: () => api<{ ok: true }>("/auth/logout", { method: "POST" }),
   me: () => api<{ user: Me }>("/me"),
+  /** Hisobni o'chirish (do'kon talabi) — parol bilan */
+  deleteMe: (password: string) => api<{ ok: true }>("/me", { method: "DELETE", body: { password } }),
+};
+
+/** Tasdiqlangan talaba: lenta, tafsilot, saralanganlar, kupon, bildirishnomalar, push (docs/api-v1.md). */
+export const appApi = {
+  deals: (origin: Origin) => api<{ deals: FeedDeal[]; categories: Category[]; now: string }>(`/deals${query(originParams(origin))}`),
+  nearby: (origin: Origin, radiusKm: number) => api<{ origin: Point; deals: FeedDeal[] }>(`/deals/nearby${query({ ...originParams(origin), radiusKm: String(radiusKm), limit: "100" })}`),
+  deal: (id: string, origin: Origin) => api<DealDetail>(`/deals/${encodeURIComponent(id)}${query(originParams(origin))}`),
+  saved: (origin: Origin) => api<{ deals: FeedDeal[] }>(`/saved${query(originParams(origin))}`),
+  setSaved: (id: string, saved: boolean) => api<{ saved: boolean }>(`/saved/${encodeURIComponent(id)}`, { method: saved ? "PUT" : "DELETE" }),
+  claim: (discountId: string) => api<{ coupon: CouponView; existing: boolean }>("/coupons", { method: "POST", body: { discountId } }),
+  coupons: () => api<{ coupons: CouponView[] }>("/coupons"),
+  coupon: (id: string) => api<CouponState>(`/coupons/${encodeURIComponent(id)}`),
+  cancelCoupon: (id: string) => api<{ ok: true }>(`/coupons/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  notifications: () => api<{ unread: number; items: InboxItem[] }>("/notifications"),
+  /** `ids` berilmasa — hammasi */
+  markRead: (ids?: string[]) => api<{ marked: number }>("/notifications/read", { method: "POST", body: ids ? { ids } : {} }),
+  places: () => api<{ districts: Place[]; regions: Place[] }>("/districts", { auth: false }),
+  registerPush: (token: string, platform: "IOS" | "ANDROID") => api<{ ok: true }>("/push/devices", { method: "POST", body: { token, platform } }),
 };
 
 export const studentApi = {

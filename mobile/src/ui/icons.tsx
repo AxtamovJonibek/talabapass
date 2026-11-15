@@ -23,13 +23,58 @@ const PATHS = {
   user: "M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c1-4 4-6 8-6s7 2 8 6",
   idCard: "M6 5h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3zM11 11a2 2 0 1 1-4 0a2 2 0 1 1 4 0zM14 10h4M14 14h4M6 16c.6-1.4 1.8-2 3-2s2.4.6 3 2",
   x: "M6 6l12 12M18 6L6 18",
+  // talaba ilovasi (saytdagi src/components/ui/icons.ts bilan bir xil)
+  ticket: "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10",
+  tag: "M3 12V4h8l10 10-8 8zM7.5 8.5h.01",
+  bookmark: "M6 3h12v18l-6-4-6 4z",
+  bell: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4",
+  map: "M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14",
+  navigate: "M3 11l19-8-8 19-2-9z",
+  locate: "M12 6a6 6 0 1 0 0 12a6 6 0 1 0 0-12zM12 10a2 2 0 1 0 0 4a2 2 0 1 0 0-4zM12 2v4M12 18v4M2 12h4M18 12h4",
+  chevronRight: "M9 6l6 6-6 6",
+  logout: "M14 4h5v16h-5M10 8l-4 4 4 4M6 12h11",
+  trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6",
+  phone: "M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2",
+  send: "M21 3L3 10.5l7 2.5 2.5 7zM21 3L10 13",
+  camera: "M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z",
+  info: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16h.01",
+  doc: "M6 3h8l4 4v14H6zM14 3v4h4",
+  sliders: "M4 7h10M18 7h2M4 17h4M12 17h8M14 5v4M8 15v4",
+  checkCircle: "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM7.5 12.5l3 3 6-7",
+  // kategoriya ikonkalari (Category.icon)
+  all: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  bowl: "M3 11h18a9 9 0 0 1-18 0zM8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4M5 20h14",
+  cup: "M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8zM16 10h2a2 2 0 0 1 0 4h-2M8 2.5v3M12 2.5v3",
+  book: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM4 21a2 2 0 0 1 2-2h13M9 7h6",
+  print: "M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6zM9 17h6",
+  gym: "M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12",
+  cut: "M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.1 7.9L20 20M8.1 16.1L20 4",
+  film: "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10",
+  wrap: "M5 6l14 3-2 11-14-3zM8 10l7 1.5M7.4 13.5l7 1.5",
+  store: "M3 9l1.5-5h15L21 9M3 9h18v11H3zM3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0",
+  student: "M2 9l10-5 10 5-10 5zM6 11v5c3 2.5 9 2.5 12 0v-5",
 } as const;
+
+export const isIconName = (name: string): name is IconName => name in PATHS;
 
 export type IconName = keyof typeof PATHS;
 
-export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 2.2 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
+export function Icon({
+  name,
+  size = 24,
+  color = colors.ink,
+  strokeWidth = 2.2,
+  fill = "none",
+}: {
+  name: IconName;
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
+  /** Bo'yalgan ko'rinish (saqlangan ♡/bookmark) */
+  fill?: string;
+}) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
       <Path d={PATHS[name]} />
     </Svg>
   );
