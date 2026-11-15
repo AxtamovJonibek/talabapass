@@ -4,11 +4,14 @@ import type { LandingStats } from "@/lib/landing";
 import { db } from "./db";
 import { LIVE_BUSINESS_STATUSES, feedDeals, visibleDiscountWhere } from "./student/feed";
 
+/** Hamkor sifatida ko'rsatiladigan biznes: tasdiqlangan va egasi hisobini o'chirmagan (`account.ts`). */
+const PARTNER_WHERE = { status: { in: LIVE_BUSINESS_STATUSES }, owner: { status: { not: "DELETED" as const } } };
+
 /** "Raqamlarda": tasdiqlangan talabalar, hamkorlar, faol chegirmalar, jami tejalgan summa (barcha cheklar). */
 export async function landingStats(now: Date): Promise<LandingStats> {
   const [students, businesses, discounts, saved] = await Promise.all([
     db.studentProfile.count({ where: { status: "APPROVED", user: { status: "ACTIVE" } } }),
-    db.business.count({ where: { status: { in: LIVE_BUSINESS_STATUSES } } }),
+    db.business.count({ where: PARTNER_WHERE }),
     db.discount.count({ where: visibleDiscountWhere(now) }),
     db.redemption.aggregate({ _sum: { discountAmount: true } }),
   ]);
@@ -18,11 +21,11 @@ export async function landingStats(now: Date): Promise<LandingStats> {
 const PARTNERS_SHOWN = 8;
 const UNIVERSITIES_SHOWN = 6;
 
-/** Hamkorlar — faqat tasdiqlangan bizneslar (oxirgi tasdiqlanganlari); oliygohlar — tasdiqlangan talabasi borlari. */
+/** Hamkorlar — faqat tasdiqlangan bizneslar (egasi hisobini o'chirganlari yo'q) (oxirgi tasdiqlanganlari); oliygohlar — tasdiqlangan talabasi borlari. */
 export async function landingPartners(): Promise<{ businesses: string[]; universities: string[] }> {
   const [businesses, universities] = await Promise.all([
     db.business.findMany({
-      where: { status: { in: LIVE_BUSINESS_STATUSES } },
+      where: PARTNER_WHERE,
       orderBy: [{ reviewedAt: "desc" }, { createdAt: "desc" }],
       take: PARTNERS_SHOWN,
       select: { name: true },
