@@ -7,7 +7,7 @@ import { getVerifiedPhone } from "./session";
 
 const SEND_ERRORS = { too_soon: "tooSoon", daily_limit: "dailyLimit", ip_limit: "ipLimit", locked: "locked" } as const;
 
-/** So'rov yuborgan IP. Vercel x-forwarded-for ni o'zi qo'yadi (mijoz yuborganini ustidan yozadi). */
+/** So'rov yuborgan IP. nginx x-forwarded-for ni o'zi qo'yadi (mijoz yuborganini ustidan yozadi). */
 export async function clientIp(): Promise<string> {
   const h = await headers();
   return h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";

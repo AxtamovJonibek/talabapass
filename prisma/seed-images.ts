@@ -1,7 +1,7 @@
 /**
  * Seed chegirmalari uchun mahsulotiga mos rasmlar (Unsplash, `docs/rasmlar.md`).
  * Fayllar `prisma/seed-images/*.webp` (siqilgan), omborga `storage()` orqali yuklanadi.
- * Idempotent: rasmi bor chegirmaga tegmaydi; seed va `npm run seed:images` / `npm run staging:images` ishlatadi.
+ * Idempotent: rasmi bor chegirmaga tegmaydi; seed va `npm run seed:images` ishlatadi.
  */
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";

@@ -6,7 +6,7 @@ function createClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL o'rnatilmagan");
   // Lokal `prisma dev` bazasi (PGlite) parallel ulanishlarda so'rovlarni aralashtirib yuboradi (08P01) —
-  // .env da DATABASE_POOL_MAX=1. Production'da (Neon) belgilanmaydi: pg standarti ishlaydi.
+  // .env da DATABASE_POOL_MAX=1. Production'da belgilanmaydi: pg standarti ishlaydi.
   const max = Number(process.env.DATABASE_POOL_MAX) || undefined;
   return new PrismaClient({ adapter: new PrismaPg({ connectionString, max }) });
 }

@@ -1,8 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["fra1"],
-  "crons": [
-    { "path": "/api/cron/kuponlar", "schedule": "0 3 * * *" },
-    { "path": "/api/cron/bildirishnomalar", "schedule": "0 4 * * *" }
-  ]
-}

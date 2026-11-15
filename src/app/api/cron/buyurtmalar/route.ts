@@ -3,7 +3,7 @@ import { runOrderAutomation } from "@/server/preorder/orders";
 
 /**
  * Buyurtmalar avtomatikasi: to'lanmagan va javobsiz qolganlarni bekor qilish (pul qaytadi), slot tugab kelmaganlar —
- * "Kelmadi". GitHub Actions har 5 daqiqada chaqiradi (`.github/workflows/cron.yml`); biznes va talaba sahifalarida
+ * "Kelmadi". Serverdagi crontab har 5 daqiqada chaqiradi; biznes va talaba sahifalarida
  * lazy ham ishlaydi. Idempotent.
  */
 export async function GET(request: Request) {

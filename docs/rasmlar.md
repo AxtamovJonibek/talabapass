@@ -3,7 +3,7 @@
 Barcha rasmlar [Unsplash](https://unsplash.com) dan, [Unsplash litsenziyasi](https://unsplash.com/license) bo'yicha
 (bepul, tijorat maqsadida ham ishlatiladi, muallif ko'rsatish majburiy emas — baribir keltirilgan).
 Fayllar 1200×900 WebP (q72) ga siqilgan: `prisma/seed-images/<ID>.webp`. Havola: `https://unsplash.com/photos/<ID>`.
-Biriktirish: `prisma/seed-images.ts` (seed va `npm run seed:images` / `npm run staging:images`, idempotent).
+Biriktirish: `prisma/seed-images.ts` (seed va `npm run seed:images`, idempotent).
 
 | Chegirma | Rasm ID (muallif) |
 |---|---|

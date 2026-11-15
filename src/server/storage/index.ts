@@ -8,9 +8,8 @@ import { s3ConfigFromEnv, s3Storage } from "./s3";
  * Private fayl ombori: talaba guvohnomalari va biznes hujjatlari.
  * Hech qachon public URL bermaydi — fayl faqat ruxsat tekshirilgan server kodi orqali o'qiladi.
  *
- * Lokal disk (`STORAGE_LOCAL_DIR`, standart `.data/private`) yoki S3-mos private bucket — R2 / Supabase
+ * Lokal disk (`STORAGE_LOCAL_DIR`, standart `.data/private`) yoki S3-mos private bucket
  * (`STORAGE_DRIVER=s3`, s3.ts).
- * R2'da 10 MB gacha fayl to'g'ridan-to'g'ri presigned URL bilan yuklanadi (Vercel so'rov hajmini 4.5 MB bilan cheklaydi).
  */
 export interface PrivateStorage {
   put(key: string, data: Uint8Array): Promise<void>;

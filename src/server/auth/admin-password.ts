@@ -24,7 +24,7 @@ export function hashAdminPassword(password: string, salt: Buffer = randomBytes(1
 }
 
 /**
- * Env qiymatini tozalash: Vercel/terminaldan nusxalashda tez-tez qo'shilib qoladigan narsalar —
+ * Env qiymatini tozalash: terminaldan nusxalashda tez-tez qo'shilib qoladigan narsalar —
  * `ADMIN_PASSWORD_HASH=` prefiksi, qo'shtirnoq, terminal satr bo'linishidan qolgan bo'shliq va yangi qatorlar.
  * (Xeshda bo'shliq bo'lishi mumkin emas, shuning uchun ularni olib tashlash xavfsiz.)
  */

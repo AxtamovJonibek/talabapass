@@ -17,7 +17,7 @@ describe("production muhit tekshiruvi", () => {
     expect(productionEnvProblems({ ...SAFE, ...full })).toEqual([]);
     expect(productionEnvProblems({ ...SAFE, VAPID_PUBLIC_KEY: "pub" }).join()).toMatch(/VAPID_PRIVATE_KEY, VAPID_SUBJECT/);
     expect(productionEnvProblems({ ...SAFE, ...full, VAPID_SUBJECT: "admin@example.uz" }).join()).toMatch(/mailto/);
-    expect(productionEnvProblems({ ...SAFE, ...full, VAPID_SUBJECT: "https://talabapass.vercel.app" })).toEqual([]);
+    expect(productionEnvProblems({ ...SAFE, ...full, VAPID_SUBJECT: "https://talabapass.uz" })).toEqual([]);
   });
 
   it("xavfsiz sozlamada muammo yo'q", () => {

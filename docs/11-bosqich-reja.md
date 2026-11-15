@@ -4,8 +4,7 @@
 - Sabab: lokal `prisma dev` (PGlite) jarayoni qotib, ulanishni yopadi (`Server has closed the connection`, `P1017`, `ECONNRESET`) —
   kod xatosi emas. Birinchi yiqilishdan keyin keyingi testlar ham "did not run" bo'ladi.
 - Chora: avval `npm run db:dev` ni qayta ko'tarish (ma'lumot saqlanadi). Qoldiq xatolar bo'lsa — alohida tahlil.
-- Neon dev branch: Neon API kaliti/`neonctl` kirishi yo'q; sinov serverining bazasi (staging) e2e uchun ishlatilmaydi
-  (testlar ma'lumotni o'zgartiradi). Kerak bo'lsa foydalanuvchi Neon'da `dev-e2e` branch ochib, `DATABASE_URL` ni beradi.
+- Sinov serverining bazasi e2e uchun ishlatilmaydi (testlar ma'lumotni o'zgartiradi); e2e faqat lokal bazada.
 - Maqsad: `npm run test:e2e` to'liq yashil.
 
 ## 2. Profil (T8 / WT4)

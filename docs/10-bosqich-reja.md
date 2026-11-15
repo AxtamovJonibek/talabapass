@@ -59,23 +59,20 @@ tizim xabari — tasdiq/rad) qo'shiladi; `/admin/bildirishnomalar` tarixida ko'r
 `approveStudent/rejectStudent`, `approveBusiness/rejectBusiness` — tranzaksiya commit'idan KEYIN `notifyUser` (ilova ichi + push + SMS),
 xato qarorga ta'sir qilmaydi (`try/catch`, log). Matnlar `messages/uz.json` → `notifications.direct`.
 
-## 6. Rejalashtirilgan xabarlar — Vercel Hobby cron'i kuniga 1 marta
-Muammo: Hobby'da `*/5 * * * *` kabi jadval deploy'ni rad etadi. Yechim (uch qatlam, biri ishlamasa boshqasi tutadi):
-1. **Asosiy — GitHub Actions** (`.github/workflows/cron.yml`, har 5 daqiqada, bepul): `curl -H "Authorization: Bearer $CRON_SECRET" $APP_URL/api/cron/bildirishnomalar`.
-   Repo secrets: `CRON_SECRET`, `APP_URL`. (Muqobil: cron-job.org — shu manzilga, shu sarlavha bilan.)
-2. **Zaxira — Vercel kunlik cron** (`vercel.json`, kuniga 1 marta) — xuddi shu endpoint.
-3. **Lazy** — admin bildirishnomalar sahifasi ochilganda muddati kelgan xabarlar yuboriladi.
+## 6. Rejalashtirilgan xabarlar
+Ikki qatlam (biri ishlamasa boshqasi tutadi):
+1. **Asosiy — serverdagi crontab** (har 5 daqiqada): `curl -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3000/api/cron/bildirishnomalar` (docs/server.md).
+2. **Lazy** — admin bildirishnomalar sahifasi ochilganda muddati kelgan xabarlar yuboriladi.
 Endpoint `CRON_SECRET` bilan himoyalangan (boshqalarga 404), idempotent (atom "claim"), `SENDING` da 15 daqiqadan oshib qolgani `FAILED` bo'ladi.
 
-## 7. Vercel env (yangi)
+## 7. Server env (yangi, `/etc/talabapass/env`)
 | O'zgaruvchi | Qiymat |
 |---|---|
 | `VAPID_PUBLIC_KEY` | `npm run push:keys` chiqargan ochiq kalit |
 | `VAPID_PRIVATE_KEY` | shu skript chiqargan yopiq kalit (sir) |
 | `VAPID_SUBJECT` | `mailto:<egasi emaili>` |
-| `CRON_SECRET` | allaqachon bor (kuponlar uchun) — GitHub Actions'ga ham shu qiymat |
+| `CRON_SECRET` | allaqachon bor (kuponlar uchun) — crontab ham shu qiymat bilan |
 Kalitlar bo'lmasa push o'chiq (ilova ichi xabarlar ishlayveradi); faqat bittasi bo'lsa `env-check` xato beradi.
-GitHub: Settings → Secrets → `CRON_SECRET`, `APP_URL=https://talabapass.vercel.app`.
 
 ## 8. Tekshiruv
 - vitest: `admin-stats` (ulush, farq %, grafik), bildirishnoma qoidalari (zod, rejalashtirish vaqti), push yuklama.

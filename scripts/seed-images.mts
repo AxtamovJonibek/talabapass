@@ -1,4 +1,4 @@
-/** Mavjud bazadagi seed chegirmalariga rasm biriktirish (idempotent): `npm run seed:images`, sinov serveri — `npm run staging:images`. */
+/** Mavjud bazadagi seed chegirmalariga rasm biriktirish (idempotent): `npm run seed:images`. */
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";

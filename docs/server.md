@@ -19,7 +19,7 @@ internet → nginx (TLS, talabapass.uz) → 127.0.0.1:3000 → PM2 "talabapass" 
   (masalan `/var/lib/talabapass/files`, faqat ilova foydalanuvchisi o'qiydi; nginx orqali berilmaydi). Nisbiy yo'l bilan server ishga tushmaydi.
   Bu papka `pg_dump` nusxasiga kirmaydi — alohida zaxiralang.
 - nginx `X-Forwarded-For` ni o'zi yozsin (`proxy_set_header X-Forwarded-For $remote_addr;`) — SMS chegarasi IP'ni shundan oladi.
-- Serverda `APP_ENV=staging` (Vercel sinov serveri bilan bir xil qoidalar: noindex, SMS ulanguncha `OTP_FIXED_CODE`).
+- Serverda `APP_ENV=staging` (sinov rejimi: noindex, SMS ulanguncha `OTP_FIXED_CODE`).
 
 ## deploy.sh nima qiladi
 qulf (`flock`, ikki deploy bir vaqtda emas) → env → `git fetch` + `reset --hard origin/main` → `npm ci` → `check-env` → `pg_dump` →
@@ -45,11 +45,11 @@ yoki GitHub → Actions → deploy → Run workflow. Jurnal: `pm2 logs talabapas
 - Baza (oxirgi chora, deploy'dan keyingi yozuvlar yo'qoladi): ilovani to'xtating (`pm2 stop talabapass`), so'ng
   `pg_restore --clean --if-exists --no-owner -d "<DATABASE_URL>" /var/backups/talabapass/pre-deploy-<sana>.dump`, kodni mos commit'ga qaytaring, `pm2 start`.
 
-## Env nomlari (`/etc/talabapass/env`, qiymatlar bu yerda yo'q)
+## Env nomlari (`/etc/talabapass/env`, namuna — `.env.server.example`, qiymatlar bu yerda yo'q)
 | Guruh | Nomlar |
 |---|---|
 | Asosiy | `NODE_ENV=production`, `APP_ENV`, `AUTH_SECRET`, `ADMIN_PASSWORD_HASH` |
-| Baza | `DATABASE_URL`, `DATABASE_URL_UNPOOLED` (ixtiyoriy, migratsiya uchun) |
+| Baza | `DATABASE_URL` (ilova ham, migratsiya ham) |
 | Fayllar | `STORAGE_DRIVER=local`, `STORAGE_LOCAL_DIR` (absolyut yo'l); S3 tanlansa — `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` |
 | Kirish | `SMS_PROVIDER`, `OTP_FIXED_CODE` (faqat `APP_ENV=staging`) |
 | Cron | `CRON_SECRET` |
@@ -58,4 +58,15 @@ yoki GitHub → Actions → deploy → Run workflow. Jurnal: `pm2 logs talabapas
 
 To'liq tekshiruv: `npx tsx scripts/check-env.mts` (deploy ham shuni chaqiradi). Kalitlar haqida: `docs/ishga-tushirish.md`.
 
-GitHub secrets: `DEPLOY_SSH_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_KNOWN_HOSTS` (deploy); `CRON_SECRET`, `APP_URL` (cron.yml).
+GitHub secrets: `DEPLOY_SSH_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_KNOWN_HOSTS` (deploy).
+
+## Cron (serverdagi crontab)
+Rejalashtirilgan ishlar deploy foydalanuvchisining crontab'ida, ilovaning o'z endpoint'larini `CRON_SECRET` bilan chaqiradi
+(sirsiz — 404; hammasi idempotent, sahifalar ochilganda lazy ham ishlaydi):
+| Endpoint | Vazifa |
+|---|---|
+| `/api/cron/bildirishnomalar` | muddati kelgan rejalashtirilgan bildirishnomalar (har 5 daqiqa) |
+| `/api/cron/buyurtmalar` | buyurtmalar avtomatikasi: javobsiz/to'lanmagan → bekor, kelmaganlar, eslatmalar (har 5 daqiqa) |
+| `/api/cron/kuponlar` | eskirgan kuponlarni yopish (zaxira, asosiy yo'l lazy) |
+
+Chaqiruv: `curl -fsS --max-time 60 -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3000/api/cron/<nom>`.

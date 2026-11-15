@@ -11,7 +11,7 @@ vi.mock("next-intl/middleware", async () => {
 
 describe("proxy", () => {
   afterEach(() => vi.unstubAllEnvs());
-  const request = (path: string) => new NextRequest(`https://talabapass.vercel.app${path}`);
+  const request = (path: string) => new NextRequest(`https://talabapass.uz${path}`);
 
   it("staging: sahifalar ochiq (Basic Auth yo'q), noindex sarlavhasi bilan", () => {
     vi.stubEnv("APP_ENV", "staging");

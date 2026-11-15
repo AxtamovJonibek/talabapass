@@ -3,8 +3,8 @@ import { isSafeKey } from "./file-rules";
 import type { PrivateStorage } from "./index";
 
 /**
- * S3-mos private bucket: Cloudflare R2 (`S3_REGION=auto`) yoki Supabase Storage (S3 endpoint, loyiha regioni).
- * Path-style manzil (`<endpoint>/<bucket>/<kalit>`) — ikkalasi ham qo'llaydi. Bucket private bo'lishi shart:
+ * S3-mos private bucket: istalgan S3 API xizmati (`S3_ENDPOINT`, `S3_REGION`).
+ * Path-style manzil (`<endpoint>/<bucket>/<kalit>`). Bucket private bo'lishi shart:
  * fayl faqat shu adapter orqali, server kalitlari bilan o'qiladi.
  */
 export type S3Config = {

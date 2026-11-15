@@ -1,6 +1,6 @@
 /**
  * Web Push uchun VAPID kalit juftligini yaratadi: `npm run push:keys`.
- * Chiqqan qiymatlarni Vercel Environment Variables ga qo'ying (yopiq kalitni hech kimga bermang va repoga yozmang).
+ * Chiqqan qiymatlarni serverdagi `/etc/talabapass/env` ga qo'ying (yopiq kalitni hech kimga bermang va repoga yozmang).
  * Kalit juftligini almashtirsangiz, mavjud push obunalari ishlamay qoladi — foydalanuvchilar qayta yoqishi kerak.
  */
 import webpush from "web-push";

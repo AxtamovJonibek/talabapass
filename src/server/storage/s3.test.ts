@@ -20,7 +20,7 @@ function mockFetch(response: () => Response) {
   return calls;
 }
 
-describe("S3 ombori (R2 / Supabase)", () => {
+describe("S3 ombori", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("put: path-style manzil, imzolangan, ustidan yozmaydi", async () => {
@@ -61,8 +61,8 @@ describe("S3 ombori (R2 / Supabase)", () => {
   });
 
   it("env'dan sozlama: yo'q qiymat aniq xato bilan, region standart 'auto'", () => {
-    const env = { S3_ENDPOINT: "https://x.supabase.co/storage/v1/s3/", S3_BUCKET: "b", S3_ACCESS_KEY_ID: "i", S3_SECRET_ACCESS_KEY: "s" };
-    expect(s3ConfigFromEnv(env)).toMatchObject({ endpoint: "https://x.supabase.co/storage/v1/s3", region: "auto" });
+    const env = { S3_ENDPOINT: "https://s3.example.com/storage/v1/s3/", S3_BUCKET: "b", S3_ACCESS_KEY_ID: "i", S3_SECRET_ACCESS_KEY: "s" };
+    expect(s3ConfigFromEnv(env)).toMatchObject({ endpoint: "https://s3.example.com/storage/v1/s3", region: "auto" });
     expect(() => s3ConfigFromEnv({ ...env, S3_BUCKET: "" })).toThrow(/S3_BUCKET/);
   });
 });

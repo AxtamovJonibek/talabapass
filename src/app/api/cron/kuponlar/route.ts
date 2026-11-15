@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { expireDueCoupons } from "@/server/coupons/coupons";
 
 /**
- * Eskirgan kuponlarni yopish (qoldiq qaytadi). Vercel Cron `Authorization: Bearer <CRON_SECRET>` bilan chaqiradi.
+ * Eskirgan kuponlarni yopish (qoldiq qaytadi). Serverdagi crontab `Authorization: Bearer <CRON_SECRET>` bilan chaqiradi.
  * Asosiy yo'l baribir lazy: har "olish", skan va kuponlar ro'yxati oldidan — cron faqat zaxira.
  */
 export async function GET(request: Request) {

@@ -30,7 +30,7 @@ describe("admin paroli (xesh)", () => {
     expect(verifyAdminPassword(" to'g'ri-parol-2026\n", stored)).toBe(true);
   });
 
-  // Staging'dagi "Parol noto'g'ri": Vercel/terminaldan nusxalangan qiymat (prefiks, qo'shtirnoq, satr bo'linishi)
+  // Staging'dagi "Parol noto'g'ri": terminaldan nusxalangan qiymat (prefiks, qo'shtirnoq, satr bo'linishi)
   it("env qiymatidagi nusxalash qoldiqlari tozalanadi", () => {
     const wrapped = `${stored.slice(0, 40)}\r\n  ${stored.slice(40)}`;
     for (const raw of [`ADMIN_PASSWORD_HASH=${stored}`, `"${stored}"`, `'${stored}'`, ` ${stored}\n`, wrapped, `ADMIN_PASSWORD_HASH="${stored}"`, `"ADMIN_PASSWORD_HASH=${stored}"`]) {

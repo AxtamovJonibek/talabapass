@@ -1,6 +1,6 @@
 /**
  * OTM ro'yxatini bazaga sinxronlaydi (idempotent): `npm run universities:sync`.
- * Deploy'da (vercel-build) migratsiyadan keyin avtomatik ishlaydi. Manba va tartib: src/server/universities/data.ts.
+ * Deploy'da (deploy/deploy.sh) migratsiyadan keyin avtomatik ishlaydi. Manba va tartib: src/server/universities/data.ts.
  */
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";

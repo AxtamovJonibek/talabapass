@@ -10,16 +10,16 @@ Ish bosqichlarga bo'lingan (reja: 11 bosqich). Har bir bosqich oxirida: `typeche
 o'tadi → `git commit` → **`git push`** (har commit'dan keyin) → foydalanuvchiga tekshirish ro'yxati beriladi.
 Keyingi bosqich tasdiqdan so'ng.
 
-**Foydalanuvchi sinovi faqat Vercel havolasida** (https://talabapass.vercel.app), localhost emas. Hisobot oxirida:
+**Foydalanuvchi sinovi faqat server havolasida** (https://talabapass.uz), localhost emas. Hisobot oxirida:
 "Havolada tekshiring: [sahifalar]". Lokal ishga tushirish (`next build && next start`, e2e) — faqat o'zimizning
 tekshiruvimiz uchun.
 
 ## Stack
-Next.js App Router · TypeScript strict · Tailwind v4 · PostgreSQL (Neon) + Prisma 7 ·
-next-intl · Cloudflare R2 · Serwist (PWA) · Vitest + Playwright. Deploy: Vercel. Paket menejeri: npm.
+Next.js App Router · TypeScript strict · Tailwind v4 · PostgreSQL + Prisma 7 ·
+next-intl · Serwist (PWA) · Vitest + Playwright. Deploy: Airnet VPS. Paket menejeri: npm.
 
 Deploy: Airnet VPS talabapass.uz (main push → GitHub Actions → deploy.sh); serverda APP_ENV=staging test rejimi; fayllar lokal diskda (STORAGE_LOCAL_DIR).
-Vercel (talabapass.vercel.app) ham ishlab turibdi — u yerda fayllar S3'da (`STORAGE_DRIVER=s3`).
+Cron'lar (`/api/cron/*`) serverdagi crontab'da. Server muhiti namunasi — `.env.server.example`.
 Server: `ecosystem.config.cjs` (PM2), `deploy/deploy.sh`, `.github/workflows/deploy.yml`, sirlar `/etc/talabapass/env` da — batafsil `docs/server.md`.
 `deploy.sh` da seed, `migrate dev`/`reset` hech qachon bo'lmaydi; migratsiyalar orqaga mos yozilsin (orqaga qaytishda baza qaytmaydi).
 
@@ -32,7 +32,7 @@ npm run typecheck    tsc --noEmit
 npm test             Vitest (sof mantiq)
 npm run test:db      baza bilan testlar (*.itest.ts) — lokal baza kerak
 npm run test:e2e     Playwright (kamera testlari to'liq Chromium bilan: `npx playwright install chromium`)
-npm run test:e2e:live  navigatsiya testi jonli havolada (`.env.staging` bazasi + E2E_BASE_URL; faqat GET, `E2E_ADMIN_PASSWORD` bo'lsa admin ham)
+npm run test:e2e:live  navigatsiya testi jonli havolada (`.env.staging` bazasi + E2E_BASE_URL, standart https://talabapass.uz; faqat GET, `E2E_ADMIN_PASSWORD` bo'lsa admin ham)
 npm run db:dev       lokal Postgres (prisma dev, Docker kerak emas) — alohida terminalda ishlab turadi;
                      kompyuter qayta yoqilgach o'zi ko'tarilmaydi (baza xatosi chiqsa birinchi shuni tekshiring)
 npm run db:migrate   migratsiyalarni qo'llash
@@ -230,8 +230,8 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
   qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi. Admin kirishi SMS + parol (pastda "Admin paroli").
 
 ## Fayllar (guvohnoma, hujjatlar)
-- Faqat `storage()` (`src/server/storage`) orqali; hozir lokal disk (`.data/private`), R2 shu interfeysga ulanadi.
-  Vercel'da lokal disk ishlamaydi (fayllar yo'qoladi) — deploy'dan oldin R2 kerak.
+- Faqat `storage()` (`src/server/storage`) orqali; lokal disk (`.data/private`, serverda `STORAGE_LOCAL_DIR`) yoki S3-mos bucket
+  (`STORAGE_DRIVER=s3`) — ikkalasi shu interfeysda.
 - Saqlashdan oldin har bir fayl `sanitizeDocument` dan o'tadi: rasmlar (JPG/PNG/HEIC) qayta kodlanadi — EXIF, GPS,
   XMP qolmaydi, yo'nalish qo'llanadi, 2560px gacha, 50 Mpx dan katta rad etiladi; HEIC → JPEG. PDF: hujjat
   ma'lumotlari va XMP obyektlari o'chiriladi; **PDF ichidagi rasmlarning EXIF'i tozalanmaydi** (ma'lum cheklov).
@@ -348,25 +348,23 @@ Muddat o'tsa talaba `EXPIRED`: yangi guvohnoma yuklashga yo'naltiriladi, chegirm
 saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — cron'ga tayanilmaydi.
 
 ## Sinov serveri (staging)
-- Havola: https://talabapass.vercel.app — alohida Neon baza va alohida private bucket. `APP_ENV=staging`
-  (build vaqtida ham kerak — o'zgartirilsa Redeploy).
+- Havola: https://talabapass.uz (Airnet VPS, `docs/server.md`). `APP_ENV=staging`
+  (build vaqtida ham kerak — o'zgartirilsa qayta deploy).
 - Sayt hammaga ochiq (Basic Auth yo'q): landing, talaba, biznes. `APP_ENV=staging` da: `X-Robots-Tag` + `robots` meta
   noindex (ko'rinadigan belgi yo'q), SMS/Telegram ulanguncha `OTP_FIXED_CODE` va
   `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Fayllar ombori har qanday production'da (APP_ENV'dan qat'i nazar):
-  `local` (standart) — `STORAGE_LOCAL_DIR` absolyut yo'l majburiy; `s3` — `S3_*` majburiy. Vercel'da faqat `s3` (lokal disk fayllarni yo'qotadi).
+  `local` (standart) — `STORAGE_LOCAL_DIR` absolyut yo'l majburiy; `s3` — `S3_*` majburiy.
   `APP_ENV` yo'q/boshqa qiymat — production qoidalari o'zgarmagan (`env-check.test.ts`).
-- Fayllar: `STORAGE_DRIVER=s3` (`storage/s3.ts`) — R2 yoki Supabase S3 endpoint, path-style.
-- Vercel build: `vercel-build` = `check-env` → `prisma migrate deploy` → `next build`. Muhit xato bo'lsa deploy
-  aniq xabar bilan to'xtaydi (aks holda runtime'da `MIDDLEWARE_INVOCATION_FAILED`). Migratsiya `DATABASE_URL_UNPOOLED` orqali.
-  Seed: `.env.staging` to'ldirib `npm run staging:seed`.
-- `proxy.ts` da faqat Edge'ga mos kod: `node:*`, baza, `src/server` importi yo'q (Vercel'da alohida funksiya).
-- Ma'lum cheklov: Vercel so'rov tanasi ≤ 4.5 MB — undan katta guvohnoma/hujjat yuklanmaydi (presigned yuklash keyin).
+- Fayllar: serverda `STORAGE_DRIVER=local`; `s3` (`storage/s3.ts`) — istalgan S3-mos endpoint, path-style.
+- Deploy (`deploy/deploy.sh`): `check-env` → `pg_dump` → `prisma migrate deploy` → universitetlar → `next build` → PM2. Muhit xato bo'lsa
+  deploy aniq xabar bilan to'xtaydi. Migratsiya ham `DATABASE_URL` orqali.
+- `proxy.ts` da faqat Edge'ga mos kod: `node:*`, baza, `src/server` importi yo'q.
 
 ## Admin paroli (ikkinchi qadam, production'da ham)
 - Admin: telefon → SMS kod → `/kirish/admin` da parol. Xesh `ADMIN_PASSWORD_HASH` env'da (`npm run admin:hash`,
   scrypt, `scrypt:N:r:p:salt:hash`); xesh yo'q/buzilgan bo'lsa admin umuman kira olmaydi.
   Env qiymati tozalanadi (`normalizeAdminHash`: prefiks, qo'shtirnoq, satr bo'linishi); xesh yaroqsiz bo'lsa formada
-  "sozlanmagan" xabari (urinish hisoblanmaydi) va `vercel-build` deploy'ni to'xtatadi (`buildEnvProblems`).
+  "sozlanmagan" xabari (urinish hisoblanmaydi) va `check-env` deploy'ni to'xtatadi (`buildEnvProblems`).
 - To'g'ri parol → `tp_admin` cookie: HMAC, joriy sessiya tokeniga bog'langan, 12 soat. Chiqish/bloklash bilan o'ladi.
 - `requireRole` parolsiz adminni `/kirish/admin` ga yuboradi (barcha sahifa, layout, action); API — `getUnlockedAdmin()`
   (parolsiz 404). Yangi admin API shu funksiya bilan yoziladi.
@@ -389,8 +387,7 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
   `Audience.USER` — tizim xabari, admin tarixida ko'rinmaydi. **DISTRICT**: talabaning profilidagi ixtiyoriy `StudentProfile.districtId`
   (tumanni ko'rsatmagan talaba hech bir hududga kirmaydi). "Ochildi" — `UserNotification.readAt` dan hisoblanadi.
 - Talaba qo'ng'irog'i → `/bildirishnomalar`, biznes egasi → `/biznes/bildirishnomalar` (push yoqish tugmasi shu yerda, `public/sw.js`).
-- Rejalashtirilgan xabarlar: Vercel Hobby cron'i kuniga 1 marta — shuning uchun asosiy yo'l GitHub Actions (`.github/workflows/cron.yml`, har 5 daqiqa,
-  `/api/cron/bildirishnomalar`, `Authorization: Bearer CRON_SECRET`; repo secrets `CRON_SECRET`, `APP_URL`), zaxira — `vercel.json` kunlik cron va
+- Rejalashtirilgan xabarlar: serverdagi crontab (har 5 daqiqa, `/api/cron/bildirishnomalar`, `Authorization: Bearer CRON_SECRET`), zaxira —
   admin sahifasi ochilganda `dispatchDue`. Endpoint idempotent.
 - Env: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`npm run push:keys`); uchalasi birga yoki hech biri (`env-check`). Kalitlarni
   almashtirsangiz push obunalari ishlamaydi.
@@ -448,18 +445,18 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - [ ] **Admin uchun TOTP ikkinchi faktor** (authenticator ilova): hozir SMS + umumiy parol (`ADMIN_PASSWORD_HASH`);
       har admin uchun alohida TOTP va zaxira kodlar — keyin.
 - [ ] SMS provayder (Eskiz.uz yoki boshqa) ulangan; `SMS_PROVIDER=dev` va `OTP_FIXED_CODE` yo'q (server baribir ishga tushmaydi).
-- [ ] Fayllar Cloudflare R2'da (lokal disk Vercel'da ishlamaydi); bucket private.
+- [ ] Fayllar serverda (`STORAGE_LOCAL_DIR` kod papkasidan tashqarida, alohida zaxiralanadi); public manzil yo'q.
 - [ ] Ma'lumotlarni saqlash joyi va W3 matni ("O'zbekiston hududidagi serverlar") — yurist bilan kelishilgan.
 - [ ] Huquqiy matnlardagi `[EMAIL]`, `[STIR]`, `[TARIF MA'LUMOTI]`, `[N] kun` va h.k. to'ldirilgan.
 - [ ] Guvohnoma rasmlari tekshiruvdan keyin `[N]` kunda o'chiriladi (siyosatda va'da qilingan) — cron.
-- [ ] Web Push: `VAPID_*` o'rnatilgan; GitHub Actions secrets (`CRON_SECRET`, `APP_URL`) qo'yilgan — aks holda rejalashtirilgan xabarlar kuniga bir marta ketadi.
-- [ ] `pruneOtpData` cron'i ulangan. Kuponlar cron'i `vercel.json` da (kuniga 1 marta) — Vercel'da `CRON_SECRET` qo'yilsin.
+- [ ] Web Push: `VAPID_*` o'rnatilgan; serverda `CRON_SECRET` va crontab — aks holda rejalashtirilgan xabarlar faqat admin sahifasi ochilganda ketadi.
+- [ ] `pruneOtpData` cron'i ulangan. Kuponlar cron'i (`/api/cron/kuponlar`) crontab'da.
 - [ ] PDF ichidagi rasmlarning EXIF'i tozalanmaydi — PDF'ni rasmga aylantirish yoki shu cheklovni qabul qilish.
-- [ ] Rate limit IP'si: hosting `x-forwarded-for` ni o'zi yozishini tekshirish (Vercel — ha).
+- [ ] Rate limit IP'si: hosting `x-forwarded-for` ni o'zi yozishini tekshirish (nginx `proxy_set_header X-Forwarded-For $remote_addr;`).
 
 ## Ochiq masalalar
 - W3 matnida "ma'lumotlar O'zbekiston hududidagi serverlarda saqlanadi" deyilgan, hosting esa
-  Vercel/Neon/R2. Production'gacha yurist bilan hal qilinadi; matn o'zboshimchalik bilan o'zgartirilmaydi.
+  Airnet VPS. Production'gacha yurist bilan hal qilinadi; matn o'zboshimchalik bilan o'zgartirilmaydi.
 - To'ldirilmagan joylar (`[EMAIL]` — talabapass@gmail.com bilan to'ldirilgan): `[TELEFON RAQAM]`, `[MANZIL]`, `[YURIDIK SHAXS NOMI]`, `[STIR]`,
   `[TARIF MA'LUMOTI]`, `[N] kun` — egasidan kutilmoqda, o'ylab topilmaydi.
 - SMS: hozircha dev rejim (kod server log'iga chiqadi), provayder adapter orqali keyin ulanadi.
@@ -515,7 +512,7 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   bir marta chiziladi (PhoneOrWeb emas — polling ikki nusxa bo'lmasin); `@container` ichida pastki nav `sticky` (fixed konteynerga bog'lanadi).
 - Avtomatika: `runOrderAutomation` — to'lanmagan 15 daq, qo'lda tasdiq 10 daq → bekor (pul qaytadi), slot/oyna tugab 15 daq → `NO_SHOW`, to'lab olib
   ketish muddati o'tsa → `EXPIRED` (qoidaga ko'ra yechiladi/qaytadi, zaxira qaytadi), muddat tugashiga 2 va 1 kun qolganda eslatma (`Order.reminders`, har biri
-  bir marta). Cron `/api/cron/buyurtmalar` (GitHub Actions `orders`), sahifalarda lazy.
+  bir marta). Cron `/api/cron/buyurtmalar` (crontab), sahifalarda lazy.
 - Xabarnomalar: har o'zgarishda ilova ichi + push + Telegram (`User.telegramChatId` va `TELEGRAM_BOT_TOKEN` bo'lsa; Telegram kirishi hali yo'q).
   O'zi qilgan o'zgarish haqida xabar yo'q (`recipientsFor`).
 - Testlar: `src/lib/preorder.test.ts`, `src/server/preorder/preorder.itest.ts` (20 parallel → 10, davomiylik = slot, mutaxassislar = sig'im, zaxira 5 / 12 parallel → 5,
@@ -532,7 +529,7 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - Chegirma foizi 1–100 (bazada CHECK ham); 100% — `FREE_BADGE` ("BEPUL"), narx o'rniga "Bepul" yozuvi.
 - Yordam: `/yordam` (talaba, ilova ichida). Aloqa `src/lib/contacts.ts` da (pochta talabapass@gmail.com, Telegram kanal t.me/talabapass, Instagram @talabapass,
   admin t.me/axtamovjonibek); `SUPPORT_TELEGRAM` berilsa admin o'rniga shu. Telefon (`SUPPORT_PHONE`) egasidan kutilmoqda — yo'q bo'lsa qator chiqmaydi. Landing footer: Telegram va Instagram; YouTube/LinkedIn havolasi `#` (manzil berilmagan).
-- Universitetlar: `src/server/universities/data.ts` (204 ta, manba InfoEdu.uz 2026-10-16; oliygoh.uz 2023-yilda 209 ta), `syncUniversities` (idempotent, `vercel-build`
+- Universitetlar: `src/server/universities/data.ts` (204 ta, manba InfoEdu.uz 2026-10-16; oliygoh.uz 2023-yilda 209 ta), `syncUniversities` (idempotent, `deploy.sh`
   va `npm run universities:sync`; admin tahrirlaganlariga tegmaydi). "Ro'yxatda yo'q" → `UniversityRequest` + talaba `kind=OTHER` yozuviga biriktiriladi;
   admin `/admin/universitetlar` da qo'shadi yoki mavjudiga biriktiradi.
 - Admin boshqaruvi (`src/server/admin/manage.ts`, hammasi `AuditLog` da, o'zgargan maydonlar oldin→keyin): `/admin/profil` (o'z ismi, yangi admin —

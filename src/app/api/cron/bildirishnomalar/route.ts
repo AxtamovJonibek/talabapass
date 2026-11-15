@@ -3,7 +3,7 @@ import { dispatchDue } from "@/server/notifications/send";
 
 /**
  * Muddati kelgan rejalashtirilgan bildirishnomalarni yuboradi. `Authorization: Bearer <CRON_SECRET>` bilan chaqiriladi:
- * asosiy — GitHub Actions (har 5 daqiqa, .github/workflows/cron.yml), zaxira — Vercel kunlik cron (Hobby'da kuniga 1 marta).
+ * serverdagi crontab (docs/server.md), zaxira — admin bildirishnomalar sahifasi ochilganda.
  * Idempotent: ikki chaqiruv bir vaqtda kelsa ham xabar bir marta yuboriladi (atom "claim").
  */
 export const maxDuration = 60;
