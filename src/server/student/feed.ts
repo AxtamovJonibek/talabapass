@@ -143,7 +143,15 @@ export async function feedDeals(now: Date, origin: Point | null): Promise<FeedDe
   return (await loadDeals({}, now, origin)).map((x) => x.deal);
 }
 
-export type NearbyDeal = Pick<FeedDeal, "id" | "badge" | "store" | "live" | "opensAt"> & { distanceKm: number };
+/** Talaba saqlagan chegirmalar (faqat hozir ko'rinadiganlari), oxirgi saqlangani oldin. */
+export async function savedDeals(studentId: string, now: Date, origin: Point | null): Promise<FeedDeal[]> {
+  const saved = await db.savedDiscount.findMany({ where: { studentId }, orderBy: { createdAt: "desc" }, select: { discountId: true } });
+  if (saved.length === 0) return [];
+  const deals = new Map((await loadDeals({ id: { in: saved.map((s) => s.discountId) } }, now, origin)).map((x) => [x.deal.id, x.deal]));
+  return saved.flatMap((s) => deals.get(s.discountId) ?? []);
+}
+
+export type NearbyDeal =Pick<FeedDeal, "id" | "badge" | "store" | "live" | "opensAt"> & { distanceKm: number };
 
 export type DealDetail = {
   deal: FeedDeal;

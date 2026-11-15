@@ -113,3 +113,54 @@ Talaba holatlari: `DRAFT` (guvohnoma yuklash), `PENDING`, `APPROVED`, `REJECTED`
 
 Holat: `PENDING` + `submittedAt: null` — to'ldirilmoqda; `PENDING` + sana — tekshiruvda; `APPROVED`/`WARNED` — faol;
 `REJECTED` — `rejectReason`, tuzatib qayta yuboriladi; `BLOCKED`.
+
+## Talaba: chegirmalar, kupon, bildirishnomalar
+
+Hammasi Bearer, faqat **tasdiqlangan** talaba (aks holda 403 `student_not_approved` + `status`). Joy (masofa uchun)
+so'rov parametrida: `lat`+`lng` (GPS, ~100 m ga yaxlitlanadi) **yoki** `districtId` (tuman) **yoki** `regionId` (viloyat).
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `GET /deals` | joy?, `q`, `category` (slug, standart `all`), `live=1`, `sort=near\|biggest\|ending\|new` | `{ deals: FeedDeal[], categories: [{ slug, name, icon, tileColor, inkColor }], now }` |
+| `GET /deals/nearby` | joy (majburiy), `radiusKm` (0.1–50, standart 5), `limit` (≤ 200) | `{ origin, deals: FeedDeal[] }` — yaqini oldin |
+| `GET /deals/<id>` | joy? | `{ deal, description, terms, weekdays, fromMinute, toMinute, perStudentLimit, endsOn, business, nearby, saved, coupon: CouponView \| null }` |
+| `GET /saved` | joy? | `{ deals: FeedDeal[] }` |
+| `PUT /saved/<id>` · `DELETE /saved/<id>` | — | `{ saved }` (idempotent) |
+| `POST /coupons` | `{ discountId }` | 201 `{ coupon: CouponView, existing: false }` (faol kupon bo'lsa 200 + `existing: true`) · xato: `deal_not_available`, `deal_closed`, `sold_out`, `coupon_limit` |
+| `GET /coupons` | — | `{ coupons: CouponView[] }` (faollari) |
+| `GET /coupons/<id>` | — | `{ status: "ACTIVE", coupon }` \| `{ status: "REDEEMED", redemptionId }` \| `{ status: "CLOSED" }` |
+| `DELETE /coupons/<id>` | — | `{ ok }` — bekor, kunlik qoldiq qaytadi |
+
+`FeedDeal` (`src/lib/feed.ts`): `id, title, businessId, store, typeLabel, district, address, landmark, category, icon,
+images, tile, ink, badge, price: { now, old } | null, note, percent, fromMinute, toMinute, live, closesAt, opensAt,
+lastDay, left, total, point: { lat, lng } | null, distanceKm, createdAt`. Vaqtlar ISO (UTC), daqiqalar Toshkent vaqtida.
+
+`CouponView`: `id, code, secret, expiresAt, title, store, badge, price, note, student`. **QR internetsiz** qurilmada
+hisoblanadi — saytdagi `src/lib/totp.ts` bilan aynan bir xil: 60 s oyna, QR = `kod.oyna.HMAC-SHA256(secret, oyna)` ning
+128 biti, ekranda yana 6 raqamli kod. `secret` — base64url, faqat kupon egasiga; kupon 10 daqiqa amal qiladi. Kassir
+tasdiqlaganini bilish uchun ekran ochiq paytda `GET /coupons/<id>` ni bir necha soniyada so'rang.
+
+Bildirishnomalar (talaba va biznes egasi):
+
+| Endpoint | Chiqish |
+|---|---|
+| `GET /notifications` | `{ unread, items: [{ id, title, body, at, unread, link: { type: "HOME"\|"CATEGORY"\|"DISCOUNT", id }, href }] }` |
+| `POST /notifications/read` | `{ marked }` — hammasi o'qilgan |
+
+## Push qurilmalari
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `POST /push/devices` | Bearer, `{ token, platform: "IOS"\|"ANDROID" }` | `{ ok }` — `PushDevice` (token yagona), joriy sessiyaga bog'lanadi |
+| `DELETE /push/devices` | Bearer, `{ token }` | `{ ok }` |
+
+Chiqish, bloklash, parolni tiklash yoki hisobni o'chirishda sessiya bilan birga qurilma yozuvi ham o'chadi.
+**Hozircha faqat ro'yxatga olish:** xabarlarni Expo/FCM/APNs ga yuborish (`notifications/push.ts` faqat Web Push) — keyingi ish.
+
+## Hali yo'q
+
+- Push yuborish (Expo Push API yoki FCM/APNs) — `PushDevice` tayyor, yuboruvchi yo'q.
+- Kassir/biznes ilovasi: skaner, sotuvni tasdiqlash, statistika, chegirma muharriri; oldindan band qilish (buyurtmalar, to'lov).
+- Talaba: kupon tarixi va chek PDF (`/api/chek/<id>` cookie bilan ishlaydi), profilni tahrirlash, profil rasmi
+  (`/api/avatar/<id>` cookie talab qiladi), yo'nalish ("Qanday boraman?" — havolalar mijozda).
+- Qurilmalar ro'yxati va boshqa sessiyalarni yopish; ru/en matnlar (xato matnlari faqat o'zbekcha).

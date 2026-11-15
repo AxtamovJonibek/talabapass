@@ -568,3 +568,16 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   SMS + umumiy admin paroli bilan kiradi), `/admin/foydalanuvchilar` (talaba/biznes/kassir: telefon va barcha ma'lumotlar; telefon o'zgarsa sessiyalar yopiladi),
   `/admin/universitetlar`. Adminning o'zi bu yerda tahrirlanmaydi.
 - Telefon ko'rinishi testi: `e2e/mobile-layout.spec.ts` (360/390/430, skrinshotlar `e2e/mobile-layout.spec.ts-snapshots`).
+
+## Mobil API (`/api/v1`, native ilova uchun)
+- Hujjat: `docs/api-v1.md`. Marshrutlar `src/app/api/v1/`, umumiy qism `src/server/api/` (`http.ts` — `route()` o'ramasi, `ApiError`,
+  `readJson`/`readQuery` zod bilan; `session.ts` — tokenlar, `requireApiRole`, `requireApiStudent`; `auth-flow.ts`, `register.ts`,
+  `rate-limit.ts`, `rules.ts` — sof). Mantiq `src/server/*` dan qayta ishlatiladi; sayt va server action'lar o'zgarmagan.
+- Xato formati bitta: `{ error: { code, message, ... } }`, matnlar `messages/uz.json` → `api.errors`, HTTP holati `STATUS` da.
+- Access token 15 daq (muhrlangan AES-GCM, har so'rovda `Session` qatori tekshiriladi), refresh 30 kun, aylanadi, bazada xeshi
+  (`Session.kind = API`, `api-refresh:` prefiksi — cookie bilan almashib ishlamaydi); eski refresh qayta kelsa sessiya yopiladi.
+  Qadam holati cookie o'rniga muhrlangan `ticket`/`registrationTicket`. Admin API orqali kirmaydi.
+- Hisobni o'chirish (`DELETE /api/v1/me`, `src/server/account.ts`): `UserStatus.DELETED`, raqam `deleted:<id>`, shaxsiy ma'lumot
+  tozalanadi, tarix qoladi. `PushDevice` — sessiyaga bog'langan (Cascade); yuboruvchi hali yo'q.
+- `api/` ichida `src/server/auth/session.ts` import qilinmaydi (vitest'da `next-intl/navigation` yuklanmaydi).
+- Testlar: `src/server/api/rules.test.ts`, `auth.itest.ts`, `register.itest.ts`, `student.itest.ts`.

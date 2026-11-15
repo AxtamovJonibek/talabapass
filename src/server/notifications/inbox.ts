@@ -20,6 +20,8 @@ export async function inboxItems(userId: string, home: string) {
     at: r.createdAt,
     unread: r.readAt === null,
     href: notificationHref({ type: r.notification.linkType, id: r.notification.linkId }, home),
+    /** Mobil ilova o'z ekraniga o'tishi uchun (HOME | CATEGORY + slug | DISCOUNT + id) */
+    link: { type: r.notification.linkType, id: r.notification.linkId },
   }));
 }
 
