@@ -5,7 +5,7 @@ import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from "react-n
 import { errorText } from "@/api/client";
 import { studentApi, type LocalFile } from "@/api/endpoints";
 import { copy } from "@/copy";
-import { FileTooLargeError, pickDocument } from "@/lib/pick";
+import { pickDocument } from "@/lib/pick";
 import { resetTo, useApp } from "@/state";
 import { colors, font } from "@/theme";
 import { Icon, type IconName } from "@/ui/icons";
@@ -50,7 +50,7 @@ export default function StudentCard() {
     }
     if (!ready || !camera.current) return;
     try {
-      const photo = await camera.current.takePictureAsync({ quality: 0.7 });
+      const photo = await camera.current.takePictureAsync({ quality: 0.9 });
       setTorch(false);
       await upload({ uri: photo.uri, name: "guvohnoma.jpg", type: "image/jpeg" });
     } catch (e) {
@@ -64,7 +64,7 @@ export default function StudentCard() {
       const file = await pickDocument();
       if (file) await upload(file);
     } catch (e) {
-      setError(e instanceof FileTooLargeError ? copy.fileTooLarge : errorText(e));
+      setError(errorText(e));
     }
   };
 

@@ -1,4 +1,5 @@
 import { copy } from "@/copy";
+import { FileTooLargeError } from "@/lib/pick";
 import { clearTokens, loadTokens, saveTokens, type StoredTokens } from "@/storage";
 
 /**
@@ -22,15 +23,53 @@ export class ApiError extends Error {
   get fields(): string[] {
     return Array.isArray(this.details.fields) ? (this.details.fields as string[]) : [];
   }
+  /**
+   * network — so'rov serverga yetmadi yoki javob kelmadi (internet, DNS, uzilish);
+   * too_large — 413 (server yoki nginx); session — sessiya tugadi (refresh ham o'tmadi);
+   * other — qolgani (server xabari bilan yoki klientdagi xato, `client_error`).
+   */
+  get kind(): ErrorKind {
+    if (this.code === "network") return "network";
+    if (this.status === 413 || this.code === "file_too_large" || this.code === "payload_too_large") return "too_large";
+    if (SESSION_CODES.has(this.code)) return "session";
+    return "other";
+  }
 }
 
-/** Server bilan aloqa yo'q (internet, DNS, timeout) */
-export const isNetworkError = (e: unknown) => e instanceof ApiError && e.code === "network";
+export type ErrorKind = "network" | "too_large" | "session" | "other";
 
-/** Foydalanuvchiga ko'rsatiladigan matn: server xabari yoki umumiy. */
+/** Server bilan aloqa yo'q (internet, DNS, timeout) */
+export const isNetworkError = (e: unknown) => e instanceof ApiError && e.kind === "network";
+
+/** Foydalanuvchiga ko'rsatiladigan matn: xato turi bo'yicha, aks holda server xabari. */
 export function errorText(e: unknown): string {
-  if (e instanceof ApiError) return e.message;
-  return copy.unknownError;
+  if (e instanceof FileTooLargeError) return copy.fileTooLarge;
+  if (!(e instanceof ApiError)) {
+    console.warn("[api] kutilmagan xato:", e);
+    return copy.unknownError;
+  }
+  switch (e.kind) {
+    case "network":
+      return copy.networkError;
+    case "too_large":
+      return copy.fileTooLarge;
+    case "session":
+      return copy.sessionEnded;
+    default:
+      return e.message;
+  }
+}
+
+/**
+ * `fetch` tashlagan istisno. Haqiqiy tarmoq xatosi: RN — `TypeError: Network request failed`, expo/fetch —
+ * `FetchError: fetch failed: …`. Qolgani (masalan, tanani tayyorlashda xato) — tarmoq EMAS, `client_error`:
+ * avval hammasi "Internet yo'q" deb ko'rinardi va asl sabab yo'qolardi.
+ */
+function thrownByFetch(e: unknown, method: string, path: string): ApiError {
+  const message = e instanceof Error ? e.message : String(e);
+  const network = /^fetch failed|network request failed|timed? ?out|aborted|unable to resolve|failed to connect/i.test(message);
+  console.warn(`[api] ${method} ${path} → ${network ? "tarmoq" : "klient"} xatosi: ${e instanceof Error ? e.name : typeof e}: ${message}`);
+  return network ? new ApiError("network", copy.networkError, 0) : new ApiError("client_error", copy.unknownError, 0, { cause: message });
 }
 
 let tokens: StoredTokens | null = null;
@@ -98,9 +137,9 @@ async function doRefresh(): Promise<boolean> {
       headers: { "content-type": "application/json", accept: "application/json" },
       body: JSON.stringify({ refreshToken: t.refreshToken }),
     });
-  } catch {
+  } catch (e) {
     // Tarmoq xatosi — sessiya tugamagan, keyinroq qayta uriniladi
-    throw new ApiError("network", copy.networkError, 0);
+    throw thrownByFetch(e, "POST", "/auth/refresh");
   }
   if (res.ok) {
     const body = (await res.json()) as { tokens: StoredTokens };
@@ -122,8 +161,9 @@ async function toError(res: Response): Promise<ApiError> {
       return new ApiError(code, message ?? copy.unknownError, res.status, details);
     }
   } catch {
-    // JSON emas (masalan, proksi sahifasi)
+    // JSON emas (masalan, nginx sahifasi)
   }
+  if (res.status === 413) return new ApiError("payload_too_large", copy.fileTooLarge, 413);
   return new ApiError(res.status >= 500 ? "server_error" : "http_error", copy.unknownError, res.status);
 }
 
@@ -151,12 +191,18 @@ export async function api<T>(path: string, { method = "GET", body, form, auth = 
     return fetch(`${API_URL}/api/v1${path}`, { method, headers, body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) });
   };
 
-  let res: Response;
-  try {
-    res = await send(used);
-  } catch {
-    throw new ApiError("network", copy.networkError, 0);
-  }
+  const attempt = async (token: string | null) => {
+    let res: Response;
+    try {
+      res = await send(token);
+    } catch (e) {
+      throw thrownByFetch(e, method, path);
+    }
+    if (form) console.log(`[api] ${method} ${path} → ${res.status}`);
+    return res;
+  };
+
+  let res = await attempt(used);
   if (res.ok) return (await res.json()) as T;
 
   let error = await toError(res);
@@ -164,15 +210,15 @@ export async function api<T>(path: string, { method = "GET", body, form, auth = 
     const latest = (await current())?.accessToken ?? null;
     // Boshqa so'rov allaqachon yangilagan bo'lsa — qayta refresh qilinmaydi, yangi token bilan takrorlanadi
     const ok = latest && latest !== used ? true : await refreshOnce();
-    if (!ok) throw new ApiError("unauthorized", copy.sessionEnded, 401);
-    try {
-      res = await send((await current())?.accessToken ?? null);
-    } catch {
-      throw new ApiError("network", copy.networkError, 0);
+    if (!ok) {
+      console.warn(`[api] ${method} ${path} → sessiya tugadi (refresh rad etildi)`);
+      throw new ApiError("unauthorized", copy.sessionEnded, 401);
     }
+    res = await attempt((await current())?.accessToken ?? null);
     if (res.ok) return (await res.json()) as T;
     error = await toError(res);
     if (SESSION_CODES.has(error.code)) await signedOutByServer();
   }
+  console.warn(`[api] ${method} ${path} → ${error.status} ${error.code} (${error.kind})`);
   throw error;
 }

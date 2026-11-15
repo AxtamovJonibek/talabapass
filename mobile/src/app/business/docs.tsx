@@ -4,7 +4,7 @@ import { ApiError, errorText } from "@/api/client";
 import { businessApi, type BusinessInfo } from "@/api/endpoints";
 import { BusinessTop } from "@/business/header";
 import { copy } from "@/copy";
-import { FileTooLargeError, pickDocument, pickImage } from "@/lib/pick";
+import { pickDocument, pickImage } from "@/lib/pick";
 import { displayPhone, localDigits } from "@/lib/phone";
 import { resetTo, useApp, type BusinessDraft } from "@/state";
 import { colors, font } from "@/theme";
@@ -42,7 +42,7 @@ export default function BusinessDocs() {
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof FileTooLargeError ? copy.fileTooLarge : errorText(e));
+      setError(errorText(e));
     }
   };
 

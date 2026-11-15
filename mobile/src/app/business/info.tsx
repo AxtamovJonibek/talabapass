@@ -5,7 +5,7 @@ import { errorText } from "@/api/client";
 import { businessApi } from "@/api/endpoints";
 import { BusinessTop } from "@/business/header";
 import { copy } from "@/copy";
-import { FileTooLargeError, pickImage } from "@/lib/pick";
+import { pickImage } from "@/lib/pick";
 import { resetTo, useApp } from "@/state";
 import { colors } from "@/theme";
 import { Icon } from "@/ui/icons";
@@ -57,7 +57,7 @@ export default function BusinessInfo() {
       const file = await pickImage("logo.jpg");
       if (file) setDraft({ logo: file });
     } catch (e) {
-      setError(e instanceof FileTooLargeError ? copy.fileTooLarge : errorText(e));
+      setError(errorText(e));
     }
   };
 

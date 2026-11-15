@@ -1,5 +1,8 @@
 import Constants from "expo-constants";
+import { File as FsFile } from "expo-file-system";
 import { Platform } from "react-native";
+import { compressImage } from "@/lib/image";
+import { FileTooLargeError, MAX_FILE_BYTES } from "@/lib/pick";
 import { api } from "./client";
 
 /** `/api/v1` javob tiplari va chaqiruvlar — docs/api-v1.md bilan bir xil. */
@@ -95,14 +98,22 @@ export const businessApi = {
   submit: () => api<{ ok: true; status: "PENDING" }>("/business/submit", { method: "POST", body: { consent: true } }),
 };
 
-async function fileForm(file: LocalFile): Promise<FormData> {
+/**
+ * Fayl qismi. SDK 58 da global `fetch` — `expo/fetch`: u RN uslubidagi `{ uri, name, type }` ni o'qimaydi
+ * ("Unsupported FormDataPart implementation" — so'rov serverga yetmaydi), faqat Blob yoki `bytes()` li obyektni.
+ * Shuning uchun qismda ikkalasi bor: `bytes()` (expo/fetch) va `uri` (RN fetch, `EXPO_PUBLIC_USE_RN_FETCH=1`).
+ */
+async function fileForm(original: LocalFile): Promise<FormData> {
   const form = new FormData();
   if (Platform.OS === "web") {
     // Web (dizaynni ko'rib chiqish): tanlangan fayl blob: URL — haqiqiy Blob qilib qo'shiladi
-    form.append("file", await (await fetch(file.uri)).blob(), file.name);
-  } else {
-    // React Native FormData fayl qismi: { uri, name, type } — fetch uni o'zi o'qiydi
-    form.append("file", { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
+    form.append("file", await (await fetch(original.uri)).blob(), original.name);
+    return form;
   }
+  const file = await compressImage(original);
+  const disk = new FsFile(file.uri);
+  console.log(`[upload] ${file.name} ${file.type} ${Math.round(disk.size / 1024)} KB (asl: ${original.type})`);
+  if (disk.size > MAX_FILE_BYTES) throw new FileTooLargeError();
+  form.append("file", { uri: file.uri, name: file.name, type: file.type, bytes: () => disk.bytes() } as unknown as Blob);
   return form;
 }

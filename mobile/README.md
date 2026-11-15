@@ -62,6 +62,11 @@ assets/fonts/            Archivo statik nusxalari (OFL)
 - **Tokenlar:** access (15 daq) va refresh (30 kun, aylanadi) — SecureStore'da. Muddati o'tgan access token oldindan,
   401 (`token_expired`/`unauthorized`) bo'lsa keyin yangilanadi; parallel so'rovlar bitta refresh va'dasini kutadi.
   Refresh rad etilsa — tokenlar o'chadi, ilova kirish ekraniga qaytadi. Boshqa 401'lar (`wrong_password`) sessiyaga tegmaydi.
+- **Fayl yuklash** (`fileForm`, `src/api/endpoints.ts`): SDK 58 da global `fetch` — `expo/fetch`, u RN uslubidagi
+  `{ uri, name, type }` qismini o'qimaydi (so'rov serverga yetmaydi). Qismda `bytes()` (expo-file-system `File`) ham bor.
+  Rasmlar oldin siqiladi (`src/lib/image.ts`: uzun tomon 2000px, JPEG 0.8), hajm (10 MB) siqilgandan keyin tekshiriladi.
+  Xato turlari `ApiError.kind`: `network` (faqat haqiqiy tarmoq xatosi), `too_large` (413), `session`, `other`;
+  har bir xato console'ga `[api] …` bilan chiqadi (Expo Go terminali yoki `adb logcat`).
 - **Shrift:** React Native `font-variation-settings` ni bilmaydi — Archivo variable shriftidan kerakli og'irlik/kenglik
   juftlari statik TTF qilib chiqarilgan (wdth 100: 400–900, 112: 800/900, 62: 900). Yangi juftlik kerak bo'lsa —
   fontTools `instancer` bilan (`Archivo[wdth,wght].ttf`, google/fonts), oilaga alohida nom bering va `theme.ts` ga qo'shing.
