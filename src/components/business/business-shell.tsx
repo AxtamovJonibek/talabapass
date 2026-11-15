@@ -40,7 +40,7 @@ export function BusinessShell({ active, phoneTab, children }: { active: Business
       items={ITEMS.map((item) => ({ href: item.href, icon: item.icon, label: t(item.key), active: item.key === active }))}
       footer={
         <form action={logoutAction} className="px-1.5">
-          <button type="submit" className="flex h-10 items-center gap-2.5 rounded-10 border-0 bg-transparent px-1.5 font-sans text-14 font-semibold text-fog-3 hover:text-white">
+          <button type="submit" className="tap flex h-10 items-center gap-2.5 rounded-10 border-0 bg-transparent px-1.5 font-sans text-14 font-semibold text-fog-3 hover:text-white">
             <Icon name="logout" size={18} />
             {common("logout")}
           </button>

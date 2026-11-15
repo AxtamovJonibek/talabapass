@@ -21,7 +21,7 @@ async function Handoff({ searchParams }: Pick<Props, "searchParams">) {
 
   const t = await getTranslations("onboarding.handoff");
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-ink-0 px-6 text-center text-paper">
+    <div data-edge="ink-0" className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-ink-0 px-6 text-center text-paper">
       <h1 className="m-0 text-28 leading-[1.05] font-extrabold tracking-[-0.03em] font-stretch-110%">{t("expiredTitle")}</h1>
       <p className="m-0 text-14 leading-[1.45] text-fog-3">{t("expiredLead")}</p>
     </div>

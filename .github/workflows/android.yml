@@ -1,0 +1,75 @@
+# Android debug APK (Capacitor qobig'i, sayt https://talabapass.uz dan yuklanadi). Batafsil: docs/ilova.md.
+# Qo'lda: Actions → android → Run workflow. Natija — run sahifasidagi "talabapass-debug-apk" artifact'i.
+# Ixtiyoriy secret ANDROID_DEBUG_KEYSTORE (base64 debug.keystore): bo'lsa har APK bir xil imzoda —
+# yangisi eskisining ustidan o'rnatiladi; bo'lmasa har safar yangi imzo (avval eski ilovani o'chirish kerak).
+name: android
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android
+  cancel-in-progress: true
+
+jobs:
+  debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Capacitor 8 — JDK 21
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+
+      # Faqat Capacitor kerak: postinstall (prisma generate) va boshqa skriptlar shart emas
+      - name: Paketlar
+        run: npm ci --ignore-scripts
+
+      - name: Capacitor sync
+        run: npx cap sync android
+
+      - name: Barqaror debug imzo (secret bo'lsa)
+        env:
+          ANDROID_DEBUG_KEYSTORE: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}
+        run: |
+          if [ -n "$ANDROID_DEBUG_KEYSTORE" ]; then
+            install -d ~/.android
+            printf '%s' "$ANDROID_DEBUG_KEYSTORE" | base64 -d > ~/.android/debug.keystore
+            echo "debug.keystore secret'dan olindi"
+          else
+            echo "ANDROID_DEBUG_KEYSTORE yo'q — vaqtinchalik debug imzo"
+          fi
+
+      - name: APK yig'ish
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -PversionCode=${{ github.run_number }}
+
+      - name: Fayl nomi
+        id: name
+        run: echo "apk=talabapass-debug-${GITHUB_SHA::7}.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Nomlash
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk "${{ steps.name.outputs.apk }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: talabapass-debug-apk
+          path: ${{ steps.name.outputs.apk }}
+          retention-days: 14
+          if-no-files-found: error

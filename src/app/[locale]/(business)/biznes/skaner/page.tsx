@@ -33,7 +33,7 @@ async function ScannerContent() {
 
   if (!scanner) {
     return (
-      <div className="flex h-dvh flex-col bg-ink-0 text-paper">
+      <div data-edge="ink-0" className="flex h-dvh flex-col bg-ink-0 text-paper">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
           <b className="text-18">{t("noBusinessTitle")}</b>
           <p className="m-0 text-14 leading-[1.45] text-fog-0">{t("noBusinessText")}</p>

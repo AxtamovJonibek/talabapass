@@ -120,7 +120,7 @@ export function Dropdown<V extends string>({ id, label, value, options, onChange
         onClick={() => (open ? setOpen(false) : show())}
         onKeyDown={onKeyDown}
         className={cn(
-          "box-border flex items-center gap-2 border-hair border-line bg-white font-sans text-14 text-ink aria-expanded:border-ink",
+          "tap box-border flex items-center gap-2 border-hair border-line bg-white font-sans text-14 text-ink aria-expanded:border-ink",
           LIFT,
           size === "md" ? "h-11 rounded-22 px-4 font-bold whitespace-nowrap" : "h-[38px] rounded-19 px-3.5 font-semibold",
         )}

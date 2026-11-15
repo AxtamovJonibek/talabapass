@@ -20,14 +20,15 @@ type BottomNavProps = {
   label: string;
 };
 
-/** 84px pastki navigatsiya (T4, B3). */
+/** 84px pastki navigatsiya (T4, B3). Uy chizig'i / Android navigatsiyasi bo'lsa pastki padding shuncha o'sadi (globals.css `--safe-*`). */
 export function BottomNav({ items, tone = "light", label }: BottomNavProps) {
   const dark = tone === "dark";
   return (
     <nav
       aria-label={label}
+      data-bottom-nav=""
       className={cn(
-        "box-border grid h-[84px] auto-cols-fr grid-flow-col border-t pb-[18px]",
+        "box-border grid h-[calc(66px+max(18px,var(--safe-bottom)))] auto-cols-fr grid-flow-col border-t pb-[max(18px,var(--safe-bottom))]",
         dark ? "border-ink-3 bg-ink" : "border-line-soft bg-white",
       )}
     >

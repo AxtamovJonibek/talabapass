@@ -121,7 +121,7 @@ export function CashierList({ data }: { data: OwnerCashiers }) {
                   onClick={() => {
                     if (window.confirm(t("confirmRemove", { name }))) run(() => removeCashierAction(c.memberId));
                   }}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-8 border-0 bg-transparent p-0 text-muted hover:text-danger"
+                  className="tap flex size-8 shrink-0 items-center justify-center rounded-8 border-0 bg-transparent p-0 text-muted hover:text-danger"
                 >
                   <Icon name="close" size={16} />
                 </button>

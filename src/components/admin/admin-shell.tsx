@@ -61,7 +61,7 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
             </Link>
             {/* Dizaynda chiqish tugmasi yo'q — panel pastidagi ism yonida kichik ikonka */}
             <form action={logoutAction}>
-              <button type="submit" aria-label={common("logout")} title={common("logout")} className="flex size-8 items-center justify-center rounded-8 border-0 bg-transparent p-0 text-fog-3 hover:text-white">
+              <button type="submit" aria-label={common("logout")} title={common("logout")} className="tap flex size-8 items-center justify-center rounded-8 border-0 bg-transparent p-0 text-fog-3 hover:text-white">
                 <Icon name="logout" size={18} />
               </button>
             </form>

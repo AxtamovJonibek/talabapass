@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useLocale } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { localizedPath, type Locale } from "@/i18n/routing";
+import { isNativeApp } from "@/lib/native";
 
 const COUPON_PAGE = /^\/kuponlar\/[^/]+$/;
 
@@ -11,13 +12,14 @@ const COUPON_PAGE = /^\/kuponlar\/[^/]+$/;
  * Service worker'ni ro'yxatdan o'tkazadi (faqat production — dev'da keshlanadigan fayllar tez-tez o'zgaradi; sinash uchun NEXT_PUBLIC_SW=1).
  * - Ochilgan kupon sahifasi (`/kuponlar/<id>`) va uning fayllari keshlanadi: internet o'chsa ham QR ochiladi.
  * - `/kirish` ochilganda (chiqishdan keyin) kupon keshi tozalanadi.
+ * - Capacitor ilovasida ro'yxatdan o'tmaydi (`NativeApp`).
  */
 export function ServiceWorkerRegister() {
   const pathname = usePathname();
   const locale = useLocale() as Locale;
 
   useEffect(() => {
-    if ((process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_SW !== "1") || !("serviceWorker" in navigator)) return;
+    if ((process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_SW !== "1") || !("serviceWorker" in navigator) || isNativeApp()) return;
     let cancelled = false;
     (async () => {
       const registration = await navigator.serviceWorker.register("/sw.js").catch(() => null);

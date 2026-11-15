@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>TalabaPass</title>
+    <!--
+      Capacitor server.errorPath: sayt ochilmaganda (internet yo'q, server javob bermadi) ko'rsatiladi.
+      Next.js'dan tashqarida (messages/uz.json bu yerga yetmaydi) — matn saytdagi /oflayn ekrani bilan bir xil saqlansin.
+    -->
+    <style>
+      html, body { margin: 0; min-height: 100%; background: #f3f2ee; color: #141414; }
+      body {
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+        min-height: 100vh;
+        padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+        font-family: system-ui, sans-serif;
+      }
+      h1 { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+      p { margin: 0; font-size: 15px; color: #5f5d57; line-height: 1.4; }
+      button {
+        margin-top: 12px;
+        height: 52px;
+        border: 0;
+        border-radius: 14px;
+        background: #2433d6;
+        color: #fff;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 800;
+      }
+      button:active { scale: 0.97; }
+    </style>
+  </head>
+  <body>
+    <h1>Internet aloqasi yo'q</h1>
+    <p>Internet hali yo'q. Ulanishni tekshirib, yana urinib ko'ring.</p>
+    <button type="button" onclick="location.replace('https://talabapass.uz')">Qayta urinish</button>
+    <script>
+      window.addEventListener("online", function () { location.replace("https://talabapass.uz"); });
+    </script>
+  </body>
+</html>

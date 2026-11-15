@@ -28,7 +28,7 @@ export function Chip({ selected = false, size = "md", count, children, className
       type={type}
       aria-pressed={selected}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 border-hair font-sans font-semibold",
+        "tap flex shrink-0 items-center gap-1.5 border-hair font-sans font-semibold",
         LIFT,
         CHIP_SIZES[size],
         selected ? "border-ink bg-ink text-white" : "border-line bg-white text-ink",

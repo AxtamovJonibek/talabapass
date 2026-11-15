@@ -237,7 +237,7 @@ export function RatingTable({ rows }: { rows: RatingRow[] }) {
                 </td>
                 <td className={cn(td, "text-right")}>
                   <div className="inline-flex gap-1.5">
-                    <Link href={`/admin/bizneslar?id=${row.id}`} className="tp-lift flex h-8 items-center rounded-8 border-hair border-line bg-white px-2.5 text-13 font-semibold text-ink no-underline">
+                    <Link href={`/admin/bizneslar?id=${row.id}`} className="tp-lift tap flex h-8 items-center rounded-8 border-hair border-line bg-white px-2.5 text-13 font-semibold text-ink no-underline">
                       {t("view")}
                     </Link>
                     <BlockBusiness businessId={row.id} />

@@ -187,7 +187,7 @@ export function BottomSheet({ open, onClose, title, description, closeLabel, anc
         type="button"
         aria-label={closeLabel}
         onClick={() => close.current()}
-        className="tp-lift -mt-0.5 -mr-1.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-surface text-ink"
+        className="tp-lift tap -mt-0.5 -mr-1.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-surface text-ink"
       >
         <Icon name="close" size={16} strokeWidth={2.4} />
       </button>
@@ -219,7 +219,7 @@ export function BottomSheet({ open, onClose, title, description, closeLabel, anc
           popover
             ? "rounded-18 border-hair border-line shadow-card-hover transition-[translate,opacity] duration-150 ease-out starting:-translate-y-1 starting:opacity-0 data-leaving:-translate-y-1 data-leaving:opacity-0"
             : cn(
-                "inset-x-0 bottom-0 mx-auto max-h-[calc(100dvh-40px)] w-full max-w-[560px] rounded-t-22 pb-[max(16px,env(safe-area-inset-bottom))]",
+                "inset-x-0 bottom-0 mx-auto max-h-[calc(100dvh-40px-var(--safe-top))] w-full max-w-[560px] rounded-t-22 pb-[max(16px,var(--safe-bottom))]",
                 "starting:translate-y-full data-leaving:translate-y-full",
                 dragging ? "transition-none" : "transition-[translate] duration-[380ms] ease-drawer data-leaving:duration-200 data-leaving:ease-out",
               ),

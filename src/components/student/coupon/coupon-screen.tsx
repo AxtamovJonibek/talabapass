@@ -98,7 +98,7 @@ export function CouponScreen({ coupon, renderedAt, backHref }: { coupon: CouponV
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-ink text-paper">
+    <div data-edge="ink" className="flex min-h-dvh flex-col bg-ink text-paper">
       <div className="flex items-center justify-between px-4 pt-[54px]">
         <Link href={backHref} aria-label={t("close")} className="tp-lift flex size-11 items-center justify-center rounded-full bg-ink-3 text-paper">
           <Icon name="close" size={20} />

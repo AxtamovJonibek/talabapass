@@ -23,7 +23,7 @@ export function MockCheckout({ paymentId, orderId, amount, title, business, open
     });
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-ink-0 px-4 py-10 text-ink">
+    <div data-edge="ink-0" className="flex min-h-dvh items-center justify-center bg-ink-0 px-4 py-10 text-ink">
       <div className="enter-rise flex w-full max-w-[400px] flex-col gap-4 rounded-22 bg-white p-6">
         <div className="flex items-center gap-2.5">
           <span className="flex size-10 items-center justify-center rounded-12 bg-warn-bg text-warn">

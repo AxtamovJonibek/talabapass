@@ -59,7 +59,7 @@ export function TransactionFilters({ filter }: { filter: TxFilter }) {
       </form>
       <a
         href={`/api/admin/tranzaksiyalar/eksport${txQuery({ ...filter, page: 1 })}`}
-        className="tp-lift flex h-[38px] items-center gap-2 rounded-12 border-hair border-ink bg-white px-3.5 text-14 font-bold text-ink no-underline"
+        className="tp-lift tap flex h-[38px] items-center gap-2 rounded-12 border-hair border-ink bg-white px-3.5 text-14 font-bold text-ink no-underline"
       >
         <Icon name="download" size={16} />
         {t("exportButton")}

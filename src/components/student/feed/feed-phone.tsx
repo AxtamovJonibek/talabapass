@@ -77,7 +77,7 @@ export function FeedPhone({ feed, categories, location, origin, unread, coupons 
       <button
         type="button"
         onClick={() => feed.setView(feed.view === "map" ? "list" : "map")}
-        className="fixed bottom-[100px] left-1/2 z-20 flex h-12 -translate-x-1/2 items-center gap-2 rounded-full border-0 bg-ink px-5 font-sans text-15 font-bold text-white transition-[scale,background-color] duration-150 ease-out hover:bg-ink-2 active:scale-[0.97]"
+        className="fixed bottom-[calc(100px+var(--safe-bottom))] left-1/2 z-20 flex h-12 -translate-x-1/2 items-center gap-2 rounded-full border-0 bg-ink px-5 font-sans text-15 font-bold text-white transition-[scale,background-color] duration-150 ease-out hover:bg-ink-2 active:scale-[0.97]"
       >
         {feed.view === "map" ? null : <Icon name="map" size={18} />}
         {t(feed.view === "map" ? "feed.floatList" : "feed.floatMap")}

@@ -12,7 +12,7 @@ export function LandingHeader() {
   const closeMenu = () => setMenuOpen(false);
   const menuIcon = menuOpen ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16";
   return (
-    <header style={{ position: "sticky", top: "0", zIndex: 20, background: "var(--color-paper)", borderBottom: "1.5px solid var(--color-ink)" }}>
+    <header style={{ position: "sticky", top: "var(--safe-top)", zIndex: 20, background: "var(--color-paper)", borderBottom: "1.5px solid var(--color-ink)" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4cqw, 48px)", height: "72px", display: "flex", alignItems: "center", gap: "16px" }}>
         <Link href="/" aria-label={t("talabapass_bosh_sahifa")} style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 800, fontStretch: "125%", fontSize: "20px", letterSpacing: "-0.02em", textDecoration: "none", color: "var(--color-ink)", flexShrink: 0 }}>
           talaba

@@ -585,6 +585,89 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
   }
+}
+
+/*
+ * Xavfsiz hudud (viewport-fit=cover: iPhone "chiqiq"i va uy chizig'i, Capacitor ilovasi — edge-to-edge).
+ * Kompyuterda va oddiy brauzerda hammasi 0 — dizayn o'lchamlari o'zgarmaydi.
+ * Capacitor Android eski WebView'da env() 0 beradi, shuning uchun avval uning --safe-area-inset-* o'zgaruvchisi.
+ * Sahifa xavfsiz hudud ichida (body padding); chetlar body foni bilan to'ladi (qora ekranlarda `data-edge`).
+ * Pastki menyu (`data-bottom-nav`) bo'lsa past chetni menyuning o'zi to'ldiradi — body pastki padding'i 0.
+ */
+:root {
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --safe-body-bottom: var(--safe-bottom);
+  /* Ekran balandligi (h-dvh, min-h-dvh, min-h-screen) — body padding'idan tashqari */
+  --app-h: calc(100dvh - var(--safe-top) - var(--safe-body-bottom));
+}
+:root:has([data-bottom-nav]) {
+  --safe-body-bottom: 0px;
+}
+
+@layer base {
+  body {
+    padding: var(--safe-top) var(--safe-right) var(--safe-body-bottom) var(--safe-left);
+  }
+  body:has([data-edge="ink"]) {
+    background: var(--color-ink);
+  }
+  body:has([data-edge="ink-0"]) {
+    background: var(--color-ink-0);
+  }
+  /* Status bar va uy chizig'i ostidan skroll qilingan kontent ko'rinmasin (balandligi 0 bo'lsa — yo'q) */
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset-inline: 0;
+    z-index: 60;
+    background: inherit;
+    pointer-events: none;
+  }
+  body::before {
+    top: 0;
+    height: var(--safe-top);
+  }
+  body::after {
+    bottom: 0;
+    height: var(--safe-body-bottom);
+  }
+}
+
+/* Butun ekranli bloklar xavfsiz hudud ichiga sig'sin (kompyuterda 100dvh bilan bir xil) */
+@utility h-dvh {
+  height: var(--app-h);
+}
+@utility min-h-dvh {
+  min-height: var(--app-h);
+}
+@utility min-h-screen {
+  min-height: var(--app-h);
+}
+
+/*
+ * Bosish maydoni kamida 44×44 (telefon): ko'rinish o'zgarmaydi, ::before ko'rinmas kengaytma.
+ * Joylashuvsiz element `relative` bo'ladi (absolute/fixed/sticky o'zgarmaydi). ::before ishlatadiganga (tp-paint) qo'ymang.
+ */
+@utility tap {
+  &:not(.absolute, .fixed, .sticky) {
+    position: relative;
+  }
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    translate: -50% -50%;
+  }
+}
+
+@layer base {
 
   /* Raqam, vaqt, kod — bir xil kenglikda (sakramasin) */
   .font-mono,

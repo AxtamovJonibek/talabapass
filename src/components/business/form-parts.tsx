@@ -136,7 +136,7 @@ export function DocTiles({ r }: { r: BusinessRegistration }) {
                 aria-label={t("remove")}
                 disabled={r.pending || d.id.startsWith("local-")} aria-busy={r.pending}
                 onClick={() => r.removeDoc(d.id)}
-                className="tp-lift flex size-7 items-center justify-center rounded-8 border-0 bg-transparent text-muted"
+                className="tp-lift tap flex size-7 items-center justify-center rounded-8 border-0 bg-transparent text-muted"
               >
                 <Icon name="close" size={14} />
               </button>

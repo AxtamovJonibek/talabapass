@@ -63,7 +63,7 @@ function subscribe(listener: () => void) {
 export function Toaster() {
   const item = useSyncExternalStore(subscribe, () => current, () => null);
   return (
-    <div aria-live="polite" role="status" className="pointer-events-none fixed inset-x-0 bottom-[100px] z-50 flex justify-center px-4">
+    <div aria-live="polite" role="status" className="pointer-events-none fixed inset-x-0 bottom-[calc(100px+var(--safe-bottom))] z-50 flex justify-center px-4">
       {item ? (
         <div
           key={item.id}

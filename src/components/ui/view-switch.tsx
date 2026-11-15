@@ -25,7 +25,7 @@ export function ViewSwitch<V extends string>({ label, value, options, onChange, 
           aria-pressed={o.value === value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "flex h-9 items-center gap-1.5 rounded-19 border-0 px-3.5 font-sans text-14 font-bold whitespace-nowrap",
+            "tap flex h-9 items-center gap-1.5 rounded-19 border-0 px-3.5 font-sans text-14 font-bold whitespace-nowrap",
             PRESS,
             o.value === value ? "bg-blue text-white" : "bg-transparent text-ink hover:bg-surface",
           )}

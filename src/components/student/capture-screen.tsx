@@ -146,7 +146,7 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
 
   if (sent) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-ink-0 px-6 text-center text-paper">
+      <div data-edge="ink-0" className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-ink-0 px-6 text-center text-paper">
         <div className="flex size-14 items-center justify-center rounded-full bg-mint-2 text-ink">
           <Icon name="check" size={28} strokeWidth={3} />
         </div>
@@ -157,7 +157,7 @@ export function CaptureScreen({ backHref, expired = false, uploadToken }: Props)
   }
 
   return (
-    <div ref={rootRef} className="flex min-h-dvh flex-col bg-ink-0 text-paper">
+    <div ref={rootRef} data-edge="ink-0" className="flex min-h-dvh flex-col bg-ink-0 text-paper">
       <div className="flex items-center justify-between px-4 pt-14">
         <Link href={backHref} aria-label={t("back")} className={roundButton}>
           <Icon name="chevronLeft" size={20} />

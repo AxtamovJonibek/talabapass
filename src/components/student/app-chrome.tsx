@@ -30,7 +30,7 @@ export function StudentBottomNav({ active, coupons = 0 }: { active: StudentTab; 
 export function StudentWebHeader({ sticky = false, initials, avatarUrl = null, children }: { sticky?: boolean; initials: string; avatarUrl?: string | null; children?: ReactNode }) {
   const t = useTranslations("feed");
   return (
-    <header className={cn("border-0 border-b-[1.5px] border-solid border-ink bg-paper", sticky && "sticky top-0 z-10")}>
+    <header className={cn("border-0 border-b-[1.5px] border-solid border-ink bg-paper", sticky && "sticky top-[var(--safe-top)] z-10")}>
       <div className="mx-auto flex h-[72px] max-w-[1360px] items-center gap-3.5 px-[clamp(16px,3cqw,40px)]">
         <Link href="/chegirmalar" className="shrink-0 text-ink no-underline">
           <Logo size={20} />

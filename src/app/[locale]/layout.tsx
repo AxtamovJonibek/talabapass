@@ -5,6 +5,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { resolveLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
+import { NativeApp } from "@/components/pwa/native-app";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { isStaging } from "@/server/env-check";
 import "../globals.css";
@@ -37,6 +38,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
 
 export const viewport: Viewport = {
   themeColor: "#141414",
+  // Ekran chetigacha (iPhone "chiqiq"i, Android ilovasi edge-to-edge); xavfsiz hudud — globals.css dagi --safe-*
+  viewportFit: "cover",
 };
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
@@ -50,6 +53,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
           <Suspense fallback={null}>
             <ServiceWorkerRegister />
           </Suspense>
+          <NativeApp />
         </NextIntlClientProvider>
       </body>
     </html>

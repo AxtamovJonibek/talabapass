@@ -34,7 +34,7 @@ type SidebarProps = {
 export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProps) {
   return (
     <aside
-      className="box-border flex max-w-full flex-[1_1_220px] flex-col gap-[22px] bg-ink px-4 py-6 text-paper @min-[780px]:sticky @min-[780px]:top-0 @min-[780px]:z-30 @min-[780px]:h-dvh @min-[780px]:self-start"
+      className="box-border flex max-w-full flex-[1_1_220px] flex-col gap-[22px] bg-ink px-4 py-6 text-paper @min-[780px]:sticky @min-[780px]:top-[var(--safe-top)] @min-[780px]:z-30 @min-[780px]:h-dvh @min-[780px]:self-start"
       data-testid="sidebar"
     >
       <div className="shrink-0">{header}</div>
@@ -55,7 +55,7 @@ export function Sidebar({ accent, header, items, navLabel, footer }: SidebarProp
             href={item.href}
             aria-current={item.active ? "page" : undefined}
             className={cn(
-              "tp-row flex h-[42px] items-center gap-2.5 rounded-10 px-3 text-14 no-underline",
+              "tp-row tap flex h-[42px] items-center gap-2.5 rounded-10 px-3 text-14 no-underline",
               // A2: hisoblagichli bandlar faol bo'lmasa ham qalin
               item.active || item.badge != null ? "font-bold" : "font-semibold",
               item.active ? (accent === "orange" ? "bg-orange text-ink" : "bg-blue text-white") : "text-fog-1",

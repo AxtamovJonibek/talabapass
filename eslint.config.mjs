@@ -17,6 +17,9 @@ const eslintConfig = defineConfig([
     ".design-gen/**",
     ".compare/**",
     "src/generated/**",
+    // Capacitor native loyihalari (generatsiya qilingan, sync nusxalari)
+    "android/**",
+    "ios/**",
   ]),
 ]);
 

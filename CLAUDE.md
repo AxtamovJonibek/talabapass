@@ -462,6 +462,15 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - SMS: hozircha dev rejim (kod server log'iga chiqadi), provayder adapter orqali keyin ulanadi.
 - Admin'dagi "Chegirmalar" navbati va kupon ekranidagi 6 raqamli kod dizaynda chizilmagan — mavjud uslubda qo'shilgan.
 
+## Mobil ilova (Capacitor)
+- Qobiq: `capacitor.config.ts` (`uz.talabapass.app`, `server.url` https://talabapass.uz, `capacitor/www` — bo'sh joy va `offline.html`), `android/`.
+  APK — `.github/workflows/android.yml` (qo'lda, debug APK artifact). iOS keyin (Mac CI). Yo'riqnoma: `docs/ilova.md`.
+- Saytda: `isNativeApp()` (`src/lib/native.ts`) → SW va Web Push o'chiq; `NativeApp` — splash, status bar, Android "orqaga".
+- Xavfsiz hudud: `viewport-fit=cover`, `globals.css` dagi `--safe-*` (body padding; `h-dvh`/`min-h-dvh`/`min-h-screen` = `--app-h`).
+  Pastki menyu `data-bottom-nav`; qora butun ekranli sahifa ildizi `data-edge="ink"|"ink-0"`; `sticky top-0` o'rniga `top-[var(--safe-top)]`;
+  `fixed` pastki elementlar `+ var(--safe-bottom)`.
+- 44px dan kichik bosiladigan element — `tap` utilitasi (ko'rinmas ≥ 44×44 maydon; `tp-paint` ga emas).
+
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).
   Yuborishdan keyin klient `router.replace("/biznes")` qiladi (action ichida redirect emas).

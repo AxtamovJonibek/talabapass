@@ -199,7 +199,7 @@ export function ScannerScreen({ business, cashierName, todaySales, lastSale, foo
   if (stage.kind === "orderDone") return <OrderDone onNext={() => setStage({ kind: "scan" })} />;
 
   return (
-    <div className="flex h-dvh flex-col bg-ink-0 text-paper">
+    <div data-edge="ink-0" className="flex h-dvh flex-col bg-ink-0 text-paper">
       <div className="flex items-center justify-between px-4 pt-[54px]">
         <div className="flex items-center gap-2.5">
           <div className="flex size-10 items-center justify-center rounded-10 bg-orange font-black text-ink font-stretch-125%">{business.initial}</div>

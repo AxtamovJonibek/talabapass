@@ -46,7 +46,7 @@ export function Segmented<T extends string>({ options, value, onChange, label, s
             aria-checked={radio ? selected : undefined}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex items-center justify-center gap-2 border-0 font-sans text-ink",
+              "tap flex items-center justify-center gap-2 border-0 font-sans text-ink",
               PRESS,
               SIZES[size][1],
               selected ? "bg-white" : "bg-transparent hover:bg-white/50",

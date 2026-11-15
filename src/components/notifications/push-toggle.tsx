@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { isNativeApp } from "@/lib/native";
 
 type State = "loading" | "unsupported" | "denied" | "off" | "on";
 
@@ -15,7 +16,8 @@ function keyBytes(base64Url: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-const supported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+// Capacitor ilovasida service worker yo'q — Web Push ishlamaydi
+const supported = () => !isNativeApp() && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 
 /** Telefon/brauzerda push yoqish-o'chirish. Ochiq kalit server tomondan prop bilan keladi (build vaqtiga bog'lanmaydi). */
 export function PushToggle({ publicKey }: { publicKey: string }) {

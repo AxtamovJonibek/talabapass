@@ -29,7 +29,7 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
         </Link>
         <h1 className="m-0 flex-1 text-20 font-extrabold tracking-[-0.02em] font-stretch-110%">{e.id ? t("editTitle") : t("newTitle")}</h1>
         {live ? null : (
-          <button type="button" onClick={e.draft} disabled={e.pending} aria-busy={e.pending} className="tp-link h-10 border-0 bg-transparent px-3 font-sans text-14 font-semibold text-muted">
+          <button type="button" onClick={e.draft} disabled={e.pending} aria-busy={e.pending} className="tp-link tap h-10 border-0 bg-transparent px-3 font-sans text-14 font-semibold text-muted">
             {t("draft")}
           </button>
         )}
