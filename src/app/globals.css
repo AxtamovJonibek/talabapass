@@ -65,6 +65,10 @@
   --color-warn: #9a3a0e;
   --color-warn-bg: #fff0e6;
   --color-info-bg: #e6e8fb;
+  /* Ilova oqimi (design/app-flow): yorqin yashil belgi/chiziq, "Yaxshi"/"tasdiqlangan" matni, maslahat belgisi foni */
+  --color-green-bright: #3bd16f;
+  --color-green-ok: #1f8a47;
+  --color-peach: #ffe3d6;
 
   /* qora yuzalar va ulardagi matn */
   --color-ink-0: #0e0e0d;
@@ -140,9 +144,13 @@
   --text-36: 36px;
   --text-38: 38px;
   --text-40: 40px;
+  --text-42: 42px;
   --text-44: 44px;
+  --text-46: 46px;
+  --text-52: 52px;
   --text-64: 64px;
   --text-76: 76px;
+  --text-84: 84px;
 
   --radius-*: initial;
   --radius-2: 2px;
@@ -166,6 +174,9 @@
   --radius-21: 21px;
   --radius-22: 22px;
   --radius-24: 24px;
+  --radius-28: 28px;
+  --radius-30: 30px;
+  --radius-32: 32px;
 
   /* Lenta kartasi (Lenta B · Jurnal) */
   --shadow-card: 0 14px 24px -18px rgb(20 20 20 / 0.55);
@@ -173,6 +184,17 @@
   --shadow-chip-hover: 0 6px 12px -8px rgb(20 20 20 / 0.5);
   /* Holat pilyulkasi rasm ustida — juda yengil */
   --shadow-pill: 0 1px 3px color-mix(in srgb, var(--color-ink) 10%, transparent);
+  /* Ilova oqimi (design/app-flow): faol maydon halqasi, karusel kartalari va stikerlar soyasi */
+  --shadow-focus-blue: 0 0 0 1px var(--color-blue), 0 0 0 5px color-mix(in srgb, var(--color-blue) 15%, transparent);
+  --shadow-ring-blue: 0 0 0 4px color-mix(in srgb, var(--color-blue) 15%, transparent);
+  --shadow-float-blue: 0 18px 32px color-mix(in srgb, var(--color-blue) 25%, transparent);
+  --shadow-float-ink: 0 18px 32px color-mix(in srgb, var(--color-ink) 25%, transparent);
+  --shadow-float-ink-soft: 0 18px 32px color-mix(in srgb, var(--color-ink) 20%, transparent);
+  --shadow-float-ink-lg: 0 20px 36px color-mix(in srgb, var(--color-ink) 25%, transparent);
+  --shadow-sticker-orange: 0 10px 20px color-mix(in srgb, var(--color-orange) 30%, transparent);
+  --shadow-sticker-green: 0 10px 20px color-mix(in srgb, var(--color-green-bright) 30%, transparent);
+  --shadow-sticker-ink: 6px 6px 0 var(--color-ink);
+  --shadow-glow-orange: 0 0 14px var(--color-orange);
 }
 
 /*

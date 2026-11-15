@@ -74,6 +74,25 @@ export const ICONS = {
   camera: "M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z",
   /** T8 "Sozlamalar" */
   gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
+  // ilova oqimi (design/app-flow)
+  /** Tasdiq belgisi (kichik doiralar ichida) */
+  tick: "M5 12.5l4.5 4.5L19 7.5",
+  /** "Kodni kiriting" — SMS */
+  message: "M4 5h16v11H9l-5 4zM8 9.5h8M8 12.5h5",
+  /** "Parol o'rnating" */
+  lock: "M7.5 10.5h9a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-4a3 3 0 0 1 3-3zM8 10.5V8a4 4 0 0 1 8 0v2.5M12 15v1",
+  eye: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0z",
+  eyeOff: "M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 4.4-1.1M9.9 9.9a3 3 0 0 0 4.2 4.2",
+  /** "Qayta xush kelibsiz" */
+  house: "M7 11.5l5-4.5 5 4.5M6.5 10v9h11v-9",
+  /** "Holatni yangilash" */
+  refresh: "M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5",
+  /** Hujjat (Guvohnoma "Fayl", BizHujjat) */
+  doc: "M6 3h8l4 4v14H6zM14 3v4h4",
+  /** Kod ekranidagi maslahat */
+  shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5L15.5 10",
+  /** BizTafsilot "Ish vaqti" */
+  time: "M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17zM12 7.5V12l3 2",
 } as const;
 
 export type IconName = keyof typeof ICONS;

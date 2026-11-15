@@ -11,7 +11,9 @@ const config: CapacitorConfig = {
   webDir: "capacitor/www",
   backgroundColor: "#F3F2EE",
   server: {
-    url: "https://talabapass.uz",
+    // Boshlanish: tanishtiruv (birinchi ochilish) yoki kirish — landing emas. Eski APK'lar landing'ni ochsa,
+    // sayt o'zi `/ilova` ga o'tkazadi (NativeApp).
+    url: "https://talabapass.uz/uz/ilova",
     androidScheme: "https",
     cleartext: false,
     // Sayt ochilmasa (internet yo'q) — mahalliy ekran, "Qayta urinish" bilan

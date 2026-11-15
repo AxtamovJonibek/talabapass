@@ -12,6 +12,7 @@ import { LiveDeals } from "@/components/landing/live-deals";
 import { Partners } from "@/components/landing/partners";
 import { Stats } from "@/components/landing/stats";
 import { Ticker } from "@/components/landing/ticker";
+import { AppLandingRedirect } from "@/components/pwa/native-app";
 import { resolveLocale } from "@/i18n/locale";
 import { landingDeals, landingPartners, landingStats } from "@/server/landing";
 
@@ -38,6 +39,8 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
 
   return (
     <div className="dz" style={{ containerType: "inline-size", background: "var(--color-paper)", fontFamily: "var(--font-sans)", color: "var(--color-ink)", overflowX: "hidden" }}>
+      {/* Capacitor ilovasida landing o'rniga /ilova (brauzerda hech narsa qilmaydi) */}
+      <AppLandingRedirect />
       <LandingHeader />
       <Hero />
       <Ticker />

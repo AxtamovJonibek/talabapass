@@ -2555,5 +2555,124 @@
       "hasStudents": "Talabalari bor universitetni o'chirib bo'lmaydi.",
       "protected": "Bu yozuvni o'zgartirib bo'lmaydi."
     }
+  },
+  "app": {
+    "back": "Orqaga",
+    "skip": "O'tkazib yuborish",
+    "next": "Davom etish",
+    "start": "Boshlash",
+    "forBusiness": "Biznes uchun",
+    "role": {
+      "student": "Talaba",
+      "business": "Biznes"
+    },
+    "intro": {
+      "label": "Tanishtiruv: {n}-ekran, {total} tadan",
+      "slides": {
+        "1": {
+          "title": "Talaba bo'lish endi <hl>arzonroq.</hl>",
+          "lead": "Kafe, kitob do'koni, sport zali, sartaroshxona: shahar bo'ylab hamkor joylarda talabalar uchun maxsus narx."
+        },
+        "2": {
+          "title": "Guvohnomani bir marta <hl>tasdiqlang.</hl>",
+          "lead": "Talaba guvohnomasini suratga oling. Moderator tekshiradi, keyin barcha chegirmalar ochiladi."
+        },
+        "3": {
+          "title": "Kassada <hl>QR</hl> ko'rsating.",
+          "lead": "Chegirmani oling va kassada QR kodni ko'rsating. Kassir skanerlaydi, narx o'zi tushadi."
+        },
+        "4": {
+          "title": "Yoningizdagi <hl>joylar.</hl>",
+          "lead": "Eng yaqin chegirmalar ro'yxatda va xaritada: hozir ochiqlari tepada, masofasi bilan."
+        }
+      },
+      "art": {
+        "bookstore": "Kitob do'koni · universitet yonida",
+        "books": "Darsliklar va daftarlar",
+        "chips": {
+          "all": "Hammasi",
+          "coffee": "Kofe",
+          "book": "Kitob",
+          "sport": "Sport"
+        },
+        "printPlace": "Nusxa Markazi · 0.1 km",
+        "printTitle": "A4 chop etish",
+        "cardTitle": "TALABA GUVOHNOMASI",
+        "cardName": "Dilnoza Karimova",
+        "cardMeta": "TATU · 3-kurs",
+        "approved": "Tasdiqlandi",
+        "couponPlace": "Kofe Bar",
+        "couponCode": "6 raqamli kod: 482 913",
+        "near": {
+          "1": {
+            "place": "Kofe Bar · 0.2 km",
+            "title": "Kapuchino",
+            "badge": "−30%"
+          },
+          "2": {
+            "place": "Fit Zal · 0.6 km",
+            "title": "Bir martalik mashg'ulot",
+            "badge": "−20%"
+          },
+          "3": {
+            "place": "Lavash Point · 0.9 km",
+            "title": "Lavash + choy",
+            "badge": "1+1"
+          }
+        },
+        "open": "Hozir ochiq"
+      }
+    },
+    "bizIntro": {
+      "slides": {
+        "1": {
+          "title": "Yangi <hl>mijozlar</hl> keltiring.",
+          "lead": "Chegirma qo'ying: talabalar yoningizdagi joylarni topib, sizga keladi. Bo'sh soatlarni ham to'ldirasiz."
+        },
+        "2": {
+          "title": "Kassada bir soniyada <hl>skaner.</hl>",
+          "lead": "Kassir QR kodni skanerlaydi, chegirma o'zi hisoblanadi. Statistika va hisobotlar doim qo'lingizda."
+        }
+      },
+      "art": {
+        "weekNew": "Bu hafta yangi talabalar",
+        "weekCount": "+128",
+        "weekGrowth": "+34%",
+        "slotBadge": "−20%",
+        "slotTime": "Seshanba 14:00",
+        "slotNote": "bo'sh soatlar",
+        "today": "Bugun",
+        "todayTotal": "23 kupon · 1 840 000",
+        "applied": "−25% qo'llandi"
+      },
+      "start": "Biznes sifatida boshlash"
+    },
+    "login": {
+      "title": "Boshla<br></br>ymiz.",
+      "lead": "Telefon raqamingizni kiriting. SMS orqali kod yuboramiz, ro'yxatdan o'tish ham, kirish ham shu yerda.",
+      "businessLead": "Biznes hisobi uchun telefon raqamingizni kiriting. SMS orqali kod yuboramiz.",
+      "badge": "−25%",
+      "returningTitle": "Qayta<br></br>xush kelibsiz!",
+      "returningLead": "Hisobga kirish uchun telefon raqamingizni tasdiqlang.",
+      "returningNote": "Oxirgi marta shu raqam bilan kirgansiz.",
+      "otherPhone": "Boshqa raqam bilan?",
+      "otherPhoneAction": "Almashtirish",
+      "phoneLabel": "Telefon raqam",
+      "phonePlaceholder": "90 123 45 67",
+      "sendCode": "Kod yuborish",
+      "sending": "Yuborilmoqda…",
+      "businessQuestion": "Biznes egasimisiz?",
+      "studentQuestion": "Talabamisiz?",
+      "here": "Bu yerdan",
+      "consent": "Davom etib, <terms>Foydalanish shartlari</terms> va <privacy>Maxfiylik siyosati</privacy>ga rozilik bildirasiz.",
+      "codeTitle": "Kodni kiriting.",
+      "codeLead": "<b>{phone}</b> raqamiga 6 xonali kod yubordik.",
+      "codeLabel": "SMS kodi",
+      "resendIn": "Qayta yuborish:",
+      "resend": "Qayta yuborish",
+      "changePhone": "Raqamni o'zgartirish",
+      "confirm": "Tasdiqlash",
+      "checking": "Tekshirilmoqda…"
+    }
   }
 }

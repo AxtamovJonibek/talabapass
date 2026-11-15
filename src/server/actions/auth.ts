@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { normalizePhone } from "@/lib/format";
+import { isAppRequest } from "../app-mode";
 import { requestOtp, verifyOtp } from "../auth/otp";
 import { clientIp } from "../auth/phone-check";
 import { cashierBusiness } from "../business/cashiers";
@@ -66,5 +67,6 @@ export async function verifyCodeAction(rawPhone: string, rawCode: string, rawInt
 
 export async function logoutAction(): Promise<void> {
   await destroySession();
-  redirect({ href: "/", locale: await getLocale() });
+  // Ilovada — "Qayta xush kelibsiz" (Auth2), saytda — bosh sahifa
+  redirect({ href: (await isAppRequest()) ? "/kirish" : "/", locale: await getLocale() });
 }

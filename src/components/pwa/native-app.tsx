@@ -4,20 +4,35 @@ import { useEffect } from "react";
 import { App } from "@capacitor/app";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { APP_COOKIE } from "@/lib/app-mode";
 import { isNativeApp } from "@/lib/native";
 
 /**
  * Capacitor ilovasi ichida (brauzerda hech narsa qilmaydi):
- * - splash sahifa chizilgach yopiladi;
+ * - `tp_app` cookie (server ilova ko'rinishini beradi, `src/lib/app-mode.ts`); bosh sahifa (landing) o'rniga
+ *   `/ilova` (tanishtiruv yoki kirish) — eski APK'lar `server.url` bilan landing'ni ochadi;
+ * - splash sahifa chizilgach yopiladi (`/ilova` o'zi yopadi — karusel yoki kirishni tanlagach);
  * - status bar belgilari fonga mos: qora ekranlarda (`data-edge`, globals.css) oq, qolganida qora;
  * - Android "orqaga": tarix bo'lsa orqaga, aks holda ilova yopilmaydi — fonga o'tadi;
  * - ilgari ro'yxatdan o'tgan service worker bo'lsa olib tashlanadi (ilovada SW ishlatilmaydi).
  */
+const isLanding = (path: string) => /^(\/[a-z]{2})?\/?$/.test(path);
+
+/** Landing ilovada ko'rsatilmaydi (logotip havolasi, eski APK'ning `server.url` i) — tanishtiruv yoki kirish. Landing sahifasida turadi. */
+export function AppLandingRedirect() {
+  useEffect(() => {
+    if (isNativeApp()) window.location.replace(`${window.location.pathname.replace(/\/$/, "")}/ilova`);
+  }, []);
+  return null;
+}
+
 export function NativeApp() {
   useEffect(() => {
     if (!isNativeApp()) return;
     document.documentElement.dataset.native = "";
-    SplashScreen.hide().catch(() => {});
+    document.cookie = `${APP_COOKIE}=1; path=/; max-age=31536000; samesite=lax; secure`;
+    // Landing'da splash o'tish tugaguncha turadi (AppLandingRedirect), `/ilova` uni o'zi yopadi
+    if (!isLanding(window.location.pathname) && !/\/ilova(\/|$)/.test(window.location.pathname)) SplashScreen.hide().catch(() => {});
     navigator.serviceWorker?.getRegistrations().then((list) => list.forEach((r) => r.unregister())).catch(() => {});
 
     let dark: boolean | null = null;

@@ -470,6 +470,14 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   Pastki menyu `data-bottom-nav`; qora butun ekranli sahifa ildizi `data-edge="ink"|"ink-0"`; `sticky top-0` o'rniga `top-[var(--safe-top)]`;
   `fixed` pastki elementlar `+ var(--safe-bottom)`.
 - 44px dan kichik bosiladigan element — `tap` utilitasi (ko'rinmas ≥ 44×44 maydon; `tp-paint` ga emas).
+- **Ilova oqimi** (`design/app-flow/`, README'si bilan; 390×844 ekranlar): faqat ilovada. `NativeApp` `isNativePlatform()` da `tp_app` cookie qo'yadi
+  (`src/lib/app-mode.ts`) — server (`isAppRequest()`, `src/server/app-mode.ts`) shu cookie bo'yicha `/kirish` va keyingi bosqichlarda ilova ko'rinishini beradi;
+  brauzerda cookie yo'q — sayt o'zgarmaydi. Start `server.url` = `/uz/ilova`; landing ilovada `AppLandingRedirect` bilan `/ilova` ga o'tadi.
+  `/ilova` — talaba karuseli (Main, Slide2–4; faqat birinchi marta, Preferences `tp.onboarded`, `src/lib/app-prefs.ts`, plagin yo'q bo'lsa localStorage),
+  `/ilova/biznes` — Biz1/Biz2 ("Biznes egasimisiz?"). Kirish: `components/app/app-login.tsx` (Auth/AuthBiznes/Auth2 → Kod); Auth2 — qurilmada `tp.lastPhone` bo'lsa;
+  chiqishda ilova `/kirish` ga qaytadi. Primitivlar `ui/app-kit.tsx`, `ui/app-code.tsx`; yangi tokenlar `green-bright`, `green-ok`, `peach`, `shadow-*` (app-flow).
+  Dizayndagi yuqori 56px status bar joyini ham o'z ichiga oladi — `AppScreen` `max(12px, 56px − safe-top)` beradi.
+  Dizaynda yo'q: Slide2–4 (Main uslubida yig'ilgan), Auth2 da sarlavha doiradan ustun (dizaynda doira matnni yopardi). Test: `e2e/app-flow.spec.ts`.
 
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).

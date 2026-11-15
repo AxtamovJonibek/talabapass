@@ -27,6 +27,8 @@ const SIZES = {
   "md-wide": "h-12 rounded-12 px-[22px] text-15",
   /** 404 / oflayn ekranlari (56px, radius 16, 17px) */
   state: "h-14 rounded-16 px-6 text-17",
+  /** Ilova oqimi (design/app-flow) asosiy tugmasi: 58px, radius 20, 18px */
+  app: "h-[58px] rounded-20 px-5 text-18",
   /** Ikkilamchi: B6 "Excel hisobot" */
   sm: "h-11 rounded-12 px-4 text-14",
 } as const;
@@ -70,11 +72,12 @@ export function buttonClass(
   const idle = variant === "idle";
   return cn(
     // Bosilganda 0.97 ga kichrayadi (120ms) — interfeys "eshitdi" degan javob; stamp/paint/squish — o'zining bosilish harakati
-    "tp-btn flex items-center gap-2 font-sans no-underline disabled:scale-100 disabled:hover:brightness-100",
+    "tp-btn flex items-center font-sans no-underline disabled:scale-100 disabled:hover:brightness-100",
     // stamp o'z o'tishini (translate, box-shadow) globals.css da beradi
     !look.includes("tp-stamp") && "transition-[scale,opacity,background-color,filter] duration-120 ease-out",
     !look.includes("tp-") && "active:scale-[0.97]",
     !idle && "disabled:opacity-50",
+    size === "app" ? "gap-2.5" : "gap-2",
     spread ? "justify-between" : "justify-center",
     block && "w-full",
     SIZES[size],

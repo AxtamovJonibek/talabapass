@@ -55,6 +55,18 @@ Bu faqat sinov uchun. Play Market'ga chiqishda alohida release kaliti va `assemb
 - Bosish maydoni: `tap` utilitasi — ko'rinishni o'zgartirmay ≥ 44×44 px. 44 px dan kichik yangi tugma/havolaga qo'shing
   (`tp-paint` — ::before band, unga qo'yilmaydi). Hover holatlari allaqachon faqat `(hover: hover)` da, bosishda `:active`.
 
+## Ilova oqimi (design/app-flow)
+
+- Ilova `https://talabapass.uz/uz/ilova` dan boshlanadi: birinchi ochilishda tanishtiruv karuseli, keyin — kirish (telefon → SMS kod).
+  "O'tkazib yuborish" yoki oxirgi slayd bayroqni qurilmada saqlaydi (`@capacitor/preferences`) — keyingi ochilishlarda karusel yo'q.
+- "Biznes egasimisiz? Bu yerdan" → biznes karuseli (2 ta) → biznes kirishi.
+- Chiqib ketgandan keyin "Qayta xush kelibsiz" (oxirgi raqam oldindan yozilgan).
+- Saytda bu ekranlar yo'q: ular faqat `Capacitor.isNativePlatform()` da qo'yiladigan `tp_app` cookie bilan chiqadi.
+- Brauzerda sinash: DevTools konsolida `window.CapacitorCustomPlatform = {name: "android", plugins: {}}` sahifa yuklanishidan oldin
+  kerak — `e2e/app-flow.spec.ts` dagi `asNativeApp` shuni qiladi.
+- Preferences plagini va yangi start manzili uchun APK qayta yig'ilishi kerak. Eski APK ham ishlaydi: landing o'zi `/ilova` ga o'tadi,
+  bayroq esa localStorage'da saqlanadi.
+
 ## Ma'lum cheklovlar
 
 - Oflayn kupon (service worker keshi) ilovada yo'q — QR uchun internet kerak (sayt brauzerda/PWA'da oflayn ishlaydi).
