@@ -33,8 +33,6 @@ jobs:
           java-version: 21
           cache: gradle
 
-      - uses: android-actions/setup-android@v3
-
       # Faqat Capacitor kerak: postinstall (prisma generate) va boshqa skriptlar shart emas
       - name: Paketlar
         run: npm ci --ignore-scripts
