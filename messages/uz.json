@@ -2672,7 +2672,41 @@
       "resend": "Qayta yuborish",
       "changePhone": "Raqamni o'zgartirish",
       "confirm": "Tasdiqlash",
-      "checking": "Tekshirilmoqda…"
+      "checking": "Tekshirilmoqda…",
+      "tip": "Yangi raqam bo'lsa, keyingi qadamda parol o'rnatasiz. Hisobingiz bor bo'lsa, <b>parolingizni kiritasiz</b>.",
+      "found": "Hisobingiz topildi",
+      "passwordTitle": "Parolingizni <hl>kiriting.</hl>",
+      "passwordLabel": "Parol",
+      "showPassword": "Parolni ko'rsatish",
+      "hidePassword": "Parolni yashirish",
+      "forgot": "Parolni unutdim",
+      "signIn": "Kirish",
+      "signingIn": "Kirilmoqda…",
+      "otherNumber": "Boshqa raqam bilan kirish",
+      "setTitle": "Parol o'rnating.",
+      "setLead": "Raqamingiz tasdiqlandi. Keyingi safar shu parol bilan kirasiz.",
+      "resetTitle": "Yangi parol.",
+      "resetLead": "Raqamingiz tasdiqlandi. Yangi parol o'rnating: boshqa qurilmalardagi kirishlar yopiladi.",
+      "setSteps": "Telefon va SMS tasdiqlandi, parol o'rnatilmoqda",
+      "repeatLabel": "Parolni takrorlang",
+      "ruleLength": "Kamida 8 ta belgi",
+      "ruleMix": "Harf va raqam birga",
+      "strength": {
+        "1": "Zaif",
+        "2": "O'rtacha",
+        "3": "Yaxshi",
+        "4": "Kuchli"
+      },
+      "continue": "Davom etish",
+      "save": "Saqlash va kirish",
+      "saving": "Saqlanmoqda…",
+      "errors": {
+        "wrongPassword": "Parol noto'g'ri. Yana {left} ta urinish qoldi.",
+        "passwordLocked": "Juda ko'p xato urinish. {minutes} daqiqadan keyin qayta urinib ko'ring yoki SMS orqali yangi parol o'rnating.",
+        "weakPassword": "Parol kamida 8 ta belgi bo'lsin, harf va raqam birga.",
+        "mismatch": "Parollar bir xil emas.",
+        "stepExpired": "Tasdiqlash muddati o'tdi. Raqamni qayta tasdiqlang."
+      }
     }
   }
 }

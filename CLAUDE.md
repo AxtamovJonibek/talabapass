@@ -478,6 +478,13 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   chiqishda ilova `/kirish` ga qaytadi. Primitivlar `ui/app-kit.tsx`, `ui/app-code.tsx`; yangi tokenlar `green-bright`, `green-ok`, `peach`, `shadow-*` (app-flow).
   Dizayndagi yuqori 56px status bar joyini ham o'z ichiga oladi — `AppScreen` `max(12px, 56px − safe-top)` beradi.
   Dizaynda yo'q: Slide2–4 (Main uslubida yig'ilgan), Auth2 da sarlavha doiradan ustun (dizaynda doira matnni yopardi). Test: `e2e/app-flow.spec.ts`.
+- **Ilova paroli** (faqat ilovada; sayt kirishi SMS bilan, o'zgarmagan): telefon → SMS kod → hisob bor va parol bor — Kirish (parol); yangi raqam yoki
+  parolsiz eski hisob — Parol (o'rnatish). Parol koddan KEYIN so'raladi (raqam oshkor bo'lmaydi). `User.passwordHash` (admin bilan bir xil scrypt formati),
+  `passwordFails`, `passwordLockedUntil`: 5 ketma-ket xato → 15 daqiqa qulf (to'g'ri parol ham o'tmaydi) va SMS tasdig'i bekor. Qoidalar `src/lib/password.ts`
+  (kamida 8, harf + raqam, ≤ 128, chetidagi bo'shliq kesiladi; kuch shkalasi), server `src/server/auth/password.ts`, action'lar `src/server/actions/app-auth.ts`.
+  Qadam holati imzolangan cookie'larda: `tp_pw_step` (10 daq: `login` | `set` | `new:student|business`), `tp_new_pw` (yangi raqam xeshi, 30 daq) —
+  ro'yxat action'lari hisob ochganda `applyPendingPassword`. "Parolni unutdim" — SMS tasdig'i amal qilsa yangi parol, boshqa sessiyalar yopiladi.
+  Admin ilovada ham o'z yo'li (SMS → `/kirish/admin`). Audit: `user.password.set|reset|locked`. `NativeApp` cookie birinchi qo'yilganda sahifani bir marta qayta yuklaydi.
 
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).

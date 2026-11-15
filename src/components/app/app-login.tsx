@@ -17,6 +17,7 @@ import {
   IconTile,
   PhoneBox,
   textAction,
+  TipCard,
   TopBar,
 } from "@/components/ui/app-kit";
 import { buttonClass } from "@/components/ui/button";
@@ -24,22 +25,27 @@ import { Icon } from "@/components/ui/icon";
 import { Link } from "@/i18n/navigation";
 import { PREF, readPref, writePref } from "@/lib/app-prefs";
 import { cn } from "@/lib/cn";
-import { formatPhone, phoneNational } from "@/lib/format";
+import { formatPhone, normalizePhone, phoneNational } from "@/lib/format";
 import { useStepHistory } from "@/lib/use-step-history";
-import { requestCodeAction, verifyCodeAction, type AuthError } from "@/server/actions/auth";
+import { appLoginAction, appSetPasswordAction, appVerifyCodeAction, type PasswordError } from "@/server/actions/app-auth";
+import { requestCodeAction, type AuthError } from "@/server/actions/auth";
+import { PasswordScreen, SetPasswordScreen } from "./app-password";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
 type Variant = "student" | "business" | "returning";
-type Failure = { error: AuthError; retryInSeconds?: number };
+type Step = "phone" | "code" | "password" | "setPassword";
+type Failure = { error: AuthError | PasswordError; retryInSeconds?: number; left?: number };
+type Account = { masked: string; initial: string | null; role: "student" | "business" };
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+const PASSWORD_ERRORS = new Set<string>(["wrongPassword", "passwordLocked", "weakPassword", "mismatch", "stepExpired"]);
 
 /**
- * Ilova kirishi (design/app-flow: Auth, AuthBiznes, Auth2 → Kod). Telefon → SMS kod.
+ * Ilova kirishi (design/app-flow): Auth / AuthBiznes / Auth2 → Kod → Kirish (parol) yoki Parol (o'rnatish).
  * Auth2 ("Qayta xush kelibsiz") — qurilmada oxirgi kirilgan raqam bo'lsa (chiqib ketgandan keyin).
- * Raqam ro'yxatda bor-yo'qligi kod tasdiqlanmaguncha oshkor qilinmaydi.
+ * Raqam ro'yxatda bor-yo'qligi SMS kod tasdiqlanmaguncha oshkor qilinmaydi; parol koddan KEYIN so'raladi.
  */
 export function AppLogin() {
   const t = useTranslations("app.login");
@@ -48,10 +54,12 @@ export function AppLogin() {
   const business = useSearchParams().get("rol") === "biznes";
   const [lastPhone, setLastPhone] = useState<string | null | undefined>(undefined);
   const [switched, setSwitched] = useState(false);
-  const [step, setStep] = useState<"phone" | "code">("phone");
+  const [step, setStep] = useState<Step>("phone");
   const [phoneInput, setPhoneInput] = useState("");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [account, setAccount] = useState<Account | null>(null);
+  const [setMode, setSetMode] = useState<{ mode: "new" | "missing" | "reset"; role: "student" | "business" } | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
   const [resendIn, setResendIn] = useState(0);
   const [pending, startTransition] = useTransition();
@@ -76,14 +84,28 @@ export function AppLogin() {
     return () => clearTimeout(timer);
   }, [resendIn]);
 
+  // Tarix: telefon 0 → kod 1 → parol 2 → ("Parolni unutdim") 3. Ishlatilgan kodga qaytilmaydi — parol qadamidan telefonga.
+  const resetting = step === "setPassword" && setMode?.mode === "reset";
+  const depth = step === "phone" ? 0 : step === "code" ? 1 : resetting ? 3 : 2;
   const goBack = useStepHistory(
-    step === "code" ? 1 : 0,
+    depth,
     () => {
-      setStep("phone");
       setFailure(null);
+      setStep(resetting ? "password" : "phone");
     },
     business ? "/ilova/biznes?slayd=2" : "/ilova?slayd=4",
   );
+
+  /** Telefon qadamiga: SMS tasdig'i eskirgan, parol qulflangan yoki "Boshqa raqam bilan kirish" */
+  function restart(next: Failure | null, otherPhone = false) {
+    setStep("phone");
+    setCode("");
+    setFailure(next);
+    if (otherPhone) {
+      setSwitched(true);
+      setPhoneInput("");
+    }
+  }
 
   function sendCode(rawPhone: string = phoneInput) {
     setFailure(null);
@@ -95,6 +117,7 @@ export function AppLogin() {
         // Kod yaqinda yuborilgan — foydalanuvchida u bor, kiritish qadamiga o'tamiz
         if (result.error !== "tooSoon" || step === "code") return;
         setResendIn(result.retryInSeconds ?? RESEND_SECONDS);
+        setPhone(normalizePhone(rawPhone) ?? "");
       } else {
         setResendIn(RESEND_SECONDS);
         setPhone(result.phone);
@@ -107,25 +130,90 @@ export function AppLogin() {
   function verify(value: string) {
     setFailure(null);
     startTransition(async () => {
-      // Muvaffaqiyatda server yo'naltiradi; bu yerga faqat xato qaytadi
-      const result = await verifyCodeAction(phoneInput, value, business ? "business" : "student");
-      if (result) {
+      // Admin bo'lsa server o'zi yo'naltiradi (o'z parol sahifasiga)
+      const result = await appVerifyCodeAction(phoneInput, value, business ? "business" : "student");
+      if (!result) return;
+      if (!result.ok) {
         setFailure(result);
         setCode("");
-      } else if (phone) {
-        await writePref(PREF.lastPhone, phone);
+        return;
+      }
+      await writePref(PREF.lastPhone, phone);
+      if (result.next === "password") {
+        setAccount(result);
+        setStep("password");
+      } else {
+        setSetMode({ mode: result.isNew ? "new" : "missing", role: result.role });
+        setStep("setPassword");
       }
     });
   }
 
+  function onPasswordFailure(result: Failure) {
+    if (result.error === "stepExpired" || result.error === "passwordLocked") return restart(result);
+    setFailure(result);
+  }
+
+  function login(password: string) {
+    setFailure(null);
+    startTransition(async () => {
+      // Muvaffaqiyatda server yo'naltiradi
+      const result = await appLoginAction(password);
+      if (result) onPasswordFailure(result);
+    });
+  }
+
+  function savePassword(password: string, confirm: string) {
+    setFailure(null);
+    startTransition(async () => {
+      const result = await appSetPasswordAction(password, confirm);
+      if (result) onPasswordFailure(result);
+    });
+  }
+
   const errorText = failure
-    ? auth(`errors.${failure.error}`, { seconds: failure.retryInSeconds ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
+    ? PASSWORD_ERRORS.has(failure.error)
+      ? t(`errors.${failure.error as PasswordError}`, { left: failure.left ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
+      : auth(`errors.${failure.error as AuthError}`, { seconds: failure.retryInSeconds ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
     : null;
+
+  if (step === "password" && account) {
+    return (
+      <PasswordScreen
+        masked={account.masked}
+        initial={account.initial}
+        onSubmit={login}
+        onForgot={() => {
+          setFailure(null);
+          setSetMode({ mode: "reset", role: account.role });
+          setStep("setPassword");
+        }}
+        onOtherPhone={() => restart(null, true)}
+        onBack={goBack}
+        pending={pending}
+        errorText={errorText}
+      />
+    );
+  }
+
+  if (step === "setPassword" && setMode) {
+    return (
+      <SetPasswordScreen
+        mode={setMode.mode}
+        role={setMode.role}
+        onSubmit={savePassword}
+        onBack={goBack}
+        pending={pending}
+        errorText={errorText}
+        mismatch={failure?.error === "mismatch"}
+      />
+    );
+  }
 
   // Qurilma sozlamasi o'qilguncha (bir lahza) — bo'sh fon, aks holda Auth ↔ Auth2 almashib ko'rinadi
   if (lastPhone === undefined) return <div className="min-h-dvh bg-paper" />;
 
-  if (step === "code") {
+  if (step !== "phone") {
     return (
       <AppScreen>
         <TopBar>
@@ -177,7 +265,10 @@ export function AppLogin() {
             </div>
           </div>
           <div className="flex-1" />
-          <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: "blue", size: "app", strong: true, block: true }, "mt-6")}>
+          <div className="mt-6 mb-4">
+            <TipCard icon="shield">{t.rich("tip", { b: (chunks: ReactNode) => <b className="font-extrabold text-blue">{chunks}</b> })}</TipCard>
+          </div>
+          <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: "blue", size: "app", strong: true, block: true })}>
             {pending ? t("checking") : t("confirm")}
             <Icon name="tick" size={22} strokeWidth={2.4} />
           </button>

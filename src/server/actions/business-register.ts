@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import type { BusinessField } from "@/lib/business";
 import { normalizePhone } from "@/lib/format";
+import { applyPendingPassword } from "../auth/password";
 import { confirmPhone } from "../auth/phone-check";
 import { createSession, forgetVerifiedPhone, getCurrentUser, homePathFor, requireRole } from "../auth/session";
 import { cleanBusinessInfo, createBusinessOwner, removeBusinessDoc, submitBusiness, updateBusinessInfo, type SubmitProblem } from "../business/registration";
@@ -73,6 +74,8 @@ export async function saveBusinessAction(raw: unknown): Promise<SaveResult> {
 
   const created = await createBusinessOwner(phone, cleaned.info);
   if (!created.ok) return { ok: false, error: created.error };
+  // Ilovada raqam tasdiqlangach o'rnatilgan parol (saytda yo'q)
+  await applyPendingPassword(created.userId, phone);
   await forgetVerifiedPhone();
   await createSession(created.userId, userAgent);
   return { ok: true, step: "saved" };

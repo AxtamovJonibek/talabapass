@@ -30,7 +30,15 @@ export function NativeApp() {
   useEffect(() => {
     if (!isNativeApp()) return;
     document.documentElement.dataset.native = "";
+    const hasCookie = () => document.cookie.split("; ").includes(`${APP_COOKIE}=1`);
+    const had = hasCookie();
     document.cookie = `${APP_COOKIE}=1; path=/; max-age=31536000; samesite=lax; secure`;
+    // Birinchi marta (o'rnatilgandan keyin bir marta): server shu sahifani sayt ko'rinishida chizgan — ilova ko'rinishi uchun qayta yuklash.
+    // Landing o'zi /ilova ga o'tadi. Cookie saqlanmasa (taqiqlangan) — qayta yuklanmaydi, tsikl yo'q.
+    if (!had && hasCookie() && !isLanding(window.location.pathname)) {
+      window.location.reload();
+      return;
+    }
     // Landing'da splash o'tish tugaguncha turadi (AppLandingRedirect), `/ilova` uni o'zi yopadi
     if (!isLanding(window.location.pathname) && !/\/ilova(\/|$)/.test(window.location.pathname)) SplashScreen.hide().catch(() => {});
     navigator.serviceWorker?.getRegistrations().then((list) => list.forEach((r) => r.unregister())).catch(() => {});

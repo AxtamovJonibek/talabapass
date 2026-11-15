@@ -5,6 +5,7 @@ import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { normalizePhone } from "@/lib/format";
+import { applyPendingPassword } from "../auth/password";
 import { confirmPhone } from "../auth/phone-check";
 import { createSession, forgetVerifiedPhone, homePathFor } from "../auth/session";
 import { effectiveStudentStatus, studentPathFor } from "../auth/student-status";
@@ -74,6 +75,8 @@ export async function registerStudentAction(raw: unknown): Promise<RegisterResul
   }
 
   const user = await createStudent(phone, form.data, otherName);
+  // Ilovada raqam tasdiqlangach o'rnatilgan parol (saytda yo'q)
+  await applyPendingPassword(user.id, phone);
   await forgetVerifiedPhone();
   await createSession(user.id, userAgent);
   return redirect({ href: "/talaba/guvohnoma", locale });

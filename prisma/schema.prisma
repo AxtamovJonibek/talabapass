@@ -33,6 +33,12 @@ model User {
   blockedReason String?
   /// Telegram orqali kirganlar uchun bot suhbati (xabarnomalar shu yerga ham). Telegram kirishi ulanganda to'ldiriladi.
   telegramChatId String?
+  /// Ilova paroli (scrypt, `src/server/auth/password.ts`). null — hali o'rnatilmagan: eski hisob SMS koddan keyin o'rnatadi.
+  /// Sayt kirishi (SMS) parolni so'ramaydi.
+  passwordHash        String?
+  /// Ketma-ket noto'g'ri parollar (to'g'ri parol yoki bloklashda 0 ga qaytadi)
+  passwordFails       Int       @default(0)
+  passwordLockedUntil DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
