@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_rethrow } from "next/navigation";
 import { NextResponse, type NextRequest } from "next/server";
 import { createTranslator } from "next-intl";
 import type { z } from "zod";
@@ -89,6 +90,8 @@ export function route<P extends object = object>(handler: (request: NextRequest,
       return await handler(request, ctx);
     } catch (error) {
       if (error instanceof ApiError) return errorResponse(error.code, error.details);
+      // Next'ning ichki signallari (prerender'dan chiqish va h.k.) ushlanmaydi
+      unstable_rethrow(error);
       console.error("API xatosi:", request.method, request.nextUrl.pathname, error);
       return errorResponse("server_error");
     }

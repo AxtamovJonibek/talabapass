@@ -75,3 +75,41 @@ Hisobni o'chirish: qator qoladi (sotuv/kupon tarixi biznes hisobotlari uchun), s
 bo'shaydi (`deleted:<id>`; shu raqam bilan keyin yangi hisob ochsa bo'ladi), holat `DELETED`, barcha sessiyalar yopiladi.
 Talabaning guvohnoma fayllari va profil rasmi o'chiriladi, faol kuponlar bekor. Biznes egasida chegirmalar talabaga
 ko'rinmay qoladi, kassirlar chiqariladi. Pul hal bo'lmagan buyurtma bo'lsa — `open_orders` (`src/server/account.ts`).
+
+## Talaba ro'yxati
+
+Oqim: `/auth/verify` (intent `student`, yangi raqam) → `/auth/password` → `registrationTicket` → `POST /student/register`
+→ `POST /student/card` → admin tekshiradi → `GET /student/status` (yoki `GET /me`) `APPROVED`.
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `GET /universities?q=` | — (kirishsiz) | `{ universities: [{ id, name, shortName, region, kind }], otherId: "other" }` |
+| `POST /student/register` | `{ registrationTicket, firstName, lastName, universityId, universityOther?, course: "C1"\|"C2"\|"C3"\|"C4"\|"MASTER", deviceName? }` | 201 `SignedIn` (talaba `DRAFT`) · xato: `invalid_request` + `fields`, `step_expired` |
+| `POST /student/card` | Bearer (talaba, tasdiqlanmagan ham), multipart `file` (JPG/PNG/HEIC/PDF ≤ 10 MB) | 201 `{ verificationId, status: "PENDING" }` · xato: `file_bad_type`, `file_too_large`, `file_empty`, `upload_not_allowed` (tasdiqlangan), `upload_daily_limit` |
+| `GET /student/status` | Bearer (talaba) | `{ status, cardExpiresAt, verification: { id, status, fileName, rejectReason, createdAt, queuePosition } \| null }` |
+
+`universityId = "other"` bo'lsa `universityOther` — OTM nomi (3–120 belgi); admin keyin ro'yxatga qo'shadi.
+Talaba holatlari: `DRAFT` (guvohnoma yuklash), `PENDING`, `APPROVED`, `REJECTED` (`rejectReason` bilan, qayta yuklaydi),
+`EXPIRED` (guvohnoma muddati o'tgan — yangisini yuklaydi), `BLOCKED`.
+
+## Biznes ro'yxati (4 qadam)
+
+1. **Info** — `POST /business/validate` `{ step: "info", name, kind, address }` → `{ ok, fields: [] }` (saqlamaydi).
+2. **Tafsilot** — `POST /business/validate` `{ step: "details", workingHours, tin, description?, contactName }`, so'ng
+   `POST /business/register` `{ registrationTicket, name, kind, address, workingHours, description?, tin, contactName, deviceName? }`
+   → 201 `SignedIn` (egasi hisobi va ariza ochiladi) · xato: `invalid_request` + `fields`, `tin_taken`, `step_expired`.
+3. **Fayllar** — `POST /business/documents?kind=registration|photo|logo` (Bearer, multipart `file`) → 201 `{ id, kind }`.
+   Guvohnoma bitta (yangisi almashtiradi, PDF ham), joy fotolari 1–3 ta (`too_many_files`), logotip/foto — faqat rasm.
+   O'chirish: `DELETE /business/documents/<id>`.
+4. **Yuborish** — `POST /business/submit` `{ consent: true }` → `{ ok, status: "PENDING" }` · xato: `no_registration`,
+   `no_photos`, `consent_required`, `not_editable`.
+
+`kind`: `CAFE`, `SHOP`, `SERVICE`, `SPORT`, `BEAUTY`, `EDUCATION`, `ENTERTAINMENT`. STIR — 9 raqam (bo'sh joy bilan ham).
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `GET /business/application` | Bearer (biznes egasi) | `{ application: { id, name, kind, address, workingHours, description, tin, contactName, status, submittedAt, rejectReason, editable, hasLogo, documents: [{ id, kind, fileName }] } }` |
+| `PATCH /business/application` | Bearer, 2-qadamdagi barcha maydonlar | `{ application }` · faqat yuborilmagan yoki rad etilgan arizada (`not_editable`) |
+
+Holat: `PENDING` + `submittedAt: null` — to'ldirilmoqda; `PENDING` + sana — tekshiruvda; `APPROVED`/`WARNED` — faol;
+`REJECTED` — `rejectReason`, tuzatib qayta yuboriladi; `BLOCKED`.
