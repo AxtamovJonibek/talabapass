@@ -9,6 +9,8 @@ name: deploy
 on:
   push:
     branches: [main]
+    # Faqat mobil ilova (Expo) o'zgargan push saytni qayta deploy qilmaydi
+    paths-ignore: ["mobile/**"]
   workflow_dispatch:
 
 concurrency:

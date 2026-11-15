@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
     // Capacitor native loyihalari (generatsiya qilingan, sync nusxalari)
     "android/**",
     "ios/**",
+    // Expo ilovasi — o'z package.json, tsconfig va ESLint'i bilan (mobile/README.md)
+    "mobile/**",
   ]),
 ]);
 
