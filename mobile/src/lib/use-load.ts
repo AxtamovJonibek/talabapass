@@ -6,6 +6,8 @@ export type Load<T> = {
   data: T | null;
   /** Foydalanuvchiga ko'rsatiladigan matn */
   error: string | null;
+  /** Server xato kodi (`not_found`…) */
+  code: string | null;
   offline: boolean;
   /** Birinchi yuklanish (ma'lumot hali yo'q) */
   loading: boolean;
@@ -69,6 +71,7 @@ export function useLoad<T>(fn: () => Promise<T>, enabled = true): Load<T> {
   return {
     data,
     error: error ? errorText(error) : null,
+    code: error instanceof ApiError ? error.code : null,
     offline: isNetworkError(error),
     loading: enabled && data === null && error === null,
     refreshing,

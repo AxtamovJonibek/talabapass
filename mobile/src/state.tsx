@@ -2,7 +2,8 @@ import { router, type Href } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { dropTokens, onSignedOut, setTokens } from "@/api/client";
 import { authApi, type Intent, type LocalFile, type Me, type SignedIn, type VerifyResult } from "@/api/endpoints";
-import { getLastPhone, setLastPhone } from "@/storage";
+import { clearOffline, rememberMe } from "@/lib/offline";
+import { forgetLastPhone, getLastPhone, setLastPhone } from "@/storage";
 import { localDigits } from "@/lib/phone";
 
 /**
@@ -66,6 +67,10 @@ type Ctx = {
   signIn: (result: SignedIn) => Promise<Me>;
   signOut: () => Promise<void>;
   reloadMe: () => Promise<Me>;
+  /** Internetsiz ishga tushish: oxirgi saqlangan `me` (kupon ekrani uchun) */
+  restoreMe: (me: Me) => void;
+  /** Hisob o'chirilgandan keyin: tokenlar va qurilmadagi nusxalar tozalanadi (server sessiyani o'zi yopgan) */
+  forget: () => Promise<void>;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -84,12 +89,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (result: SignedIn) => {
     await setTokens(result.tokens);
     await setLastPhone(localDigits(result.user.phone));
+    await clearOffline();
+    void rememberMe(result.user);
     setMe(result.user);
     return result.user;
   }, []);
 
   const reloadMe = useCallback(async () => {
     const { user } = await authApi.me();
+    void rememberMe(user);
     setMe(user);
     return user;
   }, []);
@@ -97,6 +105,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     await authApi.logout().catch(() => undefined);
     await dropTokens();
+    await clearOffline();
     setMe(null);
     setFlowState(initialFlow());
     resetTo((await getLastPhone()) ? "/auth/returning" : "/auth/phone");
@@ -106,6 +115,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(
     () =>
       onSignedOut(() => {
+        void clearOffline();
         if (!meRef.current) return;
         setMe(null);
         setFlowState(initialFlow());
@@ -114,7 +124,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const value = useMemo(() => ({ me, flow, setFlow, setDraft, signIn, signOut, reloadMe }), [me, flow, setFlow, setDraft, signIn, signOut, reloadMe]);
+  const forget = useCallback(async () => {
+    await dropTokens();
+    await clearOffline();
+    await forgetLastPhone();
+    setMe(null);
+    setFlowState(initialFlow());
+  }, []);
+
+  const value = useMemo(
+    () => ({ me, flow, setFlow, setDraft, signIn, signOut, reloadMe, restoreMe: setMe, forget }),
+    [me, flow, setFlow, setDraft, signIn, signOut, reloadMe, forget],
+  );
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
@@ -140,6 +161,8 @@ export function routeFor(me: Me): Href {
       case "PENDING":
       case "REJECTED":
         return "/student/review";
+      case "APPROVED":
+        return "/deals";
       default:
         return "/home";
     }

@@ -280,6 +280,7 @@ export const copy = {
     search: "Nima qidiryapsiz?",
     clearSearch: "Qidiruvni tozalash",
     notifications: "Bildirishnomalar",
+    categoryAll: "Hammasi",
     liveNow: "Hozir ochiq",
     sortLabel: "Saralash",
     sort: { near: "Eng yaqin", biggest: "Eng katta chegirma", ending: "Tez tugaydi", new: "Yangi" },
@@ -357,6 +358,13 @@ export const copy = {
     photo: (n: number, total: number) => `${n} / ${total} rasm`,
   },
 
+  directions: {
+    title: "Qanday boraman?",
+    away: (d: string) => `${d} uzoqlikda`,
+    modes: { car: "Mashinada", transit: "Jamoat transporti", walk: "Piyoda" },
+    providers: { yandex: "Yandex Xaritalar", google: "Google Maps", yandexGo: "Taksi chaqirish" },
+  },
+
   coupon: {
     title: "Kupon",
     qrLabel: "Chegirma QR kodi",
@@ -395,7 +403,7 @@ export const copy = {
 
   saved: {
     title: "Saralangan",
-    lead: "Yoqqan chegirmalarni ♡ bilan saqlang — shu yerda turadi.",
+    lead: "Chegirma sahifasida saqlash belgisini bosing — shu yerda turadi.",
     empty: "Hali hech narsa saqlanmagan",
     emptyText: "Chegirma sahifasidagi saqlash tugmasini bosing.",
   },

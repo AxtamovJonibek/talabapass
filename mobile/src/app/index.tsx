@@ -4,19 +4,29 @@ import type { Href } from "expo-router";
 import { errorText, hasSession, isNetworkError } from "@/api/client";
 import type { Me } from "@/api/endpoints";
 import { copy } from "@/copy";
+import { cachedCoupons, cachedMe } from "@/lib/offline";
 import { resetTo, routeFor, useApp } from "@/state";
 import { getLastPhone, wasOnboarded } from "@/storage";
 import { colors } from "@/theme";
 import { ErrorBox, Logo, PrimaryButton, Screen } from "@/ui/kit";
 
-/** Qayerdan boshlash: kirgan — o'z qadami; kirmagan — chiqqandan keyin Auth2, birinchi marta karusel, aks holda telefon. */
-async function startRoute(reloadMe: () => Promise<Me>): Promise<Href> {
+/**
+ * Qayerdan boshlash: kirgan — o'z qadami; kirmagan — chiqqandan keyin Auth2, birinchi marta karusel, aks holda telefon.
+ * Internet yo'q, lekin oldin kirgan bo'lsa — oxirgi saqlangan `me` bilan ilovaga (faol kupon bo'lsa — kupon ekrani:
+ * QR internetsiz ishlaydi); saqlangani yo'q bo'lsa — "Qayta urinish".
+ */
+async function startRoute(reloadMe: () => Promise<Me>, restoreMe: (me: Me) => void): Promise<Href> {
   if (await hasSession()) {
     try {
       return routeFor(await reloadMe());
     } catch (e) {
-      // Internet yo'q — sessiya saqlanadi, qayta urinish; sessiya tugagan — kirishga
-      if (isNetworkError(e)) throw e;
+      // Sessiya tugagan — kirishga
+      if (isNetworkError(e)) {
+        const me = await cachedMe();
+        if (!me) throw e;
+        restoreMe(me);
+        return me.student?.status === "APPROVED" && (await cachedCoupons()).length > 0 ? "/coupon" : routeFor(me);
+      }
     }
   }
   if (await getLastPhone()) return "/auth/returning";
@@ -25,16 +35,16 @@ async function startRoute(reloadMe: () => Promise<Me>): Promise<Href> {
 
 /** Ishga tushish ekrani: logo va kutish; internet yo'q bo'lsa — "Qayta urinish". */
 export default function Start() {
-  const { reloadMe } = useApp();
+  const { reloadMe, restoreMe } = useApp();
   const [error, setError] = useState<string | null>(null);
 
   const start = useCallback(
     () =>
-      startRoute(reloadMe).then(
+      startRoute(reloadMe, restoreMe).then(
         (route) => resetTo(route),
         (e: unknown) => setError(errorText(e)),
       ),
-    [reloadMe],
+    [reloadMe, restoreMe],
   );
 
   useEffect(() => {

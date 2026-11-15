@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { LocationProvider } from "@/lib/location";
 import { AppStateProvider } from "@/state";
 import { colors, fontFiles } from "@/theme";
 
@@ -22,8 +23,13 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AppStateProvider>
-        <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper }, animation: "slide_from_right" }} />
+        <LocationProvider>
+          <StatusBar style="dark" />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper }, animation: "slide_from_right" }}>
+            {/* Talaba ilovasi tablarida "orqaga" kirish ekranlariga qaytmaydi */}
+            <Stack.Screen name="(tabs)" options={{ gestureEnabled: false, animation: "fade" }} />
+          </Stack>
+        </LocationProvider>
       </AppStateProvider>
     </SafeAreaProvider>
   );

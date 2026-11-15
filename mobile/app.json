@@ -56,7 +56,14 @@
           "cameraPermission": "Joy fotolarini suratga olish uchun kamera kerak.",
           "microphonePermission": false
         }
-      ]
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Yaqin chegirmalarni ko'rsatish va masofani hisoblash uchun joylashuvingiz kerak."
+        }
+      ],
+      "react-native-maps"
     ]
   }
 }

@@ -21,8 +21,8 @@ type Ctx = {
   /** Joy tanlovi tiklanguncha false (birinchi so'rov keraksiz masofasiz ketmasin) */
   ready: boolean;
   choose: (choice: Choice | null) => void;
-  /** Ruxsat so'rab GPS'dan aniqlash; muvaffaqiyatli bo'lsa tanlov GPS ga o'tadi */
-  locate: () => Promise<LocateResult>;
+  /** Ruxsat so'rab GPS'dan aniqlash; `save` — tanlov GPS ga o'tadi (lenta ham shundan), aks holda faqat natija */
+  locate: (save?: boolean) => Promise<LocateResult>;
 };
 
 const KEY = "tp.joy";
@@ -48,7 +48,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     void (next ? AsyncStorage.setItem(KEY, JSON.stringify(next)) : AsyncStorage.removeItem(KEY)).catch((e: unknown) => console.warn("[joy] saqlanmadi:", e));
   }, []);
 
-  const locate = useCallback(async (): Promise<LocateResult> => {
+  const locate = useCallback(async (save = true): Promise<LocateResult> => {
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (perm.status !== "granted") return { ok: false, reason: "denied", canAskAgain: perm.canAskAgain };
@@ -59,7 +59,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         ])) ?? (await Location.getLastKnownPositionAsync());
       if (!pos) return { ok: false, reason: "unavailable", canAskAgain: true };
       const point = { lat: round(pos.coords.latitude), lng: round(pos.coords.longitude) };
-      choose({ kind: "gps", ...point });
+      if (save) choose({ kind: "gps", ...point });
       return { ok: true, ...point };
     } catch (e) {
       console.warn("[joy] GPS xatosi:", e);
