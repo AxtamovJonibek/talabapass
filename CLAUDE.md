@@ -494,6 +494,14 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   Dizayndan chetlanishlar: Guvohnoma ramkasidagi yozuv statik ("Ramkaga to'g'rilab…", aniqlash yo'q); DRAFT talabada Guvohnomada ← yo'q (hisob ochilgan);
   rad etilgan holat (Tekshiruv) va yuklangan fotolar (ochiq manzili yo'q — belgi) chizilmagan.
 
+## Native ilova (Expo, `mobile/`)
+- Alohida loyiha: `mobile/` (o'z package.json, tsconfig, ESLint; `npm install` shu papkada). Ildiz `tsconfig` `exclude`, ESLint `globalIgnores`
+  va `deploy.yml` `paths-ignore` uni chetlab o'tadi — sayt build/deploy'iga ta'sir qilmaydi. Capacitor qobig'i hozircha qoladi.
+- Faqat `/api/v1` bilan ishlaydi (docs/api-v1.md); API yetishmasa — ilovada aylanib o'tilmaydi, ro'yxat qilinadi. Batafsil: `mobile/README.md`.
+- Dizayn design/app-flow dan (`mobile/src/theme.ts`, `src/ui/kit.tsx`); Archivo — statik nusxalar (`mobile/assets/fonts`). Matnlar `mobile/src/copy.ts`
+  (messages/uz.json `app` nusxasi — saytda o'zgarsa u yerda ham).
+- Tekshiruv: `cd mobile && npm run check` (tsc + expo lint), `npx expo-doctor`.
+
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).
   Yuborishdan keyin klient `router.replace("/biznes")` qiladi (action ichida redirect emas).

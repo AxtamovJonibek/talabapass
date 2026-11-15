@@ -1,0 +1,80 @@
+# TalabaPass — mobil ilova (Expo)
+
+Native ilova: Expo SDK 58, TypeScript, expo-router. Backend — saytdagi `/api/v1` (`../docs/api-v1.md`).
+Sayt bilan umumiy kod yo'q: `mobile/` o'z `package.json`, `tsconfig`, ESLint'i bilan; ildizdagi Next build/lint/tsconfig
+uni chetlab o'tadi, faqat `mobile/` o'zgargan push saytni deploy qilmaydi. Capacitor qobig'i (`../android`) hozircha qoladi.
+
+- appId / bundle: `uz.talabapass.app`, nomi **TalabaPass**, sxema `talabapass://`.
+- Dizayn: `../design/app-flow/*.dc.html` (390×844) — ranglar va o'lchamlar `src/theme.ts` va `src/ui/kit.tsx` da.
+
+## Ishga tushirish
+
+Talab: Node 20+ (loyihada 24), telefonda **Expo Go** (SDK 58) yoki dev build.
+
+```bash
+cd mobile
+npm install
+cp .env.example .env        # ixtiyoriy: API manzili (standart — https://talabapass.uz)
+npm start                   # QR → Expo Go (telefon va kompyuter bitta tarmoqda)
+```
+
+- **Sinov kodi:** sinov serverida (`https://talabapass.uz`, `APP_ENV=staging`) SMS o'rniga har doim `000000`.
+- **Lokal backend:** ildizda `npm run dev`, `.env` da `EXPO_PUBLIC_API_URL=http://<kompyuter IP>:3000`
+  (telefon `localhost` ni ko'rmaydi). `.env` o'zgarsa `npm start -- --clear`.
+- Tekshiruv: `npm run typecheck`, `npm run lint` (yoki `npm run check`), `npx expo-doctor`.
+- Web (`npm run web`, `react-native-web`) — faqat dizaynni brauzerda solishtirish uchun: saqlash `localStorage`, kamera yo'q,
+  sayt API'sida CORS yo'q (brauzer so'rovlarni to'sadi).
+
+## EAS (dev build, APK, do'konlar)
+
+```bash
+npx eas-cli@latest login
+npx eas-cli@latest init                                       # projectId app.json ga yoziladi — commit qiling
+npx eas-cli@latest build --profile development --platform android   # dev client APK (expo-dev-client)
+npx eas-cli@latest build --profile preview --platform android       # sinov APK (ichki tarqatish)
+npx eas-cli@latest build --profile production --platform all        # do'konlar uchun (AAB / IPA)
+```
+
+- Profillar `eas.json` da; uchalasida `EXPO_PUBLIC_API_URL=https://talabapass.uz`. Production backend tayyor bo'lsa — shu yerda.
+- iOS build uchun Apple Developer hisobi (yillik to'lov), Android do'koni uchun Google Play Console hisobi kerak;
+  imzo kalitlarini EAS o'zi yaratib saqlaydi (birinchi build'da so'raydi).
+- Dev build'dan keyin: `npm start` → ilova o'zi ulanadi (Expo Go shart emas).
+
+## Tuzilma
+
+```
+src/app/                 ekranlar (expo-router): index (ishga tushish), intro, biz-intro,
+                         auth/{phone,code,login,password,returning}, student/{register,card,review},
+                         business/{info,details,docs,review}, home
+src/api/client.ts        fetch, tokenlar, refresh (bir vaqtda faqat bitta), xato formati
+src/api/endpoints.ts     /api/v1 chaqiruvlari va tiplari
+src/state.tsx            sessiya (me), kirish/ro'yxat oqimi, biznes qoralamasi; routeFor — kim qayerga
+src/storage.ts           expo-secure-store: tokenlar, karusel ko'rilgani, oxirgi raqam
+src/ui/kit.tsx           dizayn primitivlari (Screen, Title, Field, PhoneBox, CodeBoxes, PasswordBox, PrimaryButton…)
+src/ui/intro-art.tsx     karusel rasmlari; src/ui/icons.tsx — SVG ikonkalar
+src/theme.ts             ranglar (dizayndagi hex), Archivo nusxalari
+src/copy.ts              matnlar (saytdagi messages/uz.json nusxasi)
+assets/fonts/            Archivo statik nusxalari (OFL)
+```
+
+## Qoidalar
+
+- **Tokenlar:** access (15 daq) va refresh (30 kun, aylanadi) — SecureStore'da. Muddati o'tgan access token oldindan,
+  401 (`token_expired`/`unauthorized`) bo'lsa keyin yangilanadi; parallel so'rovlar bitta refresh va'dasini kutadi.
+  Refresh rad etilsa — tokenlar o'chadi, ilova kirish ekraniga qaytadi. Boshqa 401'lar (`wrong_password`) sessiyaga tegmaydi.
+- **Shrift:** React Native `font-variation-settings` ni bilmaydi — Archivo variable shriftidan kerakli og'irlik/kenglik
+  juftlari statik TTF qilib chiqarilgan (wdth 100: 400–900, 112: 800/900, 62: 900). Yangi juftlik kerak bo'lsa —
+  fontTools `instancer` bilan (`Archivo[wdth,wght].ttf`, google/fonts), oilaga alohida nom bering va `theme.ts` ga qo'shing.
+- **O'lchamlar:** dizayn px = dp. Dizayn `content-box`: 2px chegarali 58px maydon — jami 62 (`kit.tsx` `BOX`).
+  Ramkadagi 56px status bar joyi: tepada `max(safe-top + 12, 56)`, pastda `max(safe-bottom + 16, 36)`.
+- **Ikonka:** `node mobile/scripts/icons.mjs` (ildizdan; saytdagi PWA ikonkasi bilan bir xil "ticket").
+- Matn qo'shilsa — `src/copy.ts`; rang — `src/theme.ts` (dizaynda bor hex). Yangi native modul — `npx expo install`.
+
+## Dizayndan chetlanishlar
+
+- Slide2–4 (talaba karuseli) dizaynda yo'q — saytdagi kabi Main uslubida.
+- OTM tanlash oynasi, xato bloklari, yuklanish holatlari, rad etilgan tekshiruv, bosh ekran — dizaynda chizilmagan (primitivlardan).
+- Guvohnoma ramkasidagi yozuv statik ("Ramkaga to'g'rilab…"), avtomatik aniqlash yo'q; kamera ruxsati yo'q bo'lsa — "Kameraga ruxsat berish".
+- Biznes logotipi B6 da tanlanadi, lekin hisob ochilgach (B8 yuborishda) yuklanadi; serverdagi fayllar (qayta kirishda) belgi bilan.
+- B9 "Chegirma yaratish" va "Kabinetga o'tish" — saytni brauzerda ochadi (ilovada biznes kabineti yo'q).
+- Telefon ekranida ← tarix bo'lmasa karuselga qaytaradi.
