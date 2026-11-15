@@ -19,28 +19,30 @@ enum Role {
 enum UserStatus {
   ACTIVE
   BLOCKED
+  /// Foydalanuvchi hisobini o'zi o'chirgan (`/api/v1/me` DELETE): shaxsiy ma'lumot tozalangan, raqam bo'shatilgan
+  DELETED
 }
 
 model User {
-  id            String     @id @default(cuid())
+  id                  String     @id @default(cuid())
   /// E.164: +998XXXXXXXXX
-  phone         String     @unique
-  role          Role
-  firstName     String?
-  lastName      String?
-  locale        String     @default("uz")
-  status        UserStatus @default(ACTIVE)
-  blockedReason String?
+  phone               String     @unique
+  role                Role
+  firstName           String?
+  lastName            String?
+  locale              String     @default("uz")
+  status              UserStatus @default(ACTIVE)
+  blockedReason       String?
   /// Telegram orqali kirganlar uchun bot suhbati (xabarnomalar shu yerga ham). Telegram kirishi ulanganda to'ldiriladi.
-  telegramChatId String?
+  telegramChatId      String?
   /// Ilova paroli (scrypt, `src/server/auth/password.ts`). null — hali o'rnatilmagan: eski hisob SMS koddan keyin o'rnatadi.
   /// Sayt kirishi (SMS) parolni so'ramaydi.
   passwordHash        String?
   /// Ketma-ket noto'g'ri parollar (to'g'ri parol yoki bloklashda 0 ga qaytadi)
-  passwordFails       Int       @default(0)
+  passwordFails       Int        @default(0)
   passwordLockedUntil DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
 
   sessions           Session[]
   student            StudentProfile?
@@ -53,6 +55,7 @@ model User {
   savedDiscounts     SavedDiscount[]
   notifications      UserNotification[]
   pushSubscriptions  PushSubscription[]
+  pushDevices        PushDevice[]
   auditLogs          AuditLog[]
   universityRequests UniversityRequest[]
   orders             Order[]
@@ -85,15 +88,29 @@ model RateLimitHit {
   @@index([key, createdAt])
 }
 
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  tokenHash String   @unique
-  expiresAt DateTime
-  userAgent String?
-  createdAt DateTime @default(now())
+enum SessionKind {
+  /// Sayt: token httpOnly cookie'da
+  WEB
+  /// Mobil ilova API (`/api/v1`): token — aylanuvchi refresh token (xeshi boshqa prefiks bilan, cookie sifatida ishlamaydi)
+  API
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Session {
+  id            String      @id @default(cuid())
+  userId        String
+  kind          SessionKind @default(WEB)
+  tokenHash     String      @unique
+  /// API: oxirgi aylantirishdan oldingi refresh token xeshi — qayta ishlatilsa sessiya o'g'irlangan deb yopiladi
+  prevTokenHash String?     @unique
+  expiresAt     DateTime
+  userAgent     String?
+  /// API: ilova yuborgan qurilma nomi ("iPhone 15")
+  deviceName    String?
+  lastUsedAt    DateTime?
+  createdAt     DateTime    @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pushDevices PushDevice[]
 
   @@index([userId])
 }
@@ -311,8 +328,8 @@ model Business {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  owner        User             @relation("BusinessOwner", fields: [ownerId], references: [id])
-  district     District?        @relation(fields: [districtId], references: [id])
+  owner        User              @relation("BusinessOwner", fields: [ownerId], references: [id])
+  district     District?         @relation(fields: [districtId], references: [id])
   docs         BusinessDoc[]
   members      BusinessMember[]
   invites      CashierInvite[]
@@ -409,57 +426,57 @@ model Category {
 }
 
 model Discount {
-  id              String         @id @default(cuid())
-  businessId      String
-  categoryId      String
-  title           String
-  description     String?
-  type            DiscountType
+  id                String         @id @default(cuid())
+  businessId        String
+  categoryId        String
+  title             String
+  description       String?
+  type              DiscountType
   /// so'm; "chekdan −15%" kabi narxsiz chegirmalarda null
-  originalPrice   Int?
-  percent         Int?
-  newPrice        Int?
+  originalPrice     Int?
+  percent           Int?
+  newPrice          Int?
   /// Narx o'rniga ko'rinadigan matn: "Ikkinchi lavash bepul"
-  note            String?
+  note              String?
   /// Kategoriya ikonkasi/rangini almashtirish (ixtiyoriy)
-  icon            String?
-  tileColor       String?
-  inkColor        String?
+  icon              String?
+  tileColor         String?
+  inkColor          String?
   /// 1 = dushanba … 7 = yakshanba (Toshkent vaqti)
-  weekdays        Int[]
+  weekdays          Int[]
   /// Kun boshidan daqiqalar (Toshkent vaqti): 12:00 = 720. toMinute < fromMinute — oraliq yarim tundan o'tadi
   /// (22:00–02:00); haftaning kuni boshlanish vaqtiga qarab hisoblanadi.
-  fromMinute      Int
-  toMinute        Int
-  dailyLimit      Int
-  perStudentLimit StudentLimit   @default(DAILY)
-  startsOn        DateTime       @db.Date
-  endsOn          DateTime       @db.Date
-  terms           String?
+  fromMinute        Int
+  toMinute          Int
+  dailyLimit        Int
+  perStudentLimit   StudentLimit   @default(DAILY)
+  startsOn          DateTime       @db.Date
+  endsOn            DateTime       @db.Date
+  terms             String?
   // ── Oldindan band qilish (biznes sozlamasi yoqilgan bo'lsa; tekshiruvsiz). Maydonlar `src/lib/preorder.ts` (`discountBookingInput`)
-  bookingMode       BookingMode @default(NONE)
+  bookingMode       BookingMode    @default(NONE)
   /// APPOINTMENT: xizmat davomiyligi, daqiqa — slot uzunligi
-  serviceMinutes    Int         @default(30)
+  serviceMinutes    Int            @default(30)
   /// APPOINTMENT: parallel sig'im (mutaxassis / ish joyi) — bir slotga shuncha buyurtma
-  staffCount        Int         @default(1)
+  staffCount        Int            @default(1)
   /// PREPAID_PICKUP: to'lovdan keyin necha kun ichida olib ketiladi
-  validDays         Int         @default(7)
+  validDays         Int            @default(7)
   /// PREPAID_PICKUP: zaxira (dona) — buyurtmada atom kamayadi, bekor/muddati o'tganda qaytadi
-  stock             Int         @default(0)
+  stock             Int            @default(0)
   /// PREPAID_PICKUP / PICKUP_WINDOW: bir talabaga jami (dona)
-  perStudentMax     Int         @default(2)
+  perStudentMax     Int            @default(2)
   /// PREPAID_PICKUP: muddat o'tsa (yoki talaba bekor qilsa) biznesda qoladigan ulush, % (0 — to'liq qaytadi, 100 — qaytmaydi)
-  expireKeepPercent Int         @default(0)
+  expireKeepPercent Int            @default(0)
   /// PICKUP_WINDOW: kunlik olib ketish oynasi (Toshkent, daqiqa) va kunlik son (dona)
-  windowFrom        Int         @default(840)
-  windowTo          Int         @default(1200)
-  windowCapacity    Int         @default(20)
-  status          DiscountStatus @default(DRAFT)
-  rejectReason    String?
-  reviewedById    String?
-  reviewedAt      DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  windowFrom        Int            @default(840)
+  windowTo          Int            @default(1200)
+  windowCapacity    Int            @default(20)
+  status            DiscountStatus @default(DRAFT)
+  rejectReason      String?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   business    Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
   category    Category        @relation(fields: [categoryId], references: [id])
@@ -705,6 +722,28 @@ model PushSubscription {
   @@index([userId])
 }
 
+enum PushPlatform {
+  IOS
+  ANDROID
+}
+
+/// Mobil ilova push tokeni (Expo/FCM/APNs). Sessiyaga bog'langan: chiqish yoki bloklashda sessiya bilan birga o'chadi.
+model PushDevice {
+  id        String       @id @default(cuid())
+  userId    String
+  sessionId String?
+  token     String       @unique
+  platform  PushPlatform
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   actorId   String?
@@ -768,25 +807,25 @@ enum PaymentStatus {
 
 /// Biznesning "Oldindan band qilish" sozlamasi. Yo'q yoki enabled=false — talabaga "Band qilish" ko'rinmaydi.
 model PreorderSettings {
-  businessId        String       @id
-  enabled           Boolean      @default(false)
+  businessId        String     @id
+  enabled           Boolean    @default(false)
   /// Ish jadvali (vaqtli uchrashuv slotlari shu oraliqda), Toshkent vaqti, daqiqa: [{ "day": 1..7, "from": 840, "to": 1200 }]
   schedule          Json
   /// Slot boshlanishidan kamida shuncha daqiqa oldin band qilinadi (tayyorlash vaqti)
-  leadMinutes       Int          @default(30)
+  leadMinutes       Int        @default(30)
   /// 0 — faqat bugun, 1 — bugun va ertaga
-  daysAhead         Int          @default(1)
-  prepay            PrepayType   @default(FULL)
+  daysAhead         Int        @default(1)
+  prepay            PrepayType @default(FULL)
   /// PARTIAL da oldindan to'lanadigan ulush, %
-  prepayPercent     Int          @default(50)
+  prepayPercent     Int        @default(50)
   /// Slotdan shuncha daqiqa oldingacha bekor qilish bepul (to'liq qaytariladi)
-  freeCancelMinutes Int          @default(60)
+  freeCancelMinutes Int        @default(60)
   /// Kech bekor qilinsa yoki talaba kelmasa — oldindan to'lovning biznesda qoladigan ulushi, %
-  keepPercent       Int          @default(100)
-  autoConfirm       Boolean      @default(true)
+  keepPercent       Int        @default(100)
+  autoConfirm       Boolean    @default(true)
   /// "Bugun qabul qilmayman": shu Toshkent sanasida yangi buyurtma olinmaydi
-  pausedOn          DateTime?    @db.Date
-  updatedAt         DateTime     @updatedAt
+  pausedOn          DateTime?  @db.Date
+  updatedAt         DateTime   @updatedAt
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }
@@ -804,26 +843,26 @@ model BookingSeat {
 }
 
 model Order {
-  id                String      @id @default(cuid())
+  id           String      @id @default(cuid())
   /// TB-7K3Q-92XD — kassada qo'lda kiritish uchun
-  code              String      @unique
-  businessId        String
-  discountId        String
-  studentId         String
-  kind              BookingMode
+  code         String      @unique
+  businessId   String
+  discountId   String
+  studentId    String
+  kind         BookingMode
   /// Faqat eski buyurtmalarda (rejimlargacha)
-  mode              OrderMode?
+  mode         OrderMode?
   /// APPOINTMENT — slot; PICKUP_WINDOW — kunlik oyna; PREPAID_PICKUP — to'lov vaqti … muddat oxiri
-  slotStart         DateTime
-  slotEnd           DateTime
-  quantity          Int
-  note              String?     @db.VarChar(200)
+  slotStart    DateTime
+  slotEnd      DateTime
+  quantity     Int
+  note         String?     @db.VarChar(200)
   /// Aloqa uchun, E.164
-  phone             String
-  status            OrderStatus @default(PENDING_PAYMENT)
+  phone        String
+  status       OrderStatus @default(PENDING_PAYMENT)
   /// QR (TOTP) siri — kupon kabi AES-GCM bilan shifrlangan
-  secret            Bytes
-  rejectReason      String?
+  secret       Bytes
+  rejectReason String?
 
   // ── Snapshot: band qilingan paytdagi narx va qoidalar (keyin o'zgarsa ham shu buyurtmaga ta'sir qilmaydi)
   title             String
@@ -839,11 +878,11 @@ model Order {
   autoConfirm       Boolean
 
   /// Qo'lda tasdiqlashda javob muddati — o'tsa avtomatik bekor
-  confirmBy         DateTime?
+  confirmBy DateTime?
   /// PREPAID_PICKUP: yuborilgan muddat eslatmalari (1 — "2 kun qoldi", 2 — "1 kun qoldi")
-  reminders         Int         @default(0)
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  reminders Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   business Business     @relation(fields: [businessId], references: [id])
   discount Discount     @relation(fields: [discountId], references: [id])

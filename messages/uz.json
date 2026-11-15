@@ -2445,7 +2445,8 @@
       },
       "status": {
         "ACTIVE": "Faol",
-        "BLOCKED": "Bloklangan"
+        "BLOCKED": "Bloklangan",
+        "DELETED": "Hisobini o'chirgan"
       },
       "open": "Ochish",
       "detailTitle": "Ma'lumotlar",
@@ -2785,6 +2786,54 @@
         "createDiscount": "Chegirma yaratish",
         "cabinet": "Kabinetga o'tish"
       }
+    }
+  },
+  "api": {
+    "errors": {
+      "invalid_request": "So'rov noto'g'ri: maydonlarni tekshiring.",
+      "unauthorized": "Hisobga kiring.",
+      "token_expired": "Kirish muddati tugadi. Tokenni yangilang.",
+      "forbidden": "Bu amal sizning hisobingiz uchun emas.",
+      "not_found": "Topilmadi.",
+      "rate_limited": "Juda ko'p so'rov. Birozdan keyin urinib ko'ring.",
+      "payload_too_large": "So'rov juda katta.",
+      "server_error": "Serverda xato. Birozdan keyin urinib ko'ring.",
+      "invalid_phone": "Telefon raqamni to'liq kiriting: +998 va 9 ta raqam.",
+      "too_soon": "Kod hozirgina yuborildi. Birozdan keyin qayta urinib ko'ring.",
+      "daily_limit": "Bu raqamga bugun juda ko'p kod yuborildi. Ertaga urinib ko'ring.",
+      "ip_limit": "Juda ko'p so'rov yuborildi. Keyinroq urinib ko'ring.",
+      "sms_failed": "SMS yuborib bo'lmadi. Birozdan keyin urinib ko'ring.",
+      "wrong_code": "Kod noto'g'ri. Qayta tekshirib kiriting.",
+      "code_expired": "Kod muddati o'tgan. Yangi kod oling.",
+      "code_locked": "Juda ko'p xato urinish. Kod bekor qilindi — keyinroq yangi kod oling.",
+      "account_blocked": "Bu hisob bloklangan. Yordam uchun biz bilan bog'laning.",
+      "no_business": "Siz hech qaysi biznesga kassir sifatida biriktirilmagansiz. Biznes egasidan yangi taklif havolasini so'rang.",
+      "admin_not_supported": "Admin panelga faqat sayt orqali kiriladi.",
+      "step_expired": "Tasdiqlash muddati tugadi. SMS kodni qaytadan oling.",
+      "wrong_password": "Parol noto'g'ri.",
+      "password_locked": "Juda ko'p xato urinish. Parol vaqtincha qulflandi — keyinroq SMS kod bilan qayta kiring.",
+      "weak_password": "Parol kamida 8 ta belgi bo'lsin: harf va raqam birga.",
+      "password_mismatch": "Parollar bir xil emas.",
+      "refresh_invalid": "Sessiya tugagan. Qaytadan kiring.",
+      "refresh_reused": "Sessiya xavfsizlik uchun yopildi. Qaytadan kiring.",
+      "phone_in_use": "Bu raqam boshqa turdagi hisobga biriktirilgan.",
+      "tin_taken": "Bu STIR bilan biznes allaqachon ro'yxatdan o'tgan.",
+      "not_editable": "Ariza tekshiruvda — hozir o'zgartirib bo'lmaydi.",
+      "no_registration": "Ro'yxatdan o'tganlik guvohnomasini yuklang.",
+      "no_photos": "Kamida bitta joy fotosini yuklang.",
+      "consent_required": "Hamkorlik shartlariga rozilik bildiring.",
+      "student_not_approved": "Talaba hisobi hali tasdiqlanmagan.",
+      "file_empty": "Fayl bo'sh.",
+      "file_bad_type": "Fayl turi to'g'ri kelmaydi: JPG, PNG, HEIC yoki PDF.",
+      "file_too_large": "Fayl 10 MB dan katta.",
+      "upload_not_allowed": "Hozir fayl yuklab bo'lmaydi.",
+      "upload_daily_limit": "Bugun juda ko'p fayl yuklandi. Ertaga urinib ko'ring.",
+      "too_many_files": "Fayllar soni chegarasiga yetdingiz.",
+      "deal_not_available": "Chegirma hozir mavjud emas.",
+      "deal_closed": "Chegirma hozir yopiq.",
+      "sold_out": "Bugungi kuponlar tugadi.",
+      "coupon_limit": "Bu chegirmadan limitingiz tugagan.",
+      "open_orders": "Faol buyurtmalaringiz bor. Avval ularni yakunlang yoki bekor qiling."
     }
   }
 }
