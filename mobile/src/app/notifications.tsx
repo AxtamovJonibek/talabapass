@@ -1,10 +1,11 @@
 import { router } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { appApi, type InboxItem } from "@/api/endpoints";
 import { copy } from "@/copy";
 import { formatWhen } from "@/lib/format";
+import { syncBadge } from "@/lib/push";
 import { useLoad } from "@/lib/use-load";
 import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
@@ -20,9 +21,15 @@ export default function Notifications() {
   const n = copy.notifications;
   const insets = useSafeAreaInsets();
   const student = useApp().me?.role === "STUDENT";
-  const inbox = useLoad(useCallback(() => appApi.notifications(), []));
+  const inbox = useLoad(useCallback(() => appApi.notifications(), []), true, "notifications");
   const { setData } = inbox;
   const unread = inbox.data?.unread ?? 0;
+  const loaded = inbox.data !== null;
+
+  // Ikonka raqami — ekrandagi o'qilmaganlar bilan bir xil
+  useEffect(() => {
+    if (loaded) void syncBadge(unread);
+  }, [loaded, unread]);
 
   const markLocal = (ids: string[] | null) =>
     setData((d) => {

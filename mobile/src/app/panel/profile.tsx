@@ -26,7 +26,7 @@ export default function BusinessProfile() {
   const p = copy.biz.profile;
   const { me, signOut } = useApp();
   const owner = me?.role === "BUSINESS_OWNER";
-  const profile = useLoad(useCallback(() => bizApi.profile(), []), owner);
+  const profile = useLoad(useCallback(() => bizApi.profile(), []), owner, "biz.profile");
   const orders = useOrdersWatch();
   const { refresh } = profile;
   const [busy, setBusy] = useState(false);

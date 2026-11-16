@@ -9,6 +9,7 @@ import { useApp } from "@/state";
 import { colors, font } from "@/theme";
 import { Card, Chip, Empty, Failed, Loading, ScreenHeader, SecondaryButton, TabScreen } from "@/ui/app";
 import { Txt } from "@/ui/kit";
+import { StaleNote } from "@/ui/offline";
 
 /**
  * Sotuvlar (saytdagi `/biznes/sotuvlar`): davr, jami, chek bilan ro'yxat (25 tadan, "Yana yuklash"). Egasi — hammasi yoki
@@ -29,6 +30,8 @@ export default function Sales() {
       setPage(1);
       return bizApi.sales(period, 1, cashier);
     }, [period, cashier]),
+    true,
+    `biz.sales.${period}.${cashier ?? "all"}`,
   );
   const { refresh } = sales;
 
@@ -86,6 +89,7 @@ export default function Sales() {
             <Card style={styles.summary}>
               <Txt style={[font(900, 62), { fontSize: 34 }]}>{som(d.sum)}</Txt>
               <Txt style={styles.muted}>{owner ? sl.summary(d.count, som(d.sum)) : `${sl.cashierOnly} · ${sl.summary(d.count, som(d.sum))}`}</Txt>
+              <StaleNote at={sales.staleAt} />
             </Card>
           }
           ListEmptyComponent={<Empty icon="receipt" title={sl.empty} text={sl.emptyText} />}

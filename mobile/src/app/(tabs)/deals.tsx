@@ -11,6 +11,7 @@ import { colors, em, font } from "@/theme";
 import { Chip, DealCard, Empty, Failed, Loading, OptionRow, RoundButton, Sheet, TabScreen } from "@/ui/app";
 import { Icon } from "@/ui/icons";
 import { Field, Title, Txt } from "@/ui/kit";
+import { StaleNote } from "@/ui/offline";
 
 /** Lenta va sahifa har daqiqa yangilanadi (saytdagidek: holat va qoldiq o'zgaradi) */
 const REFRESH_MS = 60_000;
@@ -23,7 +24,7 @@ const REFRESH_MS = 60_000;
 export default function Deals() {
   const f = copy.feed;
   const { origin, label, ready } = useLocation();
-  const feed = useLoad(useCallback(() => appApi.deals(origin), [origin]), ready);
+  const feed = useLoad(useCallback(() => appApi.deals(origin), [origin]), ready, "deals");
   const inbox = useLoad(useCallback(() => appApi.notifications(), []));
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("all");
@@ -123,6 +124,7 @@ export default function Deals() {
       </View>
 
       {feed.data ? <Txt style={[font(700), styles.count]}>{f.count(list.length)}</Txt> : null}
+      <StaleNote at={feed.staleAt} style={styles.stale} />
     </View>
   );
 
@@ -185,5 +187,6 @@ const styles = StyleSheet.create({
   chips: { gap: 8, paddingHorizontal: 24, paddingTop: 14 },
   filters: { flexDirection: "row", gap: 8, paddingHorizontal: 24, paddingTop: 10, flexWrap: "wrap" },
   count: { fontSize: 13, letterSpacing: em(13, 0.04), color: colors.muted2, paddingHorizontal: 24, marginTop: 16, marginBottom: 4 },
+  stale: { marginLeft: 24, marginBottom: 4 },
   item: { paddingHorizontal: 24, paddingTop: 10 },
 });

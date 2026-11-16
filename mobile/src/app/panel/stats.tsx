@@ -10,6 +10,7 @@ import { useLoad } from "@/lib/use-load";
 import { colors, font } from "@/theme";
 import { Card, Empty, Failed, Loading, RoundButton, ScreenHeader, TabScreen } from "@/ui/app";
 import { Rich, Txt } from "@/ui/kit";
+import { StaleNote } from "@/ui/offline";
 
 /**
  * Statistika (saytdagi B6 mazmuni): davr (bugun / 7 / 30 kun), sotuvlar (+ oldingi davrga), tushum va o'rtacha chek,
@@ -19,7 +20,7 @@ import { Rich, Txt } from "@/ui/kit";
 export default function Stats() {
   const s = copy.biz.stats;
   const [period, setPeriod] = useState<Period>(7);
-  const stats = useLoad(useCallback(() => bizApi.stats(period), [period]));
+  const stats = useLoad(useCallback(() => bizApi.stats(period), [period]), true, `biz.stats.${period}`);
   const orders = useOrdersWatch();
   const { refresh } = stats;
 
@@ -44,6 +45,7 @@ export default function Stats() {
         <Txt numberOfLines={1} style={styles.business}>
           {d?.business.name ?? ""}
         </Txt>
+        <StaleNote at={stats.staleAt} style={styles.stale} />
         <PeriodChips value={period} onChange={setPeriod} style={styles.chips} />
 
         <View style={styles.pad}>
@@ -147,6 +149,7 @@ const styles = StyleSheet.create({
   pad: { paddingHorizontal: 24 },
   business: { fontSize: 14, color: colors.muted2, paddingHorizontal: 24, marginTop: 2 },
   chips: { marginTop: 14 },
+  stale: { marginLeft: 24, marginTop: 8 },
   banner: { marginTop: 16 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 16 },
   cardPad: { padding: 16 },

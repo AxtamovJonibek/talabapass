@@ -1,4 +1,5 @@
 import { copy } from "@/copy";
+import { offlineNow } from "@/lib/network";
 import { FileTooLargeError } from "@/lib/pick";
 import { clearTokens, loadTokens, saveTokens, type StoredTokens } from "@/storage";
 
@@ -50,7 +51,8 @@ export function errorText(e: unknown): string {
   }
   switch (e.kind) {
     case "network":
-      return copy.networkError;
+      // "Internet yo'q" yoki yozuvchi amalda — "internetsiz bajarib bo'lmaydi"
+      return e.message || copy.networkError;
     case "too_large":
       return copy.fileTooLarge;
     case "session":
@@ -69,7 +71,9 @@ function thrownByFetch(e: unknown, method: string, path: string): ApiError {
   const message = e instanceof Error ? e.message : String(e);
   const network = /^fetch failed|network request failed|timed? ?out|aborted|unable to resolve|failed to connect/i.test(message);
   console.warn(`[api] ${method} ${path} → ${network ? "tarmoq" : "klient"} xatosi: ${e instanceof Error ? e.name : typeof e}: ${message}`);
-  return network ? new ApiError("network", copy.networkError, 0) : new ApiError("client_error", copy.unknownError, 0, { cause: message });
+  // Yozuvchi amal (saqlash, tasdiqlash…) — "bajarilmadi" deb aniq aytiladi: foydalanuvchi natijani taxmin qilmasin
+  if (network) return new ApiError("network", method === "GET" ? copy.networkError : copy.offlineWrite, 0);
+  return new ApiError("client_error", copy.unknownError, 0, { cause: message });
 }
 
 let tokens: StoredTokens | null = null;
@@ -201,6 +205,9 @@ export async function api<T>(path: string, { method = "GET", body, form, auth = 
     if (form) console.log(`[api] ${method} ${path} → ${res.status}`);
     return res;
   };
+
+  // Oflaynligi aniq bo'lsa yozuvchi so'rov yuborilmaydi (javob kelmay, foydalanuvchi natijani bilmay qolmasin)
+  if (method !== "GET" && offlineNow()) throw new ApiError("network", copy.offlineWrite, 0);
 
   let res = await attempt(used);
   if (res.ok) return (await res.json()) as T;

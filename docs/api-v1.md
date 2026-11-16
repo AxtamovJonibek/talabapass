@@ -244,10 +244,22 @@ bir xil 404. Talaba endpoint'lari (`/deals`, `/deals/<id>`, `/saved`, `/deals/ne
 
 Chiqish, bloklash, parolni tiklash yoki hisobni o'chirishda sessiya bilan birga qurilma yozuvi ham o'chadi.
 Ilova (`mobile/`) **Expo push tokenini** yuboradi (`ExponentPushToken[…]`, `getExpoPushTokenAsync`; EAS `projectId` kerak).
-Yuborish: `sendPushToUsers` (`notifications/push.ts`) Web Push bilan birga Expo Push API ga ham (`notifications/expo-push.ts`, 100 tadan) —
-buyurtma xabarlari (yangi buyurtma — egasiga), tasdiq/rad xabarlari va admin bildirishnomalari ilovaga ham boradi. `data.url` — saytdagi yo'l
-(`/biznes/buyurtmalar`, …), ilova shu bo'yicha ekran ochadi. `DeviceNotRegistered` — token o'chiriladi. `EXPO_ACCESS_TOKEN` (ixtiyoriy) —
-Expo hisobida "Enhanced push security" yoqilgan bo'lsa.
+Yuborish: `sendPushToUsers` (`notifications/push.ts`) Web Push bilan birga Expo Push API ga ham (`notifications/expo-push.ts`, 100 tadan).
+Hodisalar (har biri ilova ichi xabari ham):
+
+| Hodisa | Kimga | `data.url` → ilova ekrani |
+|---|---|---|
+| Guvohnoma tasdiqlandi / rad etildi (+ SMS) | talaba | `/uz/chegirmalar` → holatiga qarab (lenta yoki qayta yuklash) |
+| Biznes arizasi tasdiqlandi / rad etildi (+ SMS) | egasi | `/uz/biznes` → panel yoki ariza formasi |
+| Kupon sotuvi tasdiqlandi | talaba | `/uz/tarix?chek=<id>` → chek |
+| Yangi buyurtma, buyurtma holati (`notifyOrder`), muddat eslatmasi | egasi / talaba | `/uz/biznes/buyurtmalar` → buyurtmalar; talabada — bildirishnomalar |
+| Admin xabarlari (A3) | auditoriya | `/uz/chegirmalar[/<id>\|?kategoriya=]` → chegirma / lenta |
+
+- Xabarda `badge` — foydalanuvchining o'qilmagan xabarlari soni (iOS ikonka raqami; ilova o'qiganda o'zi yangilaydi),
+  `channelId` — Android kanali: buyurtmalar `orders` (yuqori muhimlik), qolgani `default` (kanallarni ilova yaratadi).
+- Yaroqsiz token: yuborish javobida (`DeviceNotRegistered`) darhol, keyinroq bilinsa — Expo kvitansiyasida: ticket'lar `PushTicket`
+  jadvalida, `/api/cron/bildirishnomalar` (5 daqiqada) 15 daqiqadan eskilarining kvitansiyasini so'raydi va qurilmani o'chiradi.
+- `EXPO_ACCESS_TOKEN` (ixtiyoriy) — Expo hisobida "Enhanced push security" yoqilgan bo'lsa.
 
 ## Hali yo'q
 

@@ -146,6 +146,17 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
   Eskirsa — ekranni yangilash yangi havola beradi. Chek PDF — shu havola brauzerda.
 - Hisobni o'chirish — faqat egasi (kassirni egasi faolsizlantiradi).
 
+## Push, oflayn, xatolar
+
+- **Push** (`src/lib/push.ts`): kirgandan keyin ruxsat va token. Android kanallari `default` va `orders` (buyurtmalar — yuqori
+  muhimlik). Ilova ochiqda: banner + ro'yxat, tovushsiz (skaner/buyurtmalar o'z signalini chaladi), ikonka raqami — o'qilmaganlar.
+  Bosilgan xabar → `data.url` → ekran (`src/lib/push-route.ts`; ilova yopiq bo'lsa ham — ishga tushgach). Hodisalar ro'yxati —
+  `../docs/api-v1.md` "Push qurilmalari". Expo Go Android, web, emulyator, projectId yo'q — push o'chiq, ilova yiqilmaydi.
+- **Oflayn:** tepada "Internet yo'q" banneri (expo-network). `useLoad(fn, enabled, cacheKey)` — muvaffaqiyatli javob
+  AsyncStorage'da (`tp.cache.*`, chiqishda tozalanadi); tarmoq yo'q bo'lsa oxirgisi "Oxirgi yangilanish: …" belgisi bilan
+  (`StaleNote`). Yozuvchi amallar (POST/PATCH/DELETE) oflaynda yuborilmaydi — "Internet yo'q — amal bajarilmadi". Kupon QR — avvalgidek internetsiz.
+- **Xatolar:** ildiz layout'dagi `ErrorBoundary` (expo-router) — ekran yiqilsa "Nimadir buzildi" va "Qayta urinish".
+
 ## Dizayndan chetlanishlar
 
 - Biznes ilovasi ekranlari (panel, skaner, muharrir, buyurtmalar, kassirlar, chek) app-flow'da chizilmagan — mazmun saytdagi

@@ -13,7 +13,7 @@ import { Lead } from "@/ui/kit";
 export default function Saved() {
   const s = copy.saved;
   const { origin, ready } = useLocation();
-  const saved = useLoad(useCallback(() => appApi.saved(origin), [origin]), ready);
+  const saved = useLoad(useCallback(() => appApi.saved(origin), [origin]), ready, "saved");
   const [now, setNow] = useState(() => new Date());
 
   const { refresh } = saved;

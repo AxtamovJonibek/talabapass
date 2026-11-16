@@ -13,6 +13,7 @@ import { colors, font } from "@/theme";
 import { Card, Chip, Empty, Failed, Loading, RoundButton, SecondaryButton, Sheet } from "@/ui/app";
 import { openSite } from "@/ui/legal";
 import { ErrorBox, Field, PrimaryButton, Title, Txt } from "@/ui/kit";
+import { StaleNote } from "@/ui/offline";
 
 const FILTERS: OrderFilter[] = ["new", "preparing", "ready", "done"];
 const POLL_MS = 10_000;
@@ -37,7 +38,7 @@ export default function Orders() {
   const insets = useSafeAreaInsets();
   const watch = useOrdersWatch();
   const [filter, setFilter] = useState<OrderFilter>("new");
-  const orders = useLoad(useCallback(() => bizApi.orders(filter), [filter]));
+  const orders = useLoad(useCallback(() => bizApi.orders(filter), [filter]), true, `biz.orders.${filter}`);
   const { refresh } = orders;
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState<string | null>(null);
@@ -86,6 +87,7 @@ export default function Orders() {
           {o.reportLine(d.report.orders, som(d.report.revenue), d.report.cancelled, d.report.noShow)}
         </Txt>
       ) : null}
+      <StaleNote at={orders.staleAt} style={styles.stale} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         {FILTERS.map((f) => (
           <Chip key={f} selected={filter === f} onPress={() => setFilter(f)}>
@@ -213,6 +215,7 @@ const styles = StyleSheet.create({
   flex1: { flex: 1 },
   head: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24 },
   report: { fontSize: 13, color: colors.muted, paddingHorizontal: 24, marginTop: 10 },
+  stale: { marginLeft: 24, marginTop: 8 },
   chips: { gap: 8, paddingHorizontal: 24, paddingVertical: 14 },
   list: { paddingHorizontal: 24, gap: 12 },
   off: { padding: 16, gap: 12 },

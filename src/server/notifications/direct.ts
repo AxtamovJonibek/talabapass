@@ -1,6 +1,7 @@
 import "server-only";
 import { createTranslator } from "next-intl";
 import messages from "../../../messages/uz.json";
+import { formatSom } from "@/lib/format";
 import { BODY_MAX, clip, notificationHref, pushPayload, TITLE_MAX } from "@/lib/notifications";
 import { db } from "../db";
 import { sendSms } from "../sms";
@@ -61,5 +62,42 @@ export async function notifyUser(userId: string, event: DirectEvent, params: Par
     });
   } catch (error) {
     console.error("[notifyUser] xabar yuborilmadi:", event, userId, error);
+  }
+}
+
+/**
+ * Kassir sotuvni tasdiqladi — talabaga ilova ichi + push (SMS yo'q: talaba kassa oldida turibdi). Bosilsa — chek
+ * (`/tarix?chek=<id>`). Xato sotuvni bekor qilmaydi.
+ */
+export async function notifyRedeemed(redemptionId: string): Promise<void> {
+  try {
+    const r = await db.redemption.findUnique({
+      where: { id: redemptionId },
+      select: { studentId: true, paidAmount: true, discountAmount: true, cashierId: true, coupon: { select: { termsTitle: true } }, business: { select: { name: true } }, student: { select: { status: true } } },
+    });
+    if (!r || r.student.status !== "ACTIVE") return;
+    const t = createTranslator({ locale: "uz", messages, namespace: "notifications.direct" });
+    const title = clip(t("couponRedeemed.title", { business: r.business.name }), TITLE_MAX);
+    const body = clip(t("couponRedeemed.body", { item: r.coupon.termsTitle, paid: formatSom(r.paidAmount), saved: formatSom(r.discountAmount) }), BODY_MAX);
+    const now = new Date();
+    const notification = await db.notification.create({
+      data: {
+        title,
+        body,
+        audience: "USER",
+        audienceIds: [r.studentId],
+        linkType: "HOME",
+        scheduledAt: now,
+        sentAt: now,
+        status: "SENT",
+        delivered: 1,
+        createdById: r.cashierId,
+        recipients: { create: { userId: r.studentId } },
+      },
+      select: { id: true, title: true, body: true },
+    });
+    await sendPushToUsers([r.studentId], pushPayload(notification, `/tarix?chek=${redemptionId}`));
+  } catch (error) {
+    console.error("[notifyRedeemed] xabar yuborilmadi:", redemptionId, error);
   }
 }

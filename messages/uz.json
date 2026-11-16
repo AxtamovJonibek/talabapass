@@ -1974,6 +1974,10 @@
         "title": "Ariza rad etildi",
         "body": "Sabab: {reason}. Ma'lumotlarni tuzatib, qayta yuboring."
       },
+      "couponRedeemed": {
+        "title": "Xarid tasdiqlandi · {business}",
+        "body": "{item}: {paid} so'm to'landi, {saved} so'm tejadingiz. Chek tarixda."
+      },
       "sms": "talabaPass: {body}"
     }
   },

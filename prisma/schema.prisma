@@ -737,11 +737,24 @@ model PushDevice {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  session Session? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session?     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tickets PushTicket[]
 
   @@index([userId])
   @@index([sessionId])
+}
+
+/// Expo push ticket'i: 15+ daqiqadan keyin kvitansiya so'raladi (`checkExpoReceipts`) — o'chirilgan ilova tokeni topiladi
+model PushTicket {
+  /// Expo ticket id
+  id        String   @id
+  deviceId  String
+  createdAt DateTime @default(now())
+
+  device PushDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
 }
 
 model AuditLog {

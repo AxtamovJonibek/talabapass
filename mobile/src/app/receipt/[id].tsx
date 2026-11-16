@@ -21,7 +21,7 @@ export default function ReceiptScreen() {
   const r = copy.biz.receipt;
   const insets = useSafeAreaInsets();
   const student = useApp().me?.role === "STUDENT";
-  const data = useLoad(useCallback(() => bizApi.receipt(id), [id]));
+  const data = useLoad(useCallback(() => bizApi.receipt(id), [id]), true, `receipt.${id}`);
   const rc = data.data?.receipt;
   const accent = student ? colors.blue : colors.orange;
 

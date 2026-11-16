@@ -21,7 +21,7 @@ import { ErrorBox, Label, Note, PhoneBox, PrimaryButton, Press, Title, Txt } fro
 export default function Cashiers() {
   const k = copy.biz.cashiers;
   const insets = useSafeAreaInsets();
-  const list = useLoad(useCallback(() => bizApi.cashiers(), []));
+  const list = useLoad(useCallback(() => bizApi.cashiers(), []), true, "biz.cashiers");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

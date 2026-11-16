@@ -11,6 +11,7 @@ import { useLoad } from "@/lib/use-load";
 import { colors, em, font } from "@/theme";
 import { Empty, Failed, Loading, ScreenHeader, TabScreen, imageUrl } from "@/ui/app";
 import { PrimaryButton, Press, Txt } from "@/ui/kit";
+import { StaleNote } from "@/ui/offline";
 
 /** "2026-12-31" → "31.12.2026" */
 const dateText = (iso: string) => iso.split("-").reverse().join(".");
@@ -21,7 +22,7 @@ const dateText = (iso: string) => iso.split("-").reverse().join(".");
  */
 export default function Discounts() {
   const d = copy.biz.discounts;
-  const list = useLoad(useCallback(() => bizApi.discounts(), []));
+  const list = useLoad(useCallback(() => bizApi.discounts(), []), true, "biz.discounts");
   const { refresh, setData } = list;
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -61,9 +62,12 @@ export default function Discounts() {
           contentContainerStyle={styles.content}
           refreshControl={<RefreshControl refreshing={list.refreshing} onRefresh={() => void list.reload()} tintColor={colors.orange} />}
           ListHeaderComponent={
-            <PrimaryButton tone="orange" icon={null} onPress={() => router.push("/biz/discount/new")} style={styles.add}>
-              {`+ ${d.add}`}
-            </PrimaryButton>
+            <>
+              <PrimaryButton tone="orange" icon={null} onPress={() => router.push("/biz/discount/new")} style={styles.add}>
+                {`+ ${d.add}`}
+              </PrimaryButton>
+              <StaleNote at={list.staleAt} />
+            </>
           }
           ListEmptyComponent={<Empty icon="tag" title={d.empty} text={d.emptyText} />}
           renderItem={({ item }) => {

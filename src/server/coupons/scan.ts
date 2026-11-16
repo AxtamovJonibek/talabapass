@@ -5,6 +5,7 @@ import { normalizeCouponCode, parseQr, verifyCode, verifyQr, COUPON_CODE_RE } fr
 import type { PaymentType, Prisma, ScanResult } from "@/generated/prisma/client";
 import { db } from "../db";
 import { authSecret } from "../env";
+import { notifyRedeemed } from "../notifications/direct";
 import { LIVE_BUSINESS_STATUSES } from "../student/feed";
 import { closeCoupon, decryptSecret, snapshotBadge } from "./coupons";
 
@@ -250,7 +251,11 @@ export async function confirmRedemption(scanner: Scanner, input: ConfirmInput, n
     await tx.$executeRaw`UPDATE "DiscountDay" SET redeemed = redeemed + 1 WHERE "discountId" = ${coupon.discountId} AND date = ${coupon.date}::date`;
     return redemption.id;
   });
-  if (result) return { ok: true, redemptionId: result };
+  if (result) {
+    // Talabaga xabar (push) — kutilmaydi: kassir chekni darhol ko'radi, xabar xatosi sotuvga ta'sir qilmaydi
+    void notifyRedeemed(result);
+    return { ok: true, redemptionId: result };
+  }
 
   // Yutqazdi: kim/nima sabab
   const after = await db.coupon.findUniqueOrThrow({ where: { id: coupon.id }, select: { status: true, expiresAt: true } });

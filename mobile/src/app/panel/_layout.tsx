@@ -1,9 +1,8 @@
-import { router } from "expo-router";
 import { Tabs } from "expo-router/js-tabs";
 import { useEffect } from "react";
 import { OrdersWatch } from "@/business/orders-watch";
 import { copy } from "@/copy";
-import { onPushOpen, registerPush } from "@/lib/push";
+import { registerPush } from "@/lib/push";
 import { resetTo, routeFor, useApp } from "@/state";
 import { colors } from "@/theme";
 import { BIZ_TABS, TabBar } from "@/ui/tab-bar";
@@ -11,7 +10,7 @@ import { BIZ_TABS, TabBar } from "@/ui/tab-bar";
 /**
  * Biznes ilovasi (kirgandan keyin), rolga qarab menyu: egasi — Statistika, Chegirmalar, Skaner, Sotuvlar, Profil;
  * kassir — Skaner, Sotuvlar, Profil (qolganlari `href: null` — server ham 403 beradi). Egasi faqat tasdiqlangan biznes bilan
- * (aks holda `routeFor` — ariza yoki tekshiruv ekrani). Push: ruxsat va token; bosilgan xabar — tegishli ekran.
+ * (aks holda `routeFor` — ariza yoki tekshiruv ekrani). Push: ruxsat va token (bosilgan xabar — `PushHandler`, ildizda).
  */
 export default function BusinessTabs() {
   const { me } = useApp();
@@ -24,13 +23,8 @@ export default function BusinessTabs() {
   }, [me, allowed]);
 
   useEffect(() => {
-    if (!allowed) return;
-    void registerPush();
-    return onPushOpen((url) => {
-      if (url?.startsWith("/biznes/buyurtmalar") && owner) router.push("/biz/orders");
-      else if (owner) router.push("/notifications");
-    });
-  }, [allowed, owner]);
+    if (allowed) void registerPush();
+  }, [allowed]);
 
   if (!allowed) return null;
   const hidden = owner ? {} : { href: null };

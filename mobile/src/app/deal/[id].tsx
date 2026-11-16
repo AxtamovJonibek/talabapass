@@ -27,7 +27,7 @@ export default function DealScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { origin } = useLocation();
   const insets = useSafeAreaInsets();
-  const detail = useLoad(useCallback(() => appApi.deal(id, origin), [id, origin]));
+  const detail = useLoad(useCallback(() => appApi.deal(id, origin), [id, origin]), true, `deal.${id}`);
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
   const [directions, setDirections] = useState(false);

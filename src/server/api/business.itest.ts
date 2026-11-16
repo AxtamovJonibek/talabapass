@@ -28,7 +28,8 @@ import { hashOtp } from "../auth/otp-rules";
 import { claimCoupon, studentCoupon } from "../coupons/coupons";
 import { db } from "../db";
 import { authSecret } from "../env";
-import { sendExpoPush } from "../notifications/expo-push";
+import { notifyRedeemed } from "../notifications/direct";
+import { checkExpoReceipts, expoFromWebPayload, sendExpoPush } from "../notifications/expo-push";
 import { limitKey } from "./rate-limit";
 import { openApiSession } from "./session";
 
@@ -45,6 +46,7 @@ const PHONES = [OWNER_PHONE, CASHIER_PHONE, CASHIER2_PHONE, STUDENT_PHONE, OTHER
 const TINS = ["900000341", "900000345", "900000347"];
 const DAY_MS = 86_400_000;
 const CODE = "482913";
+const TICKET = "itest-biz-ticket-0001";
 // 1×1 PNG
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 
@@ -86,6 +88,8 @@ async function cleanup() {
   await db.discountImage.deleteMany({ where: { discount: { businessId: { in: businessIds } } } });
   await db.business.deleteMany({ where: { id: { in: businessIds } } });
   await db.auditLog.deleteMany({ where: { actorId: { in: userIds } } });
+  // Sotuv xabarlari (createdById — kassir/egasi)
+  await db.notification.deleteMany({ where: { createdById: { in: userIds } } });
   await db.user.deleteMany({ where: { id: { in: userIds } } });
   await db.otpCode.deleteMany({ where: { phone: { in: PHONES } } });
   await db.rateLimitHit.deleteMany({ where: { key: { in: userIds.flatMap((id) => (["scan", "write", "upload"] as const).map((b) => limitKey(b, id))) } } });
@@ -375,15 +379,35 @@ describe("API biznes: buyurtmalar va push", () => {
     const gone = "ExponentPushToken[itest-biz-gone]";
     await db.pushDevice.createMany({ data: [{ userId: ids.owner!, token: live, platform: "ANDROID" }, { userId: ids.owner!, token: gone, platform: "IOS" }, { userId: ids.owner!, token: "fcm-raw-token-not-expo", platform: "ANDROID" }] });
     let sentBody: Json[] = [];
-    const sent = await sendExpoPush([ids.owner!], { title: "Yangi buyurtma", body: "Osh × 2", data: { url: "/biznes/buyurtmalar" } }, async (_url, init) => {
+    const message = expoFromWebPayload(JSON.stringify({ title: "Yangi buyurtma", body: "Osh × 2", url: "/uz/biznes/buyurtmalar", tag: "n1" }))!;
+    const sent = await sendExpoPush([ids.owner!], message, async (_url, init) => {
       sentBody = JSON.parse(String(init.body)) as Json[];
-      return new Response(JSON.stringify({ data: sentBody.map((m) => (m.to === gone ? { status: "error", details: { error: "DeviceNotRegistered" } } : { status: "ok", id: "x" })) }), { status: 200 });
+      return new Response(JSON.stringify({ data: sentBody.map((m) => (m.to === gone ? { status: "error", details: { error: "DeviceNotRegistered" } } : { status: "ok", id: TICKET })) }), { status: 200 });
     });
     expect(sent).toBe(1);
     expect(sentBody.map((m) => m.to).sort()).toEqual([gone, live].sort());
-    expect(sentBody[0]).toMatchObject({ title: "Yangi buyurtma", data: { url: "/biznes/buyurtmalar" }, sound: "default" });
+    // Buyurtma — alohida Android kanali; badge — o'qilmaganlar soni
+    expect(sentBody[0]).toMatchObject({ title: "Yangi buyurtma", data: { url: "/uz/biznes/buyurtmalar" }, sound: "default", channelId: "orders", badge: expect.any(Number) });
     expect(await db.pushDevice.count({ where: { token: gone } })).toBe(0);
+    expect(await db.pushTicket.count({ where: { id: TICKET } })).toBe(1);
+
+    // 15 daqiqadan keyin kvitansiya: ilova o'chirilgan — qurilma va ticket o'chadi
+    const later = new Date(Date.now() + 16 * 60_000);
+    const removed = await checkExpoReceipts(later, async (_url, init) => {
+      const { ids: asked } = JSON.parse(String(init.body)) as { ids: string[] };
+      expect(asked).toContain(TICKET);
+      return new Response(JSON.stringify({ data: { [TICKET]: { status: "error", details: { error: "DeviceNotRegistered" } } } }), { status: 200 });
+    });
+    expect(removed).toBe(1);
+    expect(await db.pushDevice.count({ where: { token: live } })).toBe(0);
+    expect(await db.pushTicket.count({ where: { id: TICKET } })).toBe(0);
     await db.pushDevice.deleteMany({ where: { userId: ids.owner! } });
+  });
+
+  it("sotuv tasdiqlanganda talabaga xabar (chek havolasi bilan)", async () => {
+    await notifyRedeemed(ids.receipt!);
+    const inbox = await db.userNotification.findMany({ where: { userId: ids.student! }, select: { notification: { select: { title: true, body: true } } } });
+    expect(inbox.some((n) => n.notification.title.includes("Biz test kafe") && n.notification.body.includes("30 000"))).toBe(true);
   });
 });
 
