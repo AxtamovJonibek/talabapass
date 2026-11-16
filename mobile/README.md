@@ -45,15 +45,18 @@ npx eas-cli@latest build --profile production --platform all        # do'konlar 
 ```
 src/app/                 ekranlar (expo-router): index (ishga tushish), intro, biz-intro,
                          auth/{phone,code,login,password,returning}, student/{register,card,review},
-                         business/{info,details,docs,review}, home (biznes egasi)
+                         business/{info,details,docs,review}, cashier/register, home (zaxira)
 src/app/(tabs)/          talaba ilovasi (APPROVED): deals, nearby, coupon, saved, profile
 src/app/deal/[id]        chegirma tafsiloti; coupon/[id] — kupon (QR); notifications; account/delete
+src/app/panel/           biznes ilovasi (egasi va kassir): stats, discounts, scan, sales, profile
+src/app/biz/             egasi: discount/[id] (muharrir, "new"), orders, edit, cashiers; receipt/[id] — chek (hammaga)
+src/business/            biznes primitivlari (ui.tsx), yangi buyurtma kuzatuvi (orders-watch.tsx)
 src/student/             kupon chiptasi (CouponPanel), joy tanlovi, "Qanday boraman?" oynalari
 src/lib/                 totp (QR/kod, saytdagi bilan bir xil), feed (filtr/saralash), format (narx/vaqt/holat),
                          offline (AsyncStorage: faol kuponlar, oxirgi me), location (GPS/tuman/viloyat),
                          use-load (yuklanish/xato/refresh), push (Expo push tokeni), directions
 src/api/client.ts        fetch, tokenlar, refresh (bir vaqtda faqat bitta), xato formati
-src/api/endpoints.ts     /api/v1 chaqiruvlari va tiplari
+src/api/endpoints.ts     /api/v1 chaqiruvlari va tiplari; business.ts — biznes ilovasi
 src/state.tsx            sessiya (me), kirish/ro'yxat oqimi, biznes qoralamasi; routeFor — kim qayerga
 src/storage.ts           expo-secure-store: tokenlar, karusel ko'rilgani, oxirgi raqam
 src/ui/kit.tsx           dizayn primitivlari (Screen, Title, Field, PhoneBox, CodeBoxes, PasswordBox, PrimaryButton…)
@@ -63,6 +66,7 @@ src/ui/intro-art.tsx     karusel rasmlari; src/ui/icons.tsx — SVG ikonkalar
 src/theme.ts             ranglar (dizayndagi hex), Archivo nusxalari
 src/copy.ts              matnlar (saytdagi messages/uz.json nusxasi)
 assets/fonts/            Archivo statik nusxalari (OFL)
+assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds.mjs` sintez qiladi)
 ```
 
 ## Qoidalar
@@ -96,18 +100,43 @@ assets/fonts/            Archivo statik nusxalari (OFL)
 - **Xarita:** react-native-maps (iOS — Apple Maps, Android — Google Maps). Expo Go'da kalitsiz ishlaydi; **Android build uchun Google Maps
   API kaliti kerak** — `app.json` da `["react-native-maps", { "androidGoogleMapsApiKey": "…" }]` (hozir yo'q, xarita bo'sh chiqadi).
 - **Push:** tablarga kirganda ruxsat so'raladi, Expo push tokeni `POST /push/devices` ga. Expo Go (Android), emulyator, web yoki EAS
-  `projectId` yo'q bo'lsa — jimgina o'tkazib yuboriladi (`[push]` log). Server hali push yubormaydi (docs/api-v1.md).
+  `projectId` yo'q bo'lsa — jimgina o'tkazib yuboriladi (`[push]` log). Server Expo Push API orqali yuboradi (docs/api-v1.md).
 - Hisobni o'chirish: Profil → "Hisobni o'chirish" (parol, `DELETE /me`); Maxfiylik siyosati va Shartlar — saytdagi huquqiy sahifalar.
+
+## Biznes ilovasi (egasi va kassir)
+
+- Kirish o'sha oqim ("Biznes"): `routeFor` — tasdiqlangan egasi `/panel/stats`, kassir `/panel/scan`; ariza to'ldirilmagan/rad
+  etilgan — B6–B8 (sababi bilan), tekshiruvda — B9 kutish ekrani. Tablar `src/app/panel/_layout.tsx`: kassirga Statistika va
+  Chegirmalar yopiq (`href: null`; server ham 403). Qoidalar saytdagi bilan bitta — API (`docs/api-v1.md` "Biznes ilovasi").
+- **Kassir qo'shish** — telefon raqami bilan (Profil → Kassirlar). Kassir ilovaga shu raqam bilan "Biznes" orqali kiradi: kod →
+  parol → ism (`/cashier/register`). Faolsizlantirilsa — kassirning sessiyasi darhol yopiladi (ilova kirishga qaytadi).
+- **Skaner:** expo-camera (`barcodeScannerEnabled: true` — build uchun), faqat QR; bir xil QR 4 s ichida qayta yuborilmaydi.
+  Qo'lda — kupon kodi + 6 raqam. Natija: tovush (expo-audio, telefon ovozsiz bo'lsa — faqat tebranish) + tebranish.
+  Tab ko'rinmasa kamera o'chadi. Narxsiz chegirmada kassir summani kiritadi (1+1 — bitta mahsulot narxi).
+- **Chegirma muharriri** (`biz/discount/[id]`): tekshiruv `src/lib/discount.ts` (saytdagi `validateDiscount` nusxasi — saytda
+  o'zgarsa, shu yerda ham); sana `kk.oo.yyyy`, vaqt `12:00`. Yangi rasmlar saqlangandan keyin yuklanadi (sayt kabi).
+- **Buyurtmalar** (oldindan buyurtma yoqilgan bo'lsa ko'rinadi; sozlash — saytda): qabul/rad (sabab)/tayyor, javob muddati
+  taymeri. Yangi buyurtma: ilova ochiq — 15 s da so'rov va `order` signali (`business/orders-watch.tsx`); yopiq — push
+  (server Expo Push API orqali yuboradi), bosilsa buyurtmalar ekrani.
+- **Rasmlar:** API imzoli havolalar beradi (`/api/v1/files/…`, 1–2 soat) — `<Image source={{ uri: imageUrl(url) }}>`, sarlavhasiz.
+  Eskirsa — ekranni yangilash yangi havola beradi. Chek PDF — shu havola brauzerda.
+- Hisobni o'chirish — faqat egasi (kassirni egasi faolsizlantiradi).
 
 ## Dizayndan chetlanishlar
 
+- Biznes ilovasi ekranlari (panel, skaner, muharrir, buyurtmalar, kassirlar, chek) app-flow'da chizilmagan — mazmun saytdagi
+  B2–B6 dan, ko'rinish talaba ilovasi primitivlari uslubida, to'q sariq urg'u (saytdagi biznes mavzusi), skaner — qora fon.
+  Saytdagidan farqi: issiqlik xaritasi o'rniga xulosa (eng gavjum vaqt, eng bo'sh kun), Excel hisobot va oldindan buyurtma
+  sozlamalari — saytda, kassir taklifi havola o'rniga telefon raqami bilan.
+
+
 - Talaba ilovasi ekranlari (lenta, tafsilot, xarita, kupon, saralangan, bildirishnomalar, profil) app-flow'da chizilmagan — mazmun
   saytdagi T4–T8 dan, ko'rinish app-flow primitivlari uslubida. Saytdagidan farqi: "Tez tugaydi" qatori, metro va profil tahriri yo'q;
-  kupon tarixi va chek — saytda.
+  kupon tarixi ro'yxati — saytda (bitta chek — kupon sotilgach "Chekni ko'rish").
 
 - Slide2–4 (talaba karuseli) dizaynda yo'q — saytdagi kabi Main uslubida.
 - OTM tanlash oynasi, xato bloklari, yuklanish holatlari, rad etilgan tekshiruv, bosh ekran — dizaynda chizilmagan (primitivlardan).
 - Guvohnoma ramkasidagi yozuv statik ("Ramkaga to'g'rilab…"), avtomatik aniqlash yo'q; kamera ruxsati yo'q bo'lsa — "Kameraga ruxsat berish".
 - Biznes logotipi B6 da tanlanadi, lekin hisob ochilgach (B8 yuborishda) yuklanadi; serverdagi fayllar (qayta kirishda) belgi bilan.
-- B9 "Chegirma yaratish" va "Kabinetga o'tish" — saytni brauzerda ochadi (ilovada biznes kabineti yo'q).
+- B9 (tekshiruvda) — kutish ekrani: "Holatni yangilash" va chiqish; biznes bo'limlari faqat tasdiqdan keyin.
 - Telefon ekranida ← tarix bo'lmasa karuselga qaytaradi.

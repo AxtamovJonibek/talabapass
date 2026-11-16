@@ -506,6 +506,10 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   AsyncStorage'da (internetsiz ko'rinadi). Xarita — react-native-maps (Android build uchun Google Maps kaliti kerak), push — Expo push tokeni.
   `/api/v1` ga ilova uchun qo'shilganlar: `GET /districts`, `POST /notifications/read { ids }`, `CouponView.discountId`.
 - Render paytida `router.canGoBack()` chaqirmang (navigation.isFocused() ogohlantirishi) — `useCanGoBack()` hook.
+- Biznes ilovasi (`src/app/panel` tablar, `src/app/biz`): egasi (tasdiqlangan biznes) va kassir, rolga qarab menyu; API — `/api/v1/business/*`
+  (`src/server/api/business.ts`: `requireApiOwner`, `requireApiScanner`; testlar `business.itest.ts`). Kassir ilovada telefon raqami bilan
+  qo'shiladi (`CashierInvite.phone`, `/auth/verify` → `role: "cashier"` → `/cashier/register`). Fayllar (rasm, chek PDF) API'da imzoli
+  havola (`/api/v1/files`, `signUrls`). Push: `sendPushToUsers` Expo'ga ham yuboradi (`notifications/expo-push.ts`). Batafsil `mobile/README.md`.
 
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).
