@@ -7,7 +7,8 @@ import { copy } from "@/copy";
 import { resetTo, useApp } from "@/state";
 import { colors } from "@/theme";
 import { SecondaryButton } from "@/ui/app";
-import { BackArrow, ErrorBox, Grow, Label, Lead, Note, PasswordBox, Screen, Title, TopBar } from "@/ui/kit";
+import { BackArrow, ErrorBox, Grow, Label, Lead, Note, PasswordBox, Screen, TextAction, Title, TopBar } from "@/ui/kit";
+import { LEGAL, openSite } from "@/ui/legal";
 
 /**
  * Hisobni o'chirish (App Store / Google Play talabi): parol bilan tasdiq → `DELETE /me`. Server shaxsiy ma'lumotni
@@ -16,7 +17,7 @@ import { BackArrow, ErrorBox, Grow, Label, Lead, Note, PasswordBox, Screen, Titl
  */
 export default function DeleteAccount() {
   const t = copy.deleteAccount;
-  const { forget } = useApp();
+  const { me, forget } = useApp();
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +54,14 @@ export default function DeleteAccount() {
   return (
     <Screen>
       <TopBar>
-        <BackArrow label={copy.back} onPress={() => (router.canGoBack() ? router.back() : router.replace("/profile"))} />
+        <BackArrow label={copy.back} onPress={() => (router.canGoBack() ? router.back() : router.replace(me?.role === "STUDENT" ? "/profile" : "/panel/profile"))} />
       </TopBar>
       <Title text={t.title} size={40} tone="orange" style={styles.title} />
       <Lead text={t.lead} size={16} style={styles.lead} />
       <Note style={styles.keep}>{t.keep}</Note>
+      <View style={styles.more}>
+        <TextAction onPress={() => openSite(LEGAL.deleteAccount)}>{t.details}</TextAction>
+      </View>
 
       <View style={styles.field}>
         <Label>{t.passwordLabel}</Label>
@@ -87,6 +91,7 @@ const styles = StyleSheet.create({
   title: { marginTop: 24 },
   lead: { marginTop: 14 },
   keep: { color: colors.muted2 },
+  more: { alignItems: "flex-start", marginTop: 4 },
   field: { marginTop: 24 },
   cta: { marginTop: 24 },
 });

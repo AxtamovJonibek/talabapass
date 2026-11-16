@@ -25,6 +25,33 @@ export function devShortcutsAllowed(env: Env = process.env): boolean {
   return env.NODE_ENV !== "production" || isStaging(env);
 }
 
+const REVIEW_PHONE_RE = /^\+998\d{9}$/;
+const REVIEW_CODE_RE = /^\d{6}$/;
+
+/**
+ * Do'kon tekshiruvchisi (Apple/Google review) uchun kirish: `REVIEW_PHONE` (+998XXXXXXXXX) va `REVIEW_CODE` (6 raqam)
+ * ikkalasi o'rnatilgan bo'lsa — FAQAT shu raqamga SMS o'rniga shu kod (production'da ham, OTP_FIXED_CODE o'chiq bo'lsa
+ * ham). Chegaralar (60 s, kuniga 5 ta, 5 xato → qulf) o'zgarmaydi. Boshqa raqam yoki env yo'q — null. Tekshiruvdan keyin
+ * env'ni o'chiring.
+ */
+export function reviewLoginCode(phone: string, env: Env = process.env): string | null {
+  const reviewPhone = env.REVIEW_PHONE?.trim();
+  const code = env.REVIEW_CODE?.trim();
+  if (!reviewPhone || !code || !REVIEW_PHONE_RE.test(reviewPhone) || !REVIEW_CODE_RE.test(code)) return null;
+  return phone === reviewPhone ? code : null;
+}
+
+function reviewProblems(env: Env): string[] {
+  const phone = env.REVIEW_PHONE?.trim();
+  const code = env.REVIEW_CODE?.trim();
+  if (!phone && !code) return [];
+  if (!phone || !code) return ["REVIEW_PHONE va REVIEW_CODE birga o'rnatilsin (yoki ikkalasi ham bo'sh)."];
+  const problems: string[] = [];
+  if (!REVIEW_PHONE_RE.test(phone)) problems.push("REVIEW_PHONE +998XXXXXXXXX ko'rinishida bo'lsin.");
+  if (!REVIEW_CODE_RE.test(code)) problems.push("REVIEW_CODE 6 ta raqam bo'lsin.");
+  return problems;
+}
+
 /**
  * Fayllar ombori (storage/index.ts bilan bir xil standart — `local`). Lokal diskda papka absolyut yo'l bo'lsin:
  * nisbiy yo'l jarayonning ishchi papkasiga bog'liq va deploy'da kod papkasi bilan birga yo'qolishi mumkin.
@@ -64,7 +91,7 @@ export function productionEnvProblems(env: Env): string[] {
   if (env.VAPID_SUBJECT?.trim() && !/^(mailto:|https:\/\/)/.test(env.VAPID_SUBJECT.trim())) {
     problems.push("VAPID_SUBJECT mailto:… yoki https://… ko'rinishida bo'lishi kerak.");
   }
-  problems.push(...appConfigProblems(env));
+  problems.push(...appConfigProblems(env), ...reviewProblems(env));
   if (!env.AUTH_SECRET || env.AUTH_SECRET.length < 32) {
     problems.push("AUTH_SECRET o'rnatilmagan yoki 32 belgidan qisqa.");
   }

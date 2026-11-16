@@ -889,6 +889,37 @@
       "english": "English"
     }
   },
+  "accountDeletion": {
+    "metaTitle": "Hisobni o'chirish — talabaPass",
+    "eyebrow": "HISOB VA MA'LUMOTLAR",
+    "title": "Hisobni o'chirish",
+    "lead": "talabaPass hisobingizni va unga bog'liq shaxsiy ma'lumotlarni istalgan vaqtda o'chirishingiz mumkin. O'chirilgan hisobni qaytarib bo'lmaydi.",
+    "appTitle": "Ilovada (eng tez)",
+    "appSteps": [
+      "talabaPass ilovasini oching va hisobingizga kiring.",
+      "Profil → «Hisobni o'chirish».",
+      "Parolingizni kiriting va tasdiqlang — hisob darhol o'chiriladi."
+    ],
+    "cashierNote": "Kassir hisobini biznes egasi «Kassirlar» bo'limida faolsizlantiradi; to'liq o'chirish uchun pastdagi so'rov yo'lidan foydalaning.",
+    "requestTitle": "Ilovasiz — so'rov orqali",
+    "requestText": "Hisobingizga bog'langan telefon raqamini ko'rsatib, «Hisobni o'chirish» mavzusida yozing. Shaxsingizni tasdiqlash uchun shu raqamga SMS kod yuborishimiz mumkin.",
+    "email": "Elektron pochta",
+    "telegram": "Telegram",
+    "deletedTitle": "Nima o'chiriladi",
+    "deleted": [
+      "Ism, familiya, telefon raqami (raqam bo'shatiladi — keyin u bilan yangi hisob ochish mumkin) va parol.",
+      "Talaba guvohnomasi rasmlari, guvohnoma raqami, fakultet, tuman va profil rasmi.",
+      "Saqlangan chegirmalar, bildirishnomalar, push va kirish qurilmalari (barcha sessiyalar yopiladi).",
+      "Faol kuponlar bekor qilinadi. Biznes egasida — chegirmalar talabalarga ko'rinmay qoladi, kassirlar chiqariladi."
+    ],
+    "keptTitle": "Nima saqlanib qoladi",
+    "kept": [
+      "Kupon, sotuv va buyurtma tarixi — ismingizsiz, hamkor bizneslarning hisob-kitobi va soliq hisoboti uchun.",
+      "To'lov yozuvlari — qonunchilikda belgilangan muddat davomida."
+    ],
+    "openOrders": "To'lovi hal bo'lmagan oldindan buyurtmangiz bo'lsa, avval uni yakunlang yoki bekor qiling — keyin hisobni o'chirish mumkin.",
+    "privacy": "Batafsil — Maxfiylik siyosati"
+  },
   "legal": {
     "header": {
       "bosh_sahifa": "Bosh sahifa",

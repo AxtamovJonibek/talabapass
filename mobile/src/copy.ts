@@ -462,6 +462,7 @@ export const copy = {
     openOrders: "Pul hal bo'lmagan buyurtmangiz bor. Avval uni yakunlang yoki bekor qiling.",
     locked: (min: number) => `Juda ko'p xato urinish. ${min} daqiqadan keyin qayta urining.`,
     done: "Hisobingiz o'chirildi.",
+    details: "Nima o'chiriladi va nima qoladi — batafsil",
   },
 
   update: {
@@ -723,6 +724,7 @@ export const copy = {
       logoRemove: "Logotipni olib tashlash",
       logoSaved: "Logotip yangilandi.",
       cashierOf: (business: string) => `Kassir · ${business}`,
+      partnerTerms: "Hamkorlik shartlari",
       contacts: "Talabalar uchun aloqa",
     },
 

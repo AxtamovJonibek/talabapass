@@ -9,7 +9,7 @@ import { displayPhone, localDigits } from "@/lib/phone";
 import { resetTo, useApp, type BusinessDraft } from "@/state";
 import { colors, font } from "@/theme";
 import { Icon } from "@/ui/icons";
-import { openSite } from "@/ui/legal";
+import { LEGAL, openSite } from "@/ui/legal";
 import { ErrorBox, Eyebrow, Field, FieldBox, Grow, Label, PrimaryButton, Screen, TickDot, Title, Txt } from "@/ui/kit";
 
 const PHOTOS_MAX = 3;
@@ -215,7 +215,7 @@ export default function BusinessDocs() {
       <Pressable onPress={() => setDraft({ consent: !d.consent })} accessibilityRole="checkbox" accessibilityState={{ checked: d.consent }} style={styles.consent}>
         <View style={[styles.check, d.consent ? styles.checkOn : styles.checkOff]}>{d.consent ? <Icon name="tick" size={16} strokeWidth={3.4} color={colors.white} /> : null}</View>
         <Txt style={styles.consentText}>
-          <Txt style={[font(700), styles.terms]} onPress={() => openSite("/huquqiy/biznes")} accessibilityRole="link">
+          <Txt style={[font(700), styles.terms]} onPress={() => openSite(LEGAL.partnerTerms)} accessibilityRole="link">
             {b.consentTerms}
           </Txt>
           {b.consentTail}

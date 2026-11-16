@@ -510,6 +510,10 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   (`src/server/api/business.ts`: `requireApiOwner`, `requireApiScanner`; testlar `business.itest.ts`). Kassir ilovada telefon raqami bilan
   qo'shiladi (`CashierInvite.phone`, `/auth/verify` → `role: "cashier"` → `/cashier/register`). Fayllar (rasm, chek PDF) API'da imzoli
   havola (`/api/v1/files`, `signUrls`). Push: `sendPushToUsers` Expo'ga ham yuboradi (`notifications/expo-push.ts`). Batafsil `mobile/README.md`.
+- Do'konga tayyorlik: OTA (expo-updates, `runtimeVersion` = ilova versiyasi) va majburiy yangilash (`GET /api/v1/app-config`, env `APP_*`);
+  push kvitansiyalari (`PushTicket`, bildirishnomalar cron'i), oflayn kesh (`useLoad` `cacheKey`), `ErrorBoundary`. Do'kon formalari —
+  `docs/store-checklist.md`; ochiq manzillar `/uz/maxfiylik`, `/uz/shartlar` (redirect, `next.config.ts`), `/uz/hisobni-ochirish` (sahifa).
+  Tekshiruvchi kirishi: `REVIEW_PHONE` + `REVIEW_CODE` (faqat shu raqam, production'da ham, chegaralar saqlanadi — `reviewLoginCode`).
 
 ## Biznes statistikasi (B6, 9-bosqich)
 - `/biznes` holatga qarab: forma (yarim yo'lda/rad etilgan) · tekshiruv sahifasi (PENDING) · statistika (APPROVED/WARNED).

@@ -9,7 +9,7 @@ import { displayPhone, localDigits } from "@/lib/phone";
 import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
 import { Card, InfoRow, MenuRow, ScreenHeader, TabScreen } from "@/ui/app";
-import { openSite } from "@/ui/legal";
+import { LEGAL, openSite } from "@/ui/legal";
 import { Txt } from "@/ui/kit";
 
 /** "2027-06-30" → "30.06.2027" */
@@ -85,8 +85,8 @@ export default function Profile() {
           <Card style={styles.card}>
             <MenuRow icon="bell" label={p.notifications} value={unread > 0 ? String(unread) : undefined} onPress={() => router.push("/notifications")} />
             <MenuRow icon="info" label={p.help} onPress={() => openSite("/#savollar")} />
-            <MenuRow icon="lock" label={p.privacy} onPress={() => openSite("/huquqiy/maxfiylik")} />
-            <MenuRow icon="doc" label={p.terms} onPress={() => openSite("/huquqiy/shartlar")} last />
+            <MenuRow icon="lock" label={p.privacy} onPress={() => openSite(LEGAL.privacy)} />
+            <MenuRow icon="doc" label={p.terms} onPress={() => openSite(LEGAL.terms)} last />
           </Card>
 
           <Card style={styles.card}>

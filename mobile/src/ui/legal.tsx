@@ -6,17 +6,28 @@ import { Txt } from "./kit";
 
 export const openSite = (path: string) => void Linking.openURL(`${API_URL}${path}`);
 
+/**
+ * Saytdagi ochiq manzillar — do'kon formalariga ham shular yoziladi (docs/store-checklist.md). Qisqa manzillar
+ * `next.config.ts` da huquqiy sahifalarga yo'naltiriladi; hisobni o'chirish sahifasi ilovasiz ham ochiladi.
+ */
+export const LEGAL = {
+  privacy: "/uz/maxfiylik",
+  terms: "/uz/shartlar",
+  partnerTerms: "/uz/huquqiy/biznes",
+  deleteAccount: "/uz/hisobni-ochirish",
+} as const;
+
 /** "Davom etib, Foydalanish shartlari va Maxfiylik siyosatiga rozilik bildirasiz." — havolalar saytdagi huquqiy sahifalar. */
 export function Consent() {
   const l = copy.login;
   return (
     <Txt style={styles.text}>
       {l.consentLead}
-      <Txt style={styles.link} accessibilityRole="link" onPress={() => openSite("/huquqiy/shartlar")}>
+      <Txt style={styles.link} accessibilityRole="link" onPress={() => openSite(LEGAL.terms)}>
         {l.terms}
       </Txt>
       {l.and}
-      <Txt style={styles.link} accessibilityRole="link" onPress={() => openSite("/huquqiy/maxfiylik")}>
+      <Txt style={styles.link} accessibilityRole="link" onPress={() => openSite(LEGAL.privacy)}>
         {l.privacy}
       </Txt>
       {l.consentTail}

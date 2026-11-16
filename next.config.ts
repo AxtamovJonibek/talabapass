@@ -22,6 +22,16 @@ const nextConfig: NextConfig = {
     // @ts-expect-error -- trustHostHeader NextConfig["experimental"] tipida yo'q
     trustHostHeader: true,
   },
+  // Do'kon formalari va ilova uchun qisqa, barqaror manzillar (hujjatlar /huquqiy/* da)
+  async redirects() {
+    return [
+      { source: "/:locale(uz)/maxfiylik", destination: "/:locale/huquqiy/maxfiylik", permanent: true },
+      { source: "/:locale(uz)/shartlar", destination: "/:locale/huquqiy/shartlar", permanent: true },
+      { source: "/maxfiylik", destination: "/uz/huquqiy/maxfiylik", permanent: true },
+      { source: "/shartlar", destination: "/uz/huquqiy/shartlar", permanent: true },
+      { source: "/hisobni-ochirish", destination: "/uz/hisobni-ochirish", permanent: true },
+    ];
+  },
   turbopack: {
     rules: {
       "*.css": {

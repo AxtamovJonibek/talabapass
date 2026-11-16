@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { register } from "@/instrumentation";
 import { hashAdminPassword, isAdminPasswordHash } from "./auth/admin-password";
-import { assertProductionEnv, buildEnvProblems, devShortcutsAllowed, isStaging, productionEnvProblems } from "./env-check";
+import { assertProductionEnv, buildEnvProblems, devShortcutsAllowed, isStaging, productionEnvProblems, reviewLoginCode } from "./env-check";
 
 const SAFE = {
   NODE_ENV: "production",
@@ -18,6 +18,18 @@ describe("production muhit tekshiruvi", () => {
     expect(productionEnvProblems({ ...SAFE, VAPID_PUBLIC_KEY: "pub" }).join()).toMatch(/VAPID_PRIVATE_KEY, VAPID_SUBJECT/);
     expect(productionEnvProblems({ ...SAFE, ...full, VAPID_SUBJECT: "admin@example.uz" }).join()).toMatch(/mailto/);
     expect(productionEnvProblems({ ...SAFE, ...full, VAPID_SUBJECT: "https://talabapass.uz" })).toEqual([]);
+  });
+
+  it("do'kon tekshiruvchisi: faqat REVIEW_PHONE uchun REVIEW_CODE, production'da ham; env yo'q — o'chiq", () => {
+    const review = { REVIEW_PHONE: "+998900000001", REVIEW_CODE: "135790" };
+    expect(reviewLoginCode("+998900000001", { ...SAFE, ...review })).toBe("135790");
+    expect(reviewLoginCode("+998900000002", { ...SAFE, ...review })).toBeNull();
+    expect(reviewLoginCode("+998900000001", SAFE)).toBeNull();
+    expect(reviewLoginCode("+998900000001", { ...SAFE, REVIEW_PHONE: review.REVIEW_PHONE })).toBeNull();
+    expect(reviewLoginCode("+998900000001", { ...SAFE, ...review, REVIEW_CODE: "12345" })).toBeNull();
+    expect(productionEnvProblems({ ...SAFE, ...review })).toEqual([]);
+    expect(productionEnvProblems({ ...SAFE, REVIEW_PHONE: review.REVIEW_PHONE }).join()).toMatch(/REVIEW_CODE/);
+    expect(productionEnvProblems({ ...SAFE, REVIEW_PHONE: "900000001", REVIEW_CODE: "abc" })).toHaveLength(2);
   });
 
   it("xavfsiz sozlamada muammo yo'q", () => {

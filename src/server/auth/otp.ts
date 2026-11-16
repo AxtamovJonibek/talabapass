@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "../db";
 import { authSecret, fixedOtpForDev } from "../env";
+import { reviewLoginCode } from "../env-check";
 import { sendSms } from "../sms";
 import {
   canSendOtp,
@@ -50,11 +51,13 @@ export async function requestOtp(phone: string, ip: string, smsText: (code: stri
   }
   if (!decision.ok) return decision;
 
-  const code = fixedOtpForDev() ?? generateOtp();
+  // Do'kon tekshiruvchisi raqami (REVIEW_PHONE) — oldindan berilgan kod, SMS yuborilmaydi; chegaralar yuqorida o'tgan
+  const review = reviewLoginCode(phone);
+  const code = review ?? fixedOtpForDev() ?? generateOtp();
   await db.otpCode.create({
     data: { phone, codeHash: hashOtp(phone, code, authSecret()), expiresAt: new Date(now.getTime() + OTP_TTL_MS) },
   });
-  await sendSms(phone, smsText(code));
+  if (!review) await sendSms(phone, smsText(code));
   return decision;
 }
 

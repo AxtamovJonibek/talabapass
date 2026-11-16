@@ -14,7 +14,7 @@ import { useLoad } from "@/lib/use-load";
 import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
 import { Card, imageUrl, InfoRow, MenuRow, ScreenHeader, TabScreen } from "@/ui/app";
-import { openSite } from "@/ui/legal";
+import { LEGAL, openSite } from "@/ui/legal";
 import { Press, Txt } from "@/ui/kit";
 
 /**
@@ -140,8 +140,9 @@ export default function BusinessProfile() {
           )}
 
           <Card style={styles.card}>
-            <MenuRow icon="lock" label={copy.profile.privacy} onPress={() => openSite("/huquqiy/maxfiylik")} />
-            <MenuRow icon="doc" label={copy.profile.terms} onPress={() => openSite("/huquqiy/biznes")} last />
+            <MenuRow icon="lock" label={copy.profile.privacy} onPress={() => openSite(LEGAL.privacy)} />
+            <MenuRow icon="doc" label={copy.profile.terms} onPress={() => openSite(LEGAL.terms)} last={!owner} />
+            {owner ? <MenuRow icon="doc" label={copy.biz.profile.partnerTerms} onPress={() => openSite(LEGAL.partnerTerms)} last /> : null}
           </Card>
 
           <Card style={styles.card}>

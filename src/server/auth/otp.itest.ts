@@ -147,3 +147,36 @@ describe("kodni tekshirish (baza bilan)", () => {
     expect(results.filter((r) => r === "ok")).toHaveLength(1);
   });
 });
+
+describe("do'kon tekshiruvchisi raqami (REVIEW_PHONE / REVIEW_CODE)", () => {
+  const set = (vars: Record<string, string | undefined>) => {
+    for (const [k, v] of Object.entries(vars)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  };
+  const saved = { REVIEW_PHONE: process.env.REVIEW_PHONE, REVIEW_CODE: process.env.REVIEW_CODE, OTP_FIXED_CODE: process.env.OTP_FIXED_CODE };
+  afterAll(() => set(saved));
+
+  it("faqat shu raqamga shu kod (OTP_FIXED_CODE o'chiq bo'lsa ham), SMS yuborilmaydi; chegaralar saqlanadi", async () => {
+    set({ REVIEW_PHONE: PHONE, REVIEW_CODE: "246810", OTP_FIXED_CODE: undefined });
+    const sent: string[] = [];
+    expect(await requestOtp(PHONE, IP, (code) => (sent.push(code), sms(code)))).toEqual({ ok: true });
+    expect(sent).toEqual([]);
+    expect(await requestOtp(PHONE, IP, sms)).toMatchObject({ ok: false, reason: "too_soon" });
+    expect(await verifyOtp(PHONE, "246810")).toBe("ok");
+
+    // Boshqa raqam — oddiy tasodifiy kod (review kodi ishlamaydi)
+    await requestOtp(OTHER_PHONE, IP, (code) => (sent.push(code), sms(code)));
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).not.toBe("246810");
+    expect(await verifyOtp(OTHER_PHONE, "246810")).not.toBe("ok");
+  });
+
+  it("env bo'lmasa — oddiy kod", async () => {
+    set({ REVIEW_PHONE: undefined, REVIEW_CODE: undefined, OTP_FIXED_CODE: undefined });
+    const sent: string[] = [];
+    await requestOtp(PHONE, IP, (code) => (sent.push(code), sms(code)));
+    expect(sent).toHaveLength(1);
+  });
+});
