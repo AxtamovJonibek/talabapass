@@ -1,17 +1,19 @@
 /* talabaPass service worker: (1) oflayn rejim — statik fayllar keshi, /oflayn sahifasi, ochilgan kupon sahifasi; (2) Web Push. */
-const VERSION = "tp-v4";
+const VERSION = "tp-v5";
 const STATIC = VERSION + "-static";
 const PAGES = VERSION + "-pages";
 // Sahifalar til prefiksi bilan (src/i18n/routing.ts: localePrefix "always")
 const LOCALE = "/uz";
 const OFFLINE = LOCALE + "/oflayn";
 const COUPON = /^\/uz\/kuponlar\/[^/]+$/;
+// Brend fayllari (public/ ildizida, scripts/brand-assets.mjs)
+const BRAND_FILE = /^\/(favicon[^/]*|icon-[^/]+|apple-touch-icon\.png|logo[^/]*)$/;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(STATIC)
-      .then((cache) => cache.addAll([OFFLINE, "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"].map((u) => new Request(u, { cache: "reload" }))))
+      .then((cache) => cache.addAll([OFFLINE, "/site.webmanifest", "/icon-192.png", "/icon-512.png", "/brand/wordmark.svg"].map((u) => new Request(u, { cache: "reload" }))))
       .then(() => self.skipWaiting()),
   );
 });
@@ -73,7 +75,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
   if (request.mode === "navigate") {
     event.respondWith(navigate(request));
-  } else if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
+  } else if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/brand/") || BRAND_FILE.test(url.pathname)) {
     event.respondWith(cacheFirst(request));
   }
 });

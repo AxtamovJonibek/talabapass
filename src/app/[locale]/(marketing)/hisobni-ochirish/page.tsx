@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { LegalFooter } from "@/components/legal/legal-footer";
 import { LegalHeader } from "@/components/legal/legal-header";
+import { JsonLd } from "@/components/seo/json-ld";
 import { resolveLocale } from "@/i18n/locale";
 import { Link } from "@/i18n/navigation";
 import { CONTACTS } from "@/lib/contacts";
+import { breadcrumbLd, pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/hisobni-ochirish">): Promise<Metadata> {
   const locale = await resolveLocale(params);
   const t = await getTranslations({ locale, namespace: "accountDeletion" });
-  return { title: t("metaTitle") };
+  return pageMetadata({ title: t("metaTitle"), description: t("metaDescription"), path: "/hisobni-ochirish" });
 }
 
 const card = { background: "var(--color-white)", border: "1.5px solid var(--color-line)", borderRadius: "18px", padding: "clamp(18px, 3cqw, 28px)" } as const;
@@ -24,10 +26,12 @@ const list = { margin: 0, paddingLeft: "20px", display: "grid", gap: "8px", font
 export default async function AccountDeletionPage({ params }: PageProps<"/[locale]/hisobni-ochirish">) {
   const locale = await resolveLocale(params);
   const t = await getTranslations({ locale, namespace: "accountDeletion" });
+  const meta = await getTranslations({ locale, namespace: "meta" });
   const telegram = `https://t.me/${CONTACTS.adminTelegram}`;
 
   return (
     <div className="dz" style={{ containerType: "inline-size", background: "var(--color-paper)", fontFamily: "var(--font-sans)", color: "var(--color-ink)", minHeight: "100dvh" }}>
+      <JsonLd data={breadcrumbLd(meta("home"), { name: t("title"), path: "/hisobni-ochirish" })} />
       <LegalHeader />
       <main style={{ maxWidth: "820px", margin: "0 auto", padding: "clamp(28px, 6cqw, 64px) clamp(16px, 4cqw, 48px)", display: "grid", gap: "16px" }}>
         <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", color: "var(--color-muted)" }}>{t("eyebrow")}</p>

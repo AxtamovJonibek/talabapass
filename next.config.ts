@@ -22,9 +22,15 @@ const nextConfig: NextConfig = {
     // @ts-expect-error -- trustHostHeader NextConfig["experimental"] tipida yo'q
     trustHostHeader: true,
   },
+  // API javoblari hech qachon indekslanmaydi (sahifalar — src/proxy.ts va metadata)
+  async headers() {
+    return [{ source: "/api/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
+  },
   // Do'kon formalari va ilova uchun qisqa, barqaror manzillar (hujjatlar /huquqiy/* da)
   async redirects() {
     return [
+      // www → asosiy domen (bitta 301). Asosiysi nginx'da (docs/seo.md); bu — nginx sozlanmaguncha zaxira.
+      { source: "/:path*", has: [{ type: "host", value: "www.talabapass.uz" }], destination: "https://talabapass.uz/:path*", statusCode: 301 },
       { source: "/:locale(uz)/maxfiylik", destination: "/:locale/huquqiy/maxfiylik", permanent: true },
       { source: "/:locale(uz)/shartlar", destination: "/:locale/huquqiy/shartlar", permanent: true },
       { source: "/maxfiylik", destination: "/uz/huquqiy/maxfiylik", permanent: true },

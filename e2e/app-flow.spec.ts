@@ -47,9 +47,12 @@ test.describe("ilova: birinchi ochilish", () => {
     await expect(page.getByText("Biznes hisobi uchun telefon raqamingizni kiriting.")).toBeVisible();
   });
 
-  test("brauzerda /ilova sayt bosh sahifasiga qaytaradi, /kirish o'zgarmagan", async ({ page }) => {
+  test("brauzerda /ilova — mobil ilova haqida ochiq sahifa (karusel yo'q), /kirish o'zgarmagan", async ({ page }) => {
     await page.goto("/uz/ilova");
-    await expect(page).toHaveURL(/\/uz$/);
+    await expect(page).toHaveURL(/\/uz\/ilova$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Talaba Pass ilovasi" })).toBeVisible();
+    await expect(page.getByLabel("Google Play — tez orada")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Davom etish" })).toHaveCount(0);
     await page.goto("/uz/kirish");
     await expect(page.getByRole("button", { name: "SMS kod olish" })).toBeVisible();
   });

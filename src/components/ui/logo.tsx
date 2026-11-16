@@ -1,23 +1,12 @@
 import { cn } from "@/lib/cn";
+import { SITE_NAME } from "@/lib/seo";
 
-// Dizayndagi o'lchamlar: [so'z, "Pass" chipi]. 14 — T8 karta, 17 — sidebar/B1, 18 — T1, 20 — W1 header, 22 — W1 footer.
-const SIZES = {
-  14: { root: "gap-[5px] text-14", chip: "rounded-4 px-[6px] pt-px pb-[2px] text-12" },
-  17: { root: "gap-1.5 text-17 tracking-[-0.02em]", chip: "rounded-5 px-[7px] pt-0.5 pb-[3px] text-14" },
-  18: { root: "gap-1.5 text-18 tracking-[-0.02em]", chip: "rounded-5 px-[7px] pt-0.5 pb-[3px] text-15" },
-  20: { root: "gap-1.5 text-20 tracking-[-0.02em]", chip: "rounded-6 px-2 pt-0.5 pb-[3px] text-17" },
-  22: { root: "gap-1.5 text-22", chip: "rounded-6 px-2 pt-0.5 pb-[3px] text-18" },
-  // 404 / oflayn ekranlari: so'z va chip bir xil o'lchamda, chip 900
-  "state-phone": { root: "gap-1.5 text-22 tracking-[-0.035em]", chip: "rounded-7 px-2 pt-px pb-1 text-22 font-black tracking-[-0.03em]" },
-  "state-web": { root: "gap-2 text-30 tracking-[-0.035em]", chip: "rounded-9 px-2.5 pt-0.5 pb-[5px] text-30 font-black tracking-[-0.03em]" },
-} as const;
-
-const CHIPS = {
-  blue: "bg-blue text-white",
-  ink: "bg-ink text-white",
-  white: "bg-white text-ink",
-  "white-blue": "bg-white text-blue",
-} as const;
+// Brend logotipi (design/brand, `scripts/brand-assets.mjs` → public/brand/wordmark*.svg — chetidagi bo'sh joysiz nusxa).
+// Balandlik = "Pass" plashkasi balandligi. Kalitlar eski matnli logotip o'lchamlari: 14 — T8 karta, 17 — sidebar/B1,
+// 18 — T1, 20 — W1 header, 22 — W1 footer, state-* — 404 / oflayn ekranlari, app* — ilova oqimi (AppLogo).
+const HEIGHTS = { 14: 18, 17: 21, 18: 22, 20: 25, 22: 28, "state-phone": 30, "state-web": 40, app: 27, "app-lg": 31 } as const;
+/** viewBox 1346.2 × 216.27 */
+const RATIO = 1346.2 / 216.27;
 
 const TAGS = {
   orange: "bg-orange text-ink",
@@ -31,8 +20,9 @@ const TAG_SIZES = {
 } as const;
 
 type LogoProps = {
-  size?: keyof typeof SIZES;
-  chip?: keyof typeof CHIPS;
+  size?: keyof typeof HEIGHTS;
+  /** `white` — ko'k yoki qorong'i fonda (brend qoidasi: qorong'i fonda faqat oq variant) */
+  variant?: "color" | "white";
   /** "BIZNES" / "ADMIN" yorlig'i */
   tag?: string;
   tagTone?: keyof typeof TAGS;
@@ -40,12 +30,22 @@ type LogoProps = {
   className?: string;
 };
 
-/** "talaba[Pass]" belgisi. So'z rangi ota elementdan olinadi. */
-export function Logo({ size = 18, chip = "blue", tag, tagTone = "orange", tagSize = "sm", className }: LogoProps) {
+/** "talaba[Pass]" brend belgisi (rasm, alt — "Talaba Pass"). */
+export function Logo({ size = 18, variant = "color", tag, tagTone = "orange", tagSize = "sm", className }: LogoProps) {
+  const height = HEIGHTS[size];
+  const width = Math.round(height * RATIO);
   return (
-    <div className={cn("flex items-center font-extrabold font-stretch-125%", SIZES[size].root, className)}>
-      talaba
-      <span className={cn(SIZES[size].chip, CHIPS[chip])}>Pass</span>
+    // Joylashuv va o'lcham inline: marketing sahifalarining `dz` doirasi (`all: revert`) klasslarni ham, img width/height
+    // atributlarini ham bekor qiladi — inline style undan ustun. Joy yetmasa (360px sarlavha) proporsional kichrayadi.
+    <div className={className} style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- SVG: optimallashtirish kerak emas, o'lcham aniq berilgan */}
+      <img
+        src={variant === "white" ? "/brand/wordmark-white.svg" : "/brand/wordmark.svg"}
+        alt={SITE_NAME}
+        width={width}
+        height={height}
+        style={{ display: "block", width, maxWidth: "100%", height: "auto", aspectRatio: `${width} / ${height}` }}
+      />
       {tag ? (
         <span className={cn("rounded-5 py-[3px] font-bold font-stretch-100%", TAG_SIZES[tagSize], TAGS[tagTone])}>
           {tag}

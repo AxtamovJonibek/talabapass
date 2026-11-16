@@ -1,5 +1,7 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { connection } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
 import { ForBusiness } from "@/components/landing/for-business";
@@ -13,8 +15,16 @@ import { Partners } from "@/components/landing/partners";
 import { Stats } from "@/components/landing/stats";
 import { Ticker } from "@/components/landing/ticker";
 import { AppLandingRedirect } from "@/components/pwa/native-app";
+import { JsonLd } from "@/components/seo/json-ld";
 import { resolveLocale } from "@/i18n/locale";
+import { organizationLd, pageMetadata, websiteLd } from "@/lib/seo";
 import { landingDeals, landingPartners, landingStats } from "@/server/landing";
+
+export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return pageMetadata({ title: t("title"), description: t("description"), path: "/" });
+}
 
 // Bazadan keladigan bo'limlar so'rov vaqtida hisoblanadi (o'z Suspense chegarasida) — sahifaning qolgani statik.
 async function LiveDealsSection() {
@@ -41,6 +51,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
     <div className="dz" style={{ containerType: "inline-size", background: "var(--color-paper)", fontFamily: "var(--font-sans)", color: "var(--color-ink)", overflowX: "hidden" }}>
       {/* Capacitor ilovasida landing o'rniga /ilova (brauzerda hech narsa qilmaydi) */}
       <AppLandingRedirect />
+      <JsonLd data={[organizationLd(), websiteLd()]} />
       <LandingHeader />
       <Hero />
       <Ticker />

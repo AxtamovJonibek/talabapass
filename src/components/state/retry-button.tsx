@@ -9,7 +9,7 @@ import { localizedPath, type Locale } from "@/i18n/routing";
 /** Tarmoq bormi? Service worker aralashmaydigan (navigatsiya emas) so'rov — keshdan javob bermaydi. */
 async function reachable() {
   try {
-    const res = await fetch("/manifest.webmanifest", { cache: "no-store" });
+    const res = await fetch("/site.webmanifest", { cache: "no-store" });
     return res.ok;
   } catch {
     return false;

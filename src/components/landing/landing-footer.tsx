@@ -1,5 +1,6 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useTranslations } from "next-intl";
+import { Logo } from "@/components/ui/logo";
 import { Link } from "@/i18n/navigation";
 import { CONTACTS } from "@/lib/contacts";
 
@@ -9,12 +10,7 @@ export function LandingFooter() {
     <footer style={{ background: "var(--color-ink)", color: "var(--color-fog-1)" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "56px clamp(16px, 4cqw, 48px) 28px", display: "flex", flexWrap: "wrap", gap: "40px" }}>
         <div style={{ flex: "2 1 280px", minWidth: "0", display: "flex", flexDirection: "column", gap: "14px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 800, fontStretch: "125%", fontSize: "22px", color: "var(--color-white)" }}>
-            talaba
-            <span style={{ background: "var(--color-blue)", padding: "2px 8px 3px", borderRadius: "6px", fontSize: "18px" }}>
-              Pass
-            </span>
-          </div>
+          <Logo size={22} variant="white" />
           <p style={{ margin: "0", fontSize: "15px", lineHeight: 1.55, maxWidth: "340px" }}>
             {t("ozbekiston_talabalari_va_mahalliy")}
           </p>
@@ -56,6 +52,9 @@ export function LandingFooter() {
           <a className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="#savollar" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
             {t("savollar")}
           </a>
+          <Link className="tp-link [--tp-link-hover:var(--color-white)] [--tp-link-active:var(--color-orange)]" href="/ilova" style={{ color: "var(--color-fog-1)", textDecoration: "none", fontSize: "15px", padding: "6px 0" }}>
+            {t("mobil_ilova")}
+          </Link>
         </div>
         <div style={{ flex: "1 1 150px", display: "flex", flexDirection: "column", gap: "4px" }}>
           <b style={{ color: "var(--color-white)", fontSize: "14px", marginBottom: "6px" }}>{t("kirish")}</b>

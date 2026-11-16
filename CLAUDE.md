@@ -350,8 +350,8 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 ## Sinov serveri (staging)
 - Havola: https://talabapass.uz (Airnet VPS, `docs/server.md`). `APP_ENV=staging`
   (build vaqtida ham kerak — o'zgartirilsa qayta deploy).
-- Sayt hammaga ochiq (Basic Auth yo'q): landing, talaba, biznes. `APP_ENV=staging` da: `X-Robots-Tag` + `robots` meta
-  noindex (ko'rinadigan belgi yo'q), SMS/Telegram ulanguncha `OTP_FIXED_CODE` va
+- Sayt hammaga ochiq (Basic Auth yo'q): landing, talaba, biznes. Indekslash `APP_ENV` dan emas, `SEO_INDEXABLE` dan (pastdagi "SEO va brend").
+  `APP_ENV=staging` da: SMS/Telegram ulanguncha `OTP_FIXED_CODE` va
   `SMS_PROVIDER=dev` ruxsat (`devShortcutsAllowed`). Fayllar ombori har qanday production'da (APP_ENV'dan qat'i nazar):
   `local` (standart) — `STORAGE_LOCAL_DIR` absolyut yo'l majburiy; `s3` — `S3_*` majburiy.
   `APP_ENV` yo'q/boshqa qiymat — production qoidalari o'zgarmagan (`env-check.test.ts`).
@@ -421,7 +421,7 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
   Til qatori faqat "O'zbekcha" ko'rsatadi (ru/en tarjimasi yo'q — yolg'on tanlov qo'shilmagan). "Yordam markazi" → landing `/#savollar`.
 - Biznes ma'lumotlarini tahrirlash (B5 "Tahrirlash"): `/biznes/profil/tahrir`, `src/server/business/profile-edit.ts`. Nom yoki manzil o'zgarsa
   tasdiqlangan biznes `PENDING` ga qaytadi (chegirmalar talabaga ko'rinmay qoladi, audit `business.edit`); ish vaqti va tavsif — tekshiruvsiz.
-- PWA: `public/manifest.webmanifest`, `public/icons/` (`node scripts/pwa-icons.mjs` — "ticket" ikonkasidan), qo'lda yozilgan `public/sw.js`
+- PWA: `public/site.webmanifest`, ikonkalar `public/` ildizida (`node scripts/brand-assets.mjs` — `design/brand/` dan), qo'lda yozilgan `public/sw.js`
   (Serwist emas: Next 16/Turbopack da `@serwist/next` ishlamaydi; push mantiqi shu faylda). Faqat production'da ro'yxatdan o'tadi
   (`ServiceWorkerRegister`). `/_next/static` — cache-first; navigatsiya tarmoqsiz bo'lsa `/oflayn`; ochilgan kupon sahifasi (`/kuponlar/<id>`)
   va fayllari keshlanadi (internetsiz ochiladi; QR kliyentda hisoblanadi), `/kuponlar` — eng so'nggi keshlangani. `/kirish` ochilganda kesh
@@ -439,6 +439,17 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
   Qayta ko'tarilmasa ("Lock file is already being held"): `%LOCALAPPDATA%prisma-dev-nodejsDatadurable-streams	alabapass-devserver.lock.lock` papkasini o'chiring. Shu papkadagi
   `durable-streams.sqlite` (Prisma Streams logi, ilovaga kerak emas) ~2 GB gacha o'sib, qotishlarga sabab bo'ldi — `_backup` ga ko'chirib yangidan boshlandi; yana o'ssa shuni takrorlang.
 
+## SEO va brend
+- Batafsil va yoqish tartibi: `docs/seo.md`. Hammasi `src/lib/seo.ts` da: `SITE_URL`, `SEO_INDEXABLE` (`seoIndexable`, build vaqtida ham o'qiladi),
+  `PUBLIC_PAGES` (sitemap, metadata, proxy), `ROBOTS_DISALLOW`, `baseMetadata` (ildiz layout — standart **noindex**), `pageMetadata` (ochiq sahifa:
+  title, description, canonical, OG/Twitter, robots), JSON-LD quruvchilari (`components/seo/json-ld.tsx`). Yangi ochiq sahifa — `PUBLIC_PAGES` + `pageMetadata`.
+- `SEO_INDEXABLE` ≠ `true` — butun sayt noindex (meta + `X-Robots-Tag`), robots.txt `Disallow: /`. `true` — ochiq sahifalar ochiq, qolgani doim noindex; `/api/*` doim noindex.
+- Landing'da yagona H1 — hero ustidagi ko'k yorliq ("Talaba Pass — talabalar uchun chegirmalar"), katta shior `<p>` (dizayndan chetlanish).
+- `/ilova`: ilovada (`isAppRequest()`) — tanishtiruv karuseli, brauzerda — mobil ilova haqida sahifa (`landing/app-about.tsx`, do'kon tugmalari "tez orada").
+- `www` → 301: nginx (qo'lda, `docs/seo.md`) + zaxira `next.config.ts` `redirects()`.
+- Brend: `design/brand/` → `node scripts/brand-assets.mjs`. `Logo` (`ui/logo.tsx`) — `public/brand/wordmark(-white).svg` rasmi; `variant="white"` — ko'k/qorong'i fonda
+  (brend qoidasi). O'lcham inline style'da (`dz` doirasidagi `all: revert` klasslarni bekor qiladi), joy yetmasa kichrayadi.
+
 ## Ishga tushishdan oldin (majburiy ro'yxat)
 To'liq, tushuntirishlar bilan — `docs/ishga-tushirish.md`. Qisqacha:
 Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilgan bo'lishi kerak:
@@ -452,6 +463,7 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - [ ] Web Push: `VAPID_*` o'rnatilgan; serverda `CRON_SECRET` va crontab — aks holda rejalashtirilgan xabarlar faqat admin sahifasi ochilganda ketadi.
 - [ ] `pruneOtpData` cron'i ulangan. Kuponlar cron'i (`/api/cron/kuponlar`) crontab'da.
 - [ ] PDF ichidagi rasmlarning EXIF'i tozalanmaydi — PDF'ni rasmga aylantirish yoki shu cheklovni qabul qilish.
+- [ ] `SEO_INDEXABLE=true` + qayta deploy, Search Console'ga sitemap; nginx'da www → 301 (`docs/seo.md`).
 - [ ] Rate limit IP'si: hosting `x-forwarded-for` ni o'zi yozishini tekshirish (nginx `proxy_set_header X-Forwarded-For $remote_addr;`).
 
 ## Ochiq masalalar

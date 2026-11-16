@@ -19,7 +19,7 @@ async function Invite({ params }: { params: Promise<{ locale: string; token: str
   const brand = await getTranslations("brand");
   return (
     <main className="mx-auto flex min-h-dvh max-w-[440px] flex-col gap-3 bg-paper px-5 pt-14 pb-8 text-ink">
-      <Logo size={17} chip="ink" tag={brand("business")} tagSize="md" />
+      <Logo size={17} tag={brand("business")} tagSize="md" />
       <h1 className="mt-6 mb-0 text-28 font-black tracking-[-0.03em] font-stretch-110%">{t("invalidTitle")}</h1>
       <p data-testid="invite-invalid" className="m-0 text-14 leading-[1.45] text-muted">
         {t("invalidLead")}

@@ -41,7 +41,7 @@ export async function AdminShell({ user, active, children }: { user: CurrentUser
       <Sidebar
         accent="blue"
         navLabel={t("nav.label")}
-        header={<Logo size={17} tag={brand("admin")} tagTone="paper" className="px-2" />}
+        header={<Logo size={17} variant="white" tag={brand("admin")} tagTone="paper" className="px-2" />}
         items={ITEMS.map((item) => ({
           href: item.href,
           icon: item.icon,

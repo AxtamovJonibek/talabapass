@@ -81,7 +81,7 @@ function PendingPhone() {
   return (
     <div className="flex min-h-dvh flex-col bg-paper text-ink">
       <div className="flex items-center justify-between px-5 pt-14">
-        <Logo size={17} chip="ink" tag={brand("business")} tagSize="md" />
+        <Logo size={17} tag={brand("business")} tagSize="md" />
       </div>
       <div className="flex flex-1 flex-col gap-4 px-5 pt-[18px]">
         <div className="flex items-start justify-between gap-3">

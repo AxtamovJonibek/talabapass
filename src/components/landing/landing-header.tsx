@@ -3,6 +3,7 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Logo } from "@/components/ui/logo";
 import { Link } from "@/i18n/navigation";
 
 export function LandingHeader() {
@@ -14,11 +15,8 @@ export function LandingHeader() {
   return (
     <header style={{ position: "sticky", top: "var(--safe-top)", zIndex: 20, background: "var(--color-paper)", borderBottom: "1.5px solid var(--color-ink)" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4cqw, 48px)", height: "72px", display: "flex", alignItems: "center", gap: "16px" }}>
-        <Link href="/" aria-label={t("talabapass_bosh_sahifa")} style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 800, fontStretch: "125%", fontSize: "20px", letterSpacing: "-0.02em", textDecoration: "none", color: "var(--color-ink)", flexShrink: 0 }}>
-          talaba
-          <span style={{ background: "var(--color-blue)", color: "var(--color-white)", padding: "2px 8px 3px", borderRadius: "6px", fontSize: "17px" }}>
-            Pass
-          </span>
+        <Link href="/" aria-label={t("talabapass_bosh_sahifa")} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <Logo size={20} />
         </Link>
         <nav aria-label={t("asosiy")} style={{ flex: "1 1 auto", maxWidth: "clamp(0px, calc((100cqw - 920px) * 999), 2000px)", overflow: "hidden", display: "flex", justifyContent: "center", gap: "4px", whiteSpace: "nowrap" }}>
           <a className="tp-link" href="#qanday" style={{ height: "44px", padding: "0 12px", display: "flex", alignItems: "center", color: "var(--color-ink)", textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>

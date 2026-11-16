@@ -33,7 +33,7 @@ function Header({ step, onBack }: { step: 1 | 2; onBack: () => void }) {
       <div className="flex items-center justify-between px-5 pt-14">
         <div className="flex items-center gap-2.5">
           <BackButton onClick={onBack} />
-          <Logo size={17} chip="ink" tag={brand("business")} tagSize="md" />
+          <Logo size={17} tag={brand("business")} tagSize="md" />
         </div>
         <div className="font-mono text-12 text-muted">{t("step", { n: step })}</div>
       </div>

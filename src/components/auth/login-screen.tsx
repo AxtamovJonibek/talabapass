@@ -119,7 +119,7 @@ export function LoginScreen() {
           )}
         />
         <Link href="/" className="relative self-start text-inherit no-underline">
-          <Logo size={20} chip={business ? "white" : "white-blue"} tag={business ? "BIZNES" : undefined} />
+          <Logo size={20} variant="white" tag={business ? "BIZNES" : undefined} />
         </Link>
         <div className="relative mt-auto max-w-[520px]">
           <h1 className="m-0 text-[clamp(36px,4.6cqw,64px)] leading-[0.95] font-black tracking-[-0.04em] font-stretch-112%">

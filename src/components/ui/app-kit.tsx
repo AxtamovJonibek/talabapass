@@ -2,6 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
 import { Icon } from "./icon";
+import { Logo } from "./logo";
 import type { IconName } from "./icons";
 
 /*
@@ -25,19 +26,9 @@ export function AppScreen({ children, className, bleed = false }: { children: Re
   );
 }
 
-const LOGO = {
-  md: { word: "text-24", chip: "rounded-8 px-2.5 pt-px pb-[3px] text-20" },
-  lg: { word: "text-[27px]", chip: "rounded-9 px-[11px] pt-px pb-[3px] text-22" },
-} as const;
-
-/** "talaba[Pass]" — ilova ko'rinishi (900 / 112%, karuselda kattaroq). */
-export function AppLogo({ size = "md" }: { size?: keyof typeof LOGO }) {
-  return (
-    <div className="flex items-center gap-2 font-stretch-112%">
-      <span className={cn("font-black tracking-[-0.02em]", LOGO[size].word)}>talaba</span>
-      <span className={cn("bg-blue font-extrabold text-white", LOGO[size].chip)}>Pass</span>
-    </div>
-  );
+/** "talaba[Pass]" — ilova ko'rinishi (karuselda kattaroq). */
+export function AppLogo({ size = "md" }: { size?: "md" | "lg" }) {
+  return <Logo size={size === "lg" ? "app-lg" : "app"} />;
 }
 
 /** Yuqori qator: chapda orqaga/logo, o'rtada qadam, o'ngda yorliq yoki havola. */

@@ -9,12 +9,16 @@ export function Hero() {
   return (
     <section style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(20px, min(6cqw, 6vh), 80px) clamp(16px, 4cqw, 48px) clamp(40px, 6cqw, 90px)", display: "flex", flexWrap: "wrap", gap: "clamp(32px, 5cqw, 64px)", alignItems: "center" }}>
       <div style={{ flex: "1 1 480px", minWidth: "0" }}>
-        <h1 style={{ margin: "0", fontSize: "clamp(40px, min(7.6cqw, 10.5vh), 108px)", lineHeight: 0.92, fontWeight: 900, fontStretch: "112%", letterSpacing: "-0.045em" }}>
+        {/* SEO: sahifadagi yagona H1 — ko'k yorliq (ForStudents yorlig'i uslubida); katta shior dizayndagidek, lekin <p> */}
+        <h1 style={{ margin: "0 0 clamp(12px, 2vh, 18px)", fontSize: "13px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--color-blue)" }}>
+          {t("h1")}
+        </h1>
+        <p style={{ margin: "0", fontSize: "clamp(40px, min(7.6cqw, 10.5vh), 108px)", lineHeight: 0.92, fontWeight: 900, fontStretch: "112%", letterSpacing: "-0.045em" }}>
           {t("talaba_bolish_endi")}{" "}
           <span style={{ background: "var(--color-orange)", padding: "0 0.12em", borderRadius: "0.12em", display: "inline-block", transform: "rotate(-2deg)" }}>
             {t("arzonroq")}
           </span>
-        </h1>
+        </p>
         <p style={{ margin: "clamp(14px, 2.4vh, 24px) 0 0", fontSize: "clamp(16px, min(1.6cqw, 2.6vh), 21px)", lineHeight: 1.5, color: "var(--color-ink-5)", maxWidth: "560px", textWrap: "pretty" }}>
           {t("kafe_kitob_dokoni_sport")}
         </p>

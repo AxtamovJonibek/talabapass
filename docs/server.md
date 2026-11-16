@@ -19,7 +19,8 @@ internet → nginx (TLS, talabapass.uz) → 127.0.0.1:3000 → PM2 "talabapass" 
   (masalan `/var/lib/talabapass/files`, faqat ilova foydalanuvchisi o'qiydi; nginx orqali berilmaydi). Nisbiy yo'l bilan server ishga tushmaydi.
   Bu papka `pg_dump` nusxasiga kirmaydi — alohida zaxiralang.
 - nginx `X-Forwarded-For` ni o'zi yozsin (`proxy_set_header X-Forwarded-For $remote_addr;`) — SMS chegarasi IP'ni shundan oladi.
-- Serverda `APP_ENV=staging` (sinov rejimi: noindex, SMS ulanguncha `OTP_FIXED_CODE`).
+- Serverda `APP_ENV=staging` (sinov rejimi: SMS ulanguncha `OTP_FIXED_CODE`). Indekslash — `SEO_INDEXABLE` (hozir `false`, `docs/seo.md`).
+- `www.talabapass.uz` → `https://talabapass.uz` 301 — nginx bloki `docs/seo.md` da (bir martalik, qo'lda).
 
 ## deploy.sh nima qiladi
 qulf (`flock`, ikki deploy bir vaqtda emas) → env → `git fetch` + `reset --hard origin/main` → `npm ci` → `check-env` → `pg_dump` →

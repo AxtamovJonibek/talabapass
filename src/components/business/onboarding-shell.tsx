@@ -26,7 +26,7 @@ export function BusinessOnboardingShell({ step, showLogin = false, children, foo
     <div className="@container flex min-h-screen flex-wrap bg-paper text-ink">
       <aside className="box-border flex min-w-0 flex-[1_1_380px] flex-col gap-7 bg-ink p-[clamp(20px,3.5cqw,44px)] text-paper">
         <Link href="/" className="text-paper no-underline">
-          <Logo size={20} chip="white" tag={brand("business")} />
+          <Logo size={20} variant="white" tag={brand("business")} />
         </Link>
         <div>
           <h1 className="m-0 text-[clamp(34px,4cqw,54px)] leading-[0.95] font-black tracking-[-0.04em] font-stretch-112%">{t("webTitle")}</h1>

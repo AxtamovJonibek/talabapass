@@ -36,7 +36,7 @@ export function BusinessShell({ active, phoneTab, children }: { active: Business
     <Sidebar
       accent="orange"
       navLabel={t("label")}
-      header={<Logo size={17} chip="white" tag={brand("business")} className="px-2" />}
+      header={<Logo size={17} variant="white" tag={brand("business")} className="px-2" />}
       items={ITEMS.map((item) => ({ href: item.href, icon: item.icon, label: t(item.key), active: item.key === active }))}
       footer={
         <form action={logoutAction} className="px-1.5">

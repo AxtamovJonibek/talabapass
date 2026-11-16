@@ -1,7 +1,13 @@
 {
   "meta": {
-    "title": "talabaPass — talabalar uchun chegirmalar",
-    "description": "O'zbekiston talabalari va mahalliy bizneslarni bog'laydigan chegirmalar platformasi."
+    "title": "Talaba Pass — talabalar uchun chegirmalar | talabapass.uz",
+    "description": "Talaba Pass — talabalar uchun chegirmalar: kafe, kitob, sport va xizmatlarda talabalar chegirmasi. Guvohnomani bir marta tasdiqlang, QR bilan arzon to'lang.",
+    "home": "Bosh sahifa",
+    "legal": {
+      "maxfiylik": "Talaba Pass maxfiylik siyosati: qaysi ma'lumotlar yig'iladi, talaba guvohnomasi qanday saqlanadi va tekshiruvdan keyin nima bo'ladi.",
+      "shartlar": "Talaba Pass foydalanish shartlari: talabalar chegirmasidan foydalanish qoidalari, hisob, kupon va QR kod tartibi.",
+      "biznes": "Talaba Pass hamkor bizneslar uchun shartlar: chegirma joylashtirish, tekshiruv, kassirlar va talabalarga xizmat ko'rsatish tartibi."
+    }
   },
   "brand": {
     "business": "BIZNES",
@@ -717,6 +723,7 @@
       "biznesni_ulash": "Biznesni ulash"
     },
     "hero": {
+      "h1": "Talaba Pass — talabalar uchun chegirmalar",
       "talaba_bolish_endi": "Talaba bo'lish endi",
       "arzonroq": "arzonroq.",
       "kafe_kitob_dokoni_sport": "Kafe, kitob do'koni, sport zali, sartaroshxona — shahar bo'ylab hamkor joylarda talabalar uchun maxsus narx. Guvohnomangizni bir marta tasdiqlatasiz, keyin kassada QR kodni ko'rsatasiz.",
@@ -836,6 +843,10 @@
       "kop_soraladigan_savollar": "Ko'p so'raladigan savollar",
       "javob_topolmadingizmi_telegram_orqali": "Javob topolmadingizmi? Telegram orqali yozing — tez javob beramiz.",
       "items": {
+        "0": {
+          "q": "Talaba Pass nima?",
+          "a": "Talaba Pass (talabapass.uz) — O'zbekiston talabalari uchun chegirmalar xizmati. Talaba guvohnomangizni bir marta tasdiqlatasiz va hamkor kafe, kitob do'koni, sport zali kabi joylarda talabalar chegirmasi bilan to'laysiz. Qisqasi, har bir talaba uz uchun bitta pass — saytda ham, ilovada ham."
+        },
         "1": {
           "q": "Kimlar foydalana oladi?",
           "a": "O'zbekistondagi oliy ta'lim muassasalarining amaldagi talabalari — bakalavr va magistratura. Talaba guvohnomasining muddati o'tmagan bo'lishi kerak."
@@ -864,7 +875,7 @@
       "biznesni_ulash": "Biznesni ulash"
     },
     "footer": {
-      "ozbekiston_talabalari_va_mahalliy": "O'zbekiston talabalari va mahalliy bizneslarni bog'laydigan chegirmalar platformasi.",
+      "ozbekiston_talabalari_va_mahalliy": "Talaba Pass — O'zbekiston talabalari va mahalliy bizneslarni bog'laydigan talabalar chegirmasi platformasi.",
       "telegram": "Telegram",
       "instagram": "Instagram",
       "youtube": "YouTube",
@@ -873,6 +884,7 @@
       "qanday_ishlaydi": "Qanday ishlaydi",
       "hamkorlar": "Hamkorlar",
       "savollar": "Savollar",
+      "mobil_ilova": "Mobil ilova",
       "kirish": "Kirish",
       "talaba_royxati": "Talaba ro'yxati",
       "biznesni_ulash": "Biznesni ulash",
@@ -890,7 +902,8 @@
     }
   },
   "accountDeletion": {
-    "metaTitle": "Hisobni o'chirish — talabaPass",
+    "metaTitle": "Hisobni o'chirish — Talaba Pass",
+    "metaDescription": "Talaba Pass hisobini qanday o'chirish mumkin: ilovada yoki so'rov orqali, qaysi ma'lumotlar o'chiriladi va qaysilari saqlanib qoladi.",
     "eyebrow": "HISOB VA MA'LUMOTLAR",
     "title": "Hisobni o'chirish",
     "lead": "talabaPass hisobingizni va unga bog'liq shaxsiy ma'lumotlarni istalgan vaqtda o'chirishingiz mumkin. O'chirilgan hisobni qaytarib bo'lmaydi.",
@@ -1412,8 +1425,16 @@
     "title": "Statistika",
     "dateLine": "{weekday}, {day}-{month} · {time}",
     "periodLabel": "Davr",
-    "period": { "1": "Bugun", "7": "7 kun", "30": "30 kun" },
-    "periodName": { "1": "bugun", "7": "so'nggi 7 kun", "30": "so'nggi 30 kun" },
+    "period": {
+      "1": "Bugun",
+      "7": "7 kun",
+      "30": "30 kun"
+    },
+    "periodName": {
+      "1": "bugun",
+      "7": "so'nggi 7 kun",
+      "30": "so'nggi 30 kun"
+    },
     "excel": "Excel hisobot",
     "kpiLabel": "Asosiy ko'rsatkichlar",
     "sold": "Sotuvlar",
@@ -1453,7 +1474,12 @@
       "empty": "Sotuvlar paydo bo'lgach, talabalar kelish vaqti shu yerda ko'rinadi.",
       "tip": "{day} {hour}:00 — {count} ta"
     },
-    "universities": { "title": "Universitetlar", "sub": "sotuvlar, {period}", "others": "Boshqalar", "empty": "Bu davrda sotuv yo'q." },
+    "universities": {
+      "title": "Universitetlar",
+      "sub": "sotuvlar, {period}",
+      "others": "Boshqalar",
+      "empty": "Bu davrda sotuv yo'q."
+    },
     "offers": {
       "title": "Chegirmalar samaradorligi",
       "add": "+ Yangi chegirma",
@@ -1481,7 +1507,11 @@
       "all": "Barcha sotuvlar →",
       "empty": "Hali sotuv yo'q. Kassir birinchi QR'ni skanerlaganda shu yerda paydo bo'ladi."
     },
-    "cashiers": { "title": "Kassirlar, 30 kun", "rejected": "Rad etilgan QR", "empty": "Hali skan yo'q." },
+    "cashiers": {
+      "title": "Kassirlar, 30 kun",
+      "rejected": "Rad etilgan QR",
+      "empty": "Hali skan yo'q."
+    },
     "sales": {
       "title": "Sotuvlar va cheklar",
       "summary": "{count} ta sotuv · {sum} so'm",
@@ -2260,7 +2290,10 @@
     },
     "order": {
       "valid": "Oldindan band qilingan",
-      "mode": {"PICKUP": "Olib ketish", "DINE_IN": "Joyida"},
+      "mode": {
+        "PICKUP": "Olib ketish",
+        "DINE_IN": "Joyida"
+      },
       "slot": "Vaqt",
       "quantity": "Soni",
       "note": "Izoh",
@@ -2885,5 +2918,41 @@
       "too_many_invites": "Ochiq takliflar juda ko'p (10 ta). Avvalgilarini bekor qiling yoki kuting.",
       "already_cashier": "Bu raqam allaqachon sizning kassiringiz."
     }
+  },
+  "appPage": {
+    "metaTitle": "Talaba Pass ilovasi — iOS va Android | talabapass.uz",
+    "metaDescription": "Talaba Pass mobil ilovasi: yaqin atrofdagi talabalar chegirmasi, internetsiz ochiladigan QR kupon va bildirishnomalar. App Store va Google Play'da tez orada.",
+    "breadcrumb": "Mobil ilova",
+    "eyebrow": "MOBIL ILOVA",
+    "title": "Talaba Pass ilovasi",
+    "lead": "Chegirmalar, QR kupon va xarita — telefoningizda. Ilova App Store va Google Play'ga tez orada chiqadi; hozircha hammasi saytda ishlaydi.",
+    "storesLabel": "Ilovani yuklab olish",
+    "soon": "Tez orada",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "storeSoon": "{store} — tez orada",
+    "featuresTitle": "Ilovada nima bor",
+    "features": [
+      {
+        "title": "Yaqin chegirmalar",
+        "text": "Xaritada yoningizdagi hamkor joylar, masofa va hozir ochiqligi."
+      },
+      {
+        "title": "Internetsiz QR kupon",
+        "text": "Olingan kupon telefonda saqlanadi — kassada internet bo'lmasa ham ko'rsatasiz."
+      },
+      {
+        "title": "Bildirishnomalar",
+        "text": "Guvohnoma tasdig'i, yangi chegirmalar va buyurtma holati haqida darhol xabar."
+      },
+      {
+        "title": "Biznes uchun",
+        "text": "Biznes egalari va kassirlar QR'ni skanerlaydi, sotuvlar va statistikani kuzatadi."
+      }
+    ],
+    "webTitle": "Ilova chiqquncha — saytda",
+    "webText": "Talaba Pass saytida hammasi bor: ro'yxatdan o'tish, chegirmalar lentasi va QR kupon. Telefon brauzerida oching va «Bosh ekranga qo'shish» orqali ilovadek ishlating.",
+    "student": "Talaba sifatida boshlash",
+    "business": "Biznesni ulash"
   }
 }

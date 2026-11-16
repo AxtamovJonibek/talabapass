@@ -4,7 +4,7 @@
 import { Fragment, useState } from "react";
 import { useTranslations } from "next-intl";
 
-const FAQ_IDS = ["1", "2", "3", "4", "5"] as const;
+const FAQ_IDS = ["0", "1", "2", "3", "4", "5"] as const;
 
 export function Faq() {
   const t = useTranslations("landing.faq");

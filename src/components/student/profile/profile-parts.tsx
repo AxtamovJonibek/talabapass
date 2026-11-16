@@ -38,7 +38,7 @@ export function StudentIdCard({ profile, size }: { profile: ProfileData; size: "
     <div className={cn("relative overflow-hidden bg-blue text-white", web ? "rounded-22 p-[22px]" : "rounded-20 p-[18px]")}>
       <div aria-hidden="true" className={cn("absolute rounded-full border-solid border-blue-2", web ? "-top-[50px] -right-[50px] size-[170px] border-[26px]" : "-top-10 -right-10 size-[140px] border-[22px]")} />
       <div className="relative flex items-center justify-between">
-        <Logo size={14} chip="white-blue" />
+        <Logo size={14} variant="white" />
         <span className="flex items-center gap-[5px] rounded-20 bg-white px-[9px] py-[5px] text-12 font-bold text-green">
           {web ? null : <Icon name="check" size={12} strokeWidth={3.4} />}
           {t("status.verified")}

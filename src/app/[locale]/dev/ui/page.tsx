@@ -58,14 +58,14 @@ export default async function DesignSystemPage({ params }: PageProps<"/[locale]/
         <div className="flex flex-wrap items-center gap-6">
           <Logo size={20} />
           <Logo size={18} />
-          <Logo size={17} chip="ink" tag={t("brand.business")} />
+          <Logo size={17} tag={t("brand.business")} />
           <div className="flex gap-6 rounded-12 bg-ink p-4 text-paper">
-            <Logo size={18} />
-            <Logo size={17} chip="white" tag={t("brand.business")} />
-            <Logo size={17} tag={t("brand.admin")} tagTone="paper" />
+            <Logo size={18} variant="white" />
+            <Logo size={17} variant="white" tag={t("brand.business")} />
+            <Logo size={17} variant="white" tag={t("brand.admin")} tagTone="paper" />
           </div>
           <div className="rounded-12 bg-blue p-4 text-white">
-            <Logo size={14} chip="white-blue" />
+            <Logo size={14} variant="white" />
           </div>
         </div>
       </Section>
@@ -288,7 +288,7 @@ export default async function DesignSystemPage({ params }: PageProps<"/[locale]/
             <Sidebar
               accent="orange"
               navLabel={t("businessNav.label")}
-              header={<Logo size={17} chip="white" tag={t("brand.business")} className="px-2" />}
+              header={<Logo size={17} variant="white" tag={t("brand.business")} className="px-2" />}
               items={[
                 { href: "/dev/ui", label: t("businessNav.stats"), icon: "chart", active: true },
                 { href: "/dev/ui#1", label: t("businessNav.discounts"), icon: "ticket", count: 3 },
@@ -307,7 +307,7 @@ export default async function DesignSystemPage({ params }: PageProps<"/[locale]/
             <Sidebar
               accent="blue"
               navLabel={t("adminNav.label")}
-              header={<Logo size={17} tag={t("brand.admin")} tagTone="paper" className="px-2" />}
+              header={<Logo size={17} variant="white" tag={t("brand.admin")} tagTone="paper" className="px-2" />}
               items={[
                 { href: "/dev/ui", label: t("adminNav.overview"), icon: "chart", active: true },
                 { href: "/dev/ui#1", label: t("adminNav.students"), icon: "student", count: 47 },

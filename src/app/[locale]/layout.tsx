@@ -7,7 +7,7 @@ import { resolveLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
 import { NativeApp } from "@/components/pwa/native-app";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
-import { isStaging } from "@/server/env-check";
+import { baseMetadata } from "@/lib/seo";
 import "../globals.css";
 
 // Archivo — variable shrift; `wdth` o'qi dizayndagi font-stretch (62–125%) uchun shart.
@@ -26,14 +26,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
   const t = await getTranslations({ locale, namespace: "meta" });
-  return {
-    title: t("title"),
-    description: t("description"),
-    manifest: "/manifest.webmanifest",
-    icons: { apple: "/icons/apple-touch-icon.png" },
-    appleWebApp: { capable: true, title: "talabaPass", statusBarStyle: "default" },
-    ...(isStaging() && { robots: { index: false, follow: false } }),
-  };
+  // Standart — noindex (panel, kirish, ro'yxat). Ochiq sahifalar o'z metadata'sida `pageMetadata` bilan ochadi (src/lib/seo.ts).
+  return baseMetadata({ title: t("title"), description: t("description") });
 }
 
 export const viewport: Viewport = {

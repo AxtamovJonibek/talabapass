@@ -67,8 +67,10 @@ async function crawl(page: Page, base: string, start: string, homeRoles: RegExp,
       if ((await page.getByTestId("error-page").count()) + (await page.getByTestId("not-found-page").count()) > 0) problems.push(`${href}: xato/404 ekrani`);
       const text = (await page.locator("body").innerText()).trim();
       if (text.length < 20) problems.push(`${href}: sahifa bo'sh`);
-      if (STUBS.test(text)) problems.push(`${href}: vaqtinchalik matn — "${text.match(STUBS)![0]}"`);
-      if (!homeRoles.test(path) && !/^\/(huquqiy|kirish|talaba|biznes\/royxat|oflayn)/.test(path)) problems.push(`${href}: begona bo'lim ${path}`);
+      // /ilova: App Store / Google Play tugmalaridagi "Tez orada" — ilova do'konga chiqquncha ataylab
+      const stubText = path === "/ilova" ? text.replace(/tez orada/gi, "") : text;
+      if (STUBS.test(stubText)) problems.push(`${href}: vaqtinchalik matn — "${stubText.match(STUBS)![0]}"`);
+      if (!homeRoles.test(path) && !/^\/(huquqiy|kirish|talaba|biznes\/royxat|oflayn|ilova$|hisobni-ochirish)/.test(path)) problems.push(`${href}: begona bo'lim ${path}`);
       for (const link of await visibleLinks(page)) {
         const n = normalize(link, base);
         if (n && !seen.has(n.split("?")[0]!)) next.push(n);

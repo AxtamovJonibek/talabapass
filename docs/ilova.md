@@ -80,7 +80,7 @@ Bu faqat sinov uchun. Play Market'ga chiqishda alohida release kaliti va `assemb
 
 ```
 npx cap sync android     # capacitor.config.ts yoki plaginlar o'zgargandan keyin
-node scripts/pwa-icons.mjs   # ikonka/splash (PWA va android/ ichida)
+node scripts/brand-assets.mjs   # brend ikonkalari/splash (design/brand → public/, mobile/assets/, android/)
 npx cap open android     # Android Studio bo'lsa (ixtiyoriy)
 ```
 

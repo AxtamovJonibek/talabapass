@@ -13,9 +13,10 @@ describe("proxy", () => {
   afterEach(() => vi.unstubAllEnvs());
   const request = (path: string) => new NextRequest(`https://talabapass.uz${path}`);
 
-  it("staging: sahifalar ochiq (Basic Auth yo'q), noindex sarlavhasi bilan", () => {
+  it("SEO_INDEXABLE yo'q/false: sahifalar ochiq (Basic Auth yo'q), hammasi noindex", () => {
     vi.stubEnv("APP_ENV", "staging");
-    for (const path of ["/", "/uz", "/uz/kirish", "/uz/chegirmalar", "/uz/biznes"]) {
+    vi.stubEnv("SEO_INDEXABLE", "false");
+    for (const path of ["/", "/uz", "/uz/ilova", "/uz/kirish", "/uz/chegirmalar", "/uz/biznes"]) {
       const response = proxy(request(path));
       expect(response.status, path).toBe(200);
       expect(response.headers.get("www-authenticate"), path).toBeNull();
@@ -29,11 +30,16 @@ describe("proxy", () => {
     expect(matches("/uz/kirish")).toBe(true);
   });
 
-  it("production: noindex yo'q", () => {
-    vi.stubEnv("APP_ENV", "");
-    const response = proxy(request("/uz"));
-    expect(response.status).toBe(200);
-    expect(response.headers.get("x-robots-tag")).toBeNull();
+  it("SEO_INDEXABLE=true: ochiq sahifalarda noindex yo'q, panel/kirish doim noindex", () => {
+    vi.stubEnv("SEO_INDEXABLE", "true");
+    for (const path of ["/uz", "/uz/ilova", "/uz/huquqiy/maxfiylik", "/uz/hisobni-ochirish"]) {
+      const response = proxy(request(path));
+      expect(response.status, path).toBe(200);
+      expect(response.headers.get("x-robots-tag"), path).toBeNull();
+    }
+    for (const path of ["/uz/kirish", "/uz/admin", "/uz/biznes", "/uz/chegirmalar", "/uz/talaba/royxat"]) {
+      expect(proxy(request(path)).headers.get("x-robots-tag"), path).toBe("noindex");
+    }
   });
 });
 
