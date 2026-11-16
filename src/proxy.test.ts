@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import proxy from "@/proxy";
+import proxy, { config } from "@/proxy";
 import { localizedPath, routing } from "@/i18n/routing";
 
 // next-intl middleware Vitest'da yuklanmaydi (ESM `next/server` yo'li); bu yerda faqat proxy'ning o'z qismi tekshiriladi.
@@ -21,6 +21,12 @@ describe("proxy", () => {
       expect(response.headers.get("www-authenticate"), path).toBeNull();
       expect(response.headers.get("x-robots-tag"), path).toBe("noindex, nofollow");
     }
+  });
+
+  it("public/ fayllari (Google Search Console tasdiqlash fayli) proxy'dan o'tmaydi: /uz ga yo'naltirilmaydi, noindex yo'q", () => {
+    const matches = (path: string) => new RegExp(`^${config.matcher}$`).test(path);
+    expect(matches("/googleafbb26fed356e93c.html")).toBe(false);
+    expect(matches("/uz/kirish")).toBe(true);
   });
 
   it("production: noindex yo'q", () => {
