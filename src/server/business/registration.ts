@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { normalizeTin, PHOTOS_MAX, validateBusiness, type BusinessInfo } from "@/lib/business";
 import type { BusinessKind, DocKind } from "@/generated/prisma/client";
 import { audit } from "../audit";
+import { accountData, accountPhone, type NewAccount } from "../auth/new-account";
 import { db } from "../db";
 import { isUniqueViolation } from "../db-errors";
 import { storage } from "../storage";
@@ -64,13 +65,13 @@ const splitName = (full: string) => {
  * Tasdiqlangan raqam uchun biznes egasi hisobi va arizasi (hali yuborilmagan: hujjatlar keyin yuklanadi).
  * STIR band bo'lsa — xato (bitta biznes faqat bir marta ro'yxatdan o'tadi).
  */
-export async function createBusinessOwner(phone: string, info: CleanInfo): Promise<{ ok: true; userId: string } | { ok: false; error: "tinTaken" }> {
+export async function createBusinessOwner(account: NewAccount, info: CleanInfo): Promise<{ ok: true; userId: string } | { ok: false; error: "tinTaken" }> {
   const districtId = await districtFromAddress(info.address);
   try {
     const user = await db.$transaction(async (tx) => {
-      const user = await tx.user.create({ data: { phone, role: "BUSINESS_OWNER", ...splitName(info.contactName) }, select: { id: true } });
+      const user = await tx.user.create({ data: { ...accountData(account), role: "BUSINESS_OWNER", ...splitName(info.contactName) }, select: { id: true } });
       await tx.business.create({
-        data: { ...info, ownerId: user.id, districtId, contactPhone: phone, members: { create: { userId: user.id, role: "OWNER" } } },
+        data: { ...info, ownerId: user.id, districtId, contactPhone: accountPhone(account), members: { create: { userId: user.id, role: "OWNER" } } },
       });
       return user;
     });

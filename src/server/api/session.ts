@@ -177,7 +177,9 @@ export function meView(user: ApiUser) {
   const membership = user.memberships[0] ?? null;
   return {
     id: user.id,
+    /** null — Google/Apple bilan ochilgan hisob */
     phone: user.phone,
+    email: user.email,
     role: user.role,
     firstName: user.firstName,
     lastName: user.lastName,

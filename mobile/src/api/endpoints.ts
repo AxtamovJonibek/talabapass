@@ -13,7 +13,9 @@ export type BusinessStatus = "PENDING" | "APPROVED" | "WARNED" | "REJECTED" | "B
 
 export type Me = {
   id: string;
-  phone: string;
+  /** null — Google/Apple bilan ochilgan hisob */
+  phone: string | null;
+  email: string | null;
   role: "STUDENT" | "BUSINESS_OWNER" | "CASHIER" | "ADMIN";
   firstName: string | null;
   lastName: string | null;
@@ -41,6 +43,12 @@ export type VerifyResult =
   | { next: "setPassword"; ticket: string; role: NewRole; isNew: boolean; businessName?: string };
 
 export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "register"; registrationTicket: string; role: NewRole };
+
+export type SocialProvider = "GOOGLE" | "APPLE";
+/** Google/Apple: hisob bor — kirish; yo'q — SMS va parolsiz ro'yxat (`profile` — formani oldindan to'ldirish uchun) */
+export type SocialResult =
+  | ({ next: "signedIn" } & SignedIn)
+  | { next: "register"; role: Intent; registrationTicket: string; profile: { firstName: string | null; lastName: string | null; email: string | null } };
 
 export type University = { id: string; name: string; shortName: string; region: string; kind: string };
 
@@ -175,10 +183,12 @@ export const authApi = {
   login: (ticket: string, password: string) => api<SignedIn>("/auth/login", { method: "POST", body: { ticket, password, deviceName }, auth: false }),
   setPassword: (ticket: string, password: string, confirm: string) =>
     api<SetPasswordResult>("/auth/password", { method: "POST", body: { ticket, password, confirm, deviceName }, auth: false }),
+  social: (provider: SocialProvider, body: { idToken: string; intent: Intent; firstName?: string; lastName?: string }) =>
+    api<SocialResult>(provider === "GOOGLE" ? "/auth/google" : "/auth/apple", { method: "POST", body: { ...body, deviceName }, auth: false }),
   logout: () => api<{ ok: true }>("/auth/logout", { method: "POST" }),
   me: () => api<{ user: Me }>("/me"),
-  /** Hisobni o'chirish (do'kon talabi) — parol bilan */
-  deleteMe: (password: string) => api<{ ok: true }>("/me", { method: "DELETE", body: { password } }),
+  /** Hisobni o'chirish (do'kon talabi) — parol bilan; parolsiz (Google/Apple) hisob — o'sha provayderning yangi tokeni bilan */
+  deleteMe: (confirm: { password: string } | { provider: SocialProvider; idToken: string }) => api<{ ok: true }>("/me", { method: "DELETE", body: confirm }),
 };
 
 /** Tasdiqlangan talaba: lenta, tafsilot, saralanganlar, kupon, bildirishnomalar, push (docs/api-v1.md). */

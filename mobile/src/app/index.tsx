@@ -4,14 +4,16 @@ import type { Href } from "expo-router";
 import { errorText, hasSession, isNetworkError } from "@/api/client";
 import type { Me } from "@/api/endpoints";
 import { copy } from "@/copy";
+import { cachedAppConfig } from "@/lib/app-version";
 import { cachedCoupons, cachedMe } from "@/lib/offline";
 import { resetTo, routeFor, useApp } from "@/state";
-import { getLastPhone, wasOnboarded } from "@/storage";
+import { getLastPhone, getStoredLang, wasOnboarded } from "@/storage";
 import { colors } from "@/theme";
 import { ErrorBox, Logo, PrimaryButton, Screen } from "@/ui/kit";
 
 /**
- * Qayerdan boshlash: kirgan — o'z qadami; kirmagan — chiqqandan keyin Auth2, birinchi marta karusel, aks holda telefon.
+ * Qayerdan boshlash: kirgan — o'z qadami; kirmagan — chiqqandan keyin Auth2, birinchi marta til va karusel, aks holda
+ * kirish usuli.
  * Internet yo'q, lekin oldin kirgan bo'lsa — oxirgi saqlangan `me` bilan ilovaga (faol kupon bo'lsa — kupon ekrani:
  * QR internetsiz ishlaydi); saqlangani yo'q bo'lsa — "Qayta urinish".
  */
@@ -29,8 +31,11 @@ async function startRoute(reloadMe: () => Promise<Me>, restoreMe: (me: Me) => vo
       }
     }
   }
-  if (await getLastPhone()) return "/auth/returning";
-  return (await wasOnboarded("student")) ? "/auth/phone?intent=student" : "/intro";
+  // Telefon bilan kirish o'chirilgan bo'lsa (`AUTH_PHONE_ENABLED=false`) — Auth2 emas, kirish usuli tanlovi
+  if ((await getLastPhone()) && (await cachedAppConfig())?.auth?.phone !== false) return "/auth/returning";
+  // Birinchi ochilish: til → karusel → kirish usuli (Google, Apple, telefon)
+  if (!(await getStoredLang())) return "/lang";
+  return (await wasOnboarded("student")) ? "/auth" : "/intro";
 }
 
 /** Ishga tushish ekrani: logo va kutish; internet yo'q bo'lsa — "Qayta urinish". */

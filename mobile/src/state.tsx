@@ -54,10 +54,12 @@ export type Flow = {
   resendAt: number;
   verify: VerifyResult | null;
   registrationTicket: string | null;
+  /** Google/Apple bilan kelgan yangi foydalanuvchi: ro'yxat formasi shu bilan oldindan to'ldiriladi (telefon yo'q) */
+  social: { firstName: string; lastName: string; email: string | null } | null;
   business: BusinessDraft;
 };
 
-const initialFlow = (): Flow => ({ intent: "student", phone: "", resendAt: 0, verify: null, registrationTicket: null, business: emptyDraft() });
+const initialFlow = (): Flow => ({ intent: "student", phone: "", resendAt: 0, verify: null, registrationTicket: null, social: null, business: emptyDraft() });
 
 type Ctx = {
   me: Me | null;
@@ -88,7 +90,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(async (result: SignedIn) => {
     await setTokens(result.tokens);
-    await setLastPhone(localDigits(result.user.phone));
+    // Google/Apple hisobi — "Qayta xush kelibsiz" (telefon) ekrani ko'rsatilmaydi
+    if (result.user.phone) await setLastPhone(localDigits(result.user.phone));
+    else await forgetLastPhone();
     await clearOffline();
     void rememberMe(result.user);
     setMe(result.user);
@@ -108,7 +112,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     await clearOffline();
     setMe(null);
     setFlowState(initialFlow());
-    resetTo((await getLastPhone()) ? "/auth/returning" : "/auth/phone");
+    resetTo((await getLastPhone()) ? "/auth/returning" : "/auth");
   }, []);
 
   // Server sessiyani yopdi (refresh rad etildi, bloklandi, boshqa qurilmada parol tiklandi) — kirish ekraniga
@@ -119,7 +123,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         if (!meRef.current) return;
         setMe(null);
         setFlowState(initialFlow());
-        void getLastPhone().then((last) => resetTo(last ? "/auth/returning" : "/auth/phone"));
+        void getLastPhone().then((last) => resetTo(last ? "/auth/returning" : "/auth"));
       }),
     [],
   );

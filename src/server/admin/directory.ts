@@ -39,6 +39,7 @@ export async function listUsers({ role, q, page }: { role: UserRole; q: string; 
         firstName: true,
         lastName: true,
         phone: true,
+        email: true,
         status: true,
         createdAt: true,
         student: { select: { status: true, university: { select: { shortName: true } } } },
@@ -148,7 +149,7 @@ export const pendingUniversityRequests = () =>
     where: { status: "PENDING" },
     orderBy: { createdAt: "asc" },
     take: 50,
-    select: { id: true, name: true, createdAt: true, user: { select: { id: true, firstName: true, lastName: true, phone: true } } },
+    select: { id: true, name: true, createdAt: true, user: { select: { id: true, firstName: true, lastName: true, phone: true, email: true } } },
   });
 
 export const universityOne = (id: string) =>

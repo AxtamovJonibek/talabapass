@@ -227,7 +227,8 @@ export async function ownerCashiers(ownerId: string, now = new Date()) {
         memberId: m.id,
         firstName: m.user.firstName,
         lastName: m.user.lastName,
-        phone: m.user.phone,
+        // Kassir har doim telefon taklifi bilan ochiladi (raqamsiz kassir yo'q)
+        phone: m.user.phone ?? "",
         scansToday: count,
         shift: last && now.getTime() - last.getTime() < ON_SHIFT_MINUTES * 60_000 ? ("on" as const) : last ? ("ended" as const) : ("none" as const),
       };

@@ -11,8 +11,8 @@ import { ApiError } from "./http";
 import { loadApiUser, meView, openApiSession, type Device } from "./session";
 
 /*
- * Ro'yxat API orqali: `registrationTicket` (SMS bilan tasdiqlangan yangi raqam + o'rnatilgan parol xeshi) bilan hisob
- * ochiladi va darhol tokenlar beriladi. Qoidalar saytdagi bilan bir xil (`student/registration.ts`,
+ * Ro'yxat API orqali: `registrationTicket` (SMS bilan tasdiqlangan yangi raqam + o'rnatilgan parol xeshi yoki
+ * Google/Apple identifikatori — parolsiz) bilan hisob ochiladi va darhol tokenlar beriladi. Qoidalar saytdagi bilan bir xil (`student/registration.ts`,
  * `business/registration.ts`); hisob ochilgach parol yoziladi — `applyPendingPassword` kabi.
  */
 
@@ -26,15 +26,25 @@ export const studentRegisterSchema = z.object({
   deviceName: z.string().max(200).optional(),
 });
 
-/** Ticket ochiladi va raqam hali bo'shligi tekshiriladi (shu orada boshqa yo'l bilan hisob ochilgan bo'lsa — qaytadan). */
+/**
+ * Ticket ochiladi va raqam (yoki Google/Apple identifikatori va email) hali bo'shligi tekshiriladi — shu orada boshqa yo'l
+ * bilan hisob ochilgan bo'lsa, qaytadan kirish kerak.
+ */
 async function freshTicket(ticket: string, role: NewRole) {
   const opened = openRegisterTicket(ticket, role);
-  if (await db.user.findUnique({ where: { phone: opened.phone }, select: { id: true } })) throw new ApiError("step_expired");
+  const { account } = opened;
+  const taken =
+    typeof account === "string"
+      ? await db.user.findUnique({ where: { phone: account }, select: { id: true } })
+      : ((await db.authIdentity.findUnique({ where: { provider_subject: { provider: account.provider, subject: account.subject } }, select: { id: true } })) ??
+        (account.email ? await db.user.findUnique({ where: { email: account.email }, select: { id: true } }) : null));
+  if (taken) throw new ApiError("step_expired");
   return opened;
 }
 
-async function finish(userId: string, passwordHash: string, device: Device): Promise<SignedIn> {
-  await db.user.update({ where: { id: userId }, data: { passwordHash, passwordFails: 0, passwordLockedUntil: null } });
+async function finish(userId: string, passwordHash: string | null, device: Device): Promise<SignedIn> {
+  // Google/Apple hisobi parolsiz (ilovaga shu provayder bilan kiradi)
+  if (passwordHash) await db.user.update({ where: { id: userId }, data: { passwordHash, passwordFails: 0, passwordLockedUntil: null } });
   const tokens = await openApiSession(userId, device);
   return { tokens, user: meView(await loadApiUser(userId)) };
 }
@@ -52,8 +62,8 @@ export async function registerStudent(input: z.infer<typeof studentRegisterSchem
   }
   if (!form.success || fields.length > 0) throw new ApiError("invalid_request", { fields });
 
-  const { phone, passwordHash } = await freshTicket(input.registrationTicket, "student");
-  const user = await createStudent(phone, form.data, otherName);
+  const { account, passwordHash } = await freshTicket(input.registrationTicket, "student");
+  const user = await createStudent(account, form.data, otherName);
   return finish(user.id, passwordHash, device);
 }
 
@@ -76,8 +86,8 @@ export function cleanInfoOrThrow(info: z.infer<typeof businessInfoSchema>) {
 /** Biznes egasi hisobi va ariza (hali yuborilmagan: hujjatlar keyin yuklanadi, so'ng `submit`). */
 export async function registerBusiness(ticket: string, info: z.infer<typeof businessInfoSchema>, device: Device): Promise<SignedIn> {
   const clean = cleanInfoOrThrow(info);
-  const { phone, passwordHash } = await freshTicket(ticket, "business");
-  const created = await createBusinessOwner(phone, clean);
+  const { account, passwordHash } = await freshTicket(ticket, "business");
+  const created = await createBusinessOwner(account, clean);
   if (!created.ok) throw new ApiError("tin_taken");
   return finish(created.userId, passwordHash, device);
 }
@@ -98,8 +108,10 @@ export async function registerCashier(input: z.infer<typeof cashierRegisterSchem
   const lastName = input.lastName.trim();
   const fields = [...(NAME.test(firstName) ? [] : ["firstName"]), ...(NAME.test(lastName) ? [] : ["lastName"])];
   if (fields.length > 0) throw new ApiError("invalid_request", { fields });
-  const { phone, passwordHash } = await freshTicket(input.registrationTicket, "cashier");
-  const accepted = await acceptPhoneInvite(phone, { firstName, lastName });
+  const { account, passwordHash } = await freshTicket(input.registrationTicket, "cashier");
+  // Kassir faqat telefon taklifi bilan (Google/Apple ro'yxat tokeni kassirga berilmaydi)
+  if (typeof account !== "string") throw new ApiError("step_expired");
+  const accepted = await acceptPhoneInvite(account, { firstName, lastName });
   if (!accepted.ok) throw new ApiError("no_business");
   return finish(accepted.userId, passwordHash, device);
 }

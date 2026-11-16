@@ -6,7 +6,7 @@ import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Link } from "@/i18n/navigation";
 import { localizedPath } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
-import { formatPhone } from "@/lib/format";
+import { formatContact } from "@/lib/format";
 import { BUSINESS_KINDS } from "@/lib/business";
 import { businessFull, listUsers, lookups, PAGE_SIZE, userDetail, type UserRole } from "@/server/admin/directory";
 import { requireRole } from "@/server/auth/session";
@@ -105,7 +105,7 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
                         </Link>
                         {u.status === "BLOCKED" ? <div className="text-12 font-bold text-danger">{t("users.status.BLOCKED")}</div> : null}
                       </td>
-                      <td className={cn(td, "font-mono text-13 whitespace-nowrap")}>{formatPhone(u.phone)}</td>
+                      <td className={cn(td, "font-mono text-13 whitespace-nowrap")}>{formatContact(u)}</td>
                       <td className={cn(td, "text-13 text-muted")}>{extra}</td>
                     </tr>
                   );
@@ -137,7 +137,7 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
               <UserEditForm
                 key={detail.id}
                 userId={detail.id}
-                person={{ firstName: detail.firstName ?? "", lastName: detail.lastName ?? "", phone: detail.phone }}
+                person={{ firstName: detail.firstName ?? "", lastName: detail.lastName ?? "", phone: detail.phone ?? "" }}
                 student={
                   detail.student
                     ? {

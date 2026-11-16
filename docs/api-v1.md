@@ -15,7 +15,9 @@ Kod: marshrutlar `src/app/api/v1/**/route.ts`, umumiy qism `src/server/api/` (`h
   ```json
   { "error": { "code": "wrong_password", "message": "Parol noto'g'ri.", "left": 4 } }
   ```
-  `message` — foydalanuvchiga ko'rsatsa bo'ladigan o'zbekcha matn (`messages/uz.json` → `api.errors`). Qo'shimcha maydonlar:
+  `message` — foydalanuvchiga ko'rsatsa bo'ladigan matn (`messages/uz.json` → `api.errors`). Til — `Accept-Language`
+  sarlavhasidan (`uz` | `ru` | `en`, ilova tanlagan til; javobda `content-language`); hozircha faqat o'zbekcha matnlar bor,
+  ru/en so'ralsa ham uz qaytadi (tarjima qo'shilganda `src/server/api/http.ts` `ERROR_TEXT` ga). Qo'shimcha maydonlar:
   `fields` (zod xatosidagi maydonlar), `retryInSeconds` (+ `Retry-After` sarlavhasi), `left` (qolgan urinish), `status` (talaba holati).
 - Asosiy kodlar: `invalid_request` 400, `unauthorized` 401, `token_expired` 401 (refresh qiling), `forbidden` 403
   (begona rol), `not_found` 404, `rate_limited` 429, `payload_too_large` 413, `server_error` 500. To'liq ro'yxat —
@@ -48,6 +50,31 @@ Kirish javobi (`SignedIn`):
 
 ## Auth
 
+Kirish usullari: **Google**, **Apple** (iOS) yoki **telefon**. Qaysi biri yoqilgani — `GET /app-config` `auth`.
+
+### Google / Apple
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `POST /auth/google` | `{ idToken, intent: "student"\|"business", deviceName? }` | `SignedIn` + `next: "signedIn"` yoki `{ next: "register", role, registrationTicket, profile: { firstName, lastName, email } }` |
+| `POST /auth/apple` | `{ idToken, intent, firstName?, lastName?, deviceName? }` | xuddi shunday |
+
+- Token serverda tekshiriladi (`src/server/api/social-token.ts`, `jose`): imzo — provayderning ochiq kalitlari (JWKS, kesh),
+  `iss` (Google: `accounts.google.com`; Apple: `appleid.apple.com`), `aud` — bizning client ID'lar, muddat.
+  Google: `GOOGLE_CLIENT_ID_WEB` (Android tokeni ham shu `aud` bilan keladi), `GOOGLE_CLIENT_ID_IOS`, `GOOGLE_CLIENT_ID_ANDROID`;
+  Apple: `APPLE_CLIENT_ID` (bundle ID, `uz.talabapass.app`; vergul bilan bir nechta). Sozlanmagan — 503 `social_unavailable`.
+- Hisob `AuthIdentity` (`provider` + `sub`) bo'yicha topiladi. Topilmasa, lekin provayder **tasdiqlagan** email boshqa hisobda
+  bo'lsa — shu hisobga bog'lanadi (bir xil email = bitta hisob, audit `user.identity.link`); tasdiqlanmagan email bog'lanmaydi
+  va saqlanmaydi. Hech biri yo'q — **SMS va parolsiz** ro'yxat: `registrationTicket` (30 daqiqa) bilan `POST /student/register`
+  yoki `POST /business/register` (pastda). `profile` — formani oldindan to'ldirish uchun (Google tokenidan; Apple ismni
+  faqat birinchi ruxsatda ilovaga beradi — mijoz `firstName`/`lastName` ni yuboradi).
+- Shunday ochilgan hisobda `phone: null` (email bo'lsa `email`), parol yo'q (`hasPassword: false`) — ilovaga shu provayder bilan
+  kiradi. Saytga kirish (SMS) bunday hisobga yo'q. Kassir — faqat telefon taklifi bilan.
+- Xatolar: `social_invalid` 401 (imzo/aud/iss/muddat), `social_unavailable` 503, `social_unreachable` 503 (kalitlarni olib
+  bo'lmadi), `account_blocked`, `admin_not_supported`, `no_business`. Chegara — kod tekshirish bilan bir xil (30 / 15 daq, IP).
+
+### Telefon
+
 Oqim: telefon → SMS kod → (hisob bor va parol bor) parol bilan kirish | (yangi raqam yoki parolsiz hisob) parol
 o'rnatish → (yangi raqam) ro'yxat. Raqam ro'yxatda bor-yo'qligi kod to'g'ri kiritilmaguncha bilinmaydi. Qadamlar
 orasidagi holat — muhrlangan `ticket` (10 daqiqa; parol o'zgarsa yaroqsiz) va `registrationTicket` (30 daqiqa).
@@ -69,27 +96,30 @@ barcha sessiyalar (sayt ham) yopiladi.
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
-| `GET /app-config` | — (kirishsiz) | `{ minVersion: { ios, android }, latestVersion, storeUrls: { ios, android } }` |
+| `GET /app-config` | — (kirishsiz) | `{ minVersion: { ios, android }, latestVersion, storeUrls: { ios, android }, auth: { phone, google, apple } }` |
 
 Qiymatlar env'dan: `APP_MIN_VERSION_IOS`, `APP_MIN_VERSION_ANDROID`, `APP_LATEST_VERSION`, `APP_STORE_URL_IOS`, `APP_STORE_URL_ANDROID`
 (berilmasa — 1.0.0 va Play havolasi; noto'g'ri qiymat — deploy `check-env` da to'xtaydi). Ilova versiyasi `minVersion` dan past —
-butun ekranli majburiy yangilash.
+butun ekranli majburiy yangilash. `auth` — ilovadagi kirish tugmalari: `phone` — `AUTH_PHONE_ENABLED` (standart `true`; `false` —
+"Telefon raqam bilan" yashiriladi, SMS endpoint'lari o'zgarmaydi), `google` / `apple` — tegishli client ID sozlanganmi.
 
 ## Profil
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
-| `GET /me` | Bearer | `{ user: { id, phone, role, firstName, lastName, hasPassword, student: { status, publicId, course, faculty, districtId, cardExpiresAt, university } \| null, business: { id, name, status, submitted, rejectReason, memberRole } \| null } }` |
-| `DELETE /me` | Bearer, `{ password }` | `{ ok: true }` · xato: `wrong_password`, `password_locked`, `open_orders` |
+| `GET /me` | Bearer | `{ user: { id, phone (Google/Apple hisobida null), email, role, firstName, lastName, hasPassword, student: { status, publicId, course, faculty, districtId, cardExpiresAt, university } \| null, business: { id, name, status, submitted, rejectReason, memberRole } \| null } }` |
+| `DELETE /me` | Bearer, `{ password }`; parolsiz (Google/Apple) hisob — `{ provider: "GOOGLE"\|"APPLE", idToken }` (yangi token) | `{ ok: true }` · xato: `wrong_password`, `password_locked`, `password_required`, `social_mismatch` (boshqa hisob tokeni), `open_orders` |
 
 Hisobni o'chirish: qator qoladi (sotuv/kupon tarixi biznes hisobotlari uchun), shaxsiy ma'lumot tozalanadi, raqam
-bo'shaydi (`deleted:<id>`; shu raqam bilan keyin yangi hisob ochsa bo'ladi), holat `DELETED`, barcha sessiyalar yopiladi.
+bo'shaydi (`deleted:<id>`; shu raqam bilan keyin yangi hisob ochsa bo'ladi), email va Google/Apple bog'lanishlari ham
+o'chadi (shu hisob bilan keyin yangi hisob ochiladi), holat `DELETED`, barcha sessiyalar yopiladi.
 Talabaning guvohnoma fayllari va profil rasmi o'chiriladi, faol kuponlar bekor. Biznes egasida chegirmalar talabaga
 ko'rinmay qoladi, kassirlar chiqariladi. Pul hal bo'lmagan buyurtma bo'lsa — `open_orders` (`src/server/account.ts`).
 
 ## Talaba ro'yxati
 
-Oqim: `/auth/verify` (intent `student`, yangi raqam) → `/auth/password` → `registrationTicket` → `POST /student/register`
+Oqim: `/auth/verify` (intent `student`, yangi raqam) → `/auth/password` → `registrationTicket` (yoki `/auth/google|apple` dan —
+parolsiz) → `POST /student/register`
 → `POST /student/card` → admin tekshiradi → `GET /student/status` (yoki `GET /me`) `APPROVED`.
 
 | Endpoint | Kirish | Chiqish |
@@ -268,4 +298,5 @@ Hodisalar (har biri ilova ichi xabari ham):
 - Talaba: kupon tarixi ro'yxati (bitta chek — `GET /receipts/<id>`), profilni tahrirlash (ism, kurs, fakultet, tuman),
   profil rasmi (`/api/avatar/<id>` cookie talab qiladi), bildirishnoma sozlamasi (saytdagi "Yangi chegirmalar haqida xabar"),
   eng yaqin metro (yo'nalish oynasida; havolalar mijozda). Ilovada shular hozircha yo'q yoki saytga ochiladi.
-- Qurilmalar ro'yxati va boshqa sessiyalarni yopish; ru/en matnlar (xato matnlari faqat o'zbekcha).
+- Qurilmalar ro'yxati va boshqa sessiyalarni yopish; ru/en xato matnlari (`Accept-Language` qabul qilinadi, javob hozircha o'zbekcha).
+- Google/Apple hisobiga keyin telefon yoki parol qo'shish (saytga kirish uchun); mavjud telefon hisobiga Google'ni bog'lash.

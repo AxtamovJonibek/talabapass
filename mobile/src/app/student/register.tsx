@@ -10,12 +10,15 @@ import { Icon } from "@/ui/icons";
 import { BackArrow, Choice, ErrorBox, Eyebrow, Field, FieldBox, Grow, Label, Note, PrimaryButton, RoleChip, Screen, StepBars, Title, TopBar, TopBarSpacer, Txt } from "@/ui/kit";
 import { UniversityPicker, type UniversityChoice } from "@/ui/university-picker";
 
-/** RoyxatTalaba (1/3): ism, familiya, OTM, kurs → hisob ochiladi (DRAFT), keyin guvohnoma. */
+/**
+ * RoyxatTalaba (1/3): ism, familiya, OTM, kurs → hisob ochiladi (DRAFT), keyin guvohnoma. Google/Apple bilan kelganda
+ * (SMS va parolsiz) ism provayderdan oldindan to'ldiriladi.
+ */
 export default function StudentRegister() {
   const { flow, signIn } = useApp();
   const canGoBack = useCanGoBack();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState(flow.social?.firstName ?? "");
+  const [lastName, setLastName] = useState(flow.social?.lastName ?? "");
   const [university, setUniversity] = useState<UniversityChoice | null>(null);
   const [course, setCourse] = useState<string | null>(null);
   const [picker, setPicker] = useState(false);

@@ -40,7 +40,7 @@ async function BusinessHome({ searchParams }: { searchParams: PageProps<"/[local
           description: business.description ?? "",
           tin: business.tin ?? "",
           contactName: business.contactName ?? "",
-          phone: user.phone,
+          phone: user.phone ?? "",
         }}
         docs={business.docs}
       />

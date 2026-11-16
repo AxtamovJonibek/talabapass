@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BusinessReview } from "@/components/admin/business-review";
 import { QueuePanel, ReviewHeader, type CheckRow, type QueueItem } from "@/components/admin/review-parts";
-import { formatPhone } from "@/lib/format";
+import { formatContact, formatPhone } from "@/lib/format";
 import { businessLogoUrl } from "@/lib/profile-image";
 import { businessDetail, businessQueue, reviewStats } from "@/server/admin/review";
 import { ageLabel, averageWait } from "@/server/admin/review-rules";
@@ -66,7 +66,7 @@ async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/
         {
           key: "phone",
           label: t("fields.phone"),
-          value: detail.contactPhone ? formatPhone(detail.contactPhone) : formatPhone(detail.owner.phone),
+          value: detail.contactPhone ? formatPhone(detail.contactPhone) : formatContact(detail.owner),
           check: t("checks.smsVerified"),
           tone: "ok",
         },

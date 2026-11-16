@@ -25,11 +25,14 @@ export type AppConfig = {
   minVersion: { ios: string; android: string };
   latestVersion: string;
   storeUrls: { ios: string | null; android: string | null };
+  /** Kirish usullari (ilova tugmalari): telefon — `AUTH_PHONE_ENABLED` (standart true), Google/Apple — client ID sozlanganmi */
+  auth: { phone: boolean; google: boolean; apple: boolean };
 };
 
 type Env = Record<string, string | undefined>;
 const version = (value: string | undefined, fallback: string) => (value && VERSION_RE.test(value.trim()) ? value.trim() : fallback);
 const url = (value: string | undefined, fallback: string | null) => (value?.trim().startsWith("https://") ? value.trim() : fallback);
+const set = (...values: (string | undefined)[]) => values.some((v) => Boolean(v?.trim()));
 
 /**
  * Env: `APP_MIN_VERSION_IOS`, `APP_MIN_VERSION_ANDROID` (shundan past — majburiy yangilash), `APP_LATEST_VERSION`,
@@ -40,6 +43,11 @@ export function appConfigFromEnv(env: Env): AppConfig {
     minVersion: { ios: version(env.APP_MIN_VERSION_IOS, "1.0.0"), android: version(env.APP_MIN_VERSION_ANDROID, "1.0.0") },
     latestVersion: version(env.APP_LATEST_VERSION, "1.0.0"),
     storeUrls: { ios: url(env.APP_STORE_URL_IOS, DEFAULT_STORE_URLS.ios), android: url(env.APP_STORE_URL_ANDROID, DEFAULT_STORE_URLS.android) },
+    auth: {
+      phone: env.AUTH_PHONE_ENABLED?.trim().toLowerCase() !== "false",
+      google: set(env.GOOGLE_CLIENT_ID_WEB, env.GOOGLE_CLIENT_ID_IOS, env.GOOGLE_CLIENT_ID_ANDROID),
+      apple: set(env.APPLE_CLIENT_ID),
+    },
   };
 }
 
@@ -53,6 +61,12 @@ export function appConfigProblems(env: Env): string[] {
   for (const name of ["APP_STORE_URL_IOS", "APP_STORE_URL_ANDROID"]) {
     const v = env[name]?.trim();
     if (v && !v.startsWith("https://")) problems.push(`${name}: https:// bilan boshlanadigan havola bo'lsin.`);
+  }
+  const phone = env.AUTH_PHONE_ENABLED?.trim().toLowerCase();
+  if (phone && phone !== "true" && phone !== "false") problems.push(`AUTH_PHONE_ENABLED=${phone}: true yoki false bo'lsin.`);
+  for (const name of ["GOOGLE_CLIENT_ID_WEB", "GOOGLE_CLIENT_ID_IOS", "GOOGLE_CLIENT_ID_ANDROID"]) {
+    const v = env[name]?.trim();
+    if (v && !v.endsWith(".apps.googleusercontent.com")) problems.push(`${name}: Google client ID (…apps.googleusercontent.com) bo'lsin.`);
   }
   return problems;
 }

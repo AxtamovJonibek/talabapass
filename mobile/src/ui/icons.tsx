@@ -62,6 +62,10 @@ const PATHS = {
   torch: "M8 2h8v5l-2 3v12h-4V10L8 7zM12 13v3",
   image: "M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9h.01",
   bag: "M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2",
+  /** Til tanlovi (Profil) */
+  globe: "M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z",
+  /** Mobil telefon (Auth: "Telefon raqam bilan") — dizayndagi rect x6 y2.5 12×19 rx3 + tugma chizig'i */
+  mobile: "M9 2.5h6a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3v-13a3 3 0 0 1 3-3zM10.5 18.5h3",
 } as const;
 
 export const isIconName = (name: string): name is IconName => name in PATHS;
@@ -116,6 +120,21 @@ export function QrGlyph({ size = 130, opacity = 1 }: { size?: number; opacity?: 
         d="M9 1h1v3H9z M11 2h2v1h-2z M8 5h2v1H8z M0 9h3v1H0z M5 9h2v2H5z M9 9h2v1H9z M13 9h2v1h-2z M17 9h3v1h-3z M2 11h2v1H2z M8 11h1v3H8z M11 11h2v1h-2z M15 11h1v2h-1z M18 11h2v1h-2z M10 14h2v1h-2z M14 14h1v2h-1z M17 14h3v1h-3z M9 16h1v2H9z M12 16h2v1h-2z M16 17h2v1h-2z M10 19h3v1h-3z M15 19h1v2h-1z M19 19h2v1h-2z"
         fill={colors.ink}
       />
+    </Svg>
+  );
+}
+
+/**
+ * Google "G" belgisi — rasmiy ko'rinish (Google Sign-In branding qoidasi: rang va shakl o'zgartirilmaydi, oq fonda).
+ * Ranglar dizayn tokenlari emas, Google brendi.
+ */
+export function GoogleG({ size = 22 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 48 48">
+      <Path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <Path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <Path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <Path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
     </Svg>
   );
 }

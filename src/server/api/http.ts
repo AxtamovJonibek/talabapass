@@ -5,6 +5,7 @@ import { createTranslator } from "next-intl";
 import type { z } from "zod";
 import messages from "../../../messages/uz.json";
 import { readLimited } from "../http/read-limited";
+import { apiLocale, type ApiLocale } from "./rules";
 
 /**
  * `/api/v1` uchun umumiy: bitta xato formati `{ error: { code, message, ...tafsilot } }`, JSON o'qish (hajm
@@ -73,6 +74,11 @@ const STATUS: Record<ApiErrorCode, number> = {
   order_conflict: 409,
   too_many_invites: 409,
   already_cashier: 409,
+  social_invalid: 401,
+  social_unavailable: 503,
+  social_unreachable: 503,
+  social_mismatch: 403,
+  password_required: 400,
 };
 
 export class ApiError extends Error {
@@ -85,13 +91,20 @@ export class ApiError extends Error {
   }
 }
 
-const t = createTranslator({ locale: "uz", messages, namespace: "api.errors" });
+/**
+ * Xato matni so'rov tilida (`Accept-Language`, ilova tanlagan til). Hozircha faqat o'zbekcha: ru/en matnlari
+ * (`messages/ru.json` …) qo'shilganda shu yerga translator qo'shiladi, qolgan tillar uz ga tushadi.
+ */
+const ERROR_TEXT: Partial<Record<ApiLocale, (code: ApiErrorCode) => string>> = {
+  uz: createTranslator({ locale: "uz", messages, namespace: "api.errors" }),
+};
 const NO_STORE = { "cache-control": "no-store" };
 
-export function errorResponse(code: ApiErrorCode, details: Record<string, unknown> = {}): NextResponse {
-  const headers: Record<string, string> = { ...NO_STORE };
+export function errorResponse(code: ApiErrorCode, details: Record<string, unknown> = {}, locale: ApiLocale = "uz"): NextResponse {
+  const lang = ERROR_TEXT[locale] ? locale : "uz";
+  const headers: Record<string, string> = { ...NO_STORE, "content-language": lang };
   if (typeof details.retryInSeconds === "number") headers["retry-after"] = String(details.retryInSeconds);
-  return NextResponse.json({ error: { code, message: t(code), ...details } }, { status: STATUS[code], headers });
+  return NextResponse.json({ error: { code, message: ERROR_TEXT[lang]!(code), ...details } }, { status: STATUS[code], headers });
 }
 
 export const ok = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: NO_STORE });
@@ -104,7 +117,7 @@ export function route<P extends object = object>(handler: (request: NextRequest,
     try {
       return await handler(request, ctx);
     } catch (error) {
-      if (error instanceof ApiError) return errorResponse(error.code, error.details);
+      if (error instanceof ApiError) return errorResponse(error.code, error.details, apiLocale(request.headers.get("accept-language")));
       // Next'ning ichki signallari (prerender'dan chiqish va h.k.) ushlanmaydi
       unstable_rethrow(error);
       console.error("API xatosi:", request.method, request.nextUrl.pathname, error);

@@ -28,7 +28,8 @@
         "NSCameraUsageDescription": "Talaba guvohnomasini suratga olish, joy fotolarini olish va kassada QR kodni skanerlash uchun kamera kerak.",
         "NSPhotoLibraryUsageDescription": "Guvohnoma, hujjat va joy fotolarini galereyadan tanlash uchun ruxsat kerak.",
         "NSLocationWhenInUseUsageDescription": "Yaqin chegirmalarni ko'rsatish va masofani hisoblash uchun joylashuvingiz kerak. Joylashuv serverga ~100 m aniqlikda yuboriladi va saqlanmaydi."
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "uz.talabapass.app",
@@ -118,11 +119,22 @@
           "enableBackgroundPlayback": false
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.853458934258-u6d85ouqu2s078lh88g95ueme7tfm3jn"
+        }
+      ],
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {
         "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      },
+      "google": {
+        "webClientId": "853458934258-hhttnplr9bpidjo7t6mqh89rv28ac798.apps.googleusercontent.com",
+        "iosClientId": "853458934258-u6d85ouqu2s078lh88g95ueme7tfm3jn.apps.googleusercontent.com"
       }
     }
   }

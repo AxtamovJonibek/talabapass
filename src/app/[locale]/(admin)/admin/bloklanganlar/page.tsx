@@ -5,7 +5,6 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { UnblockButton } from "@/components/admin/blocked";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
-import { formatPhone } from "@/lib/format";
 import { blockedBusinesses, blockedStudents } from "@/server/admin/blocked";
 import { blockedCounts } from "@/server/admin/overview";
 import { requireRole } from "@/server/auth/session";
@@ -75,7 +74,7 @@ async function BlockedContent({ searchParams }: { searchParams: PageProps<"/[loc
                   <tr key={s.id}>
                     <td className={td}>
                       <b>{s.name || "—"}</b>
-                      <div className="text-12 text-muted">{[s.university, formatPhone(s.phone)].filter(Boolean).join(" · ")}</div>
+                      <div className="text-12 text-muted">{[s.university, s.contact].filter(Boolean).join(" · ")}</div>
                     </td>
                     <td className={td}>{reasonText("student", s.reason)}</td>
                     <td className={cn(td, "whitespace-nowrap")}>
@@ -111,7 +110,7 @@ async function BlockedContent({ searchParams }: { searchParams: PageProps<"/[loc
                   <tr key={b.id}>
                     <td className={td}>
                       <b>{b.name}</b>
-                      <div className="text-12 text-muted">{[b.owner, formatPhone(b.phone)].filter(Boolean).join(" · ")}</div>
+                      <div className="text-12 text-muted">{[b.owner, b.contact].filter(Boolean).join(" · ")}</div>
                     </td>
                     <td className={td}>{reasonText("business", b.reason)}</td>
                     <td className={cn(td, "whitespace-nowrap")}>

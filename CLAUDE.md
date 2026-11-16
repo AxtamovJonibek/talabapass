@@ -510,8 +510,12 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - Alohida loyiha: `mobile/` (o'z package.json, tsconfig, ESLint; `npm install` shu papkada). Ildiz `tsconfig` `exclude`, ESLint `globalIgnores`
   va `deploy.yml` `paths-ignore` uni chetlab o'tadi — sayt build/deploy'iga ta'sir qilmaydi. Capacitor qobig'i hozircha qoladi.
 - Faqat `/api/v1` bilan ishlaydi (docs/api-v1.md); API yetishmasa — ilovada aylanib o'tilmaydi, ro'yxat qilinadi. Batafsil: `mobile/README.md`.
-- Dizayn design/app-flow dan (`mobile/src/theme.ts`, `src/ui/kit.tsx`); Archivo — statik nusxalar (`mobile/assets/fonts`). Matnlar `mobile/src/copy.ts`
-  (messages/uz.json `app` nusxasi — saytda o'zgarsa u yerda ham).
+- Dizayn design/app-flow dan (`mobile/src/theme.ts`, `src/ui/kit.tsx`); Archivo — statik nusxalar (`mobile/assets/fonts`), ichida Golos Text kirill
+  glifllari (`mobile/scripts/fonts-cyrillic.py`). Matnlar 3 tilda: `mobile/src/i18n/{uz,ru,en}.ts` (uz — messages/uz.json `app` nusxasi; saytda
+  o'zgarsa u yerda ham, uchala tilda — `Copy` tipi tekshiradi), `copy` — joriy til (`src/copy.ts`). Til birinchi ochilishda (Til ekrani) va Profilda
+  tanlanadi, serverga `Accept-Language`.
+- Kirish usuli (Auth): Google, Apple (iOS), telefon (`app-config` `auth`); Google/Apple yangi foydalanuvchisi SMS/parolsiz ro'yxatga
+  (`src/auth/use-social.ts`). Google SDK Expo Go'da yo'q — dev/preview build; Android SHA-1 qadamlari — `mobile/README.md`.
 - Tekshiruv: `cd mobile && npm run check` (tsc + expo lint), `npx expo-doctor`.
 - Talaba ilovasi (`src/app/(tabs)`: Chegirmalar, Yaqin, Kupon, Saralangan, Profil) — faqat APPROVED. Kupon QR'i `mobile/src/lib/totp.ts` da
   (saytdagi `src/lib/totp.ts` bilan AYNAN bir xil algoritm — birini o'zgartirsangiz ikkinchisini ham, tengligini tekshiring); faol kupon
@@ -612,5 +616,10 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   Qadam holati cookie o'rniga muhrlangan `ticket`/`registrationTicket`. Admin API orqali kirmaydi.
 - Hisobni o'chirish (`DELETE /api/v1/me`, `src/server/account.ts`): `UserStatus.DELETED`, raqam `deleted:<id>`, shaxsiy ma'lumot
   tozalanadi, tarix qoladi. `PushDevice` — sessiyaga bog'langan (Cascade); yuboruvchi hali yo'q.
+- Google/Apple (`POST /auth/google|apple`, `social-token.ts` — jose, JWKS, `aud` = `GOOGLE_CLIENT_ID_*` / `APPLE_CLIENT_ID`, yo'q — 503):
+  `AuthIdentity` (provider + sub); tasdiqlangan bir xil email — bitta hisob (bog'lanadi). Yangi — parolsiz ro'yxat tokeni; `User.phone` ixtiyoriy
+  (null — faqat Google/Apple hisobi: saytga kira olmaydi, SMS yuborilmaydi, admin'da email ko'rinadi — `formatContact`), `User.email` unique.
+  Ro'yxat funksiyalari `NewAccount` (telefon | identifikator) oladi (`auth/new-account.ts`). `AUTH_PHONE_ENABLED=false` — ilovada telefon tugmasi yashirin.
+  Testlar: `social-token.test.ts`, `social.itest.ts`.
 - `api/` ichida `src/server/auth/session.ts` import qilinmaydi (vitest'da `next-intl/navigation` yuklanmaydi).
 - Testlar: `src/server/api/rules.test.ts`, `auth.itest.ts`, `register.itest.ts`, `student.itest.ts`.

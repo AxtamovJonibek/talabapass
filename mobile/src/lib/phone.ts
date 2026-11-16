@@ -9,3 +9,6 @@ export function displayPhone(digits: string): string {
 
 /** "+998901234567" → "901234567" */
 export const localDigits = (e164: string) => e164.replace(/\D/g, "").replace(/^998/, "");
+
+/** Profil ostidagi aloqa qatori: raqam yoki (Google/Apple bilan ochilgan, raqamsiz hisobda) email */
+export const contactLine = (me: { phone: string | null; email: string | null }) => (me.phone ? displayPhone(localDigits(me.phone)) : (me.email ?? ""));

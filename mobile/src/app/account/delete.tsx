@@ -1,8 +1,9 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { ApiError, errorText } from "@/api/client";
-import { authApi } from "@/api/endpoints";
+import { authApi, type SocialProvider } from "@/api/endpoints";
+import { appleAvailable, providerToken, socialErrorText } from "@/auth/use-social";
 import { copy } from "@/copy";
 import { resetTo, useApp } from "@/state";
 import { colors } from "@/theme";
@@ -11,8 +12,9 @@ import { BackArrow, ErrorBox, Grow, Label, Lead, Note, PasswordBox, Screen, Text
 import { LEGAL, openSite } from "@/ui/legal";
 
 /**
- * Hisobni o'chirish (App Store / Google Play talabi): parol bilan tasdiq → `DELETE /me`. Server shaxsiy ma'lumotni
- * tozalaydi, sessiyalarni yopadi; qurilmada tokenlar, kupon nusxalari va oxirgi raqam o'chiriladi.
+ * Hisobni o'chirish (App Store / Google Play talabi): parol bilan tasdiq → `DELETE /me`; parolsiz (Google/Apple bilan
+ * ochilgan) hisob — o'sha provayder oynasidan yangi token bilan (server shu hisobning identifikatori ekanini tekshiradi).
+ * Server shaxsiy ma'lumotni tozalaydi, sessiyalarni yopadi; qurilmada tokenlar, kupon nusxalari va oxirgi raqam o'chiriladi.
  * Xatolar: noto'g'ri parol (qolgan urinish), qulf (5 xato → 15 daq), hal bo'lmagan buyurtma.
  */
 export default function DeleteAccount() {
@@ -21,33 +23,45 @@ export default function DeleteAccount() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apple, setApple] = useState(false);
+  const social = me !== null && !me.hasPassword;
 
-  const remove = async () => {
+  useEffect(() => {
+    if (social) void appleAvailable().then(setApple);
+  }, [social]);
+
+  const remove = async (provider?: SocialProvider) => {
     setBusy(true);
     setError(null);
     try {
-      await authApi.deleteMe(password);
+      if (provider) {
+        const token = await providerToken(provider);
+        if (!token) return;
+        await authApi.deleteMe({ provider, idToken: token.idToken });
+      } else {
+        await authApi.deleteMe({ password });
+      }
       await forget();
       Alert.alert(t.done);
-      resetTo("/auth/phone?intent=student");
+      resetTo("/auth");
     } catch (e) {
       if (e instanceof ApiError && e.code === "wrong_password") setError(copy.login.wrongPassword(Number(e.details.left ?? 0)));
       else if (e instanceof ApiError && e.code === "password_locked") setError(t.locked(Math.ceil(Number(e.details.retryInSeconds ?? 900) / 60)));
       else if (e instanceof ApiError && e.code === "open_orders") setError(t.openOrders);
-      else setError(errorText(e));
+      else setError(provider ? socialErrorText(e) : errorText(e));
     } finally {
       setBusy(false);
     }
   };
 
-  const confirm = () => {
-    if (!password.trim()) {
+  const confirm = (provider?: SocialProvider) => {
+    if (!provider && !password.trim()) {
       setError(t.needPassword);
       return;
     }
     Alert.alert(t.confirmTitle, t.confirmText, [
       { text: t.confirmNo, style: "cancel" },
-      { text: t.confirmYes, style: "destructive", onPress: () => void remove() },
+      { text: t.confirmYes, style: "destructive", onPress: () => void remove(provider) },
     ]);
   };
 
@@ -63,26 +77,43 @@ export default function DeleteAccount() {
         <TextAction onPress={() => openSite(LEGAL.deleteAccount)}>{t.details}</TextAction>
       </View>
 
-      <View style={styles.field}>
-        <Label>{t.passwordLabel}</Label>
-        <PasswordBox
-          value={password}
-          onChange={(v) => {
-            setPassword(v);
-            setError(null);
-          }}
-          invalid={!!error}
-          toggle={{ show: copy.login.showPassword, hide: copy.login.hidePassword }}
-          onSubmit={confirm}
-          label={t.passwordLabel}
-        />
-      </View>
+      {social ? (
+        <Note style={styles.field}>{t.socialLead(apple ? "Google / Apple" : "Google")}</Note>
+      ) : (
+        <View style={styles.field}>
+          <Label>{t.passwordLabel}</Label>
+          <PasswordBox
+            value={password}
+            onChange={(v) => {
+              setPassword(v);
+              setError(null);
+            }}
+            invalid={!!error}
+            toggle={{ show: copy.login.showPassword, hide: copy.login.hidePassword }}
+            onSubmit={() => confirm()}
+            label={t.passwordLabel}
+          />
+        </View>
+      )}
       <ErrorBox>{error}</ErrorBox>
 
       <Grow />
-      <SecondaryButton icon="trash" danger disabled={busy} onPress={confirm} style={styles.cta}>
-        {t.submit}
-      </SecondaryButton>
+      {social ? (
+        <>
+          <SecondaryButton icon="trash" danger disabled={busy} onPress={() => confirm("GOOGLE")} style={styles.cta}>
+            {t.confirmWith("Google")}
+          </SecondaryButton>
+          {apple ? (
+            <SecondaryButton icon="trash" danger disabled={busy} onPress={() => confirm("APPLE")} style={styles.next}>
+              {t.confirmWith("Apple")}
+            </SecondaryButton>
+          ) : null}
+        </>
+      ) : (
+        <SecondaryButton icon="trash" danger disabled={busy} onPress={() => confirm()} style={styles.cta}>
+          {t.submit}
+        </SecondaryButton>
+      )}
     </Screen>
   );
 }
@@ -94,4 +125,5 @@ const styles = StyleSheet.create({
   more: { alignItems: "flex-start", marginTop: 4 },
   field: { marginTop: 24 },
   cta: { marginTop: 24 },
+  next: { marginTop: 10 },
 });

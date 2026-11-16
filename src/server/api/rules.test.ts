@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { bearerToken, checkFileSignature, fileExpiry, fileSignature, FILE_URL_BUCKET_MS, passwordFingerprint, rateDecision, refreshTokenHash, seal, unseal } from "./rules";
+import { apiLocale, bearerToken, checkFileSignature, fileExpiry, fileSignature, FILE_URL_BUCKET_MS, passwordFingerprint, rateDecision, refreshTokenHash, seal, unseal } from "./rules";
 
 const SECRET = "test-secret-test-secret-test-secret-1234";
 const OTHER = "boshqa-sir-boshqa-sir-boshqa-sir-boshqa-1";
@@ -35,6 +35,16 @@ describe("muhrlangan token", () => {
 
   it("har safar boshqacha (tasodifiy iv)", () => {
     expect(seal("access", { a: 1 }, 1, SECRET, 0)).not.toBe(seal("access", { a: 1 }, 1, SECRET, 0));
+  });
+});
+
+describe("Accept-Language", () => {
+  it("ilova tanlagan til, mos kelmasa — uz", () => {
+    expect(apiLocale("ru")).toBe("ru");
+    expect(apiLocale("en-US,en;q=0.9")).toBe("en");
+    expect(apiLocale("de-DE, ru;q=0.8")).toBe("ru");
+    expect(apiLocale("fr")).toBe("uz");
+    expect(apiLocale(null)).toBe("uz");
   });
 });
 

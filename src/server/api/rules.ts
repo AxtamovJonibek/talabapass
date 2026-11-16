@@ -37,6 +37,19 @@ export function unseal(kind: SealKind, token: string, secret: string): (Record<s
   }
 }
 
+export const API_LOCALES = ["uz", "ru", "en"] as const;
+export type ApiLocale = (typeof API_LOCALES)[number];
+
+/** `Accept-Language` (ilova tanlagan til, masalan "ru" yoki "ru-RU,ru;q=0.9") → birinchi mos til; aks holda "uz". */
+export function apiLocale(header: string | null): ApiLocale {
+  for (const part of (header ?? "").split(",")) {
+    const tag = part.split(";")[0]!.trim().toLowerCase().split("-")[0];
+    const found = API_LOCALES.find((l) => l === tag);
+    if (found) return found;
+  }
+  return "uz";
+}
+
 /** `Authorization: Bearer <token>` → token. */
 export function bearerToken(header: string | null): string | null {
   const m = /^Bearer\s+(\S+)\s*$/i.exec(header ?? "");

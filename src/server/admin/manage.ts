@@ -71,6 +71,8 @@ export async function editUser(actorId: string, userId: string, raw: Record<stri
   const base = userEditSchema.safeParse(raw);
   const student = user.role === "STUDENT" ? studentEditSchema.safeParse(raw) : null;
   const fields = [...(base.success ? [] : failedFields(base.error)), ...(student && !student.success ? failedFields(student.error) : [])];
+  // Raqam bilan kiradigan hisobning raqami o'chirilmaydi (kira olmay qoladi); raqamsiz (Google/Apple) hisobda bo'sh qolishi mumkin
+  if (base.success && base.data.phone === null && user.phone !== null) fields.push("phone");
   if (!base.success || (student && !student.success) || fields.length) return { ok: false, fields };
 
   try {

@@ -13,6 +13,8 @@ export type AppConfig = {
   minVersion: { ios: string; android: string };
   latestVersion: string;
   storeUrls: { ios: string | null; android: string | null };
+  /** Kirish usullari (eski server javobida yo'q — hammasi ko'rsatiladi) */
+  auth?: { phone: boolean; google: boolean; apple: boolean };
 };
 
 const KEY = "tp.appConfig";

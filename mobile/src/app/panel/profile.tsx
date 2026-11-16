@@ -6,9 +6,9 @@ import { errorText } from "@/api/client";
 import { bizApi } from "@/api/business";
 import { useOrdersWatch } from "@/business/orders-watch";
 import { som } from "@/business/ui";
-import { copy } from "@/copy";
+import { copy, langName } from "@/copy";
 import { initials } from "@/lib/format";
-import { displayPhone, localDigits } from "@/lib/phone";
+import { contactLine, displayPhone, localDigits } from "@/lib/phone";
 import { pickImage } from "@/lib/pick";
 import { useLoad } from "@/lib/use-load";
 import { useApp } from "@/state";
@@ -133,13 +133,14 @@ export default function BusinessProfile() {
                 <Txt numberOfLines={2} style={[font(900, 112), styles.name]}>
                   {name}
                 </Txt>
-                <Txt style={styles.muted}>{displayPhone(localDigits(me.phone))}</Txt>
+                <Txt style={styles.muted}>{contactLine(me)}</Txt>
                 <Txt style={[font(700), styles.muted]}>{p.cashierOf(me.business?.name ?? "")}</Txt>
               </View>
             </View>
           )}
 
           <Card style={styles.card}>
+            <MenuRow icon="globe" label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />
             <MenuRow icon="lock" label={copy.profile.privacy} onPress={() => openSite(LEGAL.privacy)} />
             <MenuRow icon="doc" label={copy.profile.terms} onPress={() => openSite(LEGAL.terms)} last={!owner} />
             {owner ? <MenuRow icon="doc" label={copy.biz.profile.partnerTerms} onPress={() => openSite(LEGAL.partnerTerms)} last /> : null}

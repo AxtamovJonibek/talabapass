@@ -20,6 +20,7 @@ const KEYS = {
   onboardedStudent: "tp.onboarded.student",
   onboardedBusiness: "tp.onboarded.business",
   lastPhone: "tp.lastPhone",
+  lang: "tp.lang",
 } as const;
 
 export type StoredTokens = { accessToken: string; accessTokenExpiresAt: string; refreshToken: string };
@@ -57,3 +58,7 @@ export async function markOnboarded(kind: "student" | "business"): Promise<void>
 export const getLastPhone = () => SecureStore.getItemAsync(KEYS.lastPhone);
 export const setLastPhone = (digits: string) => SecureStore.setItemAsync(KEYS.lastPhone, digits);
 export const forgetLastPhone = () => SecureStore.deleteItemAsync(KEYS.lastPhone);
+
+/** Tanlangan til ("uz" | "ru" | "en"); null — hali tanlanmagan (birinchi ochilish: Til ekrani). */
+export const getStoredLang = () => SecureStore.getItemAsync(KEYS.lang);
+export const setStoredLang = (lang: string) => SecureStore.setItemAsync(KEYS.lang, lang);

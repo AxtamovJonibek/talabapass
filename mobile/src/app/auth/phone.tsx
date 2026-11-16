@@ -3,12 +3,11 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSendCode } from "@/auth/use-send-code";
 import { copy } from "@/copy";
-import { wasOnboarded } from "@/storage";
 import { colors, font } from "@/theme";
 import { Consent } from "@/ui/legal";
-import { BackArrow, ErrorBox, FooterLink, Grow, Label, Lead, Logo, PhoneBox, PrimaryButton, Screen, Title, TopBar, Txt } from "@/ui/kit";
+import { BackArrow, ErrorBox, Grow, Label, Lead, Logo, PhoneBox, PrimaryButton, Screen, Title, TopBar, Txt } from "@/ui/kit";
 
-/** Auth (talaba) / AuthBiznes: telefon raqam → SMS kod. Ro'yxat ham, kirish ham shu yerdan. */
+/** AuthTelefon (talaba) / AuthBiznes: telefon raqam → SMS kod. Ro'yxat ham, kirish ham shu yerdan; usul tanlovi — `/auth`. */
 export default function Phone() {
   const params = useLocalSearchParams<{ intent?: string }>();
   const intent = params.intent === "business" ? "business" : "student";
@@ -20,15 +19,10 @@ export default function Phone() {
     if (await send(digits, intent)) router.push("/auth/code");
   };
 
-  const switchRole = async () => {
-    if (intent === "student" && !(await wasOnboarded("business"))) router.push("/biz-intro");
-    else router.push(`/auth/phone?intent=${intent === "student" ? "business" : "student"}`);
-  };
-
-  // Tarix bo'lmasa (karuseldan keyin): talaba — karuselga, biznes — talaba kirishiga
+  // Tarix bo'lmasa — kirish usuli tanloviga
   const back = () => {
     if (router.canGoBack()) router.back();
-    else router.replace(intent === "business" ? "/auth/phone?intent=student" : "/intro");
+    else router.replace(`/auth?intent=${intent}`);
   };
 
   return (
@@ -58,7 +52,6 @@ export default function Phone() {
 
       <Grow />
 
-      <FooterLink lead={intent === "business" ? l.studentQuestion : l.businessQuestion} action={l.here} onPress={() => void switchRole()} />
       <Consent />
     </Screen>
   );

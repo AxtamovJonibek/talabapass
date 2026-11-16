@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { NAME } from "@/lib/profile";
 import { toTashkent } from "@/lib/time";
+import { accountData, type NewAccount } from "../auth/new-account";
 import { db } from "../db";
 import { isUniqueViolation } from "../db-errors";
 
@@ -22,8 +23,10 @@ function newPublicId(now: Date): string {
   return `TP-${yymm}-${String(randomInt(0, 10_000)).padStart(4, "0")}`;
 }
 
-/** Tasdiqlangan raqam uchun talaba hisobini ochadi (holat: DRAFT — guvohnoma hali yuklanmagan). */
-export async function createStudent(phone: string, form: StudentForm, otherUniversity: string | null = null): Promise<{ id: string }> {
+/**
+ * Tasdiqlangan raqam (yoki ilovada Google/Apple) uchun talaba hisobini ochadi (holat: DRAFT — guvohnoma hali yuklanmagan).
+ */
+export async function createStudent(account: NewAccount, form: StudentForm, otherUniversity: string | null = null): Promise<{ id: string }> {
   // "Ro'yxatda yo'q": talaba vaqtincha tizim yozuviga biriktiriladi, nom admin uchun so'rov bo'lib yoziladi
   let universityId = form.universityId;
   if (otherUniversity) {
@@ -34,7 +37,7 @@ export async function createStudent(phone: string, form: StudentForm, otherUnive
     try {
       return await db.user.create({
         data: {
-          phone,
+          ...accountData(account),
           role: "STUDENT",
           firstName: form.firstName,
           lastName: form.lastName,

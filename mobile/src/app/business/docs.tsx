@@ -36,7 +36,10 @@ export default function BusinessDocs() {
   const [error, setError] = useState<string | null>(null);
   const [contactInvalid, setContactInvalid] = useState(false);
   const b = copy.business;
-  const phone = me ? localDigits(me.phone) : flow.phone;
+  // Tasdiqlangan aloqa: SMS bilan kelgan raqam yoki (Google/Apple bilan kelganda) email
+  const phone = me ? (me.phone ? localDigits(me.phone) : null) : flow.phone || null;
+  const email = me ? me.email : (flow.social?.email ?? null);
+  const verifiedContact = phone ? { label: b.phone, value: displayPhone(phone) } : email ? { label: b.email, value: email } : null;
 
   const guard = async (fn: () => Promise<void>) => {
     try {
@@ -145,16 +148,20 @@ export default function BusinessDocs() {
         />
       </View>
 
-      <View style={styles.block}>
-        <Label style={styles.label}>{b.phone}</Label>
-        <FieldBox height={54} muted style={styles.phone}>
-          <Txt style={[font(800), styles.phoneText]}>{displayPhone(phone)}</Txt>
-          <View style={styles.verified}>
-            <TickDot size={18} stroke={4} />
-            <Txt style={[font(800), { fontSize: 13, color: colors.greenOk }]}>{b.verified}</Txt>
-          </View>
-        </FieldBox>
-      </View>
+      {verifiedContact ? (
+        <View style={styles.block}>
+          <Label style={styles.label}>{verifiedContact.label}</Label>
+          <FieldBox height={54} muted style={styles.phone}>
+            <Txt numberOfLines={1} style={[font(800), styles.phoneText]}>
+              {verifiedContact.value}
+            </Txt>
+            <View style={styles.verified}>
+              <TickDot size={18} stroke={4} />
+              <Txt style={[font(800), { fontSize: 13, color: colors.greenOk }]}>{b.verified}</Txt>
+            </View>
+          </FieldBox>
+        </View>
+      ) : null}
 
       <View style={styles.block}>
         <Label style={styles.label}>{b.registration}</Label>

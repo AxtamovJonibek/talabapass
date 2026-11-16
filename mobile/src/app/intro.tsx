@@ -11,7 +11,7 @@ const TONES = ["orange", "green", "orange", "blue"] as const;
 export default function Intro() {
   const finish = async () => {
     await markOnboarded("student");
-    resetTo("/auth/phone?intent=student");
+    resetTo("/auth");
   };
   return (
     <Carousel

@@ -18,6 +18,7 @@ cp .env.example .env        # ixtiyoriy: API manzili (standart — https://talab
 npm start                   # QR → Expo Go (telefon va kompyuter bitta tarmoqda)
 ```
 
+- **Expo Go** Google bilan kirishni ishlatolmaydi (native modul) — u yerda faqat telefon; Google/Apple — dev build (pastda).
 - **Sinov kodi:** sinov serverida (`https://talabapass.uz`, `APP_ENV=staging`) SMS o'rniga har doim `000000`.
 - **Lokal backend:** ildizda `npm run dev`, `.env` da `EXPO_PUBLIC_API_URL=http://<kompyuter IP>:3000`
   (telefon `localhost` ni ko'rmaydi). `.env` o'zgarsa `npm start -- --clear`.
@@ -88,8 +89,10 @@ src/ui/app.tsx           talaba ilovasi primitivlari (DealCard, StatusPill, PctB
                          tab-bar.tsx — pastki menyu; deals-map(.web).tsx — xarita
 src/ui/intro-art.tsx     karusel rasmlari; src/ui/icons.tsx — SVG ikonkalar
 src/theme.ts             ranglar (dizayndagi hex), Archivo nusxalari
-src/copy.ts              matnlar (saytdagi messages/uz.json nusxasi)
-assets/fonts/            Archivo statik nusxalari (OFL)
+src/copy.ts              joriy til matnlari (`copy`), til ro'yxati; matnlar src/i18n/{uz,ru,en}.ts (uz — saytdagi messages/uz.json nusxasi)
+src/lang.tsx             tilni o'qish/saqlash; app/lang.tsx — Til ekrani
+src/auth/use-social.ts   Google/Apple bilan kirish (token → /auth/google|apple); app/auth/index.tsx — kirish usuli
+assets/fonts/            Archivo statik nusxalari + Golos Text kirill glifllari (OFL, ikkalasi)
 assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds.mjs` sintez qiladi)
 ```
 
@@ -103,6 +106,9 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
   Rasmlar oldin siqiladi (`src/lib/image.ts`: uzun tomon 2000px, JPEG 0.8), hajm (10 MB) siqilgandan keyin tekshiriladi.
   Xato turlari `ApiError.kind`: `network` (faqat haqiqiy tarmoq xatosi), `too_large` (413), `session`, `other`;
   har bir xato console'ga `[api] …` bilan chiqadi (Expo Go terminali yoki `adb logcat`).
+- **Kirill:** Archivo'da kirill yo'q, RN esa CSS kabi glif bo'yicha boshqa shriftga o'tmaydi — har bir Archivo nusxasiga Golos Text'ning
+  shu og'irlikdagi kirill glifllari qo'shilgan (`python mobile/scripts/fonts-cyrillic.py <GolosText[wght].ttf>`; kirill bor faylni o'tkazib
+  yuboradi). Lotin/raqam — Archivo, kirill — Golos (62/112 nusxalarda ham oddiy kenglik, kerningsiz). Yangi Archivo nusxasi qo'shilsa — skriptni qayta ishlating.
 - **Shrift:** React Native `font-variation-settings` ni bilmaydi — Archivo variable shriftidan kerakli og'irlik/kenglik
   juftlari statik TTF qilib chiqarilgan (wdth 100: 400–900, 112: 800/900, 62: 900). Yangi juftlik kerak bo'lsa —
   fontTools `instancer` bilan (`Archivo[wdth,wght].ttf`, google/fonts), oilaga alohida nom bering va `theme.ts` ga qo'shing.
@@ -113,7 +119,59 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
   "talaba[Pass]" (`splash-logo.png`; glif yo'llari `scripts/logo-paths.json`). Splash Archivo yuklanguncha turadi (`app/_layout.tsx`).
 - **Ruxsatlar** (`app.json`): kamera (guvohnoma, joy fotosi, QR), joylashuv (faqat ilova ochiqda), bildirishnoma, tebranish; mikrofon,
   fon joylashuvi, media/xotira, fon audio — `blockedPermissions` / plugin sozlamasi bilan o'chirilgan. Matnlar o'zbekcha. Dark mode yo'q (`light`).
-- Matn qo'shilsa — `src/copy.ts`; rang — `src/theme.ts` (dizaynda bor hex). Yangi native modul — `npx expo install`.
+- Matn qo'shilsa — `src/i18n/uz.ts`, `ru.ts`, `en.ts` uchalasiga (kalitlar `Copy` tipi bilan tekshiriladi: biri yetishmasa `tsc` xato beradi).
+  `copy` ni modul darajasida (`const x = copy.feed` fayl tepasida) olib qo'ymang — til almashsa eskisi qoladi; komponent ichida o'qing. Rang — `src/theme.ts` (dizaynda bor hex). Yangi native modul — `npx expo install`.
+
+## Til
+
+- Birinchi ochilishda (kirmagan, til tanlanmagan) — Til ekrani (Til.dc.html): O'zbekcha / Русский / English, qurilma tili oldindan
+  tanlangan; keyin karusel → kirish usuli. Tanlov SecureStore'da (`tp.lang`). Profil (talaba va biznes) → "Til" — o'sha ekran ← bilan;
+  tanlangach ilova bosh ekranidan yangi tilda qayta ochiladi.
+- Til serverga `Accept-Language` bilan ketadi (server xato matnlari hozircha o'zbekcha). Server ma'lumotlari (kategoriya nomlari,
+  holat yorliqlari, biznes matnlari) — kelganidek.
+
+## Google / Apple bilan kirish
+
+- Oqim (Auth.dc.html): karusel → "Google bilan davom etish", "Apple bilan davom etish" (faqat iOS, rasmiy `AppleAuthenticationButton`),
+  "yoki", "Telefon raqam bilan" → AuthTelefon. Qaysi tugma ko'rinishi — `GET /app-config` `auth` (server `AUTH_PHONE_ENABLED`,
+  Google/Apple client ID). Google tugmasi — rasmiy rangli "G" belgisi, oq fonda (branding qoidasi).
+- Hisob bor — ichkariga; yangi — SMS va parolsiz ro'yxatga (talaba 1/3 yoki biznes 1/4), ism Google'dan (Apple — birinchi ruxsatdagi ism)
+  oldindan to'ldiriladi. Bunday hisobda telefon yo'q (profilda email), parol yo'q: hisobni o'chirish — shu provayder bilan qayta tasdiqlash.
+- Client ID'lar (maxfiy emas) `app.json` → `extra.google` (`webClientId` — token `aud` i, `iosClientId`) va plugin `iosUrlScheme`
+  (iOS client ID teskari). Client secret ilovaga kerak emas. Server: `GOOGLE_CLIENT_ID_WEB|IOS|ANDROID`, `APPLE_CLIENT_ID` (docs/api-v1.md).
+- `@react-native-google-signin/google-signin` Expo Go'da yo'q: tugma bosilganda modul yuklanadi, bo'lmasa "Expo Go'da ishlamaydi" xabari.
+  Sinash — dev yoki preview build.
+
+### Android: SHA-1 va Google Cloud (bir marta)
+
+Android'da Google tokeni faqat ilova imzosi (SHA-1) Google Cloud'dagi **Android** OAuth client'da ro'yxatdan o'tgan bo'lsa beriladi
+(aks holda `DEVELOPER_ERROR`). Token `aud` i baribir **web** client ID bo'ladi.
+
+1. `cd mobile && npx eas-cli@latest login`; `app.json` dagi `REPLACE_WITH_EAS_PROJECT_ID` to'ldirilgan bo'lsin ("Birinchi marta", 2-qadam).
+2. Imzo kalitini yaratish/ko'rish: `npx eas-cli@latest credentials -p android` → profil `development` (keyin `preview`, `production` ham)
+   → "Keystore: Manage everything needed to build your project" → kalit yo'q bo'lsa "Set up a new keystore" → ekranda **SHA1 Fingerprint**.
+   EAS profillari bitta keystore'ni ishlatadi (alohida sozlamagan bo'lsangiz) — SHA-1 bitta.
+3. Google Cloud Console → shu loyiha (853458934258) → APIs & Services → Credentials → Create credentials → OAuth client ID →
+   **Android**: package `uz.talabapass.app`, SHA-1 — 2-qadamdagi. Play Store'ga chiqqanda Play Console → App integrity → "App signing key
+   certificate" SHA-1 ni ham shu tarzda (ikkinchi Android client yoki o'sha client'ga) qo'shing.
+4. Android client ID ni serverga: `/etc/talabapass/env` → `GOOGLE_CLIENT_ID_ANDROID=…` (va `GOOGLE_CLIENT_ID_WEB`, `GOOGLE_CLIENT_ID_IOS`),
+   deploy yoki `pm2 restart`. Ilovaga Android ID kerak emas (`webClientId` yetadi).
+5. OAuth consent screen: "External", ilova nomi, support email, maxfiylik havolasi (`https://talabapass.uz/uz/maxfiylik`); test holatida
+   bo'lsa — sinovchilar Gmail'ini "Test users" ga qo'shing (yoki "Publish app").
+
+### Build va sinov (sizning buyruqlaringiz)
+
+```bash
+cd mobile
+npm install
+npx eas-cli@latest build --profile development --platform android   # dev client APK → telefonga o'rnating
+npx expo start --dev-client                                         # telefon va kompyuter bitta tarmoqda; APK QR orqali ulanadi
+npx eas-cli@latest build --profile preview --platform android       # mustaqil sinov APK (Metro'siz)
+npx eas-cli@latest build --profile development --platform ios       # iOS: Apple Developer hisobi; Sign in with Apple capability'ni EAS o'zi yoqadi
+```
+
+Apple bilan kirish: Apple Developer → Identifiers → `uz.talabapass.app` → "Sign In with Apple" yoqilgan bo'lsin (EAS build `usesAppleSignIn`
+bilan so'raydi); serverda `APPLE_CLIENT_ID=uz.talabapass.app`.
 
 ## Talaba ilovasi (kirgandan keyin)
 
@@ -174,6 +232,9 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
   kupon tarixi ro'yxati — saytda (bitta chek — kupon sotilgach "Chekni ko'rish").
 
 - Slide2–4 (talaba karuseli) dizaynda yo'q — saytdagi kabi Main uslubida.
+- Auth: Apple tugmasi — dizayndagi qora "A" o'rniga rasmiy `AppleAuthenticationButton` (matni iOS tilida); Google — doira ichidagi "G"
+  o'rniga rasmiy rangli belgi (Apple va Google branding qoidalari). Telefon ekrani (AuthTelefon) — "Biznes egasimisiz?" havolasi Auth'da.
+- Til ekrani profildan ochilganda ← va kichik logo (dizaynda faqat birinchi ochilish chizilgan).
 - OTM tanlash oynasi, xato bloklari, yuklanish holatlari, rad etilgan tekshiruv, bosh ekran — dizaynda chizilmagan (primitivlardan).
 - Guvohnoma ramkasidagi yozuv statik ("Ramkaga to'g'rilab…"), avtomatik aniqlash yo'q; kamera ruxsati yo'q bo'lsa — "Kameraga ruxsat berish".
 - Biznes logotipi B6 da tanlanadi, lekin hisob ochilgach (B8 yuborishda) yuklanadi; serverdagi fayllar (qayta kirishda) belgi bilan.

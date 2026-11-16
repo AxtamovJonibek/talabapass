@@ -2,10 +2,11 @@ import { useFonts } from "expo-font";
 import { Stack, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { copy } from "@/copy";
+import { loadLang } from "@/lang";
 import { LocationProvider } from "@/lib/location";
 import { AppStateProvider } from "@/state";
 import { colors, fontFiles } from "@/theme";
@@ -14,18 +15,23 @@ import { OfflineBanner } from "@/ui/offline";
 import { PushHandler } from "@/ui/push-handler";
 import { UpdateGate } from "@/ui/update-gate";
 
-// Shriftlar (Archivo) yuklanguncha splash turadi — aks holda matn tizim shriftida "sakraydi"
+// Shriftlar (Archivo) va tanlangan til yuklanguncha splash turadi — aks holda matn tizim shriftida/boshqa tilda "sakraydi"
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ fade: true, duration: 250 });
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontFiles);
+  const [langReady, setLangReady] = useState(false);
 
   useEffect(() => {
-    if (loaded || error) void SplashScreen.hideAsync();
-  }, [loaded, error]);
+    void loadLang().finally(() => setLangReady(true));
+  }, []);
 
-  if (!loaded && !error) return null;
+  useEffect(() => {
+    if ((loaded || error) && langReady) void SplashScreen.hideAsync();
+  }, [loaded, error, langReady]);
+
+  if ((!loaded && !error) || !langReady) return null;
 
   return (
     <SafeAreaProvider>

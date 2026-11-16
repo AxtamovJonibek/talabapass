@@ -3,9 +3,9 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { appApi } from "@/api/endpoints";
-import { copy } from "@/copy";
+import { copy, langName } from "@/copy";
 import { initials } from "@/lib/format";
-import { displayPhone, localDigits } from "@/lib/phone";
+import { contactLine } from "@/lib/phone";
 import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
 import { Card, InfoRow, MenuRow, ScreenHeader, TabScreen } from "@/ui/app";
@@ -67,7 +67,7 @@ export default function Profile() {
               <Txt numberOfLines={2} style={[font(900, 112), styles.name]}>
                 {name}
               </Txt>
-              <Txt style={{ fontSize: 14, color: colors.muted2, marginTop: 4 }}>{displayPhone(localDigits(me.phone))}</Txt>
+              <Txt style={{ fontSize: 14, color: colors.muted2, marginTop: 4 }}>{contactLine(me)}</Txt>
             </View>
           </View>
 
@@ -84,6 +84,7 @@ export default function Profile() {
 
           <Card style={styles.card}>
             <MenuRow icon="bell" label={p.notifications} value={unread > 0 ? String(unread) : undefined} onPress={() => router.push("/notifications")} />
+            <MenuRow icon="globe" label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />
             <MenuRow icon="info" label={p.help} onPress={() => openSite("/#savollar")} />
             <MenuRow icon="lock" label={p.privacy} onPress={() => openSite(LEGAL.privacy)} />
             <MenuRow icon="doc" label={p.terms} onPress={() => openSite(LEGAL.terms)} last />

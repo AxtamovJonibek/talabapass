@@ -2,6 +2,33 @@
   "v": 3,
   "attachments": {},
   "boards": {
+    "Auth.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "5 · Kirish usuli",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "Auth2.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "11 · Chiqqandan keyin",
+      "w": 390,
+      "x": 0,
+      "y": 3856
+    },
+    "AuthBiznes.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "B3 · Biznes: telefon",
+      "w": 390,
+      "x": 0,
+      "y": 2892
+    },
     "Biz1.dc.html": {
       "h": 844,
       "is_interactive": true,
@@ -11,19 +38,6 @@
       "x": 0,
       "y": 964
     },
-    "Parol.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "7 · Parol o'rnatish (yangi)", "w": 390, "x": 0, "y": 1928},
-    "RoyxatTalaba.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "8 · Talaba 1/3: ma'lumotlar", "w": 390, "x": 470, "y": 1928},
-    "Guvohnoma.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "9 · Talaba 2/3: guvohnoma", "w": 390, "x": 940, "y": 1928},
-    "Tekshiruv.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "10 · Talaba 3/3: tekshiruv", "w": 390, "x": 1410, "y": 1928},
-    "AuthBiznes.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "B3 · Biznes: telefon", "w": 390, "x": 0, "y": 2892},
-    "KodBiznes.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "B4 · Biznes: SMS kod", "w": 390, "x": 470, "y": 2892},
-    "ParolBiznes.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "B5 · Biznes: parol", "w": 390, "x": 940, "y": 2892},
-    "BizTafsilot.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "B7 · Biznes 2/4: tafsilotlar", "w": 390, "x": 1880, "y": 2892},
-    "BizHujjat.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "B8 · Biznes 3/4: hujjatlar", "w": 390, "x": 2350, "y": 2892},
-    "BizTekshiruv.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "B9 · Biznes 4/4: tekshiruvda", "w": 390, "x": 2820, "y": 2892},
-    "RoyxatBiznes.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "B6 · Biznes 1/4: biznes haqida", "w": 390, "x": 1410, "y": 2892},
-    "Auth2.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "11 · Chiqqandan keyin", "w": 390, "x": 0, "y": 3856},
-    "Kirish.dc.html": {"h": 844, "is_interactive": true, "radius": 28, "title": "12 · Parol bilan kirish", "w": 390, "x": 470, "y": 3856},
     "Biz2.dc.html": {
       "h": 844,
       "is_interactive": true,
@@ -33,14 +47,50 @@
       "x": 470,
       "y": 964
     },
-    "Auth.dc.html": {
+    "BizHujjat.dc.html": {
       "h": 844,
       "is_interactive": true,
       "radius": 28,
-      "title": "5 · Kirish / ro'yxat",
+      "title": "B8 · Biznes 3/4: hujjatlar",
+      "w": 390,
+      "x": 2350,
+      "y": 2892
+    },
+    "BizTafsilot.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "B7 · Biznes 2/4: tafsilotlar",
       "w": 390,
       "x": 1880,
-      "y": 0
+      "y": 2892
+    },
+    "BizTekshiruv.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "B9 · Biznes 4/4: tekshiruvda",
+      "w": 390,
+      "x": 2820,
+      "y": 2892
+    },
+    "Guvohnoma.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "9 · Talaba 2/3: guvohnoma",
+      "w": 390,
+      "x": 940,
+      "y": 1928
+    },
+    "Kirish.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "12 · Parol bilan kirish",
+      "w": 390,
+      "x": 470,
+      "y": 3856
     },
     "Kod.dc.html": {
       "h": 844,
@@ -48,8 +98,17 @@
       "radius": 28,
       "title": "6 · SMS kod",
       "w": 390,
-      "x": 2350,
+      "x": 2820,
       "y": 0
+    },
+    "KodBiznes.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "B4 · Biznes: SMS kod",
+      "w": 390,
+      "x": 470,
+      "y": 2892
     },
     "Main.dc.html": {
       "h": 844,
@@ -59,6 +118,42 @@
       "w": 390,
       "x": 0,
       "y": 0
+    },
+    "Parol.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "7 · Parol o'rnatish (yangi)",
+      "w": 390,
+      "x": 0,
+      "y": 1928
+    },
+    "ParolBiznes.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "B5 · Biznes: parol",
+      "w": 390,
+      "x": 940,
+      "y": 2892
+    },
+    "RoyxatBiznes.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "B6 · Biznes 1/4: biznes haqida",
+      "w": 390,
+      "x": 1410,
+      "y": 2892
+    },
+    "RoyxatTalaba.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "8 · Talaba 1/3: ma'lumotlar",
+      "w": 390,
+      "x": 470,
+      "y": 1928
     },
     "Slide2.dc.html": {
       "h": 844,
@@ -86,6 +181,33 @@
       "w": 390,
       "x": 1410,
       "y": 0
+    },
+    "Tekshiruv.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "10 · Talaba 3/3: tekshiruv",
+      "w": 390,
+      "x": 1410,
+      "y": 1928
+    },
+    "Til.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "0 · Til tanlash",
+      "w": 390,
+      "x": -470,
+      "y": 0
+    },
+    "AuthTelefon.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "5b · Telefon raqam",
+      "w": 390,
+      "x": 2350,
+      "y": 0
     }
   },
   "createdOnFiles": {
@@ -103,21 +225,10 @@
     "s3",
     "s4",
     "s5",
-    "s6"
+    "s6",
+    "s7"
   ],
   "notes": {
-    "s3": {"fill": "green", "size": 24, "text": "YANGI RAQAM: telefon → SMS kod → parol o'rnatish (kamida 8 belgi) → ro'yxatdan o'tish (talaba: guvohnoma, biznes: ma'lumotlar). Parol ekrani ikkalasiga bir xil, tepada chip rolni ko'rsatadi.", "w": 420, "x": 0, "y": 1700},
-    "s4": {"fill": "orange", "size": 24, "text": "HISOBI BOR YOKI CHIQIB KETGAN: telefon → SMS kod → parol kiritish → ichkariga. Parol SMS'dan KEYIN so'raladi, shunda begona odam raqam ro'yxatdan o'tganini bila olmaydi. 'Parolni unutdim' parol o'rnatish ekraniga olib boradi.", "w": 420, "x": 0, "y": 3656},
-    "s5": {"fill": "blue", "size": 24, "text": "BIZNES: karusel → telefon → SMS → parol → 4 qadam: 1) nom, logo, kategoriya, manzil; 2) ish vaqti, STIR, tavsif; 3) mas'ul shaxs, guvohnoma, 3 ta foto, rozilik; 4) tekshiruvda. Maydonlar saytdagi ariza bilan bir xil.", "w": 420, "x": 0, "y": 2692},
-    "s6": {"fill": "green", "size": 24, "text": "TALABA: parol → 1) ism, familiya, universitet, kurs; 2) guvohnoma rasmi; 3) tekshiruvda. Tasdiqlangach SMS keladi va chegirmalar ochiladi.", "w": 420, "x": 470, "y": 1700},
-    "s2": {
-      "fill": "blue",
-      "size": 24,
-      "text": "Biznes egalari uchun: kirish ekranidagi 'Biznes egasimisiz?' havolasini bossa, shu 2 ta karusel chiqadi, keyin telefon raqam bilan kirish/ro'yxatdan o'tish.",
-      "w": 420,
-      "x": 940,
-      "y": 964
-    },
     "s1": {
       "fill": "orange",
       "size": 24,
@@ -126,6 +237,46 @@
       "x": 0,
       "y": -563
     },
+    "s2": {
+      "fill": "blue",
+      "size": 24,
+      "text": "Biznes egalari uchun: kirish ekranidagi 'Biznes egasimisiz?' havolasini bossa, shu 2 ta karusel chiqadi, keyin telefon raqam bilan kirish/ro'yxatdan o'tish.",
+      "w": 420,
+      "x": 940,
+      "y": 964
+    },
+    "s3": {
+      "fill": "green",
+      "size": 24,
+      "text": "YANGI RAQAM: telefon → SMS kod → parol o'rnatish (kamida 8 belgi) → ro'yxatdan o'tish (talaba: guvohnoma, biznes: ma'lumotlar). Parol ekrani ikkalasiga bir xil, tepada chip rolni ko'rsatadi.",
+      "w": 420,
+      "x": 0,
+      "y": 1700
+    },
+    "s4": {
+      "fill": "orange",
+      "size": 24,
+      "text": "HISOBI BOR YOKI CHIQIB KETGAN: telefon → SMS kod → parol kiritish → ichkariga. Parol SMS'dan KEYIN so'raladi, shunda begona odam raqam ro'yxatdan o'tganini bila olmaydi. 'Parolni unutdim' parol o'rnatish ekraniga olib boradi.",
+      "w": 420,
+      "x": -557,
+      "y": 4070
+    },
+    "s5": {
+      "fill": "blue",
+      "size": 24,
+      "text": "BIZNES: karusel → telefon → SMS → parol → 4 qadam: 1) nom, logo, kategoriya, manzil; 2) ish vaqti, STIR, tavsif; 3) mas'ul shaxs, guvohnoma, 3 ta foto, rozilik; 4) tekshiruvda. Maydonlar saytdagi ariza bilan bir xil.",
+      "w": 420,
+      "x": 0,
+      "y": 2692
+    },
+    "s6": {
+      "fill": "green",
+      "size": 24,
+      "text": "TALABA: parol → 1) ism, familiya, universitet, kurs; 2) guvohnoma rasmi; 3) tekshiruvda. Tasdiqlangach SMS keladi va chegirmalar ochiladi.",
+      "w": 420,
+      "x": 470,
+      "y": 1700
+    },
     "t1": {
       "kind": "title1",
       "maxW": 2740,
@@ -133,14 +284,24 @@
       "w": 240,
       "x": 0,
       "y": -300
+    },
+    "s7": {
+      "fill": "green",
+      "size": 24,
+      "text": "YANGI: birinchi ochilishda til tanlanadi (O'zbekcha, Русский, English), butun ilova shu tilda davom etadi. Kirish usuli: Google, Apple yoki telefon raqam. Google/Apple bilan kirganda SMS va parol ekranlari chiqmaydi, to'g'ri ro'yxatdan o'tishga o'tadi.",
+      "w": 420,
+      "x": -470,
+      "y": -563
     }
   },
   "order": [
+    "Til.dc.html",
     "Main.dc.html",
     "Slide2.dc.html",
     "Slide3.dc.html",
     "Slide4.dc.html",
     "Auth.dc.html",
+    "AuthTelefon.dc.html",
     "Kod.dc.html",
     "Biz1.dc.html",
     "Biz2.dc.html",

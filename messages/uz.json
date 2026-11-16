@@ -2916,7 +2916,12 @@
       "order_closed": "Buyurtma yopilgan: bekor qilingan, berilgan yoki muddati o'tgan.",
       "order_conflict": "Buyurtma holati o'zgargan. Ro'yxatni yangilang.",
       "too_many_invites": "Ochiq takliflar juda ko'p (10 ta). Avvalgilarini bekor qiling yoki kuting.",
-      "already_cashier": "Bu raqam allaqachon sizning kassiringiz."
+      "already_cashier": "Bu raqam allaqachon sizning kassiringiz.",
+      "social_invalid": "Kirish tasdiqlanmadi. Qaytadan urinib ko'ring.",
+      "social_unavailable": "Bu usul bilan kirish hozircha yoqilmagan. Telefon raqam bilan kiring.",
+      "social_unreachable": "Kirishni tekshirib bo'lmadi. Birozdan keyin urinib ko'ring.",
+      "social_mismatch": "Boshqa hisob tanlandi. Shu hisobga kirgan Google yoki Apple hisobini tanlang.",
+      "password_required": "Parol kiriting."
     }
   },
   "appPage": {

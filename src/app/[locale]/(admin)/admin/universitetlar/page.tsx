@@ -6,7 +6,7 @@ import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Link } from "@/i18n/navigation";
 import { localizedPath } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
-import { formatPhone } from "@/lib/format";
+import { formatContact } from "@/lib/format";
 import { listUniversities, lookups, pendingUniversityRequests, PAGE_SIZE, universityOne } from "@/server/admin/directory";
 import { requireRole } from "@/server/auth/session";
 
@@ -65,7 +65,7 @@ async function UniversitiesContent({ searchParams }: { searchParams: PageProps<"
           <div key={r.id} data-testid="university-request" className="flex flex-col gap-3 rounded-14 bg-paper p-4">
             <div>
               <b className="text-16">{r.name}</b>
-              <div className="text-13 text-muted">{t("universities.requestBy", { name: [r.user.firstName, r.user.lastName].filter(Boolean).join(" ") || "—", phone: formatPhone(r.user.phone) })}</div>
+              <div className="text-13 text-muted">{t("universities.requestBy", { name: [r.user.firstName, r.user.lastName].filter(Boolean).join(" ") || "—", phone: formatContact(r.user) })}</div>
             </div>
             <details>
               <summary className="cursor-pointer text-14 font-bold">{t("universities.requestAdd")}</summary>

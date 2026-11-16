@@ -7,6 +7,8 @@ describe("admin tahrir sxemalari", () => {
     const bad = userEditSchema.safeParse({ firstName: "Ali", lastName: "Valiyev", phone: "+7 900 123 45 67" });
     expect(bad.success).toBe(false);
     if (!bad.success) expect(failedFields(bad.error)).toEqual(["phone"]);
+    // Bo'sh raqam — null (raqamsiz Google/Apple hisobi; raqamli hisobda `editUser` rad etadi)
+    expect(userEditSchema.parse({ firstName: "Ali", lastName: "Valiyev", phone: " " }).phone).toBeNull();
   });
 
   it("yangi admin: ism, familiya va telefon majburiy", () => {

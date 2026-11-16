@@ -63,11 +63,14 @@ export async function deleteOwnAccount(userId: string): Promise<{ ok: true } | {
     await tx.pushSubscription.deleteMany({ where: { userId } });
     await tx.pushDevice.deleteMany({ where: { userId } });
     await tx.session.deleteMany({ where: { userId } });
+    // Google/Apple bog'lanishi ham bo'shaydi: shu hisob bilan keyin yangi hisob ochish mumkin (raqam kabi)
+    await tx.authIdentity.deleteMany({ where: { userId } });
     await tx.user.update({
       where: { id: userId },
       data: {
         status: "DELETED",
         phone: `deleted:${userId}`,
+        email: null,
         firstName: null,
         lastName: null,
         blockedReason: null,

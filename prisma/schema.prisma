@@ -25,8 +25,10 @@ enum UserStatus {
 
 model User {
   id                  String     @id @default(cuid())
-  /// E.164: +998XXXXXXXXX
-  phone               String     @unique
+  /// E.164: +998XXXXXXXXX. null — faqat Google/Apple bilan ochilgan hisob (ilova, `AuthIdentity`)
+  phone               String?    @unique
+  /// Google/Apple tasdiqlagan email (faqat `email_verified`). Bir xil email — bitta hisob: yangi identifikator shu hisobga bog'lanadi
+  email               String?    @unique
   role                Role
   firstName           String?
   lastName            String?
@@ -60,8 +62,30 @@ model User {
   universityRequests UniversityRequest[]
   orders             Order[]
   orderEvents        OrderEvent[]
+  identities         AuthIdentity[]
 
   @@index([role, status])
+}
+
+enum AuthProvider {
+  GOOGLE
+  APPLE
+}
+
+/// Tashqi kirish (ilova: Google, Apple). `subject` — provayderdagi doimiy foydalanuvchi id (`sub`), email emas.
+model AuthIdentity {
+  id         String       @id @default(cuid())
+  provider   AuthProvider
+  subject    String
+  /// Kirish paytidagi email (tasdiqlangan bo'lsa); faqat ko'rsatish uchun, bog'lash `User.email` orqali
+  email      String?
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+  lastUsedAt DateTime?
+
+  @@unique([provider, subject])
+  @@index([userId])
 }
 
 model OtpCode {

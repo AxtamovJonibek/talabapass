@@ -55,8 +55,11 @@ export const adminNameSchema = z.object({ firstName: z.string().trim().regex(NAM
 
 export const newAdminSchema = adminNameSchema.extend({ phone });
 
-/** Foydalanuvchining umumiy maydonlari (talaba, biznes egasi, kassir). */
-export const userEditSchema = adminNameSchema.extend({ phone });
+/**
+ * Foydalanuvchining umumiy maydonlari (talaba, biznes egasi, kassir). Bo'sh raqam — null: faqat raqamsiz (Google/Apple)
+ * hisobda qabul qilinadi (`editUser` tekshiradi), raqamli hisobdan raqam olib tashlanmaydi.
+ */
+export const userEditSchema = adminNameSchema.extend({ phone: optionalPhone });
 
 export const studentEditSchema = z.object({
   course: z.enum(COURSES),

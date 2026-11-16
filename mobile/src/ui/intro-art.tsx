@@ -57,11 +57,9 @@ function DealRow({ tile, badge, place, title, rotate = "0deg" }: { tile: string;
   );
 }
 
-const a = copy.intro.art;
-const b = copy.bizIntro.art;
-
 /** 1 · Arzonroq (Main) */
 export function MainArt() {
+  const a = copy.intro.art;
   return (
     <ArtStage gap={14}>
       <View style={[styles.card312, { transform: [{ rotate: "-4deg" }] }]}>
@@ -88,6 +86,7 @@ export function MainArt() {
 
 /** 2 · Guvohnoma */
 export function CardArt() {
+  const a = copy.intro.art;
   return (
     <ArtStage>
       <View style={[styles.card312, { transform: [{ rotate: "3deg" }] }]}>
@@ -113,6 +112,7 @@ export function CardArt() {
 
 /** 3 · QR kupon */
 export function QrArt() {
+  const a = copy.intro.art;
   return (
     <ArtStage>
       <View style={[styles.card300, { transform: [{ rotate: "-3deg" }] }]}>
@@ -135,6 +135,7 @@ export function QrArt() {
 
 /** 4 · Yaqin joylar */
 export function NearArt() {
+  const a = copy.intro.art;
   const tiles = [colors.tileKofe, colors.tileSport, colors.tileBogo];
   const tilt = ["-2deg", "1deg", "-1deg"];
   return (
@@ -153,6 +154,7 @@ const BARS = ["30%", "44%", "38%", "62%", "52%"] as const;
 
 /** B1 · Yangi mijozlar */
 export function GrowthArt() {
+  const b = copy.bizIntro.art;
   return (
     <ArtStage>
       <View style={[styles.card312, { transform: [{ rotate: "-3deg" }] }]}>
@@ -189,6 +191,7 @@ export function GrowthArt() {
 
 /** B2 · Skaner va statistika */
 export function ScannerArt() {
+  const b = copy.bizIntro.art;
   const corner = (pos: ViewStyle, radius: ViewStyle) => <View style={[styles.corner, pos, radius]} />;
   return (
     <ArtStage>

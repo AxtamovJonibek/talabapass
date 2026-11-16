@@ -14,7 +14,15 @@ describe("ilova versiyalari", () => {
       minVersion: { ios: "1.0.0", android: "1.0.0" },
       latestVersion: "1.0.0",
       storeUrls: { ios: null, android: "https://play.google.com/store/apps/details?id=uz.talabapass.app" },
+      auth: { phone: true, google: false, apple: false },
     });
+  });
+
+  it("kirish usullari: telefon standart yoqiq, Google/Apple — client ID bo'lsa", () => {
+    expect(appConfigFromEnv({ AUTH_PHONE_ENABLED: "false", GOOGLE_CLIENT_ID_WEB: "w.apps.googleusercontent.com" }).auth).toEqual({ phone: false, google: true, apple: false });
+    expect(appConfigFromEnv({ AUTH_PHONE_ENABLED: "TRUE", APPLE_CLIENT_ID: "uz.talabapass.app" }).auth).toEqual({ phone: true, google: false, apple: true });
+    expect(appConfigProblems({ AUTH_PHONE_ENABLED: "yo'q" })).toHaveLength(1);
+    expect(appConfigProblems({ GOOGLE_CLIENT_ID_WEB: "client-secret-emas" })).toHaveLength(1);
   });
 
   it("env qiymatlari; noto'g'risi standartga tushadi va env-check'da xato", () => {

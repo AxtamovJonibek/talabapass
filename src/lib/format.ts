@@ -41,9 +41,16 @@ export function dealBadge(input: BadgeInput): string {
 }
 
 /** "+998904123785" → "+998 90 412 37 85" */
-export function formatPhone(e164: string): string {
+export function formatPhone(e164: string | null): string {
+  // null — faqat Google/Apple bilan ochilgan ilova hisobi (raqamsiz)
+  if (!e164) return "—";
   const m = /^\+998(\d{2})(\d{3})(\d{2})(\d{2})$/.exec(e164);
   return m ? `+998 ${m[1]} ${m[2]} ${m[3]} ${m[4]}` : e164;
+}
+
+/** Bog'lanish uchun: raqam, raqamsiz (Google/Apple) hisobda — email. */
+export function formatContact(user: { phone: string | null; email: string | null }): string {
+  return user.phone ? formatPhone(user.phone) : (user.email ?? "—");
 }
 
 /**

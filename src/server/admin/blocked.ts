@@ -1,4 +1,5 @@
 import "server-only";
+import { formatContact } from "@/lib/format";
 import { db } from "../db";
 
 /** "Bloklanganlar": bloklangan talabalar va bizneslar (sabab, sana, kim blokladi). Faqat o'qish; chaqiruvchi admin. */
@@ -10,7 +11,8 @@ const fullName = (first?: string | null, last?: string | null) => [first, last].
 export type BlockedStudent = {
   id: string;
   name: string;
-  phone: string;
+  /** Raqam yoki (raqamsiz Google/Apple hisobida) email, ko'rsatishga tayyor */
+  contact: string;
   university: string;
   reason: string | null;
   at: Date | null;
@@ -21,7 +23,8 @@ export type BlockedBusiness = {
   id: string;
   name: string;
   owner: string;
-  phone: string;
+  /** Raqam yoki (raqamsiz Google/Apple hisobida) email, ko'rsatishga tayyor */
+  contact: string;
   reason: string | null;
   at: Date | null;
   by: string;
@@ -32,7 +35,7 @@ export async function blockedStudents(): Promise<BlockedStudent[]> {
     where: { role: "STUDENT", status: "BLOCKED" },
     orderBy: { updatedAt: "desc" },
     take: LIMIT,
-    select: { id: true, firstName: true, lastName: true, phone: true, blockedReason: true, updatedAt: true, student: { select: { university: { select: { shortName: true } } } } },
+    select: { id: true, firstName: true, lastName: true, phone: true, email: true, blockedReason: true, updatedAt: true, student: { select: { university: { select: { shortName: true } } } } },
   });
   const logs = users.length
     ? await db.auditLog.findMany({ where: { action: "user.block", entityId: { in: users.map((u) => u.id) } }, orderBy: { createdAt: "desc" }, select: { entityId: true, createdAt: true, actor: { select: { firstName: true, lastName: true } } } })
@@ -44,7 +47,7 @@ export async function blockedStudents(): Promise<BlockedStudent[]> {
     return {
       id: u.id,
       name: fullName(u.firstName, u.lastName),
-      phone: u.phone,
+      contact: formatContact(u),
       university: u.student?.university.shortName ?? "",
       reason: u.blockedReason,
       at: log?.createdAt ?? u.updatedAt,
@@ -58,7 +61,7 @@ export async function blockedBusinesses(): Promise<BlockedBusiness[]> {
     where: { status: "BLOCKED" },
     orderBy: { reviewedAt: "desc" },
     take: LIMIT,
-    select: { id: true, name: true, rejectReason: true, reviewedAt: true, updatedAt: true, owner: { select: { firstName: true, lastName: true, phone: true } } },
+    select: { id: true, name: true, rejectReason: true, reviewedAt: true, updatedAt: true, owner: { select: { firstName: true, lastName: true, phone: true, email: true } } },
   });
   const logs = rows.length
     ? await db.auditLog.findMany({ where: { action: "business.block", entityId: { in: rows.map((b) => b.id) } }, orderBy: { createdAt: "desc" }, select: { entityId: true, createdAt: true, actor: { select: { firstName: true, lastName: true } } } })
@@ -71,7 +74,7 @@ export async function blockedBusinesses(): Promise<BlockedBusiness[]> {
       id: b.id,
       name: b.name,
       owner: fullName(b.owner.firstName, b.owner.lastName),
-      phone: b.owner.phone,
+      contact: formatContact(b.owner),
       reason: b.rejectReason,
       at: log?.createdAt ?? b.reviewedAt ?? b.updatedAt,
       by: log ? fullName(log.actor?.firstName, log.actor?.lastName) : "",

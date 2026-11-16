@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { copy } from "@/copy";
-import { displayPhone, localDigits } from "@/lib/phone";
+import { contactLine } from "@/lib/phone";
 import { useApp } from "@/state";
 import { colors, font } from "@/theme";
 import { openSite } from "@/ui/legal";
@@ -31,7 +31,7 @@ export default function Home() {
       {me ? (
         <View style={styles.card}>
           <Txt style={[font(800), { fontSize: 17 }]}>{[me.firstName, me.lastName].filter(Boolean).join(" ") || me.business?.name || ""}</Txt>
-          <Txt style={styles.meta}>{displayPhone(localDigits(me.phone))}</Txt>
+          <Txt style={styles.meta}>{contactLine(me)}</Txt>
           {me.student ? <Txt style={styles.meta}>{`${me.student.university.shortName} · ${me.student.publicId}`}</Txt> : null}
           {me.business ? <Txt style={styles.meta}>{me.business.name}</Txt> : null}
         </View>

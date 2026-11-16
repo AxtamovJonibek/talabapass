@@ -6,12 +6,14 @@ import { normalizePhone } from "@/lib/format";
 import { cleanPassword, isValidPassword, maskPhone, PASSWORD_MAX } from "@/lib/password";
 import { audit } from "../audit";
 import { requestOtp, verifyOtp } from "../auth/otp";
+import type { SocialAccount } from "../auth/new-account";
 import { attemptPassword, hashPassword } from "../auth/password";
 import { acceptPhoneInvite, cashierBusiness, phoneInvite } from "../business/cashiers";
 import { db } from "../db";
 import { authSecret } from "../env";
 import { ApiError, type ApiErrorCode } from "./http";
 import { passwordFingerprint, seal, unseal } from "./rules";
+import { SocialTokenError, verifySocialToken, type SocialProvider } from "./social-token";
 import { loadApiUser, meView, openApiSession, type Device, type MeView, type TokenPair } from "./session";
 
 /*
@@ -20,7 +22,8 @@ import { loadApiUser, meView, openApiSession, type Device, type MeView, type Tok
  * muhrlangan tokenlarda (mijoz faqat qaytarib yuboradi, ichini o'qiy olmaydi):
  * - `step` (10 daqiqa): tasdiqlangan raqam, keyingi qadam (`login` | `set` | `new:student|business`) va parol xeshining
  *   izi — parol o'zgarsa eski qadam tokeni ishlamaydi;
- * - `register` (30 daqiqa): yangi raqam va o'rnatilgan parol xeshi — ro'yxat endpoint'i hisobni shu bilan ochadi.
+ * - `register` (30 daqiqa): yangi raqam va o'rnatilgan parol xeshi — ro'yxat endpoint'i hisobni shu bilan ochadi;
+ *   Google/Apple bilan kirganda — raqam va parol o'rniga tasdiqlangan identifikator (`socialSignIn`).
  * Admin API orqali kirmaydi (ikkinchi qadam — sayt).
  */
 
@@ -65,12 +68,23 @@ function openStep(token: string): { phone: string; step: Step; fp: string } {
   return { phone: data.phone, step: data.step as Step, fp: data.fp };
 }
 
-export function openRegisterTicket(token: string, role: NewRole): { phone: string; passwordHash: string } {
+/** Ro'yxat tokeni ichidagi hisob: telefon + parol xeshi yoki Google/Apple identifikatori (parolsiz). */
+export type RegisterTicket = { account: string; passwordHash: string } | { account: SocialAccount; passwordHash: null };
+
+export function openRegisterTicket(token: string, role: NewRole): RegisterTicket {
   const data = unseal("register", token, authSecret());
-  if (!data || data.exp <= Date.now() || data.role !== role || typeof data.phone !== "string" || typeof data.hash !== "string") {
-    throw new ApiError("step_expired");
+  if (!data || data.exp <= Date.now() || data.role !== role) throw new ApiError("step_expired");
+  if (typeof data.phone === "string" && typeof data.hash === "string") return { account: data.phone, passwordHash: data.hash };
+  const social = data.social as Partial<SocialAccount> | undefined;
+  if (
+    social &&
+    (social.provider === "GOOGLE" || social.provider === "APPLE") &&
+    typeof social.subject === "string" &&
+    (social.email === null || typeof social.email === "string")
+  ) {
+    return { account: { provider: social.provider, subject: social.subject, email: social.email }, passwordHash: null };
   }
-  return { phone: data.phone, passwordHash: data.hash };
+  throw new ApiError("step_expired");
 }
 
 // ───────── 1. kod so'rash ─────────
@@ -192,4 +206,90 @@ export async function setPassword(ticket: string, password: string, confirm: str
   if (reset) await db.session.deleteMany({ where: { userId: user.id } });
   await audit({ actorId: user.id, action: reset ? "user.password.reset" : "user.password.set", entity: "User", entityId: user.id, meta: { via: "api" } });
   return { next: "signedIn", ...(await signedIn(user.id, device)) };
+}
+
+// ───────── Google / Apple (faqat ilova) ─────────
+
+export type SocialResult =
+  | ({ next: "signedIn" } & SignedIn)
+  /** Yangi foydalanuvchi: SMS va parolsiz to'g'ri ro'yxatga; `profile` — formani oldindan to'ldirish uchun */
+  | { next: "register"; role: Intent; registrationTicket: string; profile: { firstName: string | null; lastName: string | null; email: string | null } };
+
+const SOCIAL_ERRORS = { unconfigured: "social_unavailable", invalid: "social_invalid", unreachable: "social_unreachable" } as const;
+
+/** ID token → profil; xatolar API kodlariga (`social_unavailable` 503 — client ID sozlanmagan). */
+export async function verifySocial(provider: SocialProvider, idToken: string) {
+  try {
+    return await verifySocialToken(provider, idToken);
+  } catch (error) {
+    if (error instanceof SocialTokenError) throw new ApiError(SOCIAL_ERRORS[error.reason]);
+    throw error;
+  }
+}
+
+const SOCIAL_USER = { id: true, role: true, status: true } as const;
+
+/** Telefon oqimidagi (`verifyCode`) tekshiruvlar: bloklangan/o'chirilgan, admin, biznessiz kassir. */
+async function assertUsable(user: { id: string; role: string; status: string }) {
+  if (user.status !== "ACTIVE") throw new ApiError("account_blocked");
+  if (user.role === "ADMIN") throw new ApiError("admin_not_supported");
+  if (user.role === "CASHIER" && !(await cashierBusiness(user.id))) throw new ApiError("no_business");
+}
+
+const nameOf = (v: string | undefined) => v?.trim().slice(0, 80) || null;
+
+/**
+ * Google/Apple bilan kirish. Identifikator (`provider` + `sub`) topilsa — kirish. Topilmasa, lekin provayder tasdiqlagan
+ * email boshqa hisobda bo'lsa — shu hisobga bog'lanadi (bir xil email = bitta hisob). Aks holda — ro'yxat tokeni (30 daq),
+ * SMS va parolsiz; ism Google tokenidan (Apple — mijoz yuborgani: Apple ismni faqat birinchi ruxsatda, ilovaga beradi).
+ */
+export async function socialSignIn(
+  provider: SocialProvider,
+  idToken: string,
+  intent: Intent,
+  names: { firstName?: string; lastName?: string },
+  device: Device,
+): Promise<SocialResult> {
+  const profile = await verifySocial(provider, idToken);
+  const identity = await db.authIdentity.findUnique({
+    where: { provider_subject: { provider, subject: profile.subject } },
+    select: { id: true, user: { select: SOCIAL_USER } },
+  });
+
+  let user = identity?.user ?? null;
+  if (identity) {
+    await db.authIdentity.update({ where: { id: identity.id }, data: { lastUsedAt: new Date(), ...(profile.emailVerified ? { email: profile.email } : {}) } });
+  } else if (profile.emailVerified && profile.email) {
+    const byEmail = await db.user.findUnique({ where: { email: profile.email }, select: SOCIAL_USER });
+    if (byEmail) {
+      await assertUsable(byEmail);
+      await db.authIdentity.upsert({
+        where: { provider_subject: { provider, subject: profile.subject } },
+        create: { provider, subject: profile.subject, email: profile.email, userId: byEmail.id, lastUsedAt: new Date() },
+        update: {},
+      });
+      await audit({ actorId: byEmail.id, action: "user.identity.link", entity: "User", entityId: byEmail.id, meta: { provider, via: "email" } });
+      user = byEmail;
+    }
+  }
+
+  if (user) {
+    await assertUsable(user);
+    return { next: "signedIn", ...(await signedIn(user.id, device)) };
+  }
+
+  const account: SocialAccount = { provider, subject: profile.subject, email: profile.emailVerified ? profile.email : null };
+  return {
+    next: "register",
+    role: intent,
+    registrationTicket: seal("register", { role: intent, social: account }, REGISTER_TTL_MS, authSecret()),
+    profile: { firstName: profile.firstName ?? nameOf(names.firstName), lastName: profile.lastName ?? nameOf(names.lastName), email: account.email },
+  };
+}
+
+/** Parolsiz (Google/Apple) hisobni tasdiqlash — hisobni o'chirishda: yangi ID token shu foydalanuvchining identifikatori bo'lsin. */
+export async function confirmOwnIdentity(userId: string, provider: SocialProvider, idToken: string): Promise<void> {
+  const profile = await verifySocial(provider, idToken);
+  const identity = await db.authIdentity.findUnique({ where: { provider_subject: { provider, subject: profile.subject } }, select: { userId: true } });
+  if (identity?.userId !== userId) throw new ApiError("social_mismatch");
 }

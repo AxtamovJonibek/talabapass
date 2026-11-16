@@ -1,4 +1,4 @@
-import { copy } from "@/copy";
+import { copy, currentLang } from "@/copy";
 import { offlineNow } from "@/lib/network";
 import { FileTooLargeError } from "@/lib/pick";
 import { clearTokens, loadTokens, saveTokens, type StoredTokens } from "@/storage";
@@ -189,7 +189,8 @@ export async function api<T>(path: string, { method = "GET", body, form, auth = 
   }
 
   const send = (token: string | null) => {
-    const headers: Record<string, string> = { accept: "application/json" };
+    // Server xato matnlari shu tilda (docs/api-v1.md "Umumiy")
+    const headers: Record<string, string> = { accept: "application/json", "accept-language": currentLang() };
     if (token) headers.authorization = `Bearer ${token}`;
     if (!form && body !== undefined) headers["content-type"] = "application/json";
     return fetch(`${API_URL}/api/v1${path}`, { method, headers, body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) });

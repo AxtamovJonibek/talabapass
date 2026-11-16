@@ -56,7 +56,8 @@ export async function notifyUser(userId: string, event: DirectEvent, params: Par
 
     await Promise.allSettled([
       sendPushToUsers([userId], pushPayload(notification, notificationHref({ type: "HOME" }, HOME[event]))),
-      sendSms(user.phone, t("sms", { body })),
+      // Raqamsiz (Google/Apple) hisobga SMS yo'q — ilova ichi va push yetadi
+      user.phone ? sendSms(user.phone, t("sms", { body })) : Promise.resolve(),
     ]).then((results) => {
       for (const r of results) if (r.status === "rejected") console.warn("[notifyUser]", event, (r.reason as Error).message);
     });

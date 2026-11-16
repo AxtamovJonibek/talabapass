@@ -11,14 +11,14 @@ const TONES = ["blue", "orange"] as const;
 export default function BizIntro() {
   const finish = async () => {
     await markOnboarded("business");
-    router.replace("/auth/phone?intent=business");
+    router.replace("/auth?intent=business");
   };
   return (
     <Carousel
       kind="business"
       slides={copy.bizIntro.slides.map((s, i) => ({ ...s, tone: TONES[i]!, Art: ART[i]! }))}
       onFinish={() => void finish()}
-      onBack={() => (router.canGoBack() ? router.back() : router.replace("/auth/phone?intent=student"))}
+      onBack={() => (router.canGoBack() ? router.back() : router.replace("/auth?intent=student"))}
     />
   );
 }

@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { QueuePanel, ReviewHeader, type CheckRow, type QueueItem } from "@/components/admin/review-parts";
 import { StudentReview } from "@/components/admin/student-review";
-import { formatPhone, initials } from "@/lib/format";
+import { formatContact, initials } from "@/lib/format";
 import { studentAvatarUrl } from "@/lib/profile-image";
 import { toTashkent } from "@/lib/time";
 import { reviewStats, studentDetail, studentQueue } from "@/server/admin/review";
@@ -80,7 +80,7 @@ async function StudentReviewPageContent({ searchParams }: PageProps<"/[locale]/a
                 { key: "name", label: t("fields.name"), value: [detail.student.user.firstName, detail.student.user.lastName].join(" "), check: t("checks.none"), tone: "muted" },
                 { key: "university", label: t("fields.university"), value: detail.student.university.shortName, check: t("checks.none"), tone: "muted" },
                 { key: "course", label: t("fields.course"), value: courseLabel(detail.student.course), check: t("checks.none"), tone: "muted" },
-                { key: "phone", label: t("fields.phone"), value: formatPhone(detail.student.user.phone), check: t("checks.smsVerified"), tone: "ok" },
+                { key: "phone", label: t("fields.phone"), value: formatContact(detail.student.user), check: detail.student.user.phone ? t("checks.smsVerified") : t("checks.none"), tone: detail.student.user.phone ? "ok" : "muted" },
               ] satisfies CheckRow[]
             }
             nextHref={nextHref}
