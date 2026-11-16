@@ -171,6 +171,9 @@ export function routeFor(me: Me): Href {
     const b = me.business;
     if (!b || b.status === "REJECTED" || (b.status === "PENDING" && !b.submitted)) return "/business/info";
     if (b.status === "PENDING") return "/business/review";
+    // Biznes ilovasi faqat tasdiqlangan biznesga (bloklangan egasi umuman kira olmaydi)
+    if (b.status === "APPROVED" || b.status === "WARNED") return "/panel/stats";
   }
+  if (me.role === "CASHIER" && me.business) return "/panel/scan";
   return "/home";
 }

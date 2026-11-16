@@ -38,7 +38,7 @@ function useCouponToken(coupon: CouponView) {
   return { ...token, msLeft, expired: msLeft <= 0, refreshIn: secondsLeftInWindow(now) };
 }
 
-type Phase = { kind: "active" } | { kind: "redeemed" } | { kind: "closed" } | { kind: "cancelled" };
+type Phase = { kind: "active" } | { kind: "redeemed"; receiptId: string | null } | { kind: "closed" } | { kind: "cancelled" };
 
 /**
  * Kupon (saytdagi T6): chipta — biznes, nom, narx, QR (kassir skanerlaydi), qo'lda kiritish kodi, kupon kodi, taymer,
@@ -75,7 +75,7 @@ export function CouponPanel({ coupon: initial }: { coupon: CouponView }) {
           } else {
             void forgetCoupon(coupon.id);
             if (state.status === "REDEEMED") Vibration.vibrate(200);
-            setPhase({ kind: state.status === "REDEEMED" ? "redeemed" : "closed" });
+            setPhase(state.status === "REDEEMED" ? { kind: "redeemed", receiptId: state.redemptionId } : { kind: "closed" });
           }
         } catch (e) {
           if (!stopped) setOffline(isNetworkError(e));
@@ -122,6 +122,11 @@ export function CouponPanel({ coupon: initial }: { coupon: CouponView }) {
         </View>
         <Txt style={[font(900, 112), styles.doneTitle]}>{title}</Txt>
         <Txt style={styles.doneText}>{redeemed ? c.redeemedText : phase.kind === "cancelled" ? "" : c.expiredText}</Txt>
+        {phase.kind === "redeemed" && phase.receiptId ? (
+          <PrimaryButton icon={null} onPress={() => router.push(`/receipt/${phase.receiptId}`)} style={styles.doneCta}>
+            {c.showReceipt}
+          </PrimaryButton>
+        ) : null}
         <PrimaryButton onPress={() => router.navigate(`/deal/${coupon.discountId}`)} style={styles.doneCta}>
           {c.backToDeal}
         </PrimaryButton>

@@ -53,6 +53,15 @@ const PATHS = {
   wrap: "M5 6l14 3-2 11-14-3zM8 10l7 1.5M7.4 13.5l7 1.5",
   store: "M3 9l1.5-5h15L21 9M3 9h18v11H3zM3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0",
   student: "M2 9l10-5 10 5-10 5zM6 11v5c3 2.5 9 2.5 12 0v-5",
+  // biznes ilovasi (saytdagi biznes menyusi uslubida)
+  chart: "M4 20V11M10 20V5M16 20v-6M2 20h20",
+  scan: "M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10",
+  receipt: "M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3",
+  users: "M9 11a4 4 0 1 0 0-8a4 4 0 0 0 0 8zM2 21c.8-3.5 3.6-5.5 7-5.5s6.2 2 7 5.5M16 3.5a4 4 0 0 1 0 7.5M18.5 15.5c1.8.7 3 2.4 3.5 5.5",
+  edit: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
+  torch: "M8 2h8v5l-2 3v12h-4V10L8 7zM12 13v3",
+  image: "M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9h.01",
+  bag: "M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2",
 } as const;
 
 export const isIconName = (name: string): name is IconName => name in PATHS;

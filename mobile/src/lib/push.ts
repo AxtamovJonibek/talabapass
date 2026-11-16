@@ -47,3 +47,29 @@ export async function registerPush(): Promise<void> {
     console.warn("[push] o'tkazib yuborildi:", e instanceof Error ? e.message : e);
   }
 }
+
+/** Push yo'q muhit (registerPush bilan bir xil shartlar) */
+const noPush = () => Platform.OS === "web" || (Constants.executionEnvironment === ExecutionEnvironment.StoreClient && Platform.OS === "android");
+
+/**
+ * Bosilgan push xabari: server `data.url` ga saytdagi yo'lni qo'yadi (`/biznes/buyurtmalar`, …) — ilova shu bo'yicha
+ * ekran ochadi. Qaytadi: obunani bekor qilish.
+ */
+export function onPushOpen(handler: (url: string | null) => void): () => void {
+  if (noPush()) return () => undefined;
+  let stopped = false;
+  let sub: { remove(): void } | null = null;
+  void import("expo-notifications")
+    .then((Notifications) => {
+      if (stopped) return;
+      sub = Notifications.addNotificationResponseReceivedListener((response) => {
+        const url = response.notification.request.content.data?.url;
+        handler(typeof url === "string" ? url : null);
+      });
+    })
+    .catch(() => undefined);
+  return () => {
+    stopped = true;
+    sub?.remove();
+  };
+}

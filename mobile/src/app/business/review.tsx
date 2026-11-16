@@ -1,30 +1,42 @@
 import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { BusinessTop } from "@/business/header";
 import { copy } from "@/copy";
 import { resetTo, routeFor, useApp } from "@/state";
 import { colors, font } from "@/theme";
-import { openSite } from "@/ui/legal";
-import { FooterLink, Grow, Lead, PrimaryButton, Screen, Stamp, Title, Txt } from "@/ui/kit";
+import { FooterLink, Grow, Lead, Note, PrimaryButton, Screen, Stamp, Title, Txt } from "@/ui/kit";
 
 /**
- * B9 · Tekshiruvda (4/4). Chegirma yaratish va kabinet hozircha saytda (ilovada biznes kabineti yo'q) — brauzerda ochiladi.
- * Ekran ochilganda holat qayta so'raladi: tasdiqlangan yoki rad etilgan bo'lsa — o'z ekraniga.
+ * B9 · Tekshiruvda (4/4) — kutish ekrani. Biznes bo'limlari (chegirmalar, skaner, statistika) faqat tasdiqdan keyin.
+ * Ekran ochilganda va "Holatni yangilash"da holat qayta so'raladi: tasdiqlangan — biznes ilovasi, rad etilgan — ariza
+ * (sababi bilan, tuzatib qayta yuboriladi).
  */
 export default function BusinessReview() {
-  const { reloadMe } = useApp();
+  const { reloadMe, signOut } = useApp();
   const b = copy.business;
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
+  const check = useCallback(
+    (manual: boolean) => {
+      if (manual) setBusy(true);
       reloadMe()
         .then((me) => {
           const route = routeFor(me);
           if (route !== "/business/review") resetTo(route);
+          else if (manual) setNote(copy.biz.review.refreshed);
         })
-        .catch(() => undefined);
-    }, [reloadMe]),
+        .catch(() => undefined)
+        .finally(() => setBusy(false));
+    },
+    [reloadMe],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      check(false);
+    }, [check]),
   );
 
   return (
@@ -41,16 +53,17 @@ export default function BusinessReview() {
         <View style={styles.badge}>
           <Txt style={[font(900, 62), { fontSize: 26 }]}>{b.ctaBadge}</Txt>
         </View>
-        <Txt style={[font(800), styles.cardTitle]}>{b.ctaTitle}</Txt>
-        <Txt style={styles.cardLead}>{b.ctaLead}</Txt>
+        <Txt style={[font(800), styles.cardTitle]}>{copy.biz.review.ctaTitle}</Txt>
+        <Txt style={styles.cardLead}>{copy.biz.review.ctaLead}</Txt>
       </View>
 
       <Grow />
 
-      <PrimaryButton tone="orange" onPress={() => openSite("/biznes/chegirma/yangi")} style={styles.cta}>
-        {b.createDiscount}
+      {note ? <Note>{note}</Note> : null}
+      <PrimaryButton tone="orange" icon="refresh" loading={busy} onPress={() => check(true)} style={styles.cta}>
+        {copy.biz.review.refresh}
       </PrimaryButton>
-      <FooterLink lead={b.cabinet} onPress={() => openSite("/biznes")} style={styles.cabinet} />
+      <FooterLink lead={copy.profile.logout} onPress={() => void signOut()} style={styles.cabinet} />
     </Screen>
   );
 }

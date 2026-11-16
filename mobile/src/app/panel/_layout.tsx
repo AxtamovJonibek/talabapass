@@ -1,0 +1,53 @@
+import { router } from "expo-router";
+import { Tabs } from "expo-router/js-tabs";
+import { useEffect } from "react";
+import { OrdersWatch } from "@/business/orders-watch";
+import { copy } from "@/copy";
+import { onPushOpen, registerPush } from "@/lib/push";
+import { resetTo, routeFor, useApp } from "@/state";
+import { colors } from "@/theme";
+import { BIZ_TABS, TabBar } from "@/ui/tab-bar";
+
+/**
+ * Biznes ilovasi (kirgandan keyin), rolga qarab menyu: egasi — Statistika, Chegirmalar, Skaner, Sotuvlar, Profil;
+ * kassir — Skaner, Sotuvlar, Profil (qolganlari `href: null` — server ham 403 beradi). Egasi faqat tasdiqlangan biznes bilan
+ * (aks holda `routeFor` — ariza yoki tekshiruv ekrani). Push: ruxsat va token; bosilgan xabar — tegishli ekran.
+ */
+export default function BusinessTabs() {
+  const { me } = useApp();
+  const owner = me?.role === "BUSINESS_OWNER" && (me.business?.status === "APPROVED" || me.business?.status === "WARNED");
+  const cashier = me?.role === "CASHIER" && Boolean(me.business);
+  const allowed = owner || cashier;
+
+  useEffect(() => {
+    if (me && !allowed) resetTo(routeFor(me));
+  }, [me, allowed]);
+
+  useEffect(() => {
+    if (!allowed) return;
+    void registerPush();
+    return onPushOpen((url) => {
+      if (url?.startsWith("/biznes/buyurtmalar") && owner) router.push("/biz/orders");
+      else if (owner) router.push("/notifications");
+    });
+  }, [allowed, owner]);
+
+  if (!allowed) return null;
+  const hidden = owner ? {} : { href: null };
+
+  return (
+    <OrdersWatch active={owner}>
+      {/* Boshlang'ich tab manzildan: egasi — /panel/stats, kassir — /panel/scan (`routeFor`) */}
+      <Tabs
+        tabBar={(props) => <TabBar {...props} {...BIZ_TABS} />}
+        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.paper } }}
+      >
+        <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats, ...hidden }} />
+        <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts, ...hidden }} />
+        <Tabs.Screen name="scan" options={{ title: copy.biz.tabs.scan }} />
+        <Tabs.Screen name="sales" options={{ title: copy.biz.tabs.sales }} />
+        <Tabs.Screen name="profile" options={{ title: copy.biz.tabs.profile }} />
+      </Tabs>
+    </OrdersWatch>
+  );
+}

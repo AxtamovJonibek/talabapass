@@ -36,7 +36,7 @@ export default function SetPassword() {
       const result = await authApi.setPassword(flow.verify.ticket, password, confirm);
       if (result.next === "register") {
         setFlow({ registrationTicket: result.registrationTicket });
-        resetTo(result.role === "business" ? "/business/info" : "/student/register");
+        resetTo(result.role === "cashier" ? "/cashier/register" : result.role === "business" ? "/business/info" : "/student/register");
       } else {
         resetTo(routeFor(await signIn(result)));
       }
@@ -52,7 +52,7 @@ export default function SetPassword() {
       <TopBar>
         <BackArrow label={copy.back} onPress={() => router.back()} />
         <StepBars total={3} current={3} label={l.setSteps} />
-        <RoleChip tone={role}>{copy.role[role]}</RoleChip>
+        <RoleChip tone={role === "student" ? "student" : "business"}>{copy.role[role]}</RoleChip>
       </TopBar>
 
       <View style={styles.hero}>

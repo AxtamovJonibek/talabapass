@@ -44,9 +44,9 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Talaba guvohnomasini suratga olish uchun kamera kerak.",
+          "cameraPermission": "Talaba guvohnomasini suratga olish va kassada QR kodni skanerlash uchun kamera kerak.",
           "recordAudioAndroid": false,
-          "barcodeScannerEnabled": false
+          "barcodeScannerEnabled": true
         }
       ],
       [
@@ -69,7 +69,14 @@
         {
           "color": "#2432D6"
         }
-      ]
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ],
+      "expo-asset"
     ]
   }
 }

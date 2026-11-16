@@ -33,11 +33,14 @@ export type Me = {
 export type TokenPair = { tokenType: "Bearer"; accessToken: string; accessTokenExpiresAt: string; refreshToken: string; refreshTokenExpiresAt: string };
 export type SignedIn = { tokens: TokenPair; user: Me };
 
+/** Ro'yxat turi: `cashier` — yangi raqamga biznes egasi kassir taklifini yuborgan ("Biznes" bilan kirilganda) */
+export type NewRole = Intent | "cashier";
+
 export type VerifyResult =
   | { next: "password"; ticket: string; role: Intent; masked: string; initial: string | null }
-  | { next: "setPassword"; ticket: string; role: Intent; isNew: boolean };
+  | { next: "setPassword"; ticket: string; role: NewRole; isNew: boolean; businessName?: string };
 
-export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "register"; registrationTicket: string; role: Intent };
+export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "register"; registrationTicket: string; role: NewRole };
 
 export type University = { id: string; name: string; shortName: string; region: string; kind: string };
 
@@ -155,7 +158,7 @@ function originParams(origin: Origin): Record<string, string> {
   return "districtId" in origin ? { districtId: origin.districtId } : { regionId: origin.regionId };
 }
 
-const query = (params: Record<string, string>) => {
+export const query = (params: Record<string, string>) => {
   const s = new URLSearchParams(params).toString();
   return s ? `?${s}` : "";
 };
@@ -164,7 +167,7 @@ const query = (params: Record<string, string>) => {
 export type LocalFile = { uri: string; name: string; type: string };
 
 /** Sessiyalar ro'yxatida ko'rinadigan qurilma nomi ("iPhone 15", aks holda platforma) */
-const deviceName = (Constants.deviceName ?? (Platform.OS === "ios" ? "iOS" : "Android")).slice(0, 80);
+export const deviceName = (Constants.deviceName ?? (Platform.OS === "ios" ? "iOS" : "Android")).slice(0, 80);
 
 export const authApi = {
   requestCode: (phone: string) => api<{ phone: string; resendInSeconds: number }>("/auth/code", { method: "POST", body: { phone }, auth: false }),
@@ -222,7 +225,7 @@ export const businessApi = {
  * ("Unsupported FormDataPart implementation" — so'rov serverga yetmaydi), faqat Blob yoki `bytes()` li obyektni.
  * Shuning uchun qismda ikkalasi bor: `bytes()` (expo/fetch) va `uri` (RN fetch, `EXPO_PUBLIC_USE_RN_FETCH=1`).
  */
-async function fileForm(original: LocalFile): Promise<FormData> {
+export async function fileForm(original: LocalFile): Promise<FormData> {
   const form = new FormData();
   if (Platform.OS === "web") {
     // Web (dizaynni ko'rib chiqish): tanlangan fayl blob: URL — haqiqiy Blob qilib qo'shiladi

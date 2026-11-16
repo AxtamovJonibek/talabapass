@@ -6,6 +6,7 @@ import { appApi, type InboxItem } from "@/api/endpoints";
 import { copy } from "@/copy";
 import { formatWhen } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
+import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
 import { Empty, Failed, Loading, RoundButton } from "@/ui/app";
 import { Press, TextAction, Title, Txt } from "@/ui/kit";
@@ -13,10 +14,12 @@ import { Press, TextAction, Title, Txt } from "@/ui/kit";
 /**
  * Bildirishnomalar (`GET /notifications`): yangilari belgili. Bosilgan xabar o'qilgan bo'ladi (`{ ids }`) va havolasi
  * ochiladi (chegirma → tafsilot, kategoriya → lenta shu kategoriya bilan); "Hammasini o'qildi" — barchasi.
+ * Biznes egasida ham shu ekran (havolalar talaba lentasiga — unga ochilmaydi, faqat o'qilgan bo'ladi).
  */
 export default function Notifications() {
   const n = copy.notifications;
   const insets = useSafeAreaInsets();
+  const student = useApp().me?.role === "STUDENT";
   const inbox = useLoad(useCallback(() => appApi.notifications(), []));
   const { setData } = inbox;
   const unread = inbox.data?.unread ?? 0;
@@ -33,6 +36,7 @@ export default function Notifications() {
       markLocal([item.id]);
       void appApi.markRead([item.id]).catch(() => undefined);
     }
+    if (!student) return;
     if (item.link.type === "DISCOUNT" && item.link.id) router.push(`/deal/${item.link.id}`);
     else if (item.link.type === "CATEGORY" && item.link.id) router.navigate(`/deals?category=${encodeURIComponent(item.link.id)}`);
   };
@@ -45,7 +49,7 @@ export default function Notifications() {
   return (
     <View style={[styles.fill, { paddingTop: insets.top + 12 }]}>
       <View style={styles.top}>
-        <RoundButton icon="arrowLeft" label={copy.back} onPress={() => (router.canGoBack() ? router.back() : router.replace("/deals"))} />
+        <RoundButton icon="arrowLeft" label={copy.back} onPress={() => (router.canGoBack() ? router.back() : router.replace(student ? "/deals" : "/panel/profile"))} />
         <Title text={n.title} size={30} style={styles.title} />
       </View>
       {unread > 0 ? (
