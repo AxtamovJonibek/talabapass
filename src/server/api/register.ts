@@ -1,10 +1,12 @@
 import "server-only";
 import { z } from "zod";
 import { cleanRequestedName, OTHER_UNIVERSITY } from "@/lib/universities";
+import { NAME } from "@/lib/profile";
+import { acceptPhoneInvite } from "../business/cashiers";
 import { cleanBusinessInfo, createBusinessOwner } from "../business/registration";
 import { db } from "../db";
 import { createStudent, studentFormSchema } from "../student/registration";
-import { openRegisterTicket, type SignedIn } from "./auth-flow";
+import { openRegisterTicket, type NewRole, type SignedIn } from "./auth-flow";
 import { ApiError } from "./http";
 import { loadApiUser, meView, openApiSession, type Device } from "./session";
 
@@ -25,7 +27,7 @@ export const studentRegisterSchema = z.object({
 });
 
 /** Ticket ochiladi va raqam hali bo'shligi tekshiriladi (shu orada boshqa yo'l bilan hisob ochilgan bo'lsa — qaytadan). */
-async function freshTicket(ticket: string, role: "student" | "business") {
+async function freshTicket(ticket: string, role: NewRole) {
   const opened = openRegisterTicket(ticket, role);
   if (await db.user.findUnique({ where: { phone: opened.phone }, select: { id: true } })) throw new ApiError("step_expired");
   return opened;
@@ -78,4 +80,26 @@ export async function registerBusiness(ticket: string, info: z.infer<typeof busi
   const created = await createBusinessOwner(phone, clean);
   if (!created.ok) throw new ApiError("tin_taken");
   return finish(created.userId, passwordHash, device);
+}
+
+export const cashierRegisterSchema = z.object({
+  registrationTicket: z.string().max(2000),
+  firstName: z.string().max(80),
+  lastName: z.string().max(80),
+  deviceName: z.string().max(200).optional(),
+});
+
+/**
+ * Kassir (telefon taklifi bilan): ism va familiya → kassir hisobi, a'zolik va tokenlar (`acceptPhoneInvite`, saytdagi
+ * havola bilan qabul qilish bilan bir xil tranzaksiya). Taklif shu orada bekor qilingan/eskirgan bo'lsa — `no_business`.
+ */
+export async function registerCashier(input: z.infer<typeof cashierRegisterSchema>, device: Device): Promise<SignedIn> {
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  const fields = [...(NAME.test(firstName) ? [] : ["firstName"]), ...(NAME.test(lastName) ? [] : ["lastName"])];
+  if (fields.length > 0) throw new ApiError("invalid_request", { fields });
+  const { phone, passwordHash } = await freshTicket(input.registrationTicket, "cashier");
+  const accepted = await acceptPhoneInvite(phone, { firstName, lastName });
+  if (!accepted.ok) throw new ApiError("no_business");
+  return finish(accepted.userId, passwordHash, device);
 }

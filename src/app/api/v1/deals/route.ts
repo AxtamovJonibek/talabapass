@@ -5,6 +5,7 @@ import { originQuery, resolveOrigin } from "@/server/api/origin";
 import { requireApiStudent } from "@/server/api/session";
 import { db } from "@/server/db";
 import { feedDeals } from "@/server/student/feed";
+import { signUrls } from "@/server/api/files";
 
 /**
  * Lenta (T4 / WT2): talabaga ko'rinadigan chegirmalar (`visibleDiscountWhere`), holati va bugungi qoldig'i bilan.
@@ -28,5 +29,5 @@ export const GET = route(async (request) => {
   ]);
   const names = new Map(categories.map((c) => [c.slug, c.name]));
   const list = sortDeals(filterDeals(deals, { q: q.q, category: q.category, liveOnly: q.live === "1" }, (slug) => names.get(slug) ?? ""), q.sort);
-  return ok({ deals: list, categories, now: now.toISOString() });
+  return ok(signUrls({ deals: list, categories, now: now.toISOString() }));
 });

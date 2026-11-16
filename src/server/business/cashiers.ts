@@ -64,6 +64,7 @@ export async function inviteByToken(token: string, now = new Date()) {
 }
 
 export type AcceptError = "invalid" | "phoneInUse" | "otherBusiness" | "blocked";
+type AcceptResult = { ok: true; userId: string } | { ok: false; error: AcceptError };
 
 /**
  * Taklifni qabul qilish (raqam SMS bilan tasdiqlangandan keyin). Bir tranzaksiyada: taklif "ishlatildi" deb
@@ -75,10 +76,14 @@ export async function acceptInvite(
   phone: string,
   name: { firstName: string; lastName: string },
   now = new Date(),
-): Promise<{ ok: true; userId: string } | { ok: false; error: AcceptError }> {
+): Promise<AcceptResult> {
   const invite = await inviteByToken(token, now);
   if (!invite) return { ok: false, error: "invalid" };
+  return claimInvite(invite.id, phone, name, now);
+}
 
+/** `name` — yangi hisob uchun (mavjud kassir hisobida e'tiborsiz; yo'q bo'lsa yangi hisob ochilmaydi — `invalid`). */
+async function claimInvite(inviteId: string, phone: string, name: { firstName: string; lastName: string } | null, now: Date): Promise<AcceptResult> {
   return db.$transaction(async (tx) => {
     const existing = await tx.user.findUnique({
       where: { phone },
@@ -86,13 +91,14 @@ export async function acceptInvite(
     });
     if (existing && existing.status !== "ACTIVE") return { ok: false as const, error: "blocked" as const };
     if (existing && existing.role !== "CASHIER") return { ok: false as const, error: "phoneInUse" as const };
+    if (!existing && !name) return { ok: false as const, error: "invalid" as const };
 
-    const full = await tx.cashierInvite.findUniqueOrThrow({ where: { id: invite.id }, select: { businessId: true } });
+    const full = await tx.cashierInvite.findUniqueOrThrow({ where: { id: inviteId }, select: { businessId: true } });
     if (existing?.memberships.some((m) => m.businessId !== full.businessId)) return { ok: false as const, error: "otherBusiness" as const };
 
-    const user = existing ?? (await tx.user.create({ data: { phone, role: "CASHIER", firstName: name.firstName, lastName: name.lastName }, select: { id: true } }));
+    const user = existing ?? (await tx.user.create({ data: { phone, role: "CASHIER", firstName: name!.firstName, lastName: name!.lastName }, select: { id: true } }));
     const claimed = await tx.cashierInvite.updateMany({
-      where: { id: invite.id, acceptedAt: null, expiresAt: { gt: now } },
+      where: { id: inviteId, acceptedAt: null, expiresAt: { gt: now } },
       data: { acceptedAt: now, acceptedById: user.id },
     });
     // Parallel qabul: ikkinchisi hech narsa o'zgartirmaydi va tranzaksiya bekor qilinadi
@@ -109,6 +115,52 @@ export async function acceptInvite(
     if (error instanceof InviteTakenError) return { ok: false as const, error: "invalid" as const };
     throw error;
   });
+}
+
+// ───────── telefon raqami bilan taklif (ilova) ─────────
+
+export type PhoneInviteResult = { ok: true; inviteId: string; expiresAt: Date } | { ok: false; error: "notApproved" | "tooMany" | "alreadyCashier" };
+
+/**
+ * Ilovada egasi kassirni raqami bilan qo'shadi: shu raqamga bog'langan taklif (havolasiz, 48 soat). Kassir ilovaga shu
+ * raqam bilan kirib (SMS kod) taklifni o'zi qabul qiladi — rozilik saytdagi havoladagidek kassirning o'zidan. Raqam
+ * boshqa hisobga tegishli bo'lsa ham egasiga aytilmaydi (raqam ro'yxatda bor-yo'qligi oshkor qilinmaydi). Shu raqamga
+ * ochiq taklif bo'lsa — muddati yangilanadi.
+ */
+export async function invitePhone(ownerId: string, phone: string, now = new Date()): Promise<PhoneInviteResult> {
+  const business = await ownerLiveBusiness(ownerId);
+  if (!business) return { ok: false, error: "notApproved" };
+  const member = await db.businessMember.count({ where: { businessId: business.id, role: "CASHIER", active: true, user: { phone } } });
+  if (member > 0) return { ok: false, error: "alreadyCashier" };
+
+  const expiresAt = new Date(now.getTime() + INVITE_TTL_MS);
+  const open = await db.cashierInvite.findFirst({ where: { businessId: business.id, phone, acceptedAt: null, expiresAt: { gt: now } }, select: { id: true } });
+  if (open) {
+    await db.cashierInvite.update({ where: { id: open.id }, data: { expiresAt } });
+    return { ok: true, inviteId: open.id, expiresAt };
+  }
+  const count = await db.cashierInvite.count({ where: { businessId: business.id, acceptedAt: null, expiresAt: { gt: now } } });
+  if (count >= OPEN_INVITES_MAX) return { ok: false, error: "tooMany" };
+  // Havola yo'q: token hech kimga berilmaydi (ustun majburiy va yagona bo'lgani uchun tasodifiy)
+  const invite = await db.cashierInvite.create({ data: { businessId: business.id, tokenHash: hashToken(randomBytes(24).toString("base64url")), phone, expiresAt }, select: { id: true } });
+  await audit({ actorId: ownerId, action: "cashier.invite", entity: "CashierInvite", entityId: invite.id, meta: { via: "phone" } });
+  return { ok: true, inviteId: invite.id, expiresAt };
+}
+
+/** Shu raqamga amal qiladigan eng yangi taklif (tasdiqlangan biznesdan). */
+export async function phoneInvite(phone: string, now = new Date()) {
+  return db.cashierInvite.findFirst({
+    where: { phone, acceptedAt: null, expiresAt: { gt: now }, business: LIVE_BUSINESS },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, business: { select: { name: true } } },
+  });
+}
+
+/** Raqam SMS bilan tasdiqlangandan keyin telefon taklifini qabul qilish. Yangi raqamga `name` kerak. */
+export async function acceptPhoneInvite(phone: string, name: { firstName: string; lastName: string } | null, now = new Date()): Promise<AcceptResult> {
+  const invite = await phoneInvite(phone, now);
+  if (!invite) return { ok: false, error: "invalid" };
+  return claimInvite(invite.id, phone, name, now);
 }
 
 class InviteTakenError extends Error {}
@@ -147,7 +199,7 @@ export async function ownerCashiers(ownerId: string, now = new Date()) {
     db.cashierInvite.findMany({
       where: { businessId: business.id, acceptedAt: null, expiresAt: { gt: now } },
       orderBy: { createdAt: "desc" },
-      select: { id: true, expiresAt: true },
+      select: { id: true, expiresAt: true, phone: true },
     }),
   ]);
   // Skan = muvaffaqiyatli sotuv (Redemption) yoki rad etilgan urinish (ScanAttempt, OK dan boshqa)

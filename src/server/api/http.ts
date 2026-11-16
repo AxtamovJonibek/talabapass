@@ -58,6 +58,21 @@ const STATUS: Record<ApiErrorCode, number> = {
   sold_out: 409,
   coupon_limit: 409,
   open_orders: 409,
+  business_not_ready: 403,
+  scan_invalid: 422,
+  scan_expired: 409,
+  scan_replayed: 409,
+  scan_wrong_business: 403,
+  scan_blocked: 409,
+  scan_manual_locked: 429,
+  scan_out_of_hours: 409,
+  scan_limit: 409,
+  scan_ticket: 409,
+  order_not_confirmed: 409,
+  order_closed: 409,
+  order_conflict: 409,
+  too_many_invites: 409,
+  already_cashier: 409,
 };
 
 export class ApiError extends Error {

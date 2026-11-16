@@ -3,24 +3,7 @@
 import { z } from "zod";
 import type { DiscountField, DiscountProblem } from "@/lib/discount";
 import { requireRole } from "../auth/session";
-import { saveDiscount, setDiscountActive } from "../business/discounts";
-
-const intNull = z.number().int().min(-1_000_000_000).max(1_000_000_000).nullable();
-const draftSchema = z.object({
-  title: z.string().max(200),
-  type: z.enum(["PERCENT", "FIXED_PRICE", "BOGO"]),
-  originalPrice: intNull,
-  percent: intNull,
-  newPrice: intNull,
-  weekdays: z.array(z.number().int()).max(7),
-  fromMinute: intNull,
-  toMinute: intNull,
-  dailyLimit: intNull,
-  perStudentLimit: z.enum(["DAILY", "WEEKLY", "UNLIMITED"]),
-  startsOn: z.string().max(10),
-  endsOn: z.string().max(10),
-  terms: z.string().max(400),
-});
+import { discountDraftSchema as draftSchema, saveDiscount, setDiscountActive } from "../business/discounts";
 
 export type SaveDiscountActionResult =
   | { ok: true; id: string }

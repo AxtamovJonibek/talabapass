@@ -1,6 +1,7 @@
 import "server-only";
 import webpush from "web-push";
 import { db } from "../db";
+import { expoFromWebPayload, sendExpoPush } from "./expo-push";
 
 /**
  * Web Push (VAPID). Kalitlar yo'q bo'lsa push o'chiq — ilova ichidagi xabarlar baribir ishlaydi.
@@ -38,10 +39,16 @@ const isGone = (error: unknown) => {
 };
 
 /**
- * Berilgan foydalanuvchilarning barcha qurilmalariga bir xil yuklamani yuboradi. Xato bitta qurilmada boshqasiga
- * ta'sir qilmaydi. Qaytadi: muvaffaqiyatli yuborilganlar soni.
+ * Berilgan foydalanuvchilarning barcha qurilmalariga bir xil yuklamani yuboradi: brauzer obunalari (Web Push) va ilova
+ * qurilmalari (Expo push, `PushDevice`). Xato bitta qurilmada boshqasiga ta'sir qilmaydi. Qaytadi: yuborilganlar soni.
  */
 export async function sendPushToUsers(userIds: string[], payload: string): Promise<number> {
+  const expo = expoFromWebPayload(payload);
+  const [web, app] = await Promise.all([sendWebPush(userIds, payload), expo ? sendExpoPush(userIds, expo) : 0]);
+  return web + app;
+}
+
+async function sendWebPush(userIds: string[], payload: string): Promise<number> {
   const sender = client();
   if (!sender || userIds.length === 0) return 0;
   let sent = 0;

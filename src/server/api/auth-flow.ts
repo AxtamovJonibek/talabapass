@@ -7,7 +7,7 @@ import { cleanPassword, isValidPassword, maskPhone, PASSWORD_MAX } from "@/lib/p
 import { audit } from "../audit";
 import { requestOtp, verifyOtp } from "../auth/otp";
 import { attemptPassword, hashPassword } from "../auth/password";
-import { cashierBusiness } from "../business/cashiers";
+import { acceptPhoneInvite, cashierBusiness, phoneInvite } from "../business/cashiers";
 import { db } from "../db";
 import { authSecret } from "../env";
 import { ApiError, type ApiErrorCode } from "./http";
@@ -27,8 +27,10 @@ import { loadApiUser, meView, openApiSession, type Device, type MeView, type Tok
 export const STEP_TTL_MS = 10 * 60_000;
 export const REGISTER_TTL_MS = 30 * 60_000;
 
-type Step = "login" | "set" | "new:student" | "new:business";
+type Step = "login" | "set" | "new:student" | "new:business" | "new:cashier";
 export type Intent = "student" | "business";
+/** Ro'yxat turi: kassir — telefon raqamiga taklif bo'lsa (biznes egasi ilovada qo'shgan) */
+export type NewRole = Intent | "cashier";
 export type SignedIn = { tokens: TokenPair; user: MeView };
 
 const SEND_ERRORS = { too_soon: "too_soon", daily_limit: "daily_limit", ip_limit: "ip_limit", locked: "code_locked" } as const;
@@ -63,7 +65,7 @@ function openStep(token: string): { phone: string; step: Step; fp: string } {
   return { phone: data.phone, step: data.step as Step, fp: data.fp };
 }
 
-export function openRegisterTicket(token: string, role: Intent): { phone: string; passwordHash: string } {
+export function openRegisterTicket(token: string, role: NewRole): { phone: string; passwordHash: string } {
   const data = unseal("register", token, authSecret());
   if (!data || data.exp <= Date.now() || data.role !== role || typeof data.phone !== "string" || typeof data.hash !== "string") {
     throw new ApiError("step_expired");
@@ -92,8 +94,8 @@ export async function requestCode(rawPhone: string, ip: string): Promise<{ phone
 export type VerifyResult =
   /** Hisob bor, parol o'rnatilgan — parol bilan kirish */
   | { next: "password"; ticket: string; role: Intent; masked: string; initial: string | null }
-  /** Yangi raqam (keyin ro'yxat) yoki parolsiz eski hisob */
-  | { next: "setPassword"; ticket: string; role: Intent; isNew: boolean };
+  /** Yangi raqam (keyin ro'yxat) yoki parolsiz eski hisob; `cashier` — yangi raqamga kassir taklifi bor (`business` niyatida) */
+  | { next: "setPassword"; ticket: string; role: NewRole; isNew: boolean; businessName?: string };
 
 export async function verifyCode(rawPhone: string, rawCode: string, intent: Intent): Promise<VerifyResult> {
   const phone = phoneOrThrow(rawPhone);
@@ -101,10 +103,15 @@ export async function verifyCode(rawPhone: string, rawCode: string, intent: Inte
   if (result !== "ok") throw new ApiError(VERIFY_ERRORS[result]);
 
   const user = await db.user.findUnique({ where: { phone }, select: { id: true, role: true, status: true, firstName: true, passwordHash: true } });
-  if (!user) return { next: "setPassword", ticket: stepToken(phone, `new:${intent}`, null), role: intent, isNew: true };
+  if (!user) {
+    const invite = intent === "business" ? await phoneInvite(phone) : null;
+    if (invite) return { next: "setPassword", ticket: stepToken(phone, "new:cashier", null), role: "cashier", isNew: true, businessName: invite.business.name };
+    return { next: "setPassword", ticket: stepToken(phone, `new:${intent}`, null), role: intent, isNew: true };
+  }
   if (user.status !== "ACTIVE") throw new ApiError("account_blocked");
   if (user.role === "ADMIN") throw new ApiError("admin_not_supported");
-  if (user.role === "CASHIER" && !(await cashierBusiness(user.id))) throw new ApiError("no_business");
+  // Avvalgi biznesdan chiqarilgan kassir: yangi biznesdan shu raqamga taklif bo'lsa — SMS tasdig'i bilan qabul qilinadi
+  if (user.role === "CASHIER" && !(await cashierBusiness(user.id)) && !(await acceptPhoneInvite(phone, null)).ok) throw new ApiError("no_business");
 
   const role: Intent = user.role === "STUDENT" ? "student" : "business";
   if (user.passwordHash) {
@@ -154,7 +161,7 @@ export async function loginWithPassword(ticket: string, password: string, device
 
 // ───────── 3b. parol o'rnatish / tiklash ─────────
 
-export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "register"; registrationTicket: string; role: Intent };
+export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "register"; registrationTicket: string; role: NewRole };
 
 /**
  * Yangi raqam — ro'yxat tokeni (hisob ro'yxat endpoint'ida ochiladi); parolsiz eski hisob — parol o'rnatiladi;
@@ -166,10 +173,10 @@ export async function setPassword(ticket: string, password: string, confirm: str
   if (cleanPassword(password) !== cleanPassword(confirm)) throw new ApiError("password_mismatch");
   const hash = hashPassword(password);
 
-  if (step.step === "new:student" || step.step === "new:business") {
+  if (step.step === "new:student" || step.step === "new:business" || step.step === "new:cashier") {
     // Shu orada boshqa yo'l bilan hisob ochilgan bo'lsa — qaytadan kirish
     if (await db.user.findUnique({ where: { phone: step.phone }, select: { id: true } })) throw new ApiError("step_expired");
-    const role: Intent = step.step === "new:business" ? "business" : "student";
+    const role = step.step.slice(4) as NewRole;
     return { next: "register", role, registrationTicket: seal("register", { phone: step.phone, role, hash }, REGISTER_TTL_MS, authSecret()) };
   }
 

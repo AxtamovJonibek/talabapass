@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { bearerToken, passwordFingerprint, rateDecision, refreshTokenHash, seal, unseal } from "./rules";
+import { bearerToken, checkFileSignature, fileExpiry, fileSignature, FILE_URL_BUCKET_MS, passwordFingerprint, rateDecision, refreshTokenHash, seal, unseal } from "./rules";
 
 const SECRET = "test-secret-test-secret-test-secret-1234";
 const OTHER = "boshqa-sir-boshqa-sir-boshqa-sir-boshqa-1";
@@ -71,5 +71,34 @@ describe("so'rov chegarasi", () => {
 
   it("oynadan tashqaridagi urinishlar hisoblanmaydi", () => {
     expect(rateDecision([ago(5000), ago(4000), ago(10)], now, 2, 1000)).toEqual({ ok: true });
+  });
+});
+
+describe("imzoli fayl havolasi", () => {
+  const H = FILE_URL_BUCKET_MS;
+  const now = 10 * H + 25 * 60_000;
+
+  it("muddat soat boshiga yaxlit: bir soat ichida bir xil, 1–2 soat amal qiladi", () => {
+    expect(fileExpiry(now)).toBe(fileExpiry(10 * H));
+    expect(fileExpiry(now) * 1000).toBe(12 * H);
+    expect(fileExpiry(11 * H)).not.toBe(fileExpiry(now));
+  });
+
+  it("to'g'ri imzo o'tadi; boshqa fayl, tur, sir yoki muddat — yo'q", () => {
+    const exp = fileExpiry(now);
+    const sig = fileSignature("logo", "abc123def456", exp, SECRET);
+    expect(checkFileSignature("logo", "abc123def456", exp, sig, SECRET, now)).toBe(true);
+    expect(checkFileSignature("logo", "abc123def457", exp, sig, SECRET, now)).toBe(false);
+    expect(checkFileSignature("avatar", "abc123def456", exp, sig, SECRET, now)).toBe(false);
+    expect(checkFileSignature("logo", "abc123def456", exp, fileSignature("logo", "abc123def456", exp, OTHER), SECRET, now)).toBe(false);
+    expect(checkFileSignature("logo", "abc123def456", exp + 3600, sig, SECRET, now)).toBe(false);
+  });
+
+  it("muddati o'tgan yoki juda uzoq muddatli havola rad etiladi", () => {
+    const exp = fileExpiry(now);
+    const sig = fileSignature("logo", "abc123def456", exp, SECRET);
+    expect(checkFileSignature("logo", "abc123def456", exp, sig, SECRET, exp * 1000)).toBe(false);
+    const far = exp + 24 * 3600;
+    expect(checkFileSignature("logo", "abc123def456", far, fileSignature("logo", "abc123def456", far, SECRET), SECRET, now)).toBe(false);
   });
 });

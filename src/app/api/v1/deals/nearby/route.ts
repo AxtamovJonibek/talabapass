@@ -3,6 +3,7 @@ import { ApiError, ok, readQuery, route } from "@/server/api/http";
 import { originQuery, resolveOrigin } from "@/server/api/origin";
 import { requireApiStudent } from "@/server/api/session";
 import { feedDeals } from "@/server/student/feed";
+import { signUrls } from "@/server/api/files";
 
 /** Yaqin joylar (xarita): joy majburiy; radius ichidagi, koordinatasi bor chegirmalar — yaqini oldin. */
 export const GET = route(async (request) => {
@@ -14,5 +15,5 @@ export const GET = route(async (request) => {
     .filter((d) => d.distanceKm !== null && d.distanceKm <= q.radiusKm)
     .sort((a, b) => a.distanceKm! - b.distanceKm!)
     .slice(0, q.limit);
-  return ok({ origin, deals });
+  return ok(signUrls({ origin, deals }));
 });

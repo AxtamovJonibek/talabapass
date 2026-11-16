@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 /**
  * Mobil API (`/api/v1`) qoidalari — sof funksiyalar (bazasiz), testlar bilan (`rules.test.ts`).
@@ -60,4 +60,23 @@ export function rateDecision(hits: Date[], now: Date, max: number, windowMs: num
   const recent = hits.map((d) => d.getTime()).filter((t) => t > at - windowMs).sort((a, b) => a - b);
   if (recent.length < max) return { ok: true };
   return { ok: false, retryInMs: recent[recent.length - max]! + windowMs - at };
+}
+
+// ───────── imzoli fayl havolalari ─────────
+
+/** Fayl havolasi soat boshiga yaxlitlanadi: bir soat ichida manzil o'zgarmaydi (ilova keshi ishlaydi), amal qilishi 1–2 soat. */
+export const FILE_URL_BUCKET_MS = 60 * 60_000;
+
+/** Havola muddati (unix soniya): joriy soat boshi + 2 soat. */
+export const fileExpiry = (now = Date.now()) => ((Math.floor(now / FILE_URL_BUCKET_MS) + 2) * FILE_URL_BUCKET_MS) / 1000;
+
+export const fileSignature = (kind: string, id: string, exp: number, secret: string) =>
+  createHmac("sha256", `tp-file:${secret}`).update(`${kind}:${id}:${exp}`).digest("base64url").slice(0, 32);
+
+/** Imzo to'g'ri, muddat o'tmagan va 2 soatdan uzoq emas (o'zboshimcha uzun muddatli havola yasab bo'lmaydi). */
+export function checkFileSignature(kind: string, id: string, exp: number, sig: string, secret: string, now = Date.now()): boolean {
+  if (!Number.isSafeInteger(exp) || exp * 1000 <= now || exp * 1000 > now + 2 * FILE_URL_BUCKET_MS) return false;
+  const a = Buffer.from(sig);
+  const b = Buffer.from(fileSignature(kind, id, exp, secret));
+  return a.length === b.length && timingSafeEqual(a, b);
 }

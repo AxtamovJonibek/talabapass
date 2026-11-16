@@ -37,9 +37,9 @@ export type SaleRow = {
 };
 
 type Raw = Awaited<ReturnType<typeof fetchRows>>[number];
-const fetchRows = (businessId: string, from: Date, to: Date, skip: number, take: number) =>
+const fetchRows = (businessId: string, from: Date, to: Date, skip: number, take: number, cashierId?: string) =>
   db.redemption.findMany({
-    where: { businessId, createdAt: { gte: from, lt: to } },
+    where: { businessId, createdAt: { gte: from, lt: to }, ...(cashierId ? { cashierId } : {}) },
     orderBy: [{ createdAt: "desc" }, { receiptNo: "desc" }],
     skip,
     take,
@@ -60,14 +60,18 @@ const toRow = (r: Raw): SaleRow => ({
   payment: r.paymentType,
 });
 
-/** "Sotuvlar va cheklar": davr bo'yicha sahifalangan ro'yxat va jami. */
-export async function businessSales(businessId: string, period: Period, page: number, now = new Date()) {
+/** "Sotuvlar va cheklar": davr bo'yicha sahifalangan ro'yxat va jami. `cashierId` — faqat shu xodim tasdiqlaganlari (kassirga o'zinikilar). */
+export async function businessSales(businessId: string, period: Period, page: number, now = new Date(), cashierId?: string) {
   const { from, to } = periodRange(period, now);
-  const total = await db.redemption.aggregate({ where: { businessId, createdAt: { gte: from, lt: to } }, _count: { _all: true }, _sum: { paidAmount: true } });
+  const total = await db.redemption.aggregate({
+    where: { businessId, createdAt: { gte: from, lt: to }, ...(cashierId ? { cashierId } : {}) },
+    _count: { _all: true },
+    _sum: { paidAmount: true },
+  });
   const count = total._count._all;
   const pages = Math.max(1, Math.ceil(count / SALES_PAGE_SIZE));
   const current = Math.min(Math.max(1, page), pages);
-  const rows = (await fetchRows(businessId, from, to, (current - 1) * SALES_PAGE_SIZE, SALES_PAGE_SIZE)).map(toRow);
+  const rows = (await fetchRows(businessId, from, to, (current - 1) * SALES_PAGE_SIZE, SALES_PAGE_SIZE, cashierId)).map(toRow);
   return { rows, count, sum: total._sum.paidAmount ?? 0, page: current, pages };
 }
 

@@ -1,5 +1,7 @@
 import "server-only";
+import { createTranslator } from "next-intl";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import messages from "../../../messages/uz.json";
 import { formatSom } from "@/lib/format";
 import { formatMinute, fromTashkent, toTashkent } from "@/lib/time";
 import type { PaymentType, Prisma } from "@/generated/prisma/client";
@@ -39,6 +41,7 @@ const RECEIPT_SELECT = {
   paymentType: true,
   businessId: true,
   studentId: true,
+  cashierId: true,
   business: { select: { name: true, address: true, tin: true } },
   student: { select: { firstName: true, lastName: true, student: { select: { university: { select: { shortName: true } } } } } },
   cashier: { select: { firstName: true, lastName: true } },
@@ -82,9 +85,9 @@ function toReceipt(r: Row): ReceiptData {
 }
 
 /** Chek va kimga tegishliligi (ruxsat tekshiruvi uchun — `canViewReceipt`). */
-export async function receipt(redemptionId: string): Promise<{ data: ReceiptData; businessId: string; studentId: string } | null> {
+export async function receipt(redemptionId: string): Promise<{ data: ReceiptData; businessId: string; studentId: string; cashierId: string } | null> {
   const row = await db.redemption.findUnique({ where: { id: redemptionId }, select: RECEIPT_SELECT });
-  return row ? { data: toReceipt(row), businessId: row.businessId, studentId: row.studentId } : null;
+  return row ? { data: toReceipt(row), businessId: row.businessId, studentId: row.studentId, cashierId: row.cashierId } : null;
 }
 
 /** Chekni kim ko'ra oladi: talabaning o'zi, biznes egasi, shu biznesning faol kassiri, admin (parol bilan). */
@@ -230,4 +233,24 @@ export async function receiptPdf(r: ReceiptData, l: PdfLabels): Promise<Uint8Arr
     page.drawText(right, { x: width - margin - rightWidth, y, size, font, color });
   }
   return pdf.save();
+}
+
+const receiptText = createTranslator({ locale: "uz", messages, namespace: "receipt" });
+const paymentText = createTranslator({ locale: "uz", messages, namespace: "paymentType" });
+
+/** O'zbekcha yorliqlar bilan chek PDF'i (`/api/chek/<id>` va ilovaning imzoli havolasi — bir xil fayl). */
+export function receiptPdfUz(r: ReceiptData): Promise<Uint8Array> {
+  return receiptPdf(r, {
+    title: receiptText("title"),
+    no: receiptText("no"),
+    date: receiptText("date"),
+    student: receiptText("student"),
+    cashier: receiptText("cashier"),
+    discount: receiptText("discountPlain"),
+    total: receiptText("total"),
+    payment: receiptText("payment"),
+    paymentType: paymentText(r.paymentType),
+    currency: receiptText("currency"),
+    footer: receiptText("footer"),
+  });
 }

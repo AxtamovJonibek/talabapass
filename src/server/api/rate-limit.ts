@@ -18,6 +18,7 @@ export const LIMITS = {
   upload: { max: 30, windowMs: 60 * 60_000 },
   claim: { max: 30, windowMs: 10 * 60_000 },
   write: { max: 120, windowMs: 10 * 60_000 },
+  scan: { max: 300, windowMs: 10 * 60_000 },
 } as const;
 
 export type LimitBucket = keyof typeof LIMITS;

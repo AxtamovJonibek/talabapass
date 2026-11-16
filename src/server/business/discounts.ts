@@ -1,9 +1,28 @@
 import "server-only";
+import { z } from "zod";
 import { contentChanged, validateDiscount, type DiscountDraft, type DiscountField, type DiscountProblem } from "@/lib/discount";
 import { toTashkent } from "@/lib/time";
 import type { BusinessKind, DiscountStatus } from "@/generated/prisma/client";
 import { audit } from "../audit";
 import { db } from "../db";
+
+/** Muharrir formasi (sayt action'i va `/api/v1`): tur va chegaralar; mazmun qoidalari — `validateDiscount`. */
+const intNull = z.number().int().min(-1_000_000_000).max(1_000_000_000).nullable();
+export const discountDraftSchema = z.object({
+  title: z.string().max(200),
+  type: z.enum(["PERCENT", "FIXED_PRICE", "BOGO"]),
+  originalPrice: intNull,
+  percent: intNull,
+  newPrice: intNull,
+  weekdays: z.array(z.number().int()).max(7),
+  fromMinute: intNull,
+  toMinute: intNull,
+  dailyLimit: intNull,
+  perStudentLimit: z.enum(["DAILY", "WEEKLY", "UNLIMITED"]),
+  startsOn: z.string().max(10),
+  endsOn: z.string().max(10),
+  terms: z.string().max(400),
+});
 
 /** Biznes turi → chegirma kategoriyasi (lentadagi ikonka va rang). Egasi keyin o'zgartira olmaydi — admin. */
 export const CATEGORY_BY_KIND: Record<BusinessKind, string> = {

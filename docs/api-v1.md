@@ -23,7 +23,8 @@ Kod: marshrutlar `src/app/api/v1/**/route.ts`, umumiy qism `src/server/api/` (`h
 - So'rov chegaralari (IP yoki foydalanuvchi bo'yicha, `RateLimitHit`): kod tekshirish 30/15 daq, parol bilan kirish
   30/15 daq, parol o'rnatish 20/15 daq, refresh 120/soat, ro'yxat 10/soat, fayl yuklash 30/soat, kupon olish 30/10 daq,
   boshqa yozuvlar 120/10 daq. SMS — saytdagi qoidalar (raqamga 60 s da 1 ta va kuniga 5 ta, IP'dan soatiga 10 ta).
-- Rasm manzillari (`images`, `logoUrl`) nisbiy (`/api/chegirma/rasm/<id>`) — sayt manziliga qo'shib oching.
+- Fayl manzillari (`images`, `image`, `logoUrl`, `url`, `pdfUrl`) — **imzoli nisbiy havolalar** (`/api/v1/files/<tur>/<id>?exp=&sig=`),
+  sayt manziliga qo'shib, sarlavhasiz oching (pastdagi "Fayllar").
 
 ## Tokenlar
 
@@ -55,9 +56,9 @@ Admin API orqali kirmaydi (`admin_not_supported`).
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
 | `POST /auth/code` | `{ phone }` | `{ phone, resendInSeconds }` · xato: `invalid_phone`, `too_soon`, `daily_limit`, `ip_limit`, `code_locked`, `sms_failed` |
-| `POST /auth/verify` | `{ phone, code, intent: "student"\|"business" }` | `{ next: "password", ticket, role, masked, initial }` yoki `{ next: "setPassword", ticket, role, isNew }` · xato: `wrong_code`, `code_expired`, `code_locked`, `account_blocked`, `no_business`, `admin_not_supported` |
+| `POST /auth/verify` | `{ phone, code, intent: "student"\|"business" }` | `{ next: "password", ticket, role, masked, initial }` yoki `{ next: "setPassword", ticket, role, isNew, businessName? }` · xato: `wrong_code`, `code_expired`, `code_locked`, `account_blocked`, `no_business`, `admin_not_supported` |
 | `POST /auth/login` | `{ ticket, password, deviceName? }` | `SignedIn` · xato: `wrong_password` (+`left`), `password_locked` (+`retryInSeconds`; 5 xato → 15 daq), `step_expired` |
-| `POST /auth/password` | `{ ticket, password, confirm, deviceName? }` | yangi raqam: `{ next: "register", role, registrationTicket }`; aks holda `{ next: "signedIn", tokens, user }` · xato: `weak_password` (≥ 8, harf + raqam), `password_mismatch`, `step_expired` |
+| `POST /auth/password` | `{ ticket, password, confirm, deviceName? }` | yangi raqam: `{ next: "register", role, registrationTicket }` (`role`: `student` \| `business` \| `cashier`); aks holda `{ next: "signedIn", tokens, user }` · xato: `weak_password` (≥ 8, harf + raqam), `password_mismatch`, `step_expired` |
 | `POST /auth/refresh` | `{ refreshToken }` | `{ tokens }` · xato: `refresh_invalid`, `refresh_reused` |
 | `POST /auth/logout` | Bearer (muddati o'tgani ham) | `{ ok: true }` — sessiya va unga bog'langan push qurilmasi o'chadi |
 
@@ -148,6 +149,82 @@ Bildirishnomalar (talaba va biznes egasi):
 | `GET /notifications` | `{ unread, items: [{ id, title, body, at, unread, link: { type: "HOME"\|"CATEGORY"\|"DISCOUNT", id }, href }] }` |
 | `POST /notifications/read` | tana bo'sh — hammasi, `{ ids: string[] }` (1–100) — faqat shular (begona id e'tiborsiz) → `{ marked }` |
 
+## Biznes ilovasi (egasi va kassir)
+
+Rollar saytdagidek: **egasi** (`BUSINESS_OWNER`) — faqat tasdiqlangan (`APPROVED`/`WARNED`, yuborilgan) biznesda; aks holda
+403 `business_not_ready` (ariza holati — `GET /me` va `GET /business/application`). **Kassir** (`CASHIER`) — faqat skaner,
+o'z sotuvlari va cheklari; boshqa biznes endpoint'lari 403 `forbidden`. Biznes hech qachon so'rovdan olinmaydi — sessiyadan
+(kassir — faol a'zoligi, egasi — o'z biznesi). Kod: `src/server/api/business.ts`, testlar `src/server/api/business.itest.ts`.
+
+### Skaner va sotuv (egasi va kassir)
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `POST /business/scan` | `{ qr }` yoki `{ code, totp }` (kupon kodi **va** 6 raqam) | kupon: `{ kind: "coupon", preview }`; `TB-` buyurtma: `{ kind: "order", order }` |
+| `POST /business/scan/confirm` | `{ couponId, ticket, paymentType: "CASH"\|"CARD"\|"QR", amount? }` | 201 `{ receipt, pdfUrl }` |
+| `POST /business/orders/<id>` | `{ action: "complete", ticket }` ("Berildi") | `{ ok }` |
+| `GET /business/sales` | `period=1\|7\|30` (standart 1), `page`, `cashier?` (faqat egasi) | `{ rows, count, sum, page, pages, staff }` — kassirga faqat o'zi tasdiqlaganlari, `staff: null` |
+| `GET /receipts/<id>` | talaba (o'ziniki), egasi, kassir (faqat o'zi tasdiqlagan) | `{ receipt, pdfUrl }` |
+
+- `preview` (`ScanPreview`, `src/server/coupons/scan.ts`): `couponId, code, ticket, student { name, initials, university, course }, title, badge,
+  originalPrice, discountAmount, finalPrice, percent, bogo, limit, nth`. `finalPrice: null` — narxsiz chegirma: kassir `amount` kiritadi
+  (foizli — chek summasi, 1+1 — bitta mahsulot narxi). `ticket` 5 daqiqa amal qiladi va **skanerlagan xodimga** bog'langan.
+- `order` (`OrderScanPreview`): `orderId, code, ticket, title, quantity, kind, slot, validUntil, student { name, initials, phone }, note,
+  prepayAmount, totalFinal, dueNow` (kassada olinadigan qoldiq).
+- Skan xatolari (har urinish `ScanAttempt` ga): `scan_invalid` (+ `attemptsLeft` qo'lda kiritishda), `scan_expired`, `scan_replayed`,
+  `scan_wrong_business`, `scan_blocked`, `scan_manual_locked` (kuponga 5 xato), `scan_ticket` (qayta skanerlang), `order_not_confirmed`,
+  `order_closed`; har birida `result` (`INVALID`, `EXPIRED`, … — ilova natija ekrani uchun). Tasdiqlash atom: ikki kassir bir vaqtda
+  bossa ikkinchisi `scan_replayed`. Chegara: 300 so'rov / 10 daq.
+- `receipt` (`ReceiptData`): `id, no, business { name, address, tin }, time, createdAt, student, cashier, item, badge, originalPrice,
+  discountAmount, paidAmount, paymentType, category`.
+
+### Egasi
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `GET /business/stats` | `period=1\|7\|30` (standart 7) | `{ business, period, kpi { sold, delta, revenue, average, discount, fresh, returningPercent }, chart { hourly, bars: [{ key, count, current }] }, funnel { views, qr, sold }, heat { busiest, quietest }, universities, offers, offerTotals, sales, cashiers }` |
+| `GET /business/discounts` | — | `{ discounts: [{ id, title, type, originalPrice, percent, newPrice, weekdays, fromMinute, toMinute, dailyLimit, endsOn, status, rejectReason, soldToday, image }] }` |
+| `POST /business/discounts` | `{ draft, intent: "draft"\|"publish" }` | 201 `{ id, status }` (`publish` → `PENDING_REVIEW`) |
+| `GET /business/discounts/<id>` | — | `{ id, status, rejectReason, category, draft, images: [{ id, url }] }` |
+| `PATCH /business/discounts/<id>` | `{ draft, intent }` | `{ id, status }` — faol chegirmada mazmun o'zgarsa qayta `PENDING_REVIEW` |
+| `POST /business/discounts/<id>/active` | `{ active }` | `{ ok, status }` (faqat `ACTIVE` ↔ `PAUSED`, aks holda `not_editable`) |
+| `POST /business/discounts/<id>/images` | multipart `file` (rasm) | 201 `{ id, url }` · 4 tagacha (`too_many_files`) |
+| `DELETE /business/discount-images/<id>` | — | `{ ok }` |
+| `GET /business/cashiers` | — | `{ canInvite, cashiers: [{ memberId, firstName, lastName, phone, scansToday, shift: "on"\|"ended"\|"none" }], invites: [{ id, expiresAt, phone }] }` |
+| `POST /business/cashiers` | `{ phone }` | 201 `{ invite: { id, phone, expiresAt } }` · `invalid_phone`, `already_cashier`, `too_many_invites` (10) |
+| `DELETE /business/cashiers/<memberId>` | — | `{ ok }` — a'zolik yopiladi, kassirning barcha sessiyalari darhol o'chadi |
+| `DELETE /business/invites/<id>` | — | `{ ok }` |
+| `GET /business/orders` | `filter=new\|preparing\|ready\|done` | `{ enabled, orders, counts, newIds, report, now }` |
+| `POST /business/orders/<id>` | `{ action: "accept" }` \| `{ action: "reject", reason }` \| `{ action: "ready" }` | `{ ok }` · `order_conflict` (holat o'zgargan) |
+| `GET /business/profile` | — | `{ profile: { id, name, address, landmark, workingHours, description, status, publicPhone, telegram, instagram, kind, typeLabel, district, logoUrl, salesToday, revenueToday, activeDiscounts, preorderEnabled } }` |
+| `PATCH /business/profile` | `{ name, address, workingHours, description, landmark?, phone?, telegram?, instagram? }` | `{ ok, rereview }` · `invalid_request` + `fields` |
+| `POST /business/logo` · `DELETE /business/logo` | multipart `file` | `{ ok }` |
+
+- `draft` — saytdagi muharrir bilan bir xil (`DiscountDraft`, `src/lib/discount.ts`): `title, type: "PERCENT"|"FIXED_PRICE"|"BOGO", originalPrice,
+  percent, newPrice, weekdays (1=Du…7=Ya), fromMinute, toMinute, dailyLimit, perStudentLimit: "DAILY"|"WEEKLY"|"UNLIMITED", startsOn, endsOn
+  ("YYYY-MM-DD", Toshkent), terms`. Tekshiruv `validateDiscount`: xato — `invalid_request` + `fields` + `problems` (`{ percent: "percentRange", … }`).
+  Faol chegirmada rasm qo'shish/o'chirish ham qayta tekshiruvga tushiradi.
+- Profil: nom yoki manzil o'zgarsa `rereview: true` — biznes `PENDING`, chegirmalar talabaga ko'rinmaydi, egasining bo'limlari tasdiqlanguncha
+  `business_not_ready`. Ish vaqti, tavsif, mo'ljal va aloqa — tekshiruvsiz; aloqa maydoni berilmasa o'zgarmaydi, bo'sh qator — o'chadi.
+- Buyurtmalar: holat faqat `transitionOrder` orqali (sig'im, pul, xabarnoma bitta joyda). `confirmBy` — shu vaqtgacha javob bo'lmasa avtomatik
+  bekor (qo'lda tasdiq — 10 daq). Yangi to'langan buyurtmada egasiga push (pastda); ilova ochiq bo'lsa `newIds` da yangi id — tovush.
+
+### Kassir qo'shish (telefon taklifi)
+
+Egasi `POST /business/cashiers { phone }` — shu raqamga bog'langan taklif (48 soat, havolasiz). Raqam boshqa hisobniki bo'lsa ham javob bir
+xil (raqam bor-yo'qligi egasiga oshkor qilinmaydi). Kassir ilovada **"Biznes"** bilan kiradi: `/auth/verify` → yangi raqam va taklif bor
+bo'lsa `{ next: "setPassword", role: "cashier", businessName }` → `/auth/password` → `{ next: "register", role: "cashier" }` →
+`POST /cashier/register { registrationTicket, firstName, lastName }` → 201 `SignedIn` (kassir). Avvalgi biznesdan chiqarilgan kassir
+`/auth/verify` da taklifni avtomatik qabul qiladi. Taklif shu orada bekor qilingan/eskirgan — `no_business`. Saytdagi havola usuli o'zgarmagan.
+
+## Fayllar
+
+`GET /api/v1/files/<tur>/<id>?exp=&sig=` — `discount-image`, `logo`, `avatar`, `receipt` (PDF). Imzo (HMAC, server siri) API javobida faqat
+ko'rishga ruxsati bor foydalanuvchiga beriladi (`signUrls`, `src/server/api/files.ts`), ya'ni havolaning o'zi ruxsat: `Authorization` sarlavhasi
+kerak emas, `<Image source={{ uri }}>` va brauzer to'g'ridan-to'g'ri ochadi. Muddat soat boshiga yaxlitlanadi — bir soat ichida manzil
+o'zgarmaydi (qurilma keshi ishlaydi), havola 1–2 soatda eskiradi (eskirsa ekranni yangilang — yangi havola keladi). Buzilgan/eskirgan/yo'q —
+bir xil 404. Talaba endpoint'lari (`/deals`, `/deals/<id>`, `/saved`, `/deals/nearby`) ham shu havolalarni beradi.
+
 ## Push qurilmalari
 
 | Endpoint | Kirish | Chiqish |
@@ -156,15 +233,17 @@ Bildirishnomalar (talaba va biznes egasi):
 | `DELETE /push/devices` | Bearer, `{ token }` | `{ ok }` |
 
 Chiqish, bloklash, parolni tiklash yoki hisobni o'chirishda sessiya bilan birga qurilma yozuvi ham o'chadi.
-Ilova (`mobile/`) **Expo push tokenini** yuboradi (`ExponentPushToken[…]`, `getExpoPushTokenAsync`; EAS `projectId` kerak) — yuboruvchi
-shu sababli Expo Push API orqali yozilishi kerak.
-**Hozircha faqat ro'yxatga olish:** xabarlarni Expo/FCM/APNs ga yuborish (`notifications/push.ts` faqat Web Push) — keyingi ish.
+Ilova (`mobile/`) **Expo push tokenini** yuboradi (`ExponentPushToken[…]`, `getExpoPushTokenAsync`; EAS `projectId` kerak).
+Yuborish: `sendPushToUsers` (`notifications/push.ts`) Web Push bilan birga Expo Push API ga ham (`notifications/expo-push.ts`, 100 tadan) —
+buyurtma xabarlari (yangi buyurtma — egasiga), tasdiq/rad xabarlari va admin bildirishnomalari ilovaga ham boradi. `data.url` — saytdagi yo'l
+(`/biznes/buyurtmalar`, …), ilova shu bo'yicha ekran ochadi. `DeviceNotRegistered` — token o'chiriladi. `EXPO_ACCESS_TOKEN` (ixtiyoriy) —
+Expo hisobida "Enhanced push security" yoqilgan bo'lsa.
 
 ## Hali yo'q
 
-- Push yuborish (Expo Push API yoki FCM/APNs) — `PushDevice` tayyor, yuboruvchi yo'q.
-- Kassir/biznes ilovasi: skaner, sotuvni tasdiqlash, statistika, chegirma muharriri; oldindan band qilish (buyurtmalar, to'lov).
-- Talaba: kupon tarixi va chek PDF (`/api/chek/<id>` cookie bilan ishlaydi), profilni tahrirlash (ism, kurs, fakultet, tuman),
+- Biznes ilovasida: oldindan buyurtma sozlamalari (rejim, jadval, to'lov — saytda), Excel hisobot, biznes bildirishnomalari ekrani
+  (`GET /notifications` egasiga ochiq). Talaba: oldindan band qilish (buyurtma, to'lov).
+- Talaba: kupon tarixi ro'yxati (bitta chek — `GET /receipts/<id>`), profilni tahrirlash (ism, kurs, fakultet, tuman),
   profil rasmi (`/api/avatar/<id>` cookie talab qiladi), bildirishnoma sozlamasi (saytdagi "Yangi chegirmalar haqida xabar"),
   eng yaqin metro (yo'nalish oynasida; havolalar mijozda). Ilovada shular hozircha yo'q yoki saytga ochiladi.
 - Qurilmalar ro'yxati va boshqa sessiyalarni yopish; ru/en matnlar (xato matnlari faqat o'zbekcha).
