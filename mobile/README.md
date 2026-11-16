@@ -108,7 +108,11 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
   fontTools `instancer` bilan (`Archivo[wdth,wght].ttf`, google/fonts), oilaga alohida nom bering va `theme.ts` ga qo'shing.
 - **O'lchamlar:** dizayn px = dp. Dizayn `content-box`: 2px chegarali 58px maydon — jami 62 (`kit.tsx` `BOX`).
   Ramkadagi 56px status bar joyi: tepada `max(safe-top + 12, 56)`, pastda `max(safe-bottom + 16, 36)`.
-- **Ikonka:** `node mobile/scripts/icons.mjs` (ildizdan; saytdagi PWA ikonkasi bilan bir xil "ticket").
+- **Ikonka va splash:** `node mobile/scripts/icons.mjs` (ildizdan). Ikonka 1024 (alfa kanalsiz — App Store talabi), Android adaptive
+  (oldi/fon/monoxrom), bildirishnoma ikonkasi (oq) — saytdagi PWA "ticket" belgisi. Splash: ko'k `#2432D6` fonda app-flow logotipi
+  "talaba[Pass]" (`splash-logo.png`; glif yo'llari `scripts/logo-paths.json`). Splash Archivo yuklanguncha turadi (`app/_layout.tsx`).
+- **Ruxsatlar** (`app.json`): kamera (guvohnoma, joy fotosi, QR), joylashuv (faqat ilova ochiqda), bildirishnoma, tebranish; mikrofon,
+  fon joylashuvi, media/xotira, fon audio — `blockedPermissions` / plugin sozlamasi bilan o'chirilgan. Matnlar o'zbekcha. Dark mode yo'q (`light`).
 - Matn qo'shilsa — `src/copy.ts`; rang — `src/theme.ts` (dizaynda bor hex). Yangi native modul — `npx expo install`.
 
 ## Talaba ilovasi (kirgandan keyin)

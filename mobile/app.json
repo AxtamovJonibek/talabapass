@@ -19,19 +19,42 @@
     },
     "ios": {
       "bundleIdentifier": "uz.talabapass.app",
+      "buildNumber": "1",
       "supportsTablet": false,
+      "requireFullScreen": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDevelopmentRegion": "uz",
+        "NSCameraUsageDescription": "Talaba guvohnomasini suratga olish, joy fotolarini olish va kassada QR kodni skanerlash uchun kamera kerak.",
+        "NSPhotoLibraryUsageDescription": "Guvohnoma, hujjat va joy fotolarini galereyadan tanlash uchun ruxsat kerak.",
+        "NSLocationWhenInUseUsageDescription": "Yaqin chegirmalarni ko'rsatish va masofani hisoblash uchun joylashuvingiz kerak. Joylashuv serverga ~100 m aniqlikda yuboriladi va saqlanmaydi."
       }
     },
     "android": {
       "package": "uz.talabapass.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#2432D6",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize"
     },
@@ -45,31 +68,34 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-icon.png",
-          "imageWidth": 120,
-          "backgroundColor": "#F3F1EE"
+          "image": "./assets/splash-logo.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#2432D6"
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Talaba guvohnomasini suratga olish va kassada QR kodni skanerlash uchun kamera kerak.",
+          "cameraPermission": "Talaba guvohnomasini suratga olish, joy fotolarini olish va kassada QR kodni skanerlash uchun kamera kerak.",
           "recordAudioAndroid": false,
-          "barcodeScannerEnabled": true
+          "barcodeScannerEnabled": true,
+          "microphonePermission": false
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Hujjat va joy fotolarini tanlash uchun galereyaga ruxsat kerak.",
-          "cameraPermission": "Joy fotolarini suratga olish uchun kamera kerak.",
+          "photosPermission": "Guvohnoma, hujjat va joy fotolarini galereyadan tanlash uchun ruxsat kerak.",
+          "cameraPermission": "Talaba guvohnomasini suratga olish, joy fotolarini olish va kassada QR kodni skanerlash uchun kamera kerak.",
           "microphonePermission": false
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Yaqin chegirmalarni ko'rsatish va masofani hisoblash uchun joylashuvingiz kerak."
+          "locationWhenInUsePermission": "Yaqin chegirmalarni ko'rsatish va masofani hisoblash uchun joylashuvingiz kerak. Joylashuv serverga ~100 m aniqlikda yuboriladi va saqlanmaydi.",
+          "isAndroidBackgroundLocationEnabled": false
         }
       ],
       [
@@ -81,13 +107,16 @@
       [
         "expo-notifications",
         {
+          "icon": "./assets/notification-icon.png",
           "color": "#2432D6"
         }
       ],
       [
         "expo-audio",
         {
-          "microphonePermission": false
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
         }
       ],
       "expo-asset"
