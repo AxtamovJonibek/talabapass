@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LocationProvider } from "@/lib/location";
 import { AppStateProvider } from "@/state";
+import { UpdateGate } from "@/ui/update-gate";
 import { colors, fontFiles } from "@/theme";
 
 // Shriftlar yuklanguncha splash turadi (aks holda matn tizim shriftida "sakraydi")
@@ -22,15 +23,17 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AppStateProvider>
-        <LocationProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper }, animation: "slide_from_right" }}>
-            {/* Talaba ilovasi tablarida "orqaga" kirish ekranlariga qaytmaydi */}
-            <Stack.Screen name="(tabs)" options={{ gestureEnabled: false, animation: "fade" }} />
-          </Stack>
-        </LocationProvider>
-      </AppStateProvider>
+      <UpdateGate>
+        <AppStateProvider>
+          <LocationProvider>
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper }, animation: "slide_from_right" }}>
+              {/* Talaba ilovasi tablarida "orqaga" kirish ekranlariga qaytmaydi */}
+              <Stack.Screen name="(tabs)" options={{ gestureEnabled: false, animation: "fade" }} />
+            </Stack>
+          </LocationProvider>
+        </AppStateProvider>
+      </UpdateGate>
     </SafeAreaProvider>
   );
 }

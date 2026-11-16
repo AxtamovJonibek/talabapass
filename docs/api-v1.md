@@ -65,6 +65,16 @@ Admin API orqali kirmaydi (`admin_not_supported`).
 "Parolni unutdim": `verify` → `next: "password"` bo'lgan `ticket` bilan `POST /auth/password` — yangi parol, boshqa
 barcha sessiyalar (sayt ham) yopiladi.
 
+## Ilova sozlamasi
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `GET /app-config` | — (kirishsiz) | `{ minVersion: { ios, android }, latestVersion, storeUrls: { ios, android } }` |
+
+Qiymatlar env'dan: `APP_MIN_VERSION_IOS`, `APP_MIN_VERSION_ANDROID`, `APP_LATEST_VERSION`, `APP_STORE_URL_IOS`, `APP_STORE_URL_ANDROID`
+(berilmasa — 1.0.0 va Play havolasi; noto'g'ri qiymat — deploy `check-env` da to'xtaydi). Ilova versiyasi `minVersion` dan past —
+butun ekranli majburiy yangilash.
+
 ## Profil
 
 | Endpoint | Kirish | Chiqish |

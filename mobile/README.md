@@ -27,18 +27,42 @@ npm start                   # QR → Expo Go (telefon va kompyuter bitta tarmoqd
 
 ## EAS (dev build, APK, do'konlar)
 
+### Birinchi marta (sizning qadamlaringiz)
+
+1. `npx eas-cli@latest login` (expo.dev hisobi).
+2. **projectId:** `app.json` da ikki joyda `REPLACE_WITH_EAS_PROJECT_ID` turibdi (`extra.eas.projectId` va `updates.url`).
+   expo.dev → Create project (slug `talabapass`) → Project ID ni nusxalab ikkala joyga qo'ying
+   (`updates.url` = `https://u.expo.dev/<ID>`). Yoki placeholder qatorini o'chirib `npx eas-cli init` — ID ni o'zi yozadi,
+   keyin `npx eas-cli update:configure` (`updates.url`). O'zgarishni commit qiling. ID bo'lmasa push tokeni olinmaydi, OTA ishlamaydi.
+3. **Google Maps (Android xarita):** Google Cloud → Maps SDK for Android yoqing → API key (cheklov: Android ilovalar,
+   paket `uz.talabapass.app` + EAS imzo SHA-1: `npx eas-cli credentials` → Android → Keystore). Kalitni `app.json` dagi
+   `REPLACE_WITH_GOOGLE_MAPS_ANDROID_KEY` o'rniga qo'ying. iOS — Apple Maps, kalit shart emas.
+4. Build:
+
 ```bash
-npx eas-cli@latest login
-npx eas-cli@latest init                                       # projectId app.json ga yoziladi — commit qiling
-npx eas-cli@latest build --profile development --platform android   # dev client APK (expo-dev-client)
-npx eas-cli@latest build --profile preview --platform android       # sinov APK (ichki tarqatish)
-npx eas-cli@latest build --profile production --platform all        # do'konlar uchun (AAB / IPA)
+npx eas-cli@latest build --profile development --platform android   # dev client APK (expo-dev-client), kanal development
+npx eas-cli@latest build --profile preview --platform android       # sinov APK (ichki tarqatish), kanal preview
+npx eas-cli@latest build --profile production --platform all        # do'konlar: Android AAB, iOS store; kanal production
+npx eas-cli@latest submit --profile production --platform android   # Play Console (internal track, draft)
+npx eas-cli@latest submit --profile production --platform ios       # App Store Connect / TestFlight
 ```
 
-- Profillar `eas.json` da; uchalasida `EXPO_PUBLIC_API_URL=https://talabapass.uz`. Production backend tayyor bo'lsa — shu yerda.
-- iOS build uchun Apple Developer hisobi (yillik to'lov), Android do'koni uchun Google Play Console hisobi kerak;
-  imzo kalitlarini EAS o'zi yaratib saqlaydi (birinchi build'da so'raydi).
-- Dev build'dan keyin: `npm start` → ilova o'zi ulanadi (Expo Go shart emas).
+- Profillar `eas.json` da; hammasida `EXPO_PUBLIC_API_URL=https://talabapass.uz`. Versiya raqamlari EAS serverida
+  (`appVersionSource: remote`, production'da `autoIncrement`) — `app.json` dagi `buildNumber`/`versionCode` faqat boshlang'ich qiymat.
+- iOS uchun Apple Developer hisobi (yillik to'lov), Android uchun Google Play Console; imzo kalitlarini EAS saqlaydi.
+- Do'kon formalari, skrinshotlar, tavsif — `../docs/store-checklist.md`.
+
+## Yangilanishlar: OTA va do'kon relizi
+
+- **OTA** (`expo-updates`, `npx eas-cli update --channel production -m "…"`): faqat JS/rasm/matn o'zgarsa — ekran, matn,
+  xato tuzatish, API'dan yangi maydonni ko'rsatish. Ilova fonda yuklab oladi, **keyingi ochilishda** qo'llaydi (ishlayotgan
+  ekran to'xtamaydi). Avval `--channel preview` da sinang. Kanal = build profili (development / preview / production).
+- **Do'kon relizi** (yangi build): native o'zgarish — yangi paket (`npx expo install …` native modul), `app.json` plugin/ruxsat/
+  ikonka/splash, Expo SDK yangilash. `runtimeVersion` = ilova versiyasi (`policy: appVersion`): native o'zgarishda `app.json`
+  `version` ni oshiring (1.0.0 → 1.1.0) — eski build'larga yangi OTA bormaydi (mos kelmaydigan JS tushmaydi).
+- **Majburiy yangilash:** serverda `APP_MIN_VERSION_IOS` / `APP_MIN_VERSION_ANDROID` (`GET /api/v1/app-config`). Undan past
+  versiya — butun ekranli "Ilovani yangilang" (ortga yo'li yo'q), do'konga havola `APP_STORE_URL_*`. Yangi versiya do'konda
+  **tasdiqlangandan keyin** oshiring; oxirgi javob qurilmada saqlanadi (internetsiz ochilganda ham amal qiladi).
 
 ## Tuzilma
 
@@ -98,7 +122,7 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
   bilan, faol kupon bo'lsa "Kupon" tabiga. Internet bo'lsa kupon ekrani 4 s da holatni so'raydi (sotildi → tebranish, yopildi).
   Muddati o'tgani o'qishda tashlanadi; chiqish/hisobni o'chirishda nusxalar tozalanadi. Kupon ekrani yoqiq turadi (expo-keep-awake).
 - **Xarita:** react-native-maps (iOS — Apple Maps, Android — Google Maps). Expo Go'da kalitsiz ishlaydi; **Android build uchun Google Maps
-  API kaliti kerak** — `app.json` da `["react-native-maps", { "androidGoogleMapsApiKey": "…" }]` (hozir yo'q, xarita bo'sh chiqadi).
+  API kaliti kerak** — `app.json` da `["react-native-maps", { "androidGoogleMapsApiKey": "…" }]` (hozir `REPLACE_WITH_GOOGLE_MAPS_ANDROID_KEY` — yuqoridagi "Birinchi marta", 3-qadam).
 - **Push:** tablarga kirganda ruxsat so'raladi, Expo push tokeni `POST /push/devices` ga. Expo Go (Android), emulyator, web yoki EAS
   `projectId` yo'q bo'lsa — jimgina o'tkazib yuboriladi (`[push]` log). Server Expo Push API orqali yuboradi (docs/api-v1.md).
 - Hisobni o'chirish: Profil → "Hisobni o'chirish" (parol, `DELETE /me`); Maxfiylik siyosati va Shartlar — saytdagi huquqiy sahifalar.

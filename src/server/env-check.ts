@@ -7,6 +7,8 @@
  * Fayllar ombori qoidasi `APP_ENV` dan qat'i nazar bir xil (storageProblems).
  * `APP_ENV` yo'q yoki boshqa qiymat — oddiy production qoidalari.
  */
+import { appConfigProblems } from "../lib/app-version";
+
 type Env = Record<string, string | undefined>;
 
 /** Web Push (VAPID): uchalasi birga yoki hech biri — yarim sozlangan push jimgina ishlamay qoladi. */
@@ -62,6 +64,7 @@ export function productionEnvProblems(env: Env): string[] {
   if (env.VAPID_SUBJECT?.trim() && !/^(mailto:|https:\/\/)/.test(env.VAPID_SUBJECT.trim())) {
     problems.push("VAPID_SUBJECT mailto:… yoki https://… ko'rinishida bo'lishi kerak.");
   }
+  problems.push(...appConfigProblems(env));
   if (!env.AUTH_SECRET || env.AUTH_SECRET.length < 32) {
     problems.push("AUTH_SECRET o'rnatilmagan yoki 32 belgidan qisqa.");
   }

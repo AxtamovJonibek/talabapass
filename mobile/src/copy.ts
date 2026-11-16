@@ -459,6 +459,14 @@ export const copy = {
     done: "Hisobingiz o'chirildi.",
   },
 
+  update: {
+    title: "Ilovani <hl>yangilang.</hl>",
+    lead: "Bu versiya endi ishlamaydi: yangi imkoniyatlar va xavfsizlik tuzatishlari uchun ilovani do'kondan yangilang.",
+    version: (current: string, min: { ios: string; android: string }) => `Sizda: ${current} · kerak: ${min.android === min.ios ? min.android : `iOS ${min.ios}, Android ${min.android}`} va undan yuqori`,
+    cta: "Do'konda yangilash",
+    noStore: "Ilovani App Store yoki Google Play'dan yangilang.",
+  },
+
   home: {
     hello: (name: string) => `Salom, ${name}!`,
     helloAnon: "Salom!",

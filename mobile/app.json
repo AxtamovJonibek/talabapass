@@ -4,10 +4,19 @@
     "slug": "talabapass",
     "scheme": "talabapass",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F3F1EE",
+    "updates": {
+      "url": "https://u.expo.dev/REPLACE_WITH_EAS_PROJECT_ID",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "bundleIdentifier": "uz.talabapass.app",
       "supportsTablet": false,
@@ -63,7 +72,12 @@
           "locationWhenInUsePermission": "Yaqin chegirmalarni ko'rsatish va masofani hisoblash uchun joylashuvingiz kerak."
         }
       ],
-      "react-native-maps",
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "REPLACE_WITH_GOOGLE_MAPS_ANDROID_KEY"
+        }
+      ],
       [
         "expo-notifications",
         {
@@ -77,6 +91,11 @@
         }
       ],
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    }
   }
 }

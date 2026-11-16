@@ -36,7 +36,8 @@ export async function registerPush(): Promise<void> {
       return;
     }
     const projectId = (Constants.expoConfig?.extra?.eas as { projectId?: string } | undefined)?.projectId ?? Constants.easConfig?.projectId;
-    if (!projectId) {
+    // app.json dagi "REPLACE_WITH_EAS_PROJECT_ID" — hali `eas init` qilinmagan
+    if (!projectId || !/^[0-9a-f-]{36}$/i.test(projectId)) {
       console.log("[push] EAS projectId yo'q (npx eas-cli init) — token olinmadi");
       return;
     }

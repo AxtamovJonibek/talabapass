@@ -1,0 +1,58 @@
+/**
+ * Mobil ilova versiyalari (`GET /api/v1/app-config`): majburiy yangilash chegarasi va do'kon havolalari env'dan.
+ * Sof funksiyalar (server va testlar). Ilova `mobile/src/lib/app-version.ts` da xuddi shu taqqoslashni qiladi.
+ */
+
+export const VERSION_RE = /^\d{1,4}\.\d{1,4}\.\d{1,4}$/;
+
+/** "1.2.10" vs "1.10.0" → -1 | 0 | 1 (raqamlar bo'yicha; noto'g'ri ko'rinish — 0.0.0) */
+export function compareVersions(a: string, b: string): number {
+  const parse = (v: string) => (VERSION_RE.test(v.trim()) ? v.trim().split(".").map(Number) : [0, 0, 0]);
+  const x = parse(a);
+  const y = parse(b);
+  for (let i = 0; i < 3; i++) {
+    if (x[i]! !== y[i]!) return x[i]! < y[i]! ? -1 : 1;
+  }
+  return 0;
+}
+
+export const DEFAULT_STORE_URLS = {
+  android: "https://play.google.com/store/apps/details?id=uz.talabapass.app",
+  ios: null as string | null,
+};
+
+export type AppConfig = {
+  minVersion: { ios: string; android: string };
+  latestVersion: string;
+  storeUrls: { ios: string | null; android: string | null };
+};
+
+type Env = Record<string, string | undefined>;
+const version = (value: string | undefined, fallback: string) => (value && VERSION_RE.test(value.trim()) ? value.trim() : fallback);
+const url = (value: string | undefined, fallback: string | null) => (value?.trim().startsWith("https://") ? value.trim() : fallback);
+
+/**
+ * Env: `APP_MIN_VERSION_IOS`, `APP_MIN_VERSION_ANDROID` (shundan past — majburiy yangilash), `APP_LATEST_VERSION`,
+ * `APP_STORE_URL_IOS`, `APP_STORE_URL_ANDROID`. Berilmagan/noto'g'ri — 1.0.0 (hech kim to'silmaydi), Play havolasi standart.
+ */
+export function appConfigFromEnv(env: Env): AppConfig {
+  return {
+    minVersion: { ios: version(env.APP_MIN_VERSION_IOS, "1.0.0"), android: version(env.APP_MIN_VERSION_ANDROID, "1.0.0") },
+    latestVersion: version(env.APP_LATEST_VERSION, "1.0.0"),
+    storeUrls: { ios: url(env.APP_STORE_URL_IOS, DEFAULT_STORE_URLS.ios), android: url(env.APP_STORE_URL_ANDROID, DEFAULT_STORE_URLS.android) },
+  };
+}
+
+/** env-check uchun: berilgan, lekin noto'g'ri qiymatlar (jimgina standartga tushib qolmasin). */
+export function appConfigProblems(env: Env): string[] {
+  const problems: string[] = [];
+  for (const name of ["APP_MIN_VERSION_IOS", "APP_MIN_VERSION_ANDROID", "APP_LATEST_VERSION"]) {
+    const v = env[name]?.trim();
+    if (v && !VERSION_RE.test(v)) problems.push(`${name}=${v}: versiya X.Y.Z ko'rinishida bo'lsin (masalan 1.2.0).`);
+  }
+  for (const name of ["APP_STORE_URL_IOS", "APP_STORE_URL_ANDROID"]) {
+    const v = env[name]?.trim();
+    if (v && !v.startsWith("https://")) problems.push(`${name}: https:// bilan boshlanadigan havola bo'lsin.`);
+  }
+  return problems;
+}
