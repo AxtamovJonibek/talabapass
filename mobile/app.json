@@ -12,7 +12,7 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#F3F1EE",
     "updates": {
-      "url": "https://u.expo.dev/REPLACE_WITH_EAS_PROJECT_ID",
+      "url": "https://u.expo.dev/d6b61358-9f51-48c5-a0c2-af2ee25f83b0",
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
@@ -129,13 +129,14 @@
       "expo-apple-authentication"
     ],
     "extra": {
-      "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
-      },
       "google": {
         "webClientId": "853458934258-hhttnplr9bpidjo7t6mqh89rv28ac798.apps.googleusercontent.com",
         "iosClientId": "853458934258-u6d85ouqu2s078lh88g95ueme7tfm3jn.apps.googleusercontent.com"
+      },
+      "eas": {
+        "projectId": "d6b61358-9f51-48c5-a0c2-af2ee25f83b0"
       }
-    }
+    },
+    "owner": "jonbekw"
   }
 }

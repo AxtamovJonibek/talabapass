@@ -31,10 +31,8 @@ npm start                   # QR → Expo Go (telefon va kompyuter bitta tarmoqd
 ### Birinchi marta (sizning qadamlaringiz)
 
 1. `npx eas-cli@latest login` (expo.dev hisobi).
-2. **projectId:** `app.json` da ikki joyda `REPLACE_WITH_EAS_PROJECT_ID` turibdi (`extra.eas.projectId` va `updates.url`).
-   expo.dev → Create project (slug `talabapass`) → Project ID ni nusxalab ikkala joyga qo'ying
-   (`updates.url` = `https://u.expo.dev/<ID>`). Yoki placeholder qatorini o'chirib `npx eas-cli init` — ID ni o'zi yozadi,
-   keyin `npx eas-cli update:configure` (`updates.url`). O'zgarishni commit qiling. ID bo'lmasa push tokeni olinmaydi, OTA ishlamaydi.
+2. **projectId:** bog'langan — `@jonbekw/talabapass` (`d6b61358-9f51-48c5-a0c2-af2ee25f83b0`, `app.json` `extra.eas.projectId`,
+   `updates.url`, `owner`). Boshqa akkauntga ko'chirilsa — shu uch joy yangilanadi.
 3. **Google Maps (Android xarita):** Google Cloud → Maps SDK for Android yoqing → API key (cheklov: Android ilovalar,
    paket `uz.talabapass.app` + EAS imzo SHA-1: `npx eas-cli credentials` → Android → Keystore). Kalitni `app.json` dagi
    `REPLACE_WITH_GOOGLE_MAPS_ANDROID_KEY` o'rniga qo'ying. iOS — Apple Maps, kalit shart emas.
@@ -147,7 +145,7 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
 Android'da Google tokeni faqat ilova imzosi (SHA-1) Google Cloud'dagi **Android** OAuth client'da ro'yxatdan o'tgan bo'lsa beriladi
 (aks holda `DEVELOPER_ERROR`). Token `aud` i baribir **web** client ID bo'ladi.
 
-1. `cd mobile && npx eas-cli@latest login`; `app.json` dagi `REPLACE_WITH_EAS_PROJECT_ID` to'ldirilgan bo'lsin ("Birinchi marta", 2-qadam).
+1. `cd mobile && npx eas-cli@latest login` (loyiha `@jonbekw/talabapass` ga bog'langan).
 2. Imzo kalitini yaratish/ko'rish: `npx eas-cli@latest credentials -p android` → profil `development` (keyin `preview`, `production` ham)
    → "Keystore: Manage everything needed to build your project" → kalit yo'q bo'lsa "Set up a new keystore" → ekranda **SHA1 Fingerprint**.
    EAS profillari bitta keystore'ni ishlatadi (alohida sozlamagan bo'lsangiz) — SHA-1 bitta.
