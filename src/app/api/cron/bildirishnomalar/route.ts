@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 import { checkExpoReceipts } from "@/server/notifications/expo-push";
 import { dispatchDue } from "@/server/notifications/send";
 
@@ -11,6 +11,8 @@ import { dispatchDue } from "@/server/notifications/send";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
+  // Har chaqiruvda bajarilsin: aks holda build paytida (sirsiz) 404 javobi statik qotib qoladi va cron hech narsa qilmaydi
+  await connection();
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) return new NextResponse(null, { status: 404 });
   const result = await dispatchDue();

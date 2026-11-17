@@ -1,6 +1,6 @@
 import "server-only";
 import { unstable_rethrow } from "next/navigation";
-import { NextResponse, type NextRequest } from "next/server";
+import { connection, NextResponse, type NextRequest } from "next/server";
 import { createTranslator } from "next-intl";
 import type { z } from "zod";
 import messages from "../../../messages/uz.json";
@@ -111,10 +111,15 @@ export const ok = (data: unknown, status = 200) => NextResponse.json(data, { sta
 
 type Ctx<P> = { params: Promise<P> };
 
-/** Marshrut o'ramasi: `ApiError` — o'z kodi bilan, boshqa xato — log'ga va 500. */
+/**
+ * Marshrut o'ramasi: `ApiError` — o'z kodi bilan, boshqa xato — log'ga va 500.
+ * `connection()` — har bir API javobi so'rov paytida hisoblanadi: `request` ni o'qimaydigan GET (`/app-config` — env,
+ * `/districts` — baza) Cache Components'da build paytida statik qotib qolardi va env/baza o'zgarsa yangilanmasdi.
+ */
 export function route<P extends object = object>(handler: (request: NextRequest, ctx: Ctx<P>) => Promise<Response>) {
   return async (request: NextRequest, ctx: Ctx<P>): Promise<Response> => {
     try {
+      await connection();
       return await handler(request, ctx);
     } catch (error) {
       if (error instanceof ApiError) return errorResponse(error.code, error.details, apiLocale(request.headers.get("accept-language")));

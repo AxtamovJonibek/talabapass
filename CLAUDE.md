@@ -611,6 +611,9 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   `readJson`/`readQuery` zod bilan; `session.ts` — tokenlar, `requireApiRole`, `requireApiStudent`; `auth-flow.ts`, `register.ts`,
   `rate-limit.ts`, `rules.ts` — sof). Mantiq `src/server/*` dan qayta ishlatiladi; sayt va server action'lar o'zgarmagan.
 - Xato formati bitta: `{ error: { code, message, ... } }`, matnlar `messages/uz.json` → `api.errors`, HTTP holati `STATUS` da.
+- `route()` boshida `await connection()` — har javob so'rov paytida (aks holda `request` o'qimaydigan GET, masalan `/app-config` env'i yoki
+  `/districts`, Cache Components'da build paytida statik qotadi). `route()` siz yozilgan GET'ga ham (`/api/cron/*`) `connection()` qo'ying;
+  tekshiruv — `next build` ro'yxatida `/api/*` hammasi `ƒ`.
 - Access token 15 daq (muhrlangan AES-GCM, har so'rovda `Session` qatori tekshiriladi), refresh 30 kun, aylanadi, bazada xeshi
   (`Session.kind = API`, `api-refresh:` prefiksi — cookie bilan almashib ishlamaydi); eski refresh qayta kelsa sessiya yopiladi.
   Qadam holati cookie o'rniga muhrlangan `ticket`/`registrationTicket`. Admin API orqali kirmaydi.

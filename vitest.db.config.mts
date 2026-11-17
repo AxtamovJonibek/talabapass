@@ -15,7 +15,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.itest.ts"],
-    setupFiles: ["dotenv/config"],
+    setupFiles: ["dotenv/config", "./src/server/testing/next-request-setup.ts"],
     fileParallelism: false,
   },
 });
