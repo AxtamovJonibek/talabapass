@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, RefreshControl, StyleSheet, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { errorText } from "@/api/client";
 import { bizApi } from "@/api/business";
@@ -11,7 +12,7 @@ import { displayPhone, localDigits } from "@/lib/phone";
 import { useLoad } from "@/lib/use-load";
 import { colors, font } from "@/theme";
 import { Card, Empty, Failed, Loading, RoundButton } from "@/ui/app";
-import { ErrorBox, Label, Note, PhoneBox, PrimaryButton, Press, Title, Txt } from "@/ui/kit";
+import { ErrorBox, KEYBOARD_GAP, Label, Note, PhoneBox, PrimaryButton, Press, Title, Txt } from "@/ui/kit";
 
 /**
  * Kassirlar (saytdagi B5 bloki, faqat egasi): faollari (bugungi skanlar, "Smenada"), faolsizlantirish (a'zolik yopiladi,
@@ -59,8 +60,9 @@ export default function Cashiers() {
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 12 }]}>
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 28 }]}
+        bottomOffset={KEYBOARD_GAP}
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={list.refreshing} onRefresh={() => void list.reload()} tintColor={colors.orange} />}
       >
@@ -124,7 +126,7 @@ export default function Cashiers() {
             ) : null}
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

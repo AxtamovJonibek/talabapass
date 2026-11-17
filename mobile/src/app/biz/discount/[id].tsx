@@ -191,7 +191,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
 
       <View style={styles.block}>
         <Label>{e.product}</Label>
-        <Field value={form.title} onChangeText={(title) => set({ title })} placeholder={e.productPlaceholder} invalid={bad("title")} text={17} editable={!ended} />
+        <Field value={form.title} onChangeText={(title) => set({ title })} placeholder={e.productPlaceholder} invalid={bad("title")} text={17} editable={!ended} returnKeyType="next" />
         {fieldError("title")}
       </View>
 
@@ -208,21 +208,21 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
 
       <View style={styles.block}>
         <Label>{form.type === "BOGO" ? e.originalPriceBogo : e.originalPrice}</Label>
-        <Field value={form.originalPrice} onChangeText={(v) => set({ originalPrice: v })} keyboardType="number-pad" placeholder="38 000" invalid={bad("originalPrice")} text={17} editable={!ended} />
+        <Field value={form.originalPrice} onChangeText={(v) => set({ originalPrice: v })} keyboardType="number-pad" placeholder="38 000" invalid={bad("originalPrice")} text={17} editable={!ended} returnKeyType="next" />
         {fieldError("originalPrice")}
       </View>
 
       {form.type === "PERCENT" ? (
         <View style={styles.block}>
           <Label>{e.percent}</Label>
-          <Field value={form.percent} onChangeText={(v) => set({ percent: v })} keyboardType="number-pad" placeholder="30" invalid={bad("percent")} text={17} editable={!ended} />
+          <Field value={form.percent} onChangeText={(v) => set({ percent: v })} keyboardType="number-pad" placeholder="30" invalid={bad("percent")} text={17} editable={!ended} returnKeyType="next" />
           {fieldError("percent")}
         </View>
       ) : null}
       {form.type === "FIXED_PRICE" ? (
         <View style={styles.block}>
           <Label>{e.newPrice}</Label>
-          <Field value={form.newPrice} onChangeText={(v) => set({ newPrice: v })} keyboardType="number-pad" placeholder="26 600" invalid={bad("newPrice")} text={17} editable={!ended} />
+          <Field value={form.newPrice} onChangeText={(v) => set({ newPrice: v })} keyboardType="number-pad" placeholder="26 600" invalid={bad("newPrice")} text={17} editable={!ended} returnKeyType="next" />
           {fieldError("newPrice")}
         </View>
       ) : null}
@@ -253,11 +253,11 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
       <View style={[styles.block, styles.row]}>
         <View style={styles.half}>
           <Label>{e.from}</Label>
-          <Field value={form.from} onChangeText={(v) => set({ from: v })} placeholder={e.timePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("time")} text={17} editable={!ended} />
+          <Field value={form.from} onChangeText={(v) => set({ from: v })} placeholder={e.timePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("time")} text={17} editable={!ended} returnKeyType="next" />
         </View>
         <View style={styles.half}>
           <Label>{e.to}</Label>
-          <Field value={form.to} onChangeText={(v) => set({ to: v })} placeholder={e.timePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("time")} text={17} editable={!ended} />
+          <Field value={form.to} onChangeText={(v) => set({ to: v })} placeholder={e.timePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("time")} text={17} editable={!ended} returnKeyType="next" />
         </View>
       </View>
       {fieldError("time")}
@@ -265,7 +265,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
 
       <View style={styles.block}>
         <Label>{e.dailyLimit}</Label>
-        <Field value={form.dailyLimit} onChangeText={(v) => set({ dailyLimit: v })} keyboardType="number-pad" placeholder="30" invalid={bad("dailyLimit")} text={17} editable={!ended} />
+        <Field value={form.dailyLimit} onChangeText={(v) => set({ dailyLimit: v })} keyboardType="number-pad" placeholder="30" invalid={bad("dailyLimit")} text={17} editable={!ended} returnKeyType="next" />
         {fieldError("dailyLimit")}
       </View>
 
@@ -283,18 +283,18 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
       <View style={[styles.block, styles.row]}>
         <View style={styles.half}>
           <Label>{e.starts}</Label>
-          <Field value={form.startsOn} onChangeText={(v) => set({ startsOn: v })} placeholder={e.datePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("dates")} text={17} editable={!ended} />
+          <Field value={form.startsOn} onChangeText={(v) => set({ startsOn: v })} placeholder={e.datePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("dates")} text={17} editable={!ended} returnKeyType="next" />
         </View>
         <View style={styles.half}>
           <Label>{e.ends}</Label>
-          <Field value={form.endsOn} onChangeText={(v) => set({ endsOn: v })} placeholder={e.datePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("dates")} text={17} editable={!ended} />
+          <Field value={form.endsOn} onChangeText={(v) => set({ endsOn: v })} placeholder={e.datePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("dates")} text={17} editable={!ended} returnKeyType="next" />
         </View>
       </View>
       {fieldError("dates")}
 
       <View style={styles.block}>
         <Label>{e.terms}</Label>
-        <Field value={form.terms} onChangeText={(terms) => set({ terms })} placeholder={e.termsPlaceholder} invalid={bad("terms")} text={17} editable={!ended} maxLength={220} />
+        <Field value={form.terms} onChangeText={(terms) => set({ terms })} placeholder={e.termsPlaceholder} invalid={bad("terms")} text={17} editable={!ended} maxLength={220} returnKeyType="done" />
         {fieldError("terms")}
       </View>
 

@@ -1,7 +1,8 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_URL, ApiError, errorText } from "@/api/client";
 import { bizApi, type OrderScan, type PaymentType, type Receipt, type ScanPreview } from "@/api/business";
@@ -151,7 +152,8 @@ export default function Scan() {
           </SecondaryButton>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.result} keyboardShouldPersistTaps="handled">
+        // Narxsiz chegirmada summa maydoni: maydon, to'lov turi va "Tasdiqlash" klaviatura ustida ko'rinadi
+        <KeyboardAwareScrollView contentContainerStyle={styles.result} bottomOffset={SUM_GAP} keyboardShouldPersistTaps="handled">
           {state.kind === "coupon" ? <CouponConfirm preview={state.preview} onDone={done} onFail={fail} onCancel={reset} /> : null}
           {state.kind === "order" ? <OrderHandOver order={state.order} onDone={() => done(null, null, state.order.title)} onFail={fail} onCancel={reset} /> : null}
           {state.kind === "done" ? <Done state={state} onNext={reset} /> : null}
@@ -169,7 +171,7 @@ export default function Scan() {
               </PrimaryButton>
             </>
           ) : null}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       )}
 
       <ManualSheet
@@ -374,23 +376,28 @@ function ManualSheet({ visible, onClose, onSubmit }: { visible: boolean; onClose
   const [code, setCode] = useState("");
   const [totp, setTotp] = useState("");
   const ready = code.trim().length >= 6 && /^\d{6}$/.test(totp);
+  const submit = () => {
+    onSubmit(code.trim(), totp);
+    setCode("");
+    setTotp("");
+  };
   return (
-    <Sheet visible={visible} onClose={onClose} title={sc.manualTitle} scroll>
+    <Sheet visible={visible} onClose={onClose} title={sc.manualTitle}>
       <View style={styles.sheetBody}>
         <Label>{sc.couponCode}</Label>
-        <Field value={code} onChangeText={(v) => setCode(v.toUpperCase())} placeholder={sc.couponPlaceholder} autoCapitalize="characters" autoCorrect={false} text={19} autoFocus />
+        <Field value={code} onChangeText={(v) => setCode(v.toUpperCase())} placeholder={sc.couponPlaceholder} autoCapitalize="characters" autoCorrect={false} text={19} autoFocus returnKeyType="next" />
         <Label style={styles.sheetLabel}>{sc.totpCode}</Label>
-        <Field value={totp} onChangeText={(v) => setTotp(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" placeholder="000000" text={22} maxLength={6} />
-        <PrimaryButton
-          tone="orange"
-          disabled={!ready}
-          onPress={() => {
-            onSubmit(code.trim(), totp);
-            setCode("");
-            setTotp("");
-          }}
-          style={styles.next}
-        >
+        <Field
+          value={totp}
+          onChangeText={(v) => setTotp(v.replace(/\D/g, "").slice(0, 6))}
+          keyboardType="number-pad"
+          placeholder="000000"
+          text={22}
+          maxLength={6}
+          returnKeyType="done"
+          onSubmitEditing={() => ready && submit()}
+        />
+        <PrimaryButton tone="orange" disabled={!ready} onPress={submit} style={styles.next}>
           {sc.check}
         </PrimaryButton>
       </View>
@@ -399,6 +406,8 @@ function ManualSheet({ visible, onClose, onSubmit }: { visible: boolean; onClose
 }
 
 const C = 34;
+/** Summa maydoni ostidagi to'lov turi va "Tasdiqlash" ham klaviatura ustida qolsin */
+const SUM_GAP = 260;
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.ink },
   flex1: { flex: 1 },

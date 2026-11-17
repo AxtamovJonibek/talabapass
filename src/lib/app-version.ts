@@ -25,14 +25,32 @@ export type AppConfig = {
   minVersion: { ios: string; android: string };
   latestVersion: string;
   storeUrls: { ios: string | null; android: string | null };
-  /** Kirish usullari (ilova tugmalari): telefon — `AUTH_PHONE_ENABLED` (standart true), Google/Apple — client ID sozlanganmi */
-  auth: { phone: boolean; google: boolean; apple: boolean };
+  /**
+   * Kirish usullari (ilova tugmalari): telefon — `AUTH_PHONE_ENABLED` (standart true), Google/Apple — client ID sozlanganmi;
+   * `appleWeb` — Android'dagi Apple web oqimi uchun `APPLE_CLIENT_ID` da Services ID bormi.
+   */
+  auth: { phone: boolean; google: boolean; apple: boolean; appleWeb: boolean };
 };
 
 type Env = Record<string, string | undefined>;
 const version = (value: string | undefined, fallback: string) => (value && VERSION_RE.test(value.trim()) ? value.trim() : fallback);
 const url = (value: string | undefined, fallback: string | null) => (value?.trim().startsWith("https://") ? value.trim() : fallback);
 const set = (...values: (string | undefined)[]) => values.some((v) => Boolean(v?.trim()));
+
+/** iOS ilovasining bundle ID'si — Apple native kirish tokenining `aud` i */
+export const APPLE_BUNDLE_ID = "uz.talabapass.app";
+
+/**
+ * Apple web oqimi (Android) uchun Services ID: `APPLE_CLIENT_ID` (vergul bilan, masalan `uz.talabapass.app,uz.talabapass.signin`)
+ * dagi bundle ID bo'lmagan birinchi qiymat. Yo'q — null (Android'da Apple bilan kirish sozlanmagan).
+ */
+export function appleWebClientId(env: Env): string | null {
+  const ids = (env.APPLE_CLIENT_ID ?? "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  return ids.find((id) => id !== APPLE_BUNDLE_ID) ?? null;
+}
 
 /**
  * Env: `APP_MIN_VERSION_IOS`, `APP_MIN_VERSION_ANDROID` (shundan past — majburiy yangilash), `APP_LATEST_VERSION`,
@@ -47,6 +65,7 @@ export function appConfigFromEnv(env: Env): AppConfig {
       phone: env.AUTH_PHONE_ENABLED?.trim().toLowerCase() !== "false",
       google: set(env.GOOGLE_CLIENT_ID_WEB, env.GOOGLE_CLIENT_ID_IOS, env.GOOGLE_CLIENT_ID_ANDROID),
       apple: set(env.APPLE_CLIENT_ID),
+      appleWeb: appleWebClientId(env) !== null,
     },
   };
 }

@@ -7,7 +7,7 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, 
  * bir turdagi token boshqa tur o'rnida ochilmaydi. Ichidagi ma'lumot (telefon, parol xeshi) mijozga ko'rinmaydi.
  */
 
-export type SealKind = "access" | "step" | "register";
+export type SealKind = "access" | "step" | "register" | "apple";
 
 const keyOf = (secret: string) => createHash("sha256").update(`tp-api-seal:${secret}`).digest();
 
@@ -21,7 +21,7 @@ export function seal(kind: SealKind, data: Record<string, unknown>, ttlMs: numbe
 
 /** Imzo to'g'ri bo'lsa — ma'lumot va muddat (`exp`, ms); buzilgan, boshqa turdagi yoki boshqa sir bilan — null. */
 export function unseal(kind: SealKind, token: string, secret: string): (Record<string, unknown> & { exp: number }) | null {
-  if (!/^[A-Za-z0-9_-]{40,2000}$/.test(token)) return null;
+  if (!/^[A-Za-z0-9_-]{40,12000}$/.test(token)) return null;
   const buf = Buffer.from(token, "base64url");
   // Faqat kanonik ko'rinish: dekoder ortiqcha oxirgi belgini jimgina tashlab yuboradi
   if (buf.length < 12 + 16 + 2 || buf.toString("base64url") !== token) return null;

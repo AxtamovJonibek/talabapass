@@ -1,9 +1,9 @@
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { ApiError, errorText } from "@/api/client";
 import { authApi, type SocialProvider } from "@/api/endpoints";
-import { appleAvailable, providerToken, socialErrorText } from "@/auth/use-social";
+import { providerToken, socialErrorText } from "@/auth/use-social";
 import { copy } from "@/copy";
 import { resetTo, useApp } from "@/state";
 import { colors } from "@/theme";
@@ -23,12 +23,7 @@ export default function DeleteAccount() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apple, setApple] = useState(false);
   const social = me !== null && !me.hasPassword;
-
-  useEffect(() => {
-    if (social) void appleAvailable().then(setApple);
-  }, [social]);
 
   const remove = async (provider?: SocialProvider) => {
     setBusy(true);
@@ -37,7 +32,7 @@ export default function DeleteAccount() {
       if (provider) {
         const token = await providerToken(provider);
         if (!token) return;
-        await authApi.deleteMe({ provider, idToken: token.idToken });
+        await authApi.deleteMe({ provider, idToken: token.idToken, ticket: token.ticket, verifier: token.verifier });
       } else {
         await authApi.deleteMe({ password });
       }
@@ -48,7 +43,7 @@ export default function DeleteAccount() {
       if (e instanceof ApiError && e.code === "wrong_password") setError(copy.login.wrongPassword(Number(e.details.left ?? 0)));
       else if (e instanceof ApiError && e.code === "password_locked") setError(t.locked(Math.ceil(Number(e.details.retryInSeconds ?? 900) / 60)));
       else if (e instanceof ApiError && e.code === "open_orders") setError(t.openOrders);
-      else setError(provider ? socialErrorText(e) : errorText(e));
+      else setError(provider ? socialErrorText(e, provider) : errorText(e));
     } finally {
       setBusy(false);
     }
@@ -78,7 +73,7 @@ export default function DeleteAccount() {
       </View>
 
       {social ? (
-        <Note style={styles.field}>{t.socialLead(apple ? "Google / Apple" : "Google")}</Note>
+        <Note style={styles.field}>{t.socialLead("Google / Apple")}</Note>
       ) : (
         <View style={styles.field}>
           <Label>{t.passwordLabel}</Label>
@@ -103,11 +98,9 @@ export default function DeleteAccount() {
           <SecondaryButton icon="trash" danger disabled={busy} onPress={() => confirm("GOOGLE")} style={styles.cta}>
             {t.confirmWith("Google")}
           </SecondaryButton>
-          {apple ? (
-            <SecondaryButton icon="trash" danger disabled={busy} onPress={() => confirm("APPLE")} style={styles.next}>
-              {t.confirmWith("Apple")}
-            </SecondaryButton>
-          ) : null}
+          <SecondaryButton icon="trash" danger disabled={busy} onPress={() => confirm("APPLE")} style={styles.next}>
+            {t.confirmWith("Apple")}
+          </SecondaryButton>
         </>
       ) : (
         <SecondaryButton icon="trash" danger disabled={busy} onPress={() => confirm()} style={styles.cta}>

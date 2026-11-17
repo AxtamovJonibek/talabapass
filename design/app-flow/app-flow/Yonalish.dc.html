@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>Ilova: qanday boraman</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<style>
+body{margin:0;font-family:'Archivo',system-ui,sans-serif}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F3F1EE; color: #111">
+  <dc-import name="Chegirma" hint-size="390px,844px"></dc-import>
+  <a href="Chegirma.dc.html" aria-label="Yopish" style="position: absolute; inset: 0; background: rgba(17, 17, 17, 0.45)"></a>
+
+  <div role="dialog" aria-label="Qanday borasiz?" style="position: absolute; left: 0; right: 0; bottom: 0; background: #F3F1EE; border-radius: 28px 28px 0 0; padding: 10px 20px 30px">
+    <div aria-hidden="true" style="width: 44px; height: 5px; border-radius: 3px; background: #D6D2CB; margin: 0 auto"></div>
+    <h2 style="margin: 18px 0 0; font-size: 28px; line-height: 1; font-weight: 900; letter-spacing: -0.02em; font-variation-settings: 'wdth' 112">Qanday borasiz?</h2>
+
+    <div style="margin-top: 16px; display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 18px; padding: 12px 8px 12px 16px">
+      <div style="flex: 1; min-width: 0">
+        <div style="font-size: 15px; font-weight: 800">Bunyodkor ko'chasi 12</div>
+        <div style="margin-top: 2px; font-size: 13px; font-weight: 600; color: #6B6760">Chilonzor · 0,4 km</div>
+      </div>
+      <button type="button" onClick="{{copy}}" style="height: 44px; padding: 0 14px; border-radius: 14px; border: 0; background: {{copyBg}}; color: {{copyColor}}; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 6px; cursor: pointer">
+        <sc-if value="{{copied}}" hint-placeholder-val="{{ false }}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F8A47" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </sc-if>
+        {{copyText}}
+      </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px">
+      <a href="https://yandex.uz/maps/" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 6px 14px; border-radius: 20px; background: #fff; color: #111; text-decoration: none">
+        <span role="img" aria-label="Yandex Xaritalar rasmiy belgisi joyi" style="width: 52px; height: 52px; border-radius: 16px; border: 1.5px dashed #CFCBC4; box-sizing: border-box"></span>
+        <span style="font-size: 13px; line-height: 1.2; font-weight: 800; text-align: center">Yandex<br>Xaritalar</span>
+      </a>
+      <a href="https://maps.google.com/" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 6px 14px; border-radius: 20px; background: #fff; color: #111; text-decoration: none">
+        <span role="img" aria-label="Google Maps rasmiy belgisi joyi" style="width: 52px; height: 52px; border-radius: 16px; border: 1.5px dashed #CFCBC4; box-sizing: border-box"></span>
+        <span style="font-size: 13px; line-height: 1.2; font-weight: 800; text-align: center">Google<br>Maps</span>
+      </a>
+      <a href="https://go.yandex/" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 6px 14px; border-radius: 20px; background: #fff; color: #111; text-decoration: none">
+        <span role="img" aria-label="Yandex Go rasmiy belgisi joyi" style="width: 52px; height: 52px; border-radius: 16px; border: 1.5px dashed #CFCBC4; box-sizing: border-box"></span>
+        <span style="font-size: 13px; line-height: 1.2; font-weight: 800; text-align: center">Yandex Go<br><span style="font-weight: 600; color: #6B6760">taksi</span></span>
+      </a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { copied: false };
+  }
+  renderVals() {
+    var self = this, c = this.state.copied;
+    return {
+      copied: c,
+      copyText: c ? "Nusxalandi" : "Nusxalash",
+      copyBg: c ? "#DFF7E7" : "#F3F1EE", copyColor: c ? "#1F8A47" : "#111111",
+      copy: function () { self.setState({ copied: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,14 +1,15 @@
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 import type { Point } from "@/api/endpoints";
 
 /**
- * "Qanday boraman?" havolalari — saytdagi `src/lib/directions.ts` bilan bir xil (oddiy https: ilova o'rnatilgan bo'lsa
- * telefon o'zi ochadi). Yandex — `rtext=~lat,lng` (boshlang'ich nuqta — joriy joy), Google — `travelmode`, Yandex Go — taksi.
+ * "Qanday borasiz?" havolalari (Yonalish.dc.html): Yandex Xaritalar, Google Maps, Yandex Go. Avval ilovaning o'z havolasi
+ * (o'rnatilgan bo'lsa — ilovada ochiladi), ochilmasa — oddiy https (brauzer; Google/Yandex o'zi ilovaga ham o'tkazadi).
+ * Web manzillar saytdagi `src/lib/directions.ts` bilan bir xil: Yandex — `rtext=~lat,lng` (boshlang'ich nuqta — joriy joy),
+ * Google — `travelmode`, Yandex Go — appmetrica orqali taksi. Marshrut turi: 1 km dan yaqin — piyoda, aks holda transport.
  */
 export const PROVIDERS = ["yandex", "google", "yandexGo"] as const;
 export type Provider = (typeof PROVIDERS)[number];
-export const ROUTE_MODES = ["car", "transit", "walk"] as const;
-export type RouteMode = (typeof ROUTE_MODES)[number];
+type RouteMode = "car" | "transit" | "walk";
 
 const YANDEX_RTT: Record<RouteMode, string> = { car: "auto", transit: "mt", walk: "pd" };
 const GOOGLE_MODE: Record<RouteMode, string> = { car: "driving", transit: "transit", walk: "walking" };
@@ -17,7 +18,14 @@ const YANDEX_GO_WEB = "25395763362139037";
 
 const coord = (n: number) => String(Number(n.toFixed(6)));
 
-export function directionsUrl(provider: Provider, target: { point: Point | null; address: string }, mode: RouteMode): string | null {
+/** Standart: 1 km dan yaqin — piyoda, aks holda jamoat transporti (saytdagi `defaultRouteMode`). */
+export const defaultRouteMode = (distanceKm: number | null): RouteMode => (distanceKm !== null && distanceKm < 1 ? "walk" : "transit");
+
+type Target = { point: Point | null; address: string; distanceKm: number | null };
+
+/** Brauzer havolasi (zaxira). Manzil nuqtasiz bo'lsa — matn bo'yicha qidiruv; Yandex Go nuqtasiz ishlamaydi — null. */
+export function directionsUrl(provider: Provider, target: Target): string | null {
+  const mode = defaultRouteMode(target.distanceKm);
   const { point, address } = target;
   if (!point) {
     const q = encodeURIComponent(address);
@@ -37,5 +45,43 @@ export function directionsUrl(provider: Provider, target: { point: Point | null;
   }
 }
 
-/** Standart: 1 km dan yaqin — piyoda, aks holda jamoat transporti (saytdagi `defaultRouteMode`). */
-export const defaultRouteMode = (distanceKm: number | null): RouteMode => (distanceKm !== null && distanceKm < 1 ? "walk" : "transit");
+/**
+ * Ilova havolasi (Yandex hujjatlaridagi sxemalar; Google Maps — iOS'da `comgooglemaps://`, Android'da https havolani
+ * Google Maps ilovasi o'zi ochadi). Yo'q bo'lsa — null.
+ */
+export function appUrl(provider: Provider, target: Target): string | null {
+  const mode = defaultRouteMode(target.distanceKm);
+  const { point, address } = target;
+  if (provider === "yandex") {
+    return point ? `yandexmaps://maps.yandex.ru/?rtext=~${coord(point.lat)},${coord(point.lng)}&rtt=${YANDEX_RTT[mode]}` : `yandexmaps://maps.yandex.ru/?text=${encodeURIComponent(address)}`;
+  }
+  if (provider === "google") {
+    if (Platform.OS !== "ios") return null;
+    const daddr = point ? `${coord(point.lat)},${coord(point.lng)}` : encodeURIComponent(address);
+    return `comgooglemaps://?daddr=${daddr}&directionsmode=${GOOGLE_MODE[mode]}`;
+  }
+  if (!point) return null;
+  return `yandextaxi://route?end-lat=${coord(point.lat)}&end-lon=${coord(point.lng)}&ref=talabapass&appmetrica_tracking_id=${YANDEX_GO_STORE}`;
+}
+
+/** Avval ilovada, ochilmasa (ilova yo'q) — brauzerda. Ikkalasi ham ochilmasa — false. */
+export async function openDirections(provider: Provider, target: Target): Promise<boolean> {
+  const native = Platform.OS === "web" ? null : appUrl(provider, target);
+  if (native) {
+    try {
+      await Linking.openURL(native);
+      return true;
+    } catch {
+      // ilova o'rnatilmagan — brauzerga
+    }
+  }
+  const web = directionsUrl(provider, target);
+  if (!web) return false;
+  try {
+    await Linking.openURL(web);
+    return true;
+  } catch (e) {
+    console.warn("[directions] havola ochilmadi:", provider, e);
+    return false;
+  }
+}

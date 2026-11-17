@@ -55,6 +55,7 @@ export default function BusinessDetails() {
           icon={{ name: "clock", color: colors.blue }}
           invalid={invalid.includes("workingHours")}
           maxLength={60}
+          returnKeyType="next"
         />
       </View>
 
@@ -67,6 +68,7 @@ export default function BusinessDetails() {
           keyboardType="number-pad"
           invalid={invalid.includes("tin")}
           maxLength={11}
+          returnKeyType="next"
           inputStyle={{ letterSpacing: em(19, 0.06) }}
         />
         <Note>{b.tinNote}</Note>

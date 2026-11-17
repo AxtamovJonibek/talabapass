@@ -102,7 +102,7 @@ export default function BusinessInfo() {
         </View>
         <View style={styles.flex}>
           <Label>{b.name}</Label>
-          <Field value={d.name} onChangeText={(name) => setDraft({ name })} placeholder={b.namePlaceholder} invalid={invalid.includes("name")} maxLength={60} boxStyle={styles.nameBox} />
+          <Field value={d.name} onChangeText={(name) => setDraft({ name })} placeholder={b.namePlaceholder} invalid={invalid.includes("name")} maxLength={60} boxStyle={styles.nameBox} returnKeyType="next" />
         </View>
       </View>
 
@@ -127,6 +127,7 @@ export default function BusinessInfo() {
           text={17}
           invalid={invalid.includes("address")}
           maxLength={160}
+          returnKeyType="done"
         />
       </View>
 

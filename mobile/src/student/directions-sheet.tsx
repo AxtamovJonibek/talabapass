@@ -1,17 +1,24 @@
-import { useState } from "react";
-import { Linking, StyleSheet, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, View, type ImageSourcePropType } from "react-native";
 import type { Point } from "@/api/endpoints";
 import { copy } from "@/copy";
-import { defaultRouteMode, directionsUrl, PROVIDERS, ROUTE_MODES, type Provider } from "@/lib/directions";
+import { openDirections, PROVIDERS, type Provider } from "@/lib/directions";
 import { formatKm } from "@/lib/format";
 import { colors, font } from "@/theme";
-import { Chip, MenuRow, Sheet } from "@/ui/app";
-import type { IconName } from "@/ui/icons";
-import { Txt } from "@/ui/kit";
+import { Sheet } from "@/ui/app";
+import { BRAND_LOGOS } from "@/ui/brands";
+import { Icon } from "@/ui/icons";
+import { Press, Txt } from "@/ui/kit";
 
-const PROVIDER_ICON: Record<Provider, IconName> = { yandex: "map", google: "navigate", yandexGo: "pin" };
+const LOGO: Record<Provider, ImageSourcePropType> = { yandex: BRAND_LOGOS.yandexMaps, google: BRAND_LOGOS.googleMaps, yandexGo: BRAND_LOGOS.yandexGo };
 
-/** "Qanday boraman?" (saytdagi `deal/directions.tsx`): biznes, manzil, masofa, mo'ljal, marshrut turi va xarita ilovalari. */
+/**
+ * "Qanday borasiz?" (design/app-flow/Yonalish.dc.html): manzil va "Nusxalash" (bosilsa "Nusxalandi" va yengil tebranish),
+ * pastda 3 katak — Yandex Xaritalar, Google Maps, Yandex Go (rasmiy belgilari bilan). Havola avval ilovada, ilova
+ * bo'lmasa brauzerda ochiladi (`src/lib/directions.ts`). Mo'ljal (bo'lsa) manzil ostida — dizaynda chizilmagan qator.
+ */
 export function DirectionsSheet({
   visible,
   onClose,
@@ -19,41 +26,66 @@ export function DirectionsSheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  target: { store: string; address: string; landmark: string | null; point: Point | null; distanceKm: number | null };
+  target: { address: string; district: string | null; landmark: string | null; point: Point | null; distanceKm: number | null };
 }) {
   const d = copy.directions;
-  const [mode, setMode] = useState(() => defaultRouteMode(target.distanceKm));
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 2500);
+    return () => clearTimeout(id);
+  }, [copied]);
+
+  const copyAddress = async () => {
+    await Clipboard.setStringAsync([target.address, target.district].filter(Boolean).join(", "));
+    setCopied(true);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+  };
+
+  const sub = [target.district, target.distanceKm !== null ? formatKm(target.distanceKm) : null].filter(Boolean).join(" · ");
 
   return (
-    <Sheet visible={visible} onClose={onClose} title={d.title}>
+    <Sheet visible={visible} onClose={onClose} title={d.title} titleSize={28} close={false}>
       <View style={styles.place}>
-        <Txt style={[font(800), { fontSize: 17 }]}>{target.store}</Txt>
-        <Txt style={styles.meta}>{target.address}</Txt>
-        {target.distanceKm !== null ? <Txt style={styles.meta}>{d.away(formatKm(target.distanceKm))}</Txt> : null}
-        {target.landmark ? <Txt style={styles.meta}>{copy.deal.landmark(target.landmark)}</Txt> : null}
+        <View style={styles.flex1}>
+          <Txt style={[font(800), styles.address]}>{target.address}</Txt>
+          {sub ? <Txt style={[font(600), styles.sub]}>{sub}</Txt> : null}
+          {target.landmark ? <Txt style={[font(600), styles.sub]}>{copy.deal.landmark(target.landmark)}</Txt> : null}
+        </View>
+        <Press
+          onPress={() => void copyAddress()}
+          accessibilityRole="button"
+          accessibilityLiveRegion="polite"
+          scale={0.95}
+          style={[styles.copy, { backgroundColor: copied ? colors.greenTint : colors.paper }]}
+        >
+          {copied ? <Icon name="tick" size={16} strokeWidth={3} color={colors.greenOk} /> : null}
+          <Txt style={[font(800), styles.copyText, { color: copied ? colors.greenOk : colors.ink }]}>{copied ? d.copied : d.copy}</Txt>
+        </Press>
       </View>
-      <View style={styles.modes}>
-        {ROUTE_MODES.map((m) => (
-          <Chip key={m} selected={mode === m} onPress={() => setMode(m)}>
-            {d.modes[m]}
-          </Chip>
-        ))}
-      </View>
-      <View style={styles.list}>
-        {PROVIDERS.map((p, i) => {
-          const url = directionsUrl(p, target, mode);
-          if (!url) return null;
+
+      <View style={styles.grid}>
+        {PROVIDERS.map((p) => {
+          const [first, second] = d.providers[p].split("\n");
           return (
-            <MenuRow
+            <Press
               key={p}
-              icon={PROVIDER_ICON[p]}
-              label={d.providers[p]}
-              last={i === PROVIDERS.length - 1}
               onPress={() => {
-                void Linking.openURL(url);
-                onClose();
+                void openDirections(p, target).then((opened) => opened && onClose());
               }}
-            />
+              accessibilityRole="link"
+              accessibilityLabel={p === "yandexGo" ? `${d.providers[p]}, ${d.taxi}` : d.providers[p].replace("\n", " ")}
+              scale={0.96}
+              style={styles.cell}
+            >
+              <Image source={LOGO[p]} style={styles.logo} resizeMode="contain" resizeMethod="resize" accessibilityLabel={d.logo(d.providers[p].replace("\n", " "))} />
+              <Txt style={[font(800), styles.label]}>
+                {first}
+                {"\n"}
+                {p === "yandexGo" ? <Txt style={[font(600), { color: colors.muted2 }]}>{d.taxi}</Txt> : second}
+              </Txt>
+            </Press>
           );
         })}
       </View>
@@ -62,8 +94,14 @@ export function DirectionsSheet({
 }
 
 const styles = StyleSheet.create({
-  place: { backgroundColor: colors.white, borderRadius: 20, padding: 16, gap: 4 },
-  meta: { fontSize: 14, lineHeight: 20, color: colors.muted2 },
-  modes: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginVertical: 14 },
-  list: { backgroundColor: colors.white, borderRadius: 20, paddingHorizontal: 14 },
+  flex1: { flex: 1, minWidth: 0 },
+  place: { marginTop: 8, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.white, borderRadius: 18, paddingVertical: 12, paddingLeft: 16, paddingRight: 8 },
+  address: { fontSize: 15 },
+  sub: { marginTop: 2, fontSize: 13, color: colors.muted2 },
+  copy: { height: 44, paddingHorizontal: 14, borderRadius: 14, flexDirection: "row", alignItems: "center", gap: 6 },
+  copyText: { fontSize: 14 },
+  grid: { flexDirection: "row", gap: 8, marginTop: 10 },
+  cell: { flex: 1, alignItems: "center", gap: 10, paddingTop: 16, paddingBottom: 14, paddingHorizontal: 6, borderRadius: 20, backgroundColor: colors.white },
+  logo: { width: 52, height: 52 },
+  label: { fontSize: 13, lineHeight: 16, textAlign: "center" },
 });

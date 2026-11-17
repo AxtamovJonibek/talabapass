@@ -57,12 +57,19 @@ Kirish usullari: **Google**, **Apple** (iOS) yoki **telefon**. Qaysi biri yoqilg
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
 | `POST /auth/google` | `{ idToken, intent: "student"\|"business", deviceName? }` | `SignedIn` + `next: "signedIn"` yoki `{ next: "register", role, registrationTicket, profile: { firstName, lastName, email } }` |
-| `POST /auth/apple` | `{ idToken, intent, firstName?, lastName?, deviceName? }` | xuddi shunday |
+| `POST /auth/apple` | `{ idToken, intent, firstName?, lastName?, deviceName? }` yoki (Android web oqimi) `{ ticket, verifier, intent, deviceName? }` | xuddi shunday |
+| `GET /auth/apple/start?state=` | — (brauzer) | 302 → Apple kirish sahifasi (Services ID, `form_post`); Services ID yo'q — `talabapass://auth/apple?error=unavailable` |
+| `POST /auth/apple/callback` | Apple `form_post`: `id_token`, `state`, `user?`, `error?` | 303 → `talabapass://auth/apple?ticket=…` (Android Chrome — `intent://…;package=uz.talabapass.app`) yoki `?error=cancelled\|failed` |
 
 - Token serverda tekshiriladi (`src/server/api/social-token.ts`, `jose`): imzo — provayderning ochiq kalitlari (JWKS, kesh),
   `iss` (Google: `accounts.google.com`; Apple: `appleid.apple.com`), `aud` — bizning client ID'lar, muddat.
   Google: `GOOGLE_CLIENT_ID_WEB` (Android tokeni ham shu `aud` bilan keladi), `GOOGLE_CLIENT_ID_IOS`, `GOOGLE_CLIENT_ID_ANDROID`;
-  Apple: `APPLE_CLIENT_ID` (bundle ID, `uz.talabapass.app`; vergul bilan bir nechta). Sozlanmagan — 503 `social_unavailable`.
+  Apple: `APPLE_CLIENT_ID` (vergul bilan: iOS bundle ID `uz.talabapass.app` va Android web oqimi uchun Services ID). Sozlanmagan — 503 `social_unavailable`.
+- **Apple Android'da (web oqimi, `src/server/api/apple-web.ts`)**: ilova tasodifiy `verifier` yaratadi, `state = base64url(sha256(verifier))`,
+  brauzerda `/auth/apple/start?state=` ni ochadi → Apple → `form_post` bilan `/auth/apple/callback` → server `id_token` va ismni
+  muhrlangan `ticket` ga (10 daqiqa) joylab ilovaga qaytaradi → ilova `{ ticket, verifier }` yuboradi. `sha256(verifier) ≠ state` —
+  `social_invalid` (deep link'ni boshqa ilova ushlasa ham, verifier'siz ticket ochilmaydi). Token tekshiruvi odatdagidek (`aud` — Services ID).
+  Services ID — `APPLE_CLIENT_ID` dagi bundle ID bo'lmagan birinchi qiymat; yo'q bo'lsa `app-config` `auth.appleWeb = false`.
 - Hisob `AuthIdentity` (`provider` + `sub`) bo'yicha topiladi. Topilmasa, lekin provayder **tasdiqlagan** email boshqa hisobda
   bo'lsa — shu hisobga bog'lanadi (bir xil email = bitta hisob, audit `user.identity.link`); tasdiqlanmagan email bog'lanmaydi
   va saqlanmaydi. Hech biri yo'q — **SMS va parolsiz** ro'yxat: `registrationTicket` (30 daqiqa) bilan `POST /student/register`
@@ -96,19 +103,21 @@ barcha sessiyalar (sayt ham) yopiladi.
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
-| `GET /app-config` | — (kirishsiz) | `{ minVersion: { ios, android }, latestVersion, storeUrls: { ios, android }, auth: { phone, google, apple } }` |
+| `GET /app-config` | — (kirishsiz) | `{ minVersion: { ios, android }, latestVersion, storeUrls: { ios, android }, auth: { phone, google, apple, appleWeb } }` |
 
 Qiymatlar env'dan: `APP_MIN_VERSION_IOS`, `APP_MIN_VERSION_ANDROID`, `APP_LATEST_VERSION`, `APP_STORE_URL_IOS`, `APP_STORE_URL_ANDROID`
 (berilmasa — 1.0.0 va Play havolasi; noto'g'ri qiymat — deploy `check-env` da to'xtaydi). Ilova versiyasi `minVersion` dan past —
 butun ekranli majburiy yangilash. `auth` — ilovadagi kirish tugmalari: `phone` — `AUTH_PHONE_ENABLED` (standart `true`; `false` —
-"Telefon raqam bilan" yashiriladi, SMS endpoint'lari o'zgarmaydi), `google` / `apple` — tegishli client ID sozlanganmi.
+"Telefon raqam bilan" yashiriladi, SMS endpoint'lari o'zgarmaydi), `google` / `apple` — tegishli client ID sozlanganmi,
+`appleWeb` — `APPLE_CLIENT_ID` da Services ID bormi (Android'dagi Apple web oqimi). Ilovada Apple tugmasi doim ko'rinadi;
+sozlanmagan bo'lsa bosilganda tushunarli xabar chiqadi.
 
 ## Profil
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
 | `GET /me` | Bearer | `{ user: { id, phone (Google/Apple hisobida null), email, role, firstName, lastName, hasPassword, student: { status, publicId, course, faculty, districtId, cardExpiresAt, university } \| null, business: { id, name, status, submitted, rejectReason, memberRole } \| null } }` |
-| `DELETE /me` | Bearer, `{ password }`; parolsiz (Google/Apple) hisob — `{ provider: "GOOGLE"\|"APPLE", idToken }` (yangi token) | `{ ok: true }` · xato: `wrong_password`, `password_locked`, `password_required`, `social_mismatch` (boshqa hisob tokeni), `open_orders` |
+| `DELETE /me` | Bearer, `{ password }`; parolsiz (Google/Apple) hisob — `{ provider: "GOOGLE"\|"APPLE", idToken }` (yangi token; Android Apple — `{ provider: "APPLE", ticket, verifier }`) | `{ ok: true }` · xato: `wrong_password`, `password_locked`, `password_required`, `social_mismatch` (boshqa hisob tokeni), `open_orders` |
 
 Hisobni o'chirish: qator qoladi (sotuv/kupon tarixi biznes hisobotlari uchun), shaxsiy ma'lumot tozalanadi, raqam
 bo'shaydi (`deleted:<id>`; shu raqam bilan keyin yangi hisob ochsa bo'ladi), email va Google/Apple bog'lanishlari ham
@@ -129,6 +138,10 @@ parolsiz) → `POST /student/register`
 | `POST /student/register` | `{ registrationTicket, firstName, lastName, universityId, universityOther?, course: "C1"\|"C2"\|"C3"\|"C4"\|"MASTER", deviceName? }` | 201 `SignedIn` (talaba `DRAFT`) · xato: `invalid_request` + `fields`, `step_expired` |
 | `POST /student/card` | Bearer (talaba, tasdiqlanmagan ham), multipart `file` (JPG/PNG/HEIC/PDF ≤ 10 MB) | 201 `{ verificationId, status: "PENDING" }` · xato: `file_bad_type`, `file_too_large`, `file_empty`, `upload_not_allowed` (tasdiqlangan), `upload_daily_limit` |
 | `GET /student/status` | Bearer (talaba) | `{ status, cardExpiresAt, verification: { id, status, fileName, rejectReason, createdAt, queuePosition } \| null }` |
+| `GET /student/profile` | Bearer (tasdiqlangan talaba) | `{ profile: { firstName, lastName, course, faculty, districtId, publicId, university: { name, shortName }, cardNumber, cardExpiresAt, avatarUrl } }` — `avatarUrl` imzoli (`/api/v1/files/avatar/…`) yoki null |
+| `PATCH /student/profile` | `{ firstName, lastName, course, faculty, districtId }` (saytdagi `profileSchema`, `src/lib/profile.ts`; bo'sh fakultet/tuman — o'chiriladi) | `{ ok, user }` (yangi `me`) · xato: `invalid_request` + `fields` (tuman topilmasa — `districtId`). Universitet, ID, guvohnoma o'zgarmaydi. Audit `student.profile.update` |
+| `POST /student/avatar` | multipart `file` (ilova kesgan 512×512 JPEG; server baribir qayta kodlaydi) | 201 `{ ok }` · xato: `file_bad_type`, `file_too_large`, `upload_daily_limit` |
+| `DELETE /student/avatar` | Bearer | `{ ok }` · rasm yo'q — `not_found` |
 
 `universityId = "other"` bo'lsa `universityOther` — OTM nomi (3–120 belgi); admin keyin ro'yxatga qo'shadi.
 Talaba holatlari: `DRAFT` (guvohnoma yuklash), `PENDING`, `APPROVED`, `REJECTED` (`rejectReason` bilan, qayta yuklaydi),
@@ -295,8 +308,7 @@ Hodisalar (har biri ilova ichi xabari ham):
 
 - Biznes ilovasida: oldindan buyurtma sozlamalari (rejim, jadval, to'lov — saytda), Excel hisobot, biznes bildirishnomalari ekrani
   (`GET /notifications` egasiga ochiq). Talaba: oldindan band qilish (buyurtma, to'lov).
-- Talaba: kupon tarixi ro'yxati (bitta chek — `GET /receipts/<id>`), profilni tahrirlash (ism, kurs, fakultet, tuman),
-  profil rasmi (`/api/avatar/<id>` cookie talab qiladi), bildirishnoma sozlamasi (saytdagi "Yangi chegirmalar haqida xabar"),
+- Talaba: kupon tarixi ro'yxati (bitta chek — `GET /receipts/<id>`), bildirishnoma sozlamasi (saytdagi "Yangi chegirmalar haqida xabar"),
   eng yaqin metro (yo'nalish oynasida; havolalar mijozda). Ilovada shular hozircha yo'q yoki saytga ochiladi.
 - Qurilmalar ro'yxati va boshqa sessiyalarni yopish; ru/en xato matnlari (`Accept-Language` qabul qilinadi, javob hozircha o'zbekcha).
 - Google/Apple hisobiga keyin telefon yoki parol qo'shish (saytga kirish uchun); mavjud telefon hisobiga Google'ni bog'lash.

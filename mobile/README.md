@@ -112,11 +112,19 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
   fontTools `instancer` bilan (`Archivo[wdth,wght].ttf`, google/fonts), oilaga alohida nom bering va `theme.ts` ga qo'shing.
 - **O'lchamlar:** dizayn px = dp. Dizayn `content-box`: 2px chegarali 58px maydon — jami 62 (`kit.tsx` `BOX`).
   Ramkadagi 56px status bar joyi: tepada `max(safe-top + 12, 56)`, pastda `max(safe-bottom + 16, 36)`.
-- **Ikonka va splash:** `node mobile/scripts/icons.mjs` (ildizdan). Ikonka 1024 (alfa kanalsiz — App Store talabi), Android adaptive
-  (oldi/fon/monoxrom), bildirishnoma ikonkasi (oq) — saytdagi PWA "ticket" belgisi. Splash: ko'k `#2432D6` fonda app-flow logotipi
-  "talaba[Pass]" (`splash-logo.png`; glif yo'llari `scripts/logo-paths.json`). Splash Archivo yuklanguncha turadi (`app/_layout.tsx`).
+- **Ikonka va splash:** `node scripts/brand-assets.mjs` (ildizdan; manba `design/brand/`; `mobile/scripts/icons.mjs` eskirgan). Ikonka 1024,
+  Android adaptive old va monoxrom qatlam — belgi 66dp xavfsiz zonaga sig'diriladi (launcher niqobi chetini kesmasin), bildirishnoma (oq).
+  Splash: ko'k `#2432D6` fonda oq logotip — **kvadrat** `splash-icon.png` (1152², `imageWidth: 192`). Android 12+ splash ikonkasini
+  288dp maydonda chizib, faqat markazdagi 192dp doirani ko'rsatadi: keng logotip to'g'ridan-to'g'ri berilsa chetlari kesiladi ("alaba Pas").
+  Splash Archivo yuklanguncha turadi (`app/_layout.tsx`). Splash'ni faqat release/preview build to'liq ko'rsatadi (Expo Go/dev — yo'q).
 - **Ruxsatlar** (`app.json`): kamera (guvohnoma, joy fotosi, QR), joylashuv (faqat ilova ochiqda), bildirishnoma, tebranish; mikrofon,
   fon joylashuvi, media/xotira, fon audio — `blockedPermissions` / plugin sozlamasi bilan o'chirilgan. Matnlar o'zbekcha. Dark mode yo'q (`light`).
+- **Klaviatura:** `react-native-keyboard-controller` (ildizda `KeyboardProvider`, Reanimated kerak). `Screen` — `KeyboardAwareScrollView`
+  (`KEYBOARD_GAP` 96: fokusdagi maydon va ostidagi asosiy tugma klaviatura ustida); pastdan oynalar (`Sheet`) va OTM tanlovi —
+  kutubxonaning `KeyboardAvoidingView` (Modal ichida ham ishlaydi). `Field`/`PasswordBox` da `returnKeyType="next"` — "Keyingi"
+  keyingi maydonga o'tkazadi (`KeyboardController.setFocusTo("next")`), oxirgisida `done` + yuborish. Yangi forma — shu qoidalar bilan.
+- **Rasmiy belgilar** (`assets/brands/`, manbalari `SOURCE.md`): Yandex Xaritalar, Google Maps, Yandex Go, Telegram, Instagram, Apple
+  logo-tugma — asl fayllar, o'zgartirilmagan, faqat kichraytiriladi (`src/ui/brands.ts`, Android'da `resizeMethod="resize"`).
 - Matn qo'shilsa — `src/i18n/uz.ts`, `ru.ts`, `en.ts` uchalasiga (kalitlar `Copy` tipi bilan tekshiriladi: biri yetishmasa `tsc` xato beradi).
   `copy` ni modul darajasida (`const x = copy.feed` fayl tepasida) olib qo'ymang — til almashsa eskisi qoladi; komponent ichida o'qing. Rang — `src/theme.ts` (dizaynda bor hex). Yangi native modul — `npx expo install`.
 
@@ -130,9 +138,15 @@ assets/sounds/           skaner/buyurtma signallari (`node mobile/scripts/sounds
 
 ## Google / Apple bilan kirish
 
-- Oqim (Auth.dc.html): karusel → "Google bilan davom etish", "Apple bilan davom etish" (faqat iOS, rasmiy `AppleAuthenticationButton`),
-  "yoki", "Telefon raqam bilan" → AuthTelefon. Qaysi tugma ko'rinishi — `GET /app-config` `auth` (server `AUTH_PHONE_ENABLED`,
-  Google/Apple client ID). Google tugmasi — rasmiy rangli "G" belgisi, oq fonda (branding qoidasi).
+- Oqim (Auth.dc.html): karusel → "Google bilan davom etish", "Apple bilan davom etish", "yoki", "Telefon raqam bilan" → AuthTelefon.
+  Apple tugmasi **doim** ko'rinadi: iOS — rasmiy `AppleAuthenticationButton` (native), Android — Apple'ning rasmiy logo-tugmasi bilan qora
+  tugma, web oqimi (`expo-web-browser` → `/api/v1/auth/apple/start` → Apple → `form_post` → `/api/v1/auth/apple/callback` →
+  `talabapass://auth/apple?ticket=…`; `app/+native-intent.tsx` bu havolani router'ga o'tkazmaydi). Sozlanmagan bo'lsa (iOS: `auth.apple`,
+  Android: `auth.appleWeb` false) — "Apple orqali kirib bo'lmadi. Google yoki telefon raqam bilan kiring." Google va telefon tugmasi —
+  `GET /app-config` `auth` bo'yicha. Google tugmasi — rasmiy rangli "G" belgisi, oq fonda (branding qoidasi).
+- **Xatolar:** har bir Google/Apple xatosi log'ga haqiqiy kodi bilan (`[google] kirish xatosi: code=10 …` — `adb logcat | findstr google`);
+  dev rejimida (`__DEV__`) ekranda ham "Xato kodi: …". Foydalanuvchiga — tushunarli jumla (`copy.auth.googleFailed|network|appleFailed`).
+  Android `code=10` (DEVELOPER_ERROR) — ilova imzosining SHA-1 i Google Cloud'dagi Android OAuth client'da yo'q (pastdagi qadamlar).
 - Hisob bor — ichkariga; yangi — SMS va parolsiz ro'yxatga (talaba 1/3 yoki biznes 1/4), ism Google'dan (Apple — birinchi ruxsatdagi ism)
   oldindan to'ldiriladi. Bunday hisobda telefon yo'q (profilda email), parol yo'q: hisobni o'chirish — shu provayder bilan qayta tasdiqlash.
 - Client ID'lar (maxfiy emas) `app.json` → `extra.google` (`webClientId` — token `aud` i, `iosClientId`) va plugin `iosUrlScheme`
@@ -148,7 +162,10 @@ Android'da Google tokeni faqat ilova imzosi (SHA-1) Google Cloud'dagi **Android*
 1. `cd mobile && npx eas-cli@latest login` (loyiha `@jonbekw/talabapass` ga bog'langan).
 2. Imzo kalitini yaratish/ko'rish: `npx eas-cli@latest credentials -p android` → profil `development` (keyin `preview`, `production` ham)
    → "Keystore: Manage everything needed to build your project" → kalit yo'q bo'lsa "Set up a new keystore" → ekranda **SHA1 Fingerprint**.
-   EAS profillari bitta keystore'ni ishlatadi (alohida sozlamagan bo'lsangiz) — SHA-1 bitta.
+   EAS profillari bitta keystore'ni ishlatadi (alohida sozlamagan bo'lsangiz) — SHA-1 bitta. Hozirgi (2026-11-17 yaratilgan, standart,
+   development/preview/production uchun bitta) keystore:
+   SHA-1 `C9:CF:C8:ED:44:6F:ED:65:AD:7B:CB:5A:D5:CB:0F:61:C2:9C:7C:BF`,
+   SHA-256 `E0:28:BA:CE:F7:2C:C7:6F:BE:B5:D0:05:9E:25:E1:D2:4F:B3:1F:25:2E:E5:34:07:56:42:B7:59:CB:9A:AE:B3`.
 3. Google Cloud Console → shu loyiha (853458934258) → APIs & Services → Credentials → Create credentials → OAuth client ID →
    **Android**: package `uz.talabapass.app`, SHA-1 — 2-qadamdagi. Play Store'ga chiqqanda Play Console → App integrity → "App signing key
    certificate" SHA-1 ni ham shu tarzda (ikkinchi Android client yoki o'sha client'ga) qo'shing.
@@ -168,8 +185,12 @@ npx eas-cli@latest build --profile preview --platform android       # mustaqil s
 npx eas-cli@latest build --profile development --platform ios       # iOS: Apple Developer hisobi; Sign in with Apple capability'ni EAS o'zi yoqadi
 ```
 
-Apple bilan kirish: Apple Developer → Identifiers → `uz.talabapass.app` → "Sign In with Apple" yoqilgan bo'lsin (EAS build `usesAppleSignIn`
-bilan so'raydi); serverda `APPLE_CLIENT_ID=uz.talabapass.app`.
+Apple bilan kirish:
+- iOS: Apple Developer → Identifiers → App ID `uz.talabapass.app` → "Sign In with Apple" yoqilgan (EAS build `usesAppleSignIn` bilan so'raydi).
+- Android (web oqimi): Identifiers → **Services IDs** → yangi (masalan `uz.talabapass.signin`), "Sign In with Apple" → Configure: Primary App ID
+  `uz.talabapass.app`, Domains `talabapass.uz`, Return URLs `https://talabapass.uz/api/v1/auth/apple/callback`.
+- Serverda `APPLE_CLIENT_ID=uz.talabapass.app,uz.talabapass.signin` (bundle ID va Services ID, vergul bilan) → `pm2 restart`.
+  Client secret / .p8 kalit kerak emas (faqat `id_token` tekshiriladi).
 
 ## Talaba ilovasi (kirgandan keyin)
 
@@ -225,12 +246,20 @@ bilan so'raydi); serverda `APPLE_CLIENT_ID=uz.talabapass.app`.
   sozlamalari — saytda, kassir taklifi havola o'rniga telefon raqami bilan.
 
 
-- Talaba ilovasi ekranlari (lenta, tafsilot, xarita, kupon, saralangan, bildirishnomalar, profil) app-flow'da chizilmagan — mazmun
-  saytdagi T4–T8 dan, ko'rinish app-flow primitivlari uslubida. Saytdagidan farqi: "Tez tugaydi" qatori, metro va profil tahriri yo'q;
-  kupon tarixi ro'yxati — saytda (bitta chek — kupon sotilgach "Chekni ko'rish").
+- Lenta (Lenta.dc.html), saralash (LentaFiltr.dc.html), chegirma (Chegirma.dc.html, yopiq — ChegirmaYopiq.dc.html) va "Qanday borasiz?"
+  (Yonalish.dc.html) — dizayndan. Chetlanishlar: kartada kategoriya nomi rasmsiz plitada (dizayndagi kabi), saralangan ro'yxatda
+  (kategoriyalar yuklanmagan) — biznes turi; chegirma sahifasi kichik ekranda bitta ekranga sig'ishi uchun rasm 220px gacha pasayadi;
+  yo'nalish oynasida mo'ljal (bo'lsa) manzil ostida — dizaynda chizilmagan qator; narxsiz chegirmada narx yorlig'ida matn ("Ikkinchisi bepul").
+- Qolgan talaba ekranlari (xarita, kupon, saralangan, bildirishnomalar, profil, ma'lumotlarni tahrirlash) app-flow'da chizilmagan — mazmun
+  saytdagi T5–T8 dan, ko'rinish app-flow primitivlari uslubida. Saytdagidan farqi: metro yo'q; kupon tarixi ro'yxati — saytda.
+- **Android "orqaga":** tablarda `backBehavior="firstRoute"` (istalgan tab → Chegirmalar / biznesda birinchi tab, undan — ilova fonga;
+  kassirda birinchi tab — Skaner). Kirish va ro'yxat tugashi `resetTo` (stek tozalanadi). Filtr/kategoriya/qidiruv — holatda (tarixda emas).
+  Oyna ochiq bo'lsa — avval oyna yopiladi (Modal `onRequestClose`). Chegirma/kupon/chek — stek ekranlari: orqaga — ochilgan joyiga,
+  lenta o'chmaydi (scroll joyi saqlanadi).
 
 - Slide2–4 (talaba karuseli) dizaynda yo'q — saytdagi kabi Main uslubida.
-- Auth: Apple tugmasi — dizayndagi qora "A" o'rniga rasmiy `AppleAuthenticationButton` (matni iOS tilida); Google — doira ichidagi "G"
+- Auth: Apple tugmasi — dizayndagi qora "A" o'rniga iOS'da rasmiy `AppleAuthenticationButton` (matni iOS tilida), Android'da Apple'ning
+  rasmiy logo-tugmasi (`assets/brands/apple-logo-button.png`) bilan qora tugma; Google — doira ichidagi "G"
   o'rniga rasmiy rangli belgi (Apple va Google branding qoidalari). Telefon ekrani (AuthTelefon) — "Biznes egasimisiz?" havolasi Auth'da.
 - Til ekrani profildan ochilganda ← va kichik logo (dizaynda faqat birinchi ochilish chizilgan).
 - OTM tanlash oynasi, xato bloklari, yuklanish holatlari, rad etilgan tekshiruv, bosh ekran — dizaynda chizilmagan (primitivlardan).

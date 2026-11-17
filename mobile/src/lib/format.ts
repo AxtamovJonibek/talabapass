@@ -56,6 +56,27 @@ export function statusPill(deal: { live: boolean; closesAt: string | null; opens
   return { tone: "closed", text: s.date(dayMonth(toTashkent(opensAt).date)) };
 }
 
+/** Birinchi harf katta: "ertaga 09:00 da ochiladi" → "Ertaga 09:00 da ochiladi" */
+export const upperFirst = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/**
+ * Yopiq chegirma qachon ochiladi (Chegirma.dc.html tugmasi va holat qatori): "45 daqiqadan keyin", "bugun 16:00 da",
+ * "ertaga 09:00 da", "Dushanba 09:00 da", "13.11 dan". Keyingi ochilish yo'q (aksiya tugagan) — null.
+ */
+export function opensWhen(deal: { opensAt: string | null }, now: Date): string | null {
+  const w = copy.deal.opensWhen;
+  if (!deal.opensAt) return null;
+  const opensAt = new Date(deal.opensAt);
+  const minutes = Math.ceil((opensAt.getTime() - now.getTime()) / 60_000);
+  if (minutes < 60) return w.soon(Math.max(1, minutes));
+  const inDays = daysBetween(now, opensAt);
+  const time = clock(deal.opensAt);
+  if (inDays <= 0) return w.today(time);
+  if (inDays === 1) return w.tomorrow(time);
+  if (inDays < 7) return w.weekday(copy.weekdays[toTashkent(opensAt).weekday - 1]!, time);
+  return w.date(dayMonth(toTashkent(opensAt).date));
+}
+
 /** Narxsiz chegirma matni: egasi yozgani yoki "Chek summasidan −15%" / "Ikkinchisi bepul" / "Bepul". */
 export function dealNote(deal: { note: string | null; badge: string }): string {
   if (deal.note) return deal.note;

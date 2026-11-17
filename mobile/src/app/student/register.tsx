@@ -77,11 +77,11 @@ export default function StudentRegister() {
       <View style={styles.names}>
         <View style={styles.half}>
           <Label>{s.firstName}</Label>
-          <Field value={firstName} onChangeText={setFirstName} placeholder={s.firstNamePlaceholder} invalid={bad("firstName")} autoComplete="given-name" textContentType="givenName" autoCapitalize="words" />
+          <Field value={firstName} onChangeText={setFirstName} placeholder={s.firstNamePlaceholder} invalid={bad("firstName")} autoComplete="given-name" textContentType="givenName" autoCapitalize="words" returnKeyType="next" />
         </View>
         <View style={styles.half}>
           <Label>{s.lastName}</Label>
-          <Field value={lastName} onChangeText={setLastName} placeholder={s.lastNamePlaceholder} invalid={bad("lastName")} autoComplete="family-name" textContentType="familyName" autoCapitalize="words" />
+          <Field value={lastName} onChangeText={setLastName} placeholder={s.lastNamePlaceholder} invalid={bad("lastName")} autoComplete="family-name" textContentType="familyName" autoCapitalize="words" returnKeyType="done" />
         </View>
       </View>
 

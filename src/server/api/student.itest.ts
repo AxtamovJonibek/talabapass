@@ -12,6 +12,8 @@ import { DELETE as pushDelete, POST as pushRegister } from "@/app/api/v1/push/de
 import { DELETE as unsave, PUT as save } from "@/app/api/v1/saved/[id]/route";
 import { GET as saved } from "@/app/api/v1/saved/route";
 import { POST as logout } from "@/app/api/v1/auth/logout/route";
+import { DELETE as removeAvatar, POST as uploadAvatar } from "@/app/api/v1/student/avatar/route";
+import { GET as profile, PATCH as editProfile } from "@/app/api/v1/student/profile/route";
 import { toTashkent } from "@/lib/time";
 import { db } from "../db";
 import { limitKey } from "./rate-limit";
@@ -26,6 +28,7 @@ const TIN = "900000331";
 const DAY_MS = 86_400_000;
 const HERE = { lat: 41.2995, lng: 69.2401 };
 const PUSH_TOKEN = "ExponentPushToken[itest-api-331]";
+const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 type Handler = (r: NextRequest, c: { params: Promise<any> }) => Promise<Response>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -35,11 +38,11 @@ let pendingToken: string;
 let studentId: string;
 let discountId: string;
 
-async function call(handler: Handler, path: string, { method = "GET", body, auth = token, params = {} }: { method?: string; body?: unknown; auth?: string; params?: object } = {}) {
+async function call(handler: Handler, path: string, { method = "GET", body, auth = token, params = {}, form }: { method?: string; body?: unknown; auth?: string; params?: object; form?: FormData } = {}) {
   const request = new NextRequest(`http://localhost${path}`, {
     method,
     headers: { authorization: `Bearer ${auth}`, "x-real-ip": "198.51.100.33" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: form ?? (body === undefined ? undefined : JSON.stringify(body)),
   });
   const res = await handler(request, { params: Promise.resolve(params) });
   return { status: res.status, json: (await res.json()) as Json };
@@ -52,7 +55,7 @@ async function cleanup() {
   await db.notification.deleteMany({ where: { createdById: { in: ids } } });
   await db.business.deleteMany({ where: { tin: TIN } });
   await db.user.deleteMany({ where: { id: { in: ids } } });
-  await db.rateLimitHit.deleteMany({ where: { key: { in: ids.flatMap((id) => [limitKey("claim", id), limitKey("write", id)]) } } });
+  await db.rateLimitHit.deleteMany({ where: { key: { in: ids.flatMap((id) => [limitKey("claim", id), limitKey("write", id), limitKey("upload", id)]) } } });
 }
 
 beforeAll(async () => {
@@ -173,6 +176,39 @@ describe("API: talaba asosiy", () => {
     const mine = (await call(coupons, "/api/v1/coupons")).json.coupons[0];
     expect((await call(couponState, `/api/v1/coupons/${mine.id}`, { auth: pendingToken, params: { id: mine.id } })).status).toBe(403);
     expect((await call(claim, "/api/v1/coupons", { method: "POST", body: { discountId }, auth: pendingToken })).json.error.code).toBe("student_not_approved");
+  });
+
+  it("profil: ko'rish, tahrirlash (universitet va guvohnoma o'zgarmaydi), rasm", async () => {
+    const before = await call(profile, "/api/v1/student/profile");
+    expect(before.status).toBe(200);
+    expect(before.json.profile).toMatchObject({ firstName: "Api", lastName: "Talaba", course: "C2", faculty: null, publicId: "TP-APITEST-1", avatarUrl: null });
+    expect((await call(profile, "/api/v1/student/profile", { auth: pendingToken })).status).toBe(403);
+
+    const district = await db.district.findFirstOrThrow();
+    const saved = await call(editProfile, "/api/v1/student/profile", {
+      method: "PATCH",
+      body: { firstName: " Ali ", lastName: "Valiyev", course: "C3", faculty: "Iqtisodiyot", districtId: district.id, universityId: "boshqa" },
+    });
+    expect(saved.status).toBe(200);
+    expect(saved.json.user).toMatchObject({ firstName: "Ali", lastName: "Valiyev", student: { course: "C3", faculty: "Iqtisodiyot", districtId: district.id, publicId: "TP-APITEST-1" } });
+    expect(saved.json.user.student.university.shortName).toBe(before.json.profile.university.shortName);
+
+    const bad = await call(editProfile, "/api/v1/student/profile", { method: "PATCH", body: { firstName: "1", lastName: "Valiyev", course: "C9", faculty: "", districtId: "" } });
+    expect(bad.status).toBe(400);
+    expect(bad.json.error.fields).toEqual(expect.arrayContaining(["firstName", "course"]));
+    const noDistrict = await call(editProfile, "/api/v1/student/profile", { method: "PATCH", body: { firstName: "Ali", lastName: "Valiyev", course: "C3", faculty: "", districtId: "yoq0000000" } });
+    expect(noDistrict.json.error).toMatchObject({ code: "invalid_request", fields: ["districtId"] });
+    const cleared = await call(editProfile, "/api/v1/student/profile", { method: "PATCH", body: { firstName: "Api", lastName: "Talaba", course: "C2", faculty: " ", districtId: "" } });
+    expect(cleared.json.user.student).toMatchObject({ faculty: null, districtId: null });
+
+    const form = new FormData();
+    form.append("file", new Blob([PNG], { type: "image/png" }), "avatar.png");
+    expect((await call(uploadAvatar, "/api/v1/student/avatar", { method: "POST", form })).status).toBe(201);
+    const withAvatar = await call(profile, "/api/v1/student/profile");
+    expect(withAvatar.json.profile.avatarUrl).toMatch(/^\/api\/v1\/files\/avatar\/.+sig=/);
+    expect((await call(removeAvatar, "/api/v1/student/avatar", { method: "DELETE" })).status).toBe(200);
+    expect((await call(removeAvatar, "/api/v1/student/avatar", { method: "DELETE" })).status).toBe(404);
+    expect((await call(profile, "/api/v1/student/profile")).json.profile.avatarUrl).toBeNull();
   });
 
   it("bildirishnomalar va push qurilmasi (chiqishda o'chadi)", async () => {

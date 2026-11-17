@@ -1,40 +1,37 @@
 import * as AppleAuthentication from "expo-apple-authentication";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { appleAvailable, useSocialSignIn } from "@/auth/use-social";
+import { ActivityIndicator, Image, Platform, StyleSheet, View } from "react-native";
+import { useSocialSignIn } from "@/auth/use-social";
 import { copy } from "@/copy";
 import { cachedAppConfig, loadAppConfig, type AppConfig } from "@/lib/app-version";
 import { wasOnboarded } from "@/storage";
 import { colors, font } from "@/theme";
+import { BRAND_LOGOS } from "@/ui/brands";
 import { GoogleG, Icon } from "@/ui/icons";
 import { Consent } from "@/ui/legal";
 import { BackArrow, ErrorBox, FooterLink, Lead, Logo, Press, Screen, Title, TopBar, Txt } from "@/ui/kit";
 
 type Methods = NonNullable<AppConfig["auth"]>;
-/** Server javobi kelguncha (yoki eski server) — hammasi ko'rinadi; Apple baribir faqat iOS'da */
+/** Server javobi kelguncha (yoki eski server) — hammasi ko'rinadi */
 const ALL: Methods = { phone: true, google: true, apple: true };
 
 /**
- * Auth (design/app-flow/Auth.dc.html): Google, Apple (faqat iOS — rasmiy tugma), "yoki", telefon raqam → AuthTelefon.
- * Qaysi usul ko'rinishi — `GET /app-config` `auth` (telefon: `AUTH_PHONE_ENABLED`, Google/Apple: serverda client ID).
+ * Auth (design/app-flow/Auth.dc.html): Google, Apple, "yoki", telefon raqam → AuthTelefon. Apple tugmasi DOIM ko'rinadi:
+ * iOS — rasmiy `AppleAuthenticationButton`, Android — Apple'ning rasmiy belgisi bilan qora tugma (web oqimi). Serverda
+ * sozlanmagan bo'lsa bosilganda "Apple orqali kirib bo'lmadi…" chiqadi. Google va telefon — `GET /app-config` `auth` bo'yicha.
  */
 export default function Auth() {
   const params = useLocalSearchParams<{ intent?: string }>();
   const intent = params.intent === "business" ? "business" : "student";
   const { run, busy, error } = useSocialSignIn(intent);
   const [methods, setMethods] = useState<Methods>(ALL);
-  const [apple, setApple] = useState(false);
   const a = copy.auth;
 
   useEffect(() => {
     void cachedAppConfig().then((c) => c?.auth && setMethods(c.auth));
     void loadAppConfig().then((c) => c?.auth && setMethods(c.auth));
-    void appleAvailable().then(setApple);
   }, []);
-
-  const showApple = apple && methods.apple;
-  const social = methods.google || showApple;
 
   const switchRole = async () => {
     if (intent === "student" && !(await wasOnboarded("business"))) router.push("/biz-intro");
@@ -81,7 +78,7 @@ export default function Auth() {
           </Press>
         ) : null}
 
-        {showApple ? (
+        {Platform.OS === "ios" ? (
           <AppleAuthentication.AppleAuthenticationButton
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
             buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
@@ -89,9 +86,21 @@ export default function Auth() {
             style={styles.apple}
             onPress={() => void run("APPLE")}
           />
-        ) : null}
+        ) : (
+          <Press
+            onPress={() => void run("APPLE")}
+            disabled={busy !== null}
+            accessibilityRole="button"
+            accessibilityState={{ busy: busy === "APPLE" }}
+            style={[styles.method, styles.appleCustom]}
+          >
+            <Image source={BRAND_LOGOS.appleButton} style={styles.appleLogo} accessibilityIgnoresInvertColors />
+            <Txt style={[font(800), styles.methodText, { color: colors.white }]}>{a.apple}</Txt>
+            {busy === "APPLE" ? <ActivityIndicator color={colors.white} /> : <Icon name="chevronRight" size={20} strokeWidth={2.4} color={colors.white} />}
+          </Press>
+        )}
 
-        {social && methods.phone ? (
+        {methods.phone ? (
           <View style={styles.divider}>
             <View style={styles.dash} />
             <Txt style={[font(600), styles.or]}>{a.or}</Txt>
@@ -140,6 +149,9 @@ const styles = StyleSheet.create({
   mark: { width: 28, height: 28, alignItems: "center", justifyContent: "center" },
   methodText: { flex: 1, fontSize: 17 },
   apple: { height: 58, width: "100%" },
+  appleCustom: { backgroundColor: colors.ink, paddingLeft: 8, paddingRight: 18, gap: 8 },
+  /** Apple'ning rasmiy logo-tugmasi (qora kvadrat, oq belgi) — qora tugma ichida */
+  appleLogo: { width: 42, height: 42 },
   divider: { flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 },
   dash: { flex: 1, borderTopWidth: 2, borderStyle: "dashed", borderColor: colors.line },
   or: { fontSize: 13, color: colors.muted2 },

@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,6 +13,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
+import { KeyboardAwareScrollView, KeyboardController } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, em, font } from "@/theme";
 import { Icon, UzFlag, type IconName } from "./icons";
@@ -27,6 +25,21 @@ import { Icon, UzFlag, type IconName } from "./icons";
  */
 
 const MAX_SCALE = 1.25;
+
+/**
+ * Klaviatura ochilganda fokusdagi maydon ostida shuncha joy ko'rinib turadi — maydon ostidagi asosiy tugma (58) va
+ * oraliq (≈24) ham klaviatura ustida qoladi (`react-native-keyboard-controller`, `KeyboardAwareScrollView`).
+ */
+export const KEYBOARD_GAP = 96;
+
+/**
+ * `returnKeyType="next"` bo'lsa va `onSubmitEditing` berilmagan bo'lsa — "Keyingi" tugmasi klaviaturani yopmasdan
+ * ekrandagi keyingi maydonga o'tkazadi.
+ */
+function submitProps(returnKeyType: TextInputProps["returnKeyType"], onSubmit: TextInputProps["onSubmitEditing"]): Pick<TextInputProps, "submitBehavior" | "onSubmitEditing"> {
+  if (returnKeyType !== "next" || onSubmit) return { onSubmitEditing: onSubmit };
+  return { submitBehavior: "submit", onSubmitEditing: () => KeyboardController.setFocusTo("next") };
+}
 
 /** Matn: Archivo 400, qora; tizim shrift kattalashtirishi cheklangan (dizayn qat'iy o'lchamli). */
 export function Txt({ style, ...props }: TextProps) {
@@ -57,12 +70,17 @@ export function Screen({
   };
   const bg = { backgroundColor: dark ? colors.ink : colors.paper };
   if (!scroll) return <View style={[styles.fill, bg, pad]}>{children}</View>;
+  // Fokusdagi maydon (va ostidagi tugma) klaviatura ustiga suriladi; klaviatura balandligicha pastda joy qo'shiladi
   return (
-    <KeyboardAvoidingView style={[styles.fill, bg]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView contentContainerStyle={[styles.grow, pad]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {children}
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <KeyboardAwareScrollView
+      style={[styles.fill, bg]}
+      contentContainerStyle={[styles.grow, pad]}
+      bottomOffset={KEYBOARD_GAP}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      {children}
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -201,12 +219,12 @@ export function Title({
   size: number;
   loose?: boolean;
   tone?: HighlightTone;
-  /** BizHujjat: stiker ichki chekkasi 10/3 (aks holda 12/4) */
-  tight?: boolean;
+  /** BizHujjat: stiker ichki chekkasi 10/3 (aks holda 12/4); `feed` — Lenta: 8/3, −2° */
+  tight?: boolean | "feed";
   style?: StyleProp<ViewStyle>;
   color?: string;
 }) {
-  const lineHeight = Math.round(size * (loose ? 1.04 : 1.02));
+  const lineHeight = Math.round(size * (tight === "feed" ? 1.05 : loose ? 1.04 : 1.02));
   const t: TextStyle = { ...font(900, 112), fontSize: size, lineHeight, letterSpacing: em(size, -0.02), color };
   const items: ReactNode[] = [];
   parseRich(text).forEach((seg, i) => {
@@ -221,9 +239,9 @@ export function Title({
           style={{
             backgroundColor: HL_BG[tone],
             borderRadius: 10,
-            paddingHorizontal: tight ? 10 : 12,
+            paddingHorizontal: tight === "feed" ? 8 : tight ? 10 : 12,
             paddingBottom: tight ? 3 : 4,
-            transform: [{ rotate: "-1.5deg" }],
+            transform: [{ rotate: tight === "feed" ? "-2deg" : "-1.5deg" }],
           }}
         >
           <Txt style={[t, { color: tone === "blue" ? colors.white : colors.ink }]}>{seg.text}</Txt>
@@ -354,7 +372,7 @@ type FieldProps = Omit<TextInputProps, "style"> & {
 };
 
 /** Qutidagi matn maydoni (Ism, Biznes nomi, Manzil, STIR…). */
-export function Field({ height = 58, text = 19, invalid, icon, inputStyle, boxStyle, trailing, onFocus, onBlur, ...props }: FieldProps) {
+export function Field({ height = 58, text = 19, invalid, icon, inputStyle, boxStyle, trailing, onFocus, onBlur, onSubmitEditing, ...props }: FieldProps) {
   const [focused, setFocused] = useState(false);
   return (
     <FieldBox height={height} focused={focused} invalid={invalid} style={[icon ? styles.gap10 : null, boxStyle]}>
@@ -364,6 +382,7 @@ export function Field({ height = 58, text = 19, invalid, icon, inputStyle, boxSt
         placeholderTextColor={colors.muted2}
         selectionColor={colors.blue}
         {...props}
+        {...submitProps(props.returnKeyType, onSubmitEditing)}
         onFocus={(e) => {
           setFocused(true);
           onFocus?.(e);
@@ -482,6 +501,7 @@ export function PasswordBox({
   trailing,
   newPassword = false,
   onSubmit,
+  returnKeyType = "done",
   label,
 }: {
   value: string;
@@ -493,6 +513,8 @@ export function PasswordBox({
   trailing?: ReactNode;
   newPassword?: boolean;
   onSubmit?: () => void;
+  /** "next" — keyingi maydonga (Parol → Parolni takrorlang) */
+  returnKeyType?: "done" | "next";
   label: string;
 }) {
   const [visible, setVisible] = useState(false);
@@ -509,8 +531,8 @@ export function PasswordBox({
         autoComplete={newPassword ? "new-password" : "current-password"}
         textContentType={newPassword ? "newPassword" : "password"}
         autoFocus={autoFocus}
-        returnKeyType="done"
-        onSubmitEditing={onSubmit}
+        returnKeyType={returnKeyType}
+        {...submitProps(returnKeyType, onSubmit)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         selectionColor={colors.blue}

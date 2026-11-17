@@ -522,6 +522,13 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   AsyncStorage'da (internetsiz ko'rinadi). Xarita — react-native-maps (Android build uchun Google Maps kaliti kerak), push — Expo push tokeni.
   `/api/v1` ga ilova uchun qo'shilganlar: `GET /districts`, `POST /notifications/read { ids }`, `CouponView.discountId`.
 - Render paytida `router.canGoBack()` chaqirmang (navigation.isFocused() ogohlantirishi) — `useCanGoBack()` hook.
+- Ilova 2-bosqich: Lenta/LentaFiltr/Chegirma/ChegirmaYopiq/Yonalish (`design/app-flow/app-flow/*.dc.html`) dizayndan; rasmiy belgilar
+  `mobile/assets/brands/` (manbalari `SOURCE.md`, o'zgartirilmaydi). Klaviatura — `react-native-keyboard-controller` (`Screen` =
+  `KeyboardAwareScrollView`, `Sheet` ichida `KeyboardAvoidingView`, `returnKeyType="next"` → keyingi maydon). Tablarda
+  `backBehavior="firstRoute"`. Profil tahriri: `GET/PATCH /api/v1/student/profile`, `POST/DELETE /api/v1/student/avatar` (sayt qoidalari
+  `src/lib/profile.ts`, `profile-image.ts`). Apple Android'da — web oqimi (`src/server/api/apple-web.ts`: start → `form_post` callback →
+  muhrlangan ticket + verifier), `APPLE_CLIENT_ID` = bundle ID va Services ID (vergul bilan), `app-config` `auth.appleWeb`.
+  Splash — kvadrat `splash-icon.png` (Android 12+ doira niqobi), adaptive ikonka 66dp xavfsiz zonada (`scripts/brand-assets.mjs`).
 - Biznes ilovasi (`src/app/panel` tablar, `src/app/biz`): egasi (tasdiqlangan biznes) va kassir, rolga qarab menyu; API — `/api/v1/business/*`
   (`src/server/api/business.ts`: `requireApiOwner`, `requireApiScanner`; testlar `business.itest.ts`). Kassir ilovada telefon raqami bilan
   qo'shiladi (`CashierInvite.phone`, `/auth/verify` → `role: "cashier"` → `/cashier/register`). Fayllar (rasm, chek PDF) API'da imzoli

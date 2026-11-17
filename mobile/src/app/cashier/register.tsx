@@ -56,7 +56,7 @@ export default function CashierRegister() {
 
       <View style={styles.field}>
         <Label>{c.firstName}</Label>
-        <Field value={firstName} onChangeText={setFirstName} invalid={invalid.includes("firstName")} autoComplete="given-name" textContentType="givenName" autoCapitalize="words" autoFocus />
+        <Field value={firstName} onChangeText={setFirstName} invalid={invalid.includes("firstName")} autoComplete="given-name" textContentType="givenName" autoCapitalize="words" autoFocus returnKeyType="next" />
       </View>
       <View style={styles.field}>
         <Label>{c.lastName}</Label>
@@ -67,6 +67,7 @@ export default function CashierRegister() {
           autoComplete="family-name"
           textContentType="familyName"
           autoCapitalize="words"
+          returnKeyType="done"
           onSubmitEditing={() => void submit()}
         />
       </View>

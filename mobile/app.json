@@ -3,7 +3,7 @@
     "name": "TalabaPass",
     "slug": "talabapass",
     "scheme": "talabapass",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -68,8 +68,8 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-logo.png",
-          "imageWidth": 240,
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 192,
           "resizeMode": "contain",
           "backgroundColor": "#2432D6"
         }
@@ -126,7 +126,8 @@
           "iosUrlScheme": "com.googleusercontent.apps.853458934258-u6d85ouqu2s078lh88g95ueme7tfm3jn"
         }
       ],
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-web-browser"
     ],
     "extra": {
       "google": {

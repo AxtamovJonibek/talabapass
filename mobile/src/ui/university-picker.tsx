@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { errorText } from "@/api/client";
 import { studentApi, type University } from "@/api/endpoints";
@@ -35,7 +36,7 @@ export function UniversityPicker({ visible, onClose, onPick }: { visible: boolea
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <KeyboardAvoidingView behavior="padding" style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.header}>
           <Txt style={[font(900, 112), { fontSize: 26 }]}>{s.university}</Txt>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={copy.back} style={styles.close} hitSlop={6}>
@@ -92,7 +93,7 @@ export function UniversityPicker({ visible, onClose, onPick }: { visible: boolea
             </PrimaryButton>
           </View>
         )}
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

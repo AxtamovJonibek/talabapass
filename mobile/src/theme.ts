@@ -38,6 +38,12 @@ export const colors = {
   tileKofe: "#E8DDCC",
   tileSport: "#D7EEDF",
   tileBogo: "#F3E6C4",
+  /** Lenta/Chegirma (Lenta.dc.html, Chegirma.dc.html): kam qoldiq va "tez orada ochiladi" matni */
+  rust: "#B23A0C",
+  /** Yopiq holat nuqtasi */
+  idle: "#8A877F",
+  /** Chegirma sahifasidagi xarita tugmasi foni */
+  mapTile: "#E9F0E4",
 } as const;
 
 /**

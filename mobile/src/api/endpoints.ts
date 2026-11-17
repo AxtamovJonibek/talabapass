@@ -183,12 +183,13 @@ export const authApi = {
   login: (ticket: string, password: string) => api<SignedIn>("/auth/login", { method: "POST", body: { ticket, password, deviceName }, auth: false }),
   setPassword: (ticket: string, password: string, confirm: string) =>
     api<SetPasswordResult>("/auth/password", { method: "POST", body: { ticket, password, confirm, deviceName }, auth: false }),
-  social: (provider: SocialProvider, body: { idToken: string; intent: Intent; firstName?: string; lastName?: string }) =>
+  /** Google va Apple (iOS) — `idToken`; Apple Android web oqimi — `ticket` + `verifier` */
+  social: (provider: SocialProvider, body: { idToken?: string; ticket?: string; verifier?: string; intent: Intent; firstName?: string; lastName?: string }) =>
     api<SocialResult>(provider === "GOOGLE" ? "/auth/google" : "/auth/apple", { method: "POST", body: { ...body, deviceName }, auth: false }),
   logout: () => api<{ ok: true }>("/auth/logout", { method: "POST" }),
   me: () => api<{ user: Me }>("/me"),
   /** Hisobni o'chirish (do'kon talabi) — parol bilan; parolsiz (Google/Apple) hisob — o'sha provayderning yangi tokeni bilan */
-  deleteMe: (confirm: { password: string } | { provider: SocialProvider; idToken: string }) => api<{ ok: true }>("/me", { method: "DELETE", body: confirm }),
+  deleteMe: (confirm: { password: string } | { provider: SocialProvider; idToken?: string; ticket?: string; verifier?: string }) => api<{ ok: true }>("/me", { method: "DELETE", body: confirm }),
 };
 
 /** Tasdiqlangan talaba: lenta, tafsilot, saralanganlar, kupon, bildirishnomalar, push (docs/api-v1.md). */
@@ -215,7 +216,29 @@ export const studentApi = {
     api<SignedIn>("/student/register", { method: "POST", body: { ...body, deviceName }, auth: false }),
   status: () => api<StudentStatusView>("/student/status"),
   uploadCard: async (file: LocalFile) => api<{ verificationId: string; status: "PENDING" }>("/student/card", { method: "POST", form: await fileForm(file) }),
+  profile: () => api<{ profile: StudentProfile }>("/student/profile"),
+  saveProfile: (body: StudentProfileEdit) => api<{ ok: true; user: Me }>("/student/profile", { method: "PATCH", body }),
+  uploadAvatar: async (file: LocalFile) => api<{ ok: true }>("/student/avatar", { method: "POST", form: await fileForm(file) }),
+  removeAvatar: () => api<{ ok: true }>("/student/avatar", { method: "DELETE" }),
 };
+
+/** Talaba profili (`GET /student/profile`): tahrirlanadiganlar va faqat ko'rish uchun (universitet, ID, guvohnoma) */
+export type StudentProfile = {
+  firstName: string | null;
+  lastName: string | null;
+  course: string;
+  faculty: string | null;
+  districtId: string | null;
+  publicId: string;
+  university: { name: string; shortName: string };
+  cardNumber: string | null;
+  cardExpiresAt: string | null;
+  /** Imzoli havola (1–2 soat) yoki null — bosh harflar */
+  avatarUrl: string | null;
+};
+
+/** Saytdagi `profileSchema` (`src/lib/profile.ts`): bo'sh fakultet/tuman — o'chiriladi */
+export type StudentProfileEdit = { firstName: string; lastName: string; course: string; faculty: string; districtId: string };
 
 export const businessApi = {
   validate: (step: "info" | "details", fields: Partial<BusinessInfo>) =>

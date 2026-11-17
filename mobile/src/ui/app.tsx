@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_URL } from "@/api/client";
 import type { FeedDeal } from "@/api/endpoints";
@@ -11,9 +12,9 @@ import { Icon, isIconName, type IconName } from "./icons";
 import { ErrorBox, PrimaryButton, Press, Title, Txt } from "./kit";
 
 /*
- * Talaba ilovasi primitivlari (kirgandan keyingi qism). Dizaynda chizilmagan — mazmun saytdagi talaba bo'limidan
- * (T4–T8: FeedCard, StatusPill, PctBadge), ko'rinish app-flow uslubida: paper fon, oq kartalar (radius 24), 2px qora
- * chegara, Archivo 900/112 sarlavhalar, 58px tugmalar.
+ * Talaba ilovasi primitivlari (kirgandan keyingi qism). Lenta kartasi, holat pilyulkasi, narx yorlig'i, foiz stikeri, oyna —
+ * Lenta.dc.html / LentaFiltr.dc.html / Chegirma.dc.html; qolganlari dizaynda chizilmagan — mazmun saytdagi talaba bo'limidan
+ * (T5–T8), ko'rinish app-flow uslubida: paper fon, oq kartalar (radius 24), 2px qora chegara, Archivo 900/112 sarlavhalar.
  */
 
 /** Nisbiy rasm manzili (`/api/chegirma/rasm/<id>`) → to'liq */
@@ -67,20 +68,20 @@ export function Chip({ selected, onPress, children, icon, label }: { selected: b
   );
 }
 
-const PILL: Record<PillTone, { dot: string; text: string }> = {
+export const PILL: Record<PillTone, { dot: string; text: string }> = {
   open: { dot: colors.green, text: colors.greenOk },
-  soon: { dot: colors.orange, text: "#9A3A0E" },
-  closed: { dot: colors.muted2, text: colors.muted },
+  soon: { dot: colors.orange, text: colors.rust },
+  closed: { dot: colors.idle, text: colors.ink5 },
 };
 
-/** Holat pilyulkasi (saytdagi `StatusPill`): "Hozir ochiq · 23:00 gacha" — yashil / to'q sariq / kulrang */
-export function StatusPill({ deal, now }: { deal: Pick<FeedDeal, "live" | "closesAt" | "opensAt">; now: Date }) {
+/** Holat pilyulkasi (Lenta.dc.html, rasm ustida): "Hozir ochiq · 21:00 gacha" — yashil / to'q sariq / kulrang nuqta */
+export function StatusPill({ deal, now, style }: { deal: Pick<FeedDeal, "live" | "closesAt" | "opensAt">; now: Date; style?: StyleProp<ViewStyle> }) {
   const pill = statusPill(deal, now);
   const tone = PILL[pill.tone];
   return (
-    <View style={styles.pill}>
+    <View style={[styles.pill, style]}>
       <View style={[styles.pillDot, { backgroundColor: tone.dot }]} />
-      <Txt numberOfLines={1} style={[font(700), { fontSize: 12, color: tone.text }]}>
+      <Txt numberOfLines={1} style={[font(800), { fontSize: 12, color: tone.text }]}>
         {pill.text}
       </Txt>
     </View>
@@ -96,18 +97,24 @@ export function PctBadge({ children, size = 40, style }: { children: string; siz
   );
 }
 
-/** "Tez tugayapti · 2/20" — qora fon, to'q sariq yozuv */
-export function StockTag({ children }: { children: string }) {
+const STICKER = {
+  card: { size: 32, radius: 12, pt: 1, px: 10, pb: 4, rotate: "7deg" },
+  hero: { size: 40, radius: 14, pt: 2, px: 12, pb: 5, rotate: "11deg" },
+} as const;
+
+/** Qiyshiq foiz stikeri (Lenta: rasm burchagida +7°; Chegirma: narx yorlig'i ustida +11°) */
+export function PctSticker({ children, size, style }: { children: string; size: keyof typeof STICKER; style?: StyleProp<ViewStyle> }) {
+  const s = STICKER[size];
   return (
-    <View style={styles.stock}>
-      <Txt style={[font(800), { fontSize: 11, letterSpacing: em(11, 0.06), color: colors.orange }]}>{children.toUpperCase()}</Txt>
+    <View style={[styles.sticker, { borderRadius: s.radius, paddingTop: s.pt, paddingHorizontal: s.px, paddingBottom: s.pb, transform: [{ rotate: s.rotate }] }, style]}>
+      <Txt style={[font(900, 62), { fontSize: s.size, lineHeight: Math.round(s.size * 1.05) }]}>{children}</Txt>
     </View>
   );
 }
 
 // ───────── chegirma kartasi ─────────
 
-/** Narx plitkasi: "26 600 so'm ~~38 000~~" yoki narxsiz matn */
+/** Narx plitkasi (kupon chiptasi): "26 600 so'm ~~38 000~~" yoki narxsiz matn */
 export function PriceLine({ deal, big = false }: { deal: Pick<FeedDeal, "price" | "note" | "badge">; big?: boolean }) {
   if (!deal.price) return <Txt style={[font(900), { fontSize: big ? 22 : 18, lineHeight: big ? 26 : 22 }]}>{dealNote(deal)}</Txt>;
   return (
@@ -119,69 +126,128 @@ export function PriceLine({ deal, big = false }: { deal: Pick<FeedDeal, "price" 
   );
 }
 
-/** Rasm yoki rasmsiz plita (katta bosh harf + "Rasm kutilmoqda") */
-export function DealImage({ deal, height, children }: { deal: Pick<FeedDeal, "images" | "store" | "tile" | "ink">; height: number; children?: ReactNode }) {
-  const [failed, setFailed] = useState(false);
-  const src = deal.images[0];
-  const letter = deal.store.trim().charAt(0).toUpperCase();
+const TAG = {
+  card: { price: 26, lh: 26, cur: 13, old: 13, radius: 12, pt: 5, pr: 12, pb: 6, pl: 24, hole: 8, holeLeft: 8, note: 18 },
+  hero: { price: 48, lh: 44, cur: 16, old: 14, radius: 16, pt: 12, pr: 20, pb: 12, pl: 34, hole: 12, holeLeft: 12, note: 28 },
+} as const;
+
+/**
+ * Narx yorlig'i — rasm pastki chetiga osilgan oq "bilet" (2px qora chegara, chapda teshikcha, −3° qiya). Lenta: narx,
+ * so'm, ustidan chizilgan eski narx; Chegirma (`hero`): ikkinchi qatorda eski narx va "12 000 tejaysiz". Narxsiz — matn.
+ * `children` — yorliq bilan birga qiyshayadigan qism (Chegirmadagi foiz stikeri).
+ */
+export function PriceTag({ deal, size, style, children }: { deal: Pick<FeedDeal, "price" | "note" | "badge">; size: keyof typeof TAG; style?: StyleProp<ViewStyle>; children?: ReactNode }) {
+  const t = TAG[size];
+  const old = deal.price?.old ?? null;
   return (
-    <View style={[styles.image, { height, backgroundColor: deal.tile }]}>
-      {src && !failed ? (
-        <Image source={{ uri: imageUrl(src) }} style={StyleSheet.absoluteFill} resizeMode="cover" onError={() => setFailed(true)} accessibilityIgnoresInvertColors />
-      ) : (
-        <>
-          <Txt style={[font(900, 112), styles.letter, { color: deal.ink, fontSize: height * 1.1, lineHeight: height * 1.15 }]}>{letter}</Txt>
-          <Txt style={[font(700), styles.pending, { color: deal.ink }]}>{copy.deal.pending.toUpperCase()}</Txt>
-        </>
-      )}
+    <View style={[styles.tagWrap, style]}>
+      <View style={[styles.tag, { borderRadius: t.radius, paddingTop: t.pt, paddingRight: t.pr, paddingBottom: t.pb, paddingLeft: t.pl }]}>
+        <View style={[styles.hole, { left: t.holeLeft, width: t.hole, height: t.hole, borderRadius: t.hole / 2, marginTop: -t.hole / 2 }]} />
+        {deal.price ? (
+          <View style={styles.tagRow}>
+            <Txt style={[font(900, 62), { fontSize: t.price, lineHeight: t.lh }]}>{formatSom(deal.price.now)}</Txt>
+            <Txt style={[font(800), { fontSize: t.cur }]}>{copy.currency}</Txt>
+            {size === "card" && old ? <Txt style={[font(700), styles.old, { fontSize: t.old }]}>{formatSom(old)}</Txt> : null}
+          </View>
+        ) : (
+          <Txt numberOfLines={2} style={[font(900), { fontSize: t.note, lineHeight: Math.round(t.note * 1.1), maxWidth: size === "card" ? 220 : 230 }]}>
+            {dealNote(deal)}
+          </Txt>
+        )}
+        {size === "hero" && deal.price && old ? (
+          <View style={styles.tagSub}>
+            <Txt style={[font(700), styles.old, { fontSize: t.old }]}>{formatSom(old)}</Txt>
+            <Txt style={[font(700), { fontSize: t.old, color: colors.greenOk }]}>{copy.deal.saves(formatSom(old - deal.price.now))}</Txt>
+          </View>
+        ) : null}
+      </View>
       {children}
     </View>
   );
 }
 
-/**
- * Lenta kartasi (saytdagi FeedCard "Lenta B · Jurnal" mazmuni): rasm (holat pilyulkasi, zaxira yorlig'i, narx plitkasi),
- * foiz yorlig'i, biznes · tuman · masofa, nom, "tejaysiz" va qoldiq.
- */
-export function DealCard({ deal, now, onPress }: { deal: FeedDeal; now: Date; onPress: () => void }) {
-  const low = isLowStock(deal, now);
-  const where = [deal.district, deal.distanceKm !== null ? formatKm(deal.distanceKm) : null].filter(Boolean).join(" · ");
-  const saves = deal.price?.old ? copy.deal.saves(formatSom(deal.price.old - deal.price.now)) : null;
+const ART = {
+  card: { size: 82, top: 48, right: -4, opacity: 0.13 },
+  hero: { size: 150, top: 105, right: -6, opacity: 0.12 },
+} as const;
+
+/** Rasmsiz chegirma: kategoriya rangi va katta, xira kategoriya nomi (Lenta/Chegirma dizaynidagi plita) */
+export function CategoryArt({ tile, ink, name, size }: { tile: string; ink: string; name: string; size: keyof typeof ART }) {
+  const a = ART[size];
   return (
-    <Press onPress={onPress} accessibilityRole="button" accessibilityLabel={`${deal.store}, ${deal.title}, ${deal.badge}`} scale={0.985} style={styles.cardWrap}>
-      <View style={styles.card}>
-        <DealImage deal={deal} height={180}>
-          <View style={styles.marks}>
-            <StatusPill deal={deal} now={now} />
-            {low ? <StockTag>{copy.deal.hot(deal.left, deal.total)}</StockTag> : null}
-          </View>
-          <View style={styles.priceTile}>
-            <PriceLine deal={deal} />
-          </View>
-        </DealImage>
-        <View style={styles.cardBody}>
-          <View style={styles.storeRow}>
-            <View style={[styles.storeDot, { backgroundColor: deal.ink }]}>
-              <Txt style={[font(900), { fontSize: 11, color: deal.tile }]}>{deal.store.trim().charAt(0).toUpperCase()}</Txt>
-            </View>
-            <Txt numberOfLines={1} style={[styles.flex1, { fontSize: 13, color: colors.muted }]}>
-              <Txt style={[font(700), { color: colors.ink }]}>{deal.store}</Txt>
-              {where ? ` · ${where}` : ""}
-            </Txt>
-          </View>
-          <Txt numberOfLines={2} style={[font(800), { fontSize: 21, lineHeight: 24, letterSpacing: em(21, -0.02) }]}>
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: tile }]} importantForAccessibility="no-hide-descendants">
+      <Txt numberOfLines={1} style={[font(900, 62), styles.art, { fontSize: a.size, lineHeight: a.size, top: a.top, right: a.right, opacity: a.opacity, color: ink }]}>
+        {name.toUpperCase()}
+      </Txt>
+    </View>
+  );
+}
+
+/** Chegirma rasmi yoki (rasm yo'q / ochilmadi) kategoriya plitasi */
+export function DealPhoto({ src, tile, ink, name, size }: { src: string | undefined; tile: string; ink: string; name: string; size: keyof typeof ART }) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return <CategoryArt tile={tile} ink={ink} name={name} size={size} />;
+  return (
+    <Image
+      source={{ uri: imageUrl(src) }}
+      style={[StyleSheet.absoluteFill, { backgroundColor: tile }]}
+      resizeMode="cover"
+      onError={() => setFailed(true)}
+      accessibilityIgnoresInvertColors
+    />
+  );
+}
+
+/**
+ * Lenta kartasi (Lenta.dc.html): oq qutisiz — 188px rasm (radius 22) ichida holat pilyulkasi, burchakda qiyshiq foiz
+ * stikeri, rasm pastki chetiga osilgan narx yorlig'i; ostida nom, "do'kon · tuman · masofa" va qoldiq (oz bo'lsa rust).
+ */
+export function DealCard({ deal, now, categoryName, onPress }: { deal: FeedDeal; now: Date; categoryName?: string; onPress: () => void }) {
+  const low = isLowStock(deal, now);
+  const where = [deal.store, deal.district, deal.distanceKm !== null ? formatKm(deal.distanceKm) : null].filter(Boolean).join(" · ");
+  return (
+    <Press onPress={onPress} accessibilityRole="button" accessibilityLabel={`${deal.store}, ${deal.title}, ${deal.badge}`} scale={0.985}>
+      <View>
+        <View style={[styles.cardImage, { backgroundColor: deal.tile }]}>
+          <DealPhoto src={deal.images[0]} tile={deal.tile} ink={deal.ink} name={categoryName ?? deal.typeLabel ?? ""} size="card" />
+          <StatusPill deal={deal} now={now} style={styles.cardPill} />
+        </View>
+        <PctSticker size="card" style={styles.cardSticker}>
+          {deal.badge}
+        </PctSticker>
+        <PriceTag deal={deal} size="card" style={styles.cardTag} />
+      </View>
+      <View style={styles.cardBody}>
+        <View style={styles.flex1}>
+          <Txt numberOfLines={2} style={[font(800), styles.cardTitle]}>
             {deal.title}
           </Txt>
-          <View style={styles.cardFoot}>
-            <Txt style={[font(700), { fontSize: 13, color: colors.greenOk }]}>{saves ?? ""}</Txt>
-            <Txt style={[low ? font(700) : null, { fontSize: 13, color: low ? colors.danger : colors.muted2 }]}>
-              {low ? copy.deal.leftLow(deal.left, deal.total) : copy.deal.left(deal.left, deal.total)}
-            </Txt>
-          </View>
+          <Txt numberOfLines={1} style={[font(600), styles.cardWhere]}>
+            {where}
+          </Txt>
         </View>
+        <Txt style={[font(800), styles.cardLeft, { color: low ? colors.rust : colors.muted2 }]}>{copy.feed.leftCount(deal.left)}</Txt>
       </View>
-      <PctBadge style={styles.cardPct}>{deal.badge}</PctBadge>
     </Press>
+  );
+}
+
+/** Kalit (switch): Lenta — 34×20, oynada — 46×28; yoqilgani ko'k */
+export function Toggle({ on, size = "sm" }: { on: boolean; size?: "sm" | "md" }) {
+  const md = size === "md";
+  return (
+    <View style={[md ? styles.toggleMd : styles.toggleSm, { backgroundColor: on ? colors.blue : colors.dot }]}>
+      <View style={[md ? styles.knobMd : styles.knobSm, { left: md ? (on ? 21 : 3) : on ? 16 : 2 }]} />
+    </View>
+  );
+}
+
+/** Radio doira (LentaFiltr): 22px, tanlangani ko'k halqa va nuqta */
+export function Radio({ on }: { on: boolean }) {
+  return (
+    <View style={[styles.radioRing, { borderColor: on ? colors.blue : colors.dot }]}>
+      <View style={[styles.radioDot, { backgroundColor: on ? colors.blue : "transparent" }]} />
+    </View>
   );
 }
 
@@ -227,8 +293,28 @@ export function Failed({ error, onRetry, style }: { error: string; onRetry: () =
 
 // ───────── oyna ─────────
 
-/** Pastdan chiqadigan oyna (saralash, joy tanlovi): parda bosilsa yopiladi */
-export function Sheet({ visible, onClose, title, children, scroll = false }: { visible: boolean; onClose: () => void; title: string; children: ReactNode; scroll?: boolean }) {
+/**
+ * Pastdan chiqadigan oyna (saralash, joy tanlovi, "Qanday borasiz?", qo'lda kiritish): parda bosilsa yoki Android
+ * "orqaga" — avval oyna yopiladi. Klaviatura ochilsa oyna u bilan birga ko'tariladi (`react-native-keyboard-controller`
+ * Modal ichida ham ishlaydi). `close={false}` — sarlavha yonida × yo'q (Yonalish.dc.html); `titleSize` 24 / 26 / 28.
+ */
+export function Sheet({
+  visible,
+  onClose,
+  title,
+  children,
+  scroll = false,
+  titleSize = 24,
+  close = true,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+  scroll?: boolean;
+  titleSize?: 24 | 26 | 28;
+  close?: boolean;
+}) {
   const insets = useSafeAreaInsets();
   const body = scroll ? (
     <ScrollView style={styles.sheetScroll} keyboardShouldPersistTaps="handled">
@@ -238,18 +324,20 @@ export function Sheet({ visible, onClose, title, children, scroll = false }: { v
     children
   );
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <View style={styles.sheetRoot}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
+      <KeyboardAvoidingView behavior="padding" style={styles.sheetRoot}>
         <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel={copy.feed.location.close} />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom + 16, 30) }]} accessibilityViewIsModal>
           <View style={styles.handle} />
-          <View style={styles.sheetHead}>
-            <Txt style={[font(900, 112), { fontSize: 24, letterSpacing: em(24, -0.02), flex: 1 }]}>{title}</Txt>
-            <RoundButton icon="x" label={copy.feed.location.close} onPress={onClose} />
+          <View style={[styles.sheetHead, close ? styles.sheetHeadClose : styles.sheetHeadPlain]}>
+            <Txt accessibilityRole="header" style={[font(900, 112), styles.flex1, { fontSize: titleSize, lineHeight: titleSize + 4, letterSpacing: em(titleSize, -0.02) }]}>
+              {title}
+            </Txt>
+            {close ? <RoundButton icon="x" label={copy.feed.location.close} onPress={onClose} /> : null}
           </View>
           {body}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -324,34 +412,32 @@ const styles = StyleSheet.create({
   roundDark: { backgroundColor: "rgba(17,17,17,0.55)" },
   dot: { position: "absolute", top: 9, right: 10, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.orange, borderWidth: 2, borderColor: colors.white },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, borderRadius: 999, paddingHorizontal: 16, borderWidth: 2, borderColor: colors.ink },
-  pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    alignSelf: "flex-start",
-    maxWidth: "100%",
-    backgroundColor: "rgba(255,255,255,0.92)",
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
+  pill: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", maxWidth: "100%", height: 28, paddingHorizontal: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.94)" },
   pillDot: { width: 7, height: 7, borderRadius: 4 },
   pct: { backgroundColor: colors.orange, borderRadius: 11, paddingHorizontal: 9, paddingTop: 5, paddingBottom: 3, transform: [{ rotate: "-3deg" }] },
-  stock: { alignSelf: "flex-start", backgroundColor: colors.ink, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
+  sticker: { position: "absolute", backgroundColor: colors.orange },
   priceRow: { flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" },
   old: { color: colors.muted2, textDecorationLine: "line-through" },
-  image: { overflow: "hidden", justifyContent: "center", alignItems: "center" },
-  letter: { position: "absolute", top: -30, right: -6, opacity: 0.14 },
-  pending: { position: "absolute", left: 14, bottom: 64, fontSize: 10, letterSpacing: 1 },
-  cardWrap: { marginTop: 10 },
-  card: { backgroundColor: colors.white, borderRadius: 24, overflow: "hidden" },
-  marks: { position: "absolute", top: 12, left: 12, right: 92, gap: 6, alignItems: "flex-start" },
-  priceTile: { position: "absolute", left: 0, bottom: 0, maxWidth: "100%", backgroundColor: colors.white, borderTopRightRadius: 16, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6 },
-  cardBody: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, gap: 6 },
-  storeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  storeDot: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  cardFoot: { flexDirection: "row", justifyContent: "space-between", gap: 8, marginTop: 2 },
-  cardPct: { position: "absolute", top: -8, right: -6 },
+  tagWrap: { position: "absolute", transform: [{ rotate: "-3deg" }], transformOrigin: ["0%", "50%", 0] },
+  tag: { backgroundColor: colors.white, borderWidth: 2, borderColor: colors.ink },
+  tagRow: { flexDirection: "row", alignItems: "baseline", gap: 5 },
+  tagSub: { flexDirection: "row", gap: 8, marginTop: 4 },
+  hole: { position: "absolute", top: "50%", backgroundColor: colors.paper, borderWidth: 2, borderColor: colors.ink },
+  art: { position: "absolute", includeFontPadding: false },
+  cardImage: { height: 188, borderRadius: 22, overflow: "hidden" },
+  cardPill: { position: "absolute", top: 12, left: 12, maxWidth: "72%" },
+  cardSticker: { top: -8, right: -6 },
+  cardTag: { left: 12, bottom: -14 },
+  cardBody: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginTop: 24 },
+  cardTitle: { fontSize: 19, lineHeight: 22, letterSpacing: em(19, -0.01) },
+  cardWhere: { marginTop: 4, fontSize: 13, color: colors.muted2 },
+  cardLeft: { marginTop: 3, fontSize: 13 },
+  toggleSm: { width: 34, height: 20, borderRadius: 10 },
+  knobSm: { position: "absolute", top: 2, width: 16, height: 16, borderRadius: 8, backgroundColor: colors.white },
+  toggleMd: { width: 46, height: 28, borderRadius: 14 },
+  knobMd: { position: "absolute", top: 3, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.white },
+  radioRing: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  radioDot: { width: 10, height: 10, borderRadius: 5 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 48 },
   empty: { alignItems: "center", paddingVertical: 40, paddingHorizontal: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.track, alignItems: "center", justifyContent: "center" },
@@ -364,8 +450,10 @@ const styles = StyleSheet.create({
   backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(17,17,17,0.45)" },
   sheet: { maxHeight: "86%", backgroundColor: colors.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10 },
   sheetScroll: { flexGrow: 0 },
-  handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: colors.line, marginBottom: 10 },
+  handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: colors.line },
   sheetHead: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 },
+  sheetHeadClose: { marginTop: 14 },
+  sheetHeadPlain: { marginTop: 18 },
   option: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 56, paddingHorizontal: 14, borderRadius: 16 },
   optionPressed: { backgroundColor: colors.track },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: colors.line, alignItems: "center", justifyContent: "center" },

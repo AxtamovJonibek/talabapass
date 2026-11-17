@@ -10,6 +10,8 @@ import { TabBar } from "@/ui/tab-bar";
  * Talaba ilovasi (kirgandan keyin): Chegirmalar, Yaqin, Kupon, Saralangan, Profil. Faqat tasdiqlangan (APPROVED)
  * talaba uchun — boshqa holatda o'z ekraniga (`routeFor`: DRAFT/EXPIRED — guvohnoma, PENDING/REJECTED — tekshiruv).
  * Push: tablarga kirganda ruxsat so'raladi va token yuboriladi (xatolar yutiladi).
+ * Android "orqaga" (`backBehavior="firstRoute"`): tablar orasida tarix yig'ilmaydi — istalgan tabdan orqaga → Chegirmalar,
+ * Chegirmalardan → ilova fonga o'tadi (ildiz stekda tablardan oldin ekran yo'q: kirish `resetTo` bilan tozalangan).
  */
 export default function StudentTabs() {
   const { me } = useApp();
@@ -26,7 +28,7 @@ export default function StudentTabs() {
   if (!approved) return null;
 
   return (
-    <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.paper } }}>
+    <Tabs backBehavior="firstRoute" tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.paper } }}>
       <Tabs.Screen name="deals" options={{ title: copy.tabs.deals }} />
       <Tabs.Screen name="nearby" options={{ title: copy.tabs.nearby }} />
       <Tabs.Screen name="coupon" options={{ title: copy.tabs.coupon }} />

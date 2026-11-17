@@ -1,11 +1,14 @@
 import { NextRequest } from "next/server";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { POST as appleCallback } from "@/app/api/v1/auth/apple/callback/route";
 import { POST as apple } from "@/app/api/v1/auth/apple/route";
+import { GET as appleStart } from "@/app/api/v1/auth/apple/start/route";
 import { POST as google } from "@/app/api/v1/auth/google/route";
 import { POST as businessRegister } from "@/app/api/v1/business/register/route";
 import { DELETE as deleteMe, GET as me } from "@/app/api/v1/me/route";
 import { POST as studentRegister } from "@/app/api/v1/student/register/route";
 import { db } from "../db";
+import { stateOf } from "./apple-web";
 import { limitKey } from "./rate-limit";
 import type { SocialProfile } from "./social-token";
 
@@ -140,6 +143,44 @@ describe("API: Google/Apple bilan kirish", () => {
     const gone = await db.user.findUniqueOrThrow({ where: { id: created.json.user.id }, select: { status: true, email: true, _count: { select: { identities: true } } } });
     expect(gone).toEqual({ status: "DELETED", email: null, _count: { identities: 0 } });
     expect((await send(google, req("/api/v1/auth/google", { idToken: idToken("g5", EMAIL) }))).json.next).toBe("register");
+  });
+
+  it("Apple web oqimi (Android): start → form_post callback → ticket + verifier bilan kirish va hisobni o'chirish", async () => {
+    const verifier = "a".repeat(30) + "B1_-" + "c".repeat(30);
+    const state = stateOf(verifier);
+    const android = "Mozilla/5.0 (Linux; Android 14) Chrome/130";
+
+    // Services ID yo'q — ilovaga xato bilan qaytadi; bor — Apple sahifasiga
+    const prev = process.env.APPLE_CLIENT_ID;
+    process.env.APPLE_CLIENT_ID = "uz.talabapass.app";
+    const off = await appleStart(new NextRequest(`http://localhost/api/v1/auth/apple/start?state=${state}`, { headers: { "user-agent": android } }), ctx);
+    expect(off.headers.get("location")).toBe("intent://auth/apple?error=unavailable#Intent;scheme=talabapass;package=uz.talabapass.app;end");
+    process.env.APPLE_CLIENT_ID = "uz.talabapass.app,uz.talabapass.signin";
+    const on = await appleStart(new NextRequest(`http://localhost/api/v1/auth/apple/start?state=${state}`), ctx);
+    expect(new URL(on.headers.get("location")!).searchParams.get("client_id")).toBe("uz.talabapass.signin");
+    process.env.APPLE_CLIENT_ID = prev;
+
+    const form = (fields: Record<string, string>) =>
+      new NextRequest("http://localhost/api/v1/auth/apple/callback", { method: "POST", headers: { "user-agent": android, "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(fields).toString() });
+    const cancelled = await appleCallback(form({ error: "user_cancelled_authorize", state }), ctx);
+    expect(cancelled.status).toBe(303);
+    expect(cancelled.headers.get("location")).toContain("error=cancelled");
+
+    const back = await appleCallback(form({ state, id_token: idToken("a-web", ""), user: JSON.stringify({ name: { firstName: "Olim", lastName: "Webov" } }) }), ctx);
+    const ticket = new URL(back.headers.get("location")!.replace(/^intent:/, "https:").replace(/#Intent.*$/, "")).searchParams.get("ticket")!;
+    expect(ticket.length).toBeGreaterThan(40);
+
+    // Boshqa verifier (deep link'ni ushlagan ilova) — o'tmaydi
+    expect((await send(apple, req("/api/v1/auth/apple", { ticket, verifier: verifier.replace("B", "C") }))).json.error.code).toBe("social_invalid");
+    const first = await send(apple, req("/api/v1/auth/apple", { ticket, verifier }));
+    expect(first.json).toMatchObject({ next: "register", role: "student", profile: { firstName: "Olim", lastName: "Webov" } });
+
+    const { id: universityId } = await university();
+    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: first.json.registrationTicket, firstName: "Olim", lastName: "Webov", universityId, course: "C1" }));
+    const token = created.json.tokens.accessToken as string;
+    const again = await appleCallback(form({ state, id_token: idToken("a-web", "") }), ctx);
+    const ticket2 = new URL(again.headers.get("location")!.replace(/^intent:/, "https:").replace(/#Intent.*$/, "")).searchParams.get("ticket")!;
+    expect(await send(deleteMe, req("/api/v1/me", { provider: "APPLE", ticket: ticket2, verifier }, { token, method: "DELETE" }))).toMatchObject({ status: 200, json: { ok: true } });
   });
 });
 

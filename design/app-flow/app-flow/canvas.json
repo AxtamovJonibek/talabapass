@@ -208,6 +208,51 @@
       "w": 390,
       "x": 2350,
       "y": 0
+    },
+    "Lenta.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "13 · Chegirmalar",
+      "w": 390,
+      "x": 0,
+      "y": 5200
+    },
+    "LentaFiltr.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "13b · Saralash",
+      "w": 390,
+      "x": 470,
+      "y": 5200
+    },
+    "Chegirma.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "14 · Chegirma sahifasi",
+      "w": 390,
+      "x": 940,
+      "y": 5200
+    },
+    "ChegirmaYopiq.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "14b · Chegirma: yopiq holat",
+      "w": 390,
+      "x": 1410,
+      "y": 5200
+    },
+    "Yonalish.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "14c · Qanday boraman?",
+      "w": 390,
+      "x": 1880,
+      "y": 5200
     }
   },
   "createdOnFiles": {
@@ -226,7 +271,10 @@
     "s4",
     "s5",
     "s6",
-    "s7"
+    "s7",
+    "t2",
+    "s8",
+    "s9"
   ],
   "notes": {
     "s1": {
@@ -292,6 +340,30 @@
       "w": 420,
       "x": -470,
       "y": -563
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 2740,
+      "text": "Talaba ilovasi: chegirmalar va chegirma sahifasi",
+      "w": 240,
+      "x": 0,
+      "y": 4900
+    },
+    "s8": {
+      "fill": "blue",
+      "size": 24,
+      "w": 420,
+      "x": 2820,
+      "y": 5200,
+      "text": "LENTA: joy, qidiruv (ichida saralash), kategoriyalar bitta gorizontal qatorda, 'Hozir ochiq' va saralash bitta qatorda. Kartada oq quti yo'q: rasm, foiz stikeri, rasm chetiga osilgan narx yorlig'i, ostida nom, do'kon · tuman · masofa va qoldiq."
+    },
+    "s9": {
+      "fill": "green",
+      "size": 24,
+      "w": 420,
+      "x": 2820,
+      "y": 5820,
+      "text": "CHEGIRMA: narx — rasm chetiga osilgan narx yorlig'i, foiz stikeri bilan. Asosiy shartlar chekdagidek nuqtali qatorlarda. Joy — pastdagi xarita tugmasi (masofa bilan), yonida asosiy tugma; yopiq/tugagan holatda tugma kulrang va sababi yozilgan. TG/IG va 'Qanday borasiz?' dagi bo'sh kataklar — rasmiy logotiplar turadigan joy, ilovada rasmiy fayllar qo'yiladi."
     }
   },
   "order": [
@@ -317,7 +389,12 @@
     "ParolBiznes.dc.html",
     "BizTafsilot.dc.html",
     "BizHujjat.dc.html",
-    "BizTekshiruv.dc.html"
+    "BizTekshiruv.dc.html",
+    "Lenta.dc.html",
+    "LentaFiltr.dc.html",
+    "Chegirma.dc.html",
+    "ChegirmaYopiq.dc.html",
+    "Yonalish.dc.html"
   ],
   "pages": [],
   "title": "TalabaPass ilova: tanishtiruv ekranlari"

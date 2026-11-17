@@ -1,14 +1,14 @@
 import Constants from "expo-constants";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
-import { appApi } from "@/api/endpoints";
+import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import { appApi, studentApi } from "@/api/endpoints";
 import { copy, langName } from "@/copy";
 import { initials } from "@/lib/format";
 import { contactLine } from "@/lib/phone";
 import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
-import { Card, InfoRow, MenuRow, ScreenHeader, TabScreen } from "@/ui/app";
+import { Card, imageUrl, InfoRow, MenuRow, ScreenHeader, TabScreen } from "@/ui/app";
 import { LEGAL, openSite } from "@/ui/legal";
 import { Txt } from "@/ui/kit";
 
@@ -18,17 +18,22 @@ const dateText = (iso: string) => iso.slice(0, 10).split("-").reverse().join("."
 /**
  * Profil (saytdagi T8 mazmuni): ism, telefon, universitet, kurs, fakultet, holat, ID, guvohnoma muddati; bildirishnomalar,
  * yordam, Maxfiylik siyosati va Foydalanish shartlari (saytdagi huquqiy sahifalar), chiqish va hisobni o'chirish
- * (do'kon talabi). Profilni tahrirlash API'da yo'q — keyingi ish.
+ * (do'kon talabi). "Ma'lumotlarni tahrirlash" — `/profile/edit` (rasm, ism, kurs, fakultet, tuman).
  */
 export default function Profile() {
   const p = copy.profile;
   const { me, reloadMe, signOut } = useApp();
   const [unread, setUnread] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       void reloadMe().catch(() => undefined);
+      void studentApi
+        .profile()
+        .then((r) => setAvatar(r.profile.avatarUrl))
+        .catch(() => undefined);
       void appApi
         .notifications()
         .then((r) => setUnread(r.unread))
@@ -61,7 +66,11 @@ export default function Profile() {
         <View style={styles.pad}>
           <View style={styles.hero}>
             <View style={styles.avatar}>
-              <Txt style={[font(900, 112), { fontSize: 28, color: colors.white }]}>{initials(me.firstName, me.lastName) || "T"}</Txt>
+              {avatar ? (
+                <Image source={{ uri: imageUrl(avatar) }} style={StyleSheet.absoluteFill} accessibilityIgnoresInvertColors />
+              ) : (
+                <Txt style={[font(900, 112), { fontSize: 28, color: colors.white }]}>{initials(me.firstName, me.lastName) || "T"}</Txt>
+              )}
             </View>
             <View style={styles.flex1}>
               <Txt numberOfLines={2} style={[font(900, 112), styles.name]}>
@@ -83,6 +92,7 @@ export default function Profile() {
           ) : null}
 
           <Card style={styles.card}>
+            {student ? <MenuRow icon="edit" label={p.edit} onPress={() => router.push("/profile/edit")} /> : null}
             <MenuRow icon="bell" label={p.notifications} value={unread > 0 ? String(unread) : undefined} onPress={() => router.push("/notifications")} />
             <MenuRow icon="globe" label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />
             <MenuRow icon="info" label={p.help} onPress={() => openSite("/#savollar")} />
@@ -107,7 +117,7 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 28 },
   pad: { paddingHorizontal: 24 },
   hero: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 18 },
-  avatar: { width: 72, height: 72, borderRadius: 24, backgroundColor: colors.blue, alignItems: "center", justifyContent: "center", transform: [{ rotate: "-4deg" }] },
+  avatar: { width: 72, height: 72, borderRadius: 24, overflow: "hidden", backgroundColor: colors.blue, alignItems: "center", justifyContent: "center", transform: [{ rotate: "-4deg" }] },
   name: { fontSize: 24, lineHeight: 26, letterSpacing: em(24, -0.02) },
   card: { marginTop: 16 },
   version: { fontSize: 12, color: colors.muted2, textAlign: "center", marginTop: 20 },

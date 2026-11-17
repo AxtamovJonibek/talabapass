@@ -11,6 +11,8 @@ import { BIZ_TABS, TabBar } from "@/ui/tab-bar";
  * Biznes ilovasi (kirgandan keyin), rolga qarab menyu: egasi — Statistika, Chegirmalar, Skaner, Sotuvlar, Profil;
  * kassir — Skaner, Sotuvlar, Profil (qolganlari `href: null` — server ham 403 beradi). Egasi faqat tasdiqlangan biznes bilan
  * (aks holda `routeFor` — ariza yoki tekshiruv ekrani). Push: ruxsat va token (bosilgan xabar — `PushHandler`, ildizda).
+ * Android "orqaga" (`backBehavior="firstRoute"`): istalgan tabdan → birinchi tab (egasi — Statistika, kassir — Skaner;
+ * shuning uchun kassirda Skaner ro'yxatda birinchi), undan — ilova fonga.
  */
 export default function BusinessTabs() {
   const { me } = useApp();
@@ -33,14 +35,17 @@ export default function BusinessTabs() {
     <OrdersWatch active={owner}>
       {/* Boshlang'ich tab manzildan: egasi — /panel/stats, kassir — /panel/scan (`routeFor`) */}
       <Tabs
+        backBehavior="firstRoute"
         tabBar={(props) => <TabBar {...props} {...BIZ_TABS} />}
         screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.paper } }}
       >
-        <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats, ...hidden }} />
-        <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts, ...hidden }} />
+        {owner ? <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats }} /> : null}
+        {owner ? <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts }} /> : null}
         <Tabs.Screen name="scan" options={{ title: copy.biz.tabs.scan }} />
         <Tabs.Screen name="sales" options={{ title: copy.biz.tabs.sales }} />
         <Tabs.Screen name="profile" options={{ title: copy.biz.tabs.profile }} />
+        {owner ? null : <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats, ...hidden }} />}
+        {owner ? null : <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts, ...hidden }} />}
       </Tabs>
     </OrdersWatch>
   );

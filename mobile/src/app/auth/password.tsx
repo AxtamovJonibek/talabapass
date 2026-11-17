@@ -71,6 +71,7 @@ export default function SetPassword() {
           }}
           autoFocus
           newPassword
+          returnKeyType="next"
           toggle={{ show: l.showPassword, hide: l.hidePassword }}
           label={l.passwordLabel}
         />

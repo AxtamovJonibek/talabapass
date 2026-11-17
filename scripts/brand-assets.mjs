@@ -2,7 +2,8 @@
  * Brend fayllarini joyiga qo'yadi: `node scripts/brand-assets.mjs`. Manba — design/brand/ (README va _build-logo.py o'sha yerda).
  * - public/: favicon (ico, svg, 16/32/48), apple-touch-icon, icon-192/512, icon-maskable-512, og-image, logo(-white).svg/png,
  *   brand/wordmark(-white).svg — sayt ichidagi `Logo` uchun bo'sh chetsiz nusxa (asl faylda atrofida bo'sh joy bor).
- * - mobile/assets/: Expo ikonkasi, Android adaptive old qatlami va monoxrom qatlami, bildirishnoma ikonkasi, splash (oq logotip).
+ * - mobile/assets/: Expo ikonkasi, Android adaptive old va monoxrom qatlami (66dp xavfsiz zonaga sig'dirilgan), bildirishnoma
+ *   ikonkasi, splash (oq logotip, Android 12+ doirasiga sig'adigan kvadrat).
  * - android/ (Capacitor qobig'i) bo'lsa: launcher ikonkalari va splash.
  * Fayllar faqat ko'chiriladi yoki brend SVG'laridan chiziladi — yangi rang/shakl qo'shilmaydi.
  */
@@ -41,16 +42,56 @@ for (const [from, to] of [
 
 // --- Expo ilovasi
 copy("talabapass-icon-1024.png", "mobile/assets/icon.png");
-copy("talabapass-adaptive-foreground-1024.png", "mobile/assets/android-icon-foreground.png");
 copy("talabapass-notification-96.png", "mobile/assets/notification-icon.png");
 copy("favicon-48.png", "mobile/assets/favicon.png");
-copy("talabapass-logo-white.png", "mobile/assets/splash-logo.png");
+
+/**
+ * Android adaptive ikonka: launcher niqobi (doira, squircle…) 108dp qatlamdan faqat markazdagi 66dp xavfsiz doirani
+ * kafolatlaydi. Brend old qatlamida chipta burchaklari va "%" belgisi undan chiqadi — mobil nusxada belgi butunligicha
+ * kichraytiriladi (shakl va rang o'zgarmaydi), eng chetki piksel 64dp doira ichida qoladi.
+ */
+const SAFE_RADIUS = (32 / 108) * 1024;
+async function fitSafeZone(input, output) {
+  const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const c = info.width / 2;
+  let max = 0;
+  for (let y = 0; y < info.height; y++) {
+    for (let x = 0; x < info.width; x++) {
+      if (data[(y * info.width + x) * 4 + 3] > 8) max = Math.max(max, Math.hypot(x + 0.5 - c, y + 0.5 - c));
+    }
+  }
+  const k = Math.min(1, SAFE_RADIUS / max);
+  const size = Math.round(1024 * k);
+  const small = await sharp(input).resize(size, size).png().toBuffer();
+  const offset = Math.round((1024 - size) / 2);
+  await sharp({ create: { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([{ input: small, left: offset, top: offset }])
+    .png()
+    .toFile(output);
+  console.log(output, `(${Math.round(max)}px -> ${Math.round(max * k)}px, xavfsiz ${Math.round(SAFE_RADIUS)}px)`);
+}
+await fitSafeZone(readFileSync(`${SRC}/talabapass-adaptive-foreground-1024.png`), "mobile/assets/android-icon-foreground.png");
+
+/**
+ * Splash (expo-splash-screen, app.json `imageWidth: 192`): kvadrat shaffof rasm. Android 12+ splash ikonkasini 288dp maydonda
+ * chizadi va faqat markazdagi 192dp doirani ko'rsatadi; plagin rasmni `imageWidth` kvadratga `contain` qiladi — demak rasm = shu
+ * doira. Oq logotip (chetidagi bo'sh joysiz) burchaklari radiusning 86% ichida — chetlarda bo'sh joy qoladi. iOS'da ham shu rasm.
+ */
+const SPLASH = 1152; // 192dp × 6
+const wordmark = await sharp(`${SRC}/talabapass-logo-white.png`).trim().toBuffer({ resolveWithObject: true });
+const fit = (0.86 * SPLASH) / Math.hypot(wordmark.info.width, wordmark.info.height);
+const logoW = Math.round(wordmark.info.width * fit);
+const logoH = Math.round(wordmark.info.height * fit);
+await sharp({ create: { width: SPLASH, height: SPLASH, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+  .composite([{ input: await sharp(wordmark.data).resize(logoW, logoH).png().toBuffer(), left: Math.round((SPLASH - logoW) / 2), top: Math.round((SPLASH - logoH) / 2) }])
+  .png()
+  .toFile("mobile/assets/splash-icon.png");
+console.log("mobile/assets/splash-icon.png", `${logoW}x${logoH} / ${SPLASH}`);
 
 // Monoxrom (Android 13 mavzuli ikonka): bildirishnoma siluetini adaptive old qatlamdagi chipta joyi va o'lchamida chizamiz.
 const silhouette = readFileSync(`${SRC}/talabapass-notification.svg`, "utf8").match(/<path d="([^"]+)"/)[1];
 const monochrome = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><g transform="translate(512 512) scale(0.92) translate(-17 -19) rotate(-8)"><path d="${silhouette}" fill="#FFFFFF" fill-rule="evenodd"/></g></svg>`;
-await sharp(Buffer.from(monochrome)).png().toFile("mobile/assets/android-icon-monochrome.png");
-console.log("mobile/assets/android-icon-monochrome.png");
+await fitSafeZone(await sharp(Buffer.from(monochrome)).png().toBuffer(), "mobile/assets/android-icon-monochrome.png");
 
 // --- Capacitor qobig'i (android/)
 const res = "android/app/src/main/res";

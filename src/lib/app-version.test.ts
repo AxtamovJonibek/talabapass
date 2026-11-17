@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appConfigFromEnv, appConfigProblems, compareVersions } from "./app-version";
+import { appConfigFromEnv, appConfigProblems, appleWebClientId, compareVersions } from "./app-version";
 
 describe("ilova versiyalari", () => {
   it("raqamlar bo'yicha taqqoslanadi (matn emas)", () => {
@@ -14,15 +14,23 @@ describe("ilova versiyalari", () => {
       minVersion: { ios: "1.0.0", android: "1.0.0" },
       latestVersion: "1.0.0",
       storeUrls: { ios: null, android: "https://play.google.com/store/apps/details?id=uz.talabapass.app" },
-      auth: { phone: true, google: false, apple: false },
+      auth: { phone: true, google: false, apple: false, appleWeb: false },
     });
   });
 
   it("kirish usullari: telefon standart yoqiq, Google/Apple — client ID bo'lsa", () => {
-    expect(appConfigFromEnv({ AUTH_PHONE_ENABLED: "false", GOOGLE_CLIENT_ID_WEB: "w.apps.googleusercontent.com" }).auth).toEqual({ phone: false, google: true, apple: false });
-    expect(appConfigFromEnv({ AUTH_PHONE_ENABLED: "TRUE", APPLE_CLIENT_ID: "uz.talabapass.app" }).auth).toEqual({ phone: true, google: false, apple: true });
+    expect(appConfigFromEnv({ AUTH_PHONE_ENABLED: "false", GOOGLE_CLIENT_ID_WEB: "w.apps.googleusercontent.com" }).auth).toEqual({ phone: false, google: true, apple: false, appleWeb: false });
+    expect(appConfigFromEnv({ AUTH_PHONE_ENABLED: "TRUE", APPLE_CLIENT_ID: "uz.talabapass.app" }).auth).toEqual({ phone: true, google: false, apple: true, appleWeb: false });
     expect(appConfigProblems({ AUTH_PHONE_ENABLED: "yo'q" })).toHaveLength(1);
     expect(appConfigProblems({ GOOGLE_CLIENT_ID_WEB: "client-secret-emas" })).toHaveLength(1);
+  });
+
+  it("Apple: Services ID (bundle ID bo'lmagani) bo'lsa — Android web oqimi yoqiq", () => {
+    const env = { APPLE_CLIENT_ID: " uz.talabapass.app , uz.talabapass.signin " };
+    expect(appleWebClientId(env)).toBe("uz.talabapass.signin");
+    expect(appConfigFromEnv(env).auth).toMatchObject({ apple: true, appleWeb: true });
+    expect(appleWebClientId({ APPLE_CLIENT_ID: "uz.talabapass.app" })).toBeNull();
+    expect(appleWebClientId({})).toBeNull();
   });
 
   it("env qiymatlari; noto'g'risi standartga tushadi va env-check'da xato", () => {

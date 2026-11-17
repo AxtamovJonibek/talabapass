@@ -14,7 +14,8 @@ export type AppConfig = {
   latestVersion: string;
   storeUrls: { ios: string | null; android: string | null };
   /** Kirish usullari (eski server javobida yo'q — hammasi ko'rsatiladi) */
-  auth?: { phone: boolean; google: boolean; apple: boolean };
+  /** `appleWeb` — Android Apple web oqimi uchun serverda Services ID bor (eski serverda yo'q — false deb olinadi) */
+  auth?: { phone: boolean; google: boolean; apple: boolean; appleWeb?: boolean };
 };
 
 const KEY = "tp.appConfig";

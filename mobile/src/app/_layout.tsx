@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { copy } from "@/copy";
 import { loadLang } from "@/lang";
@@ -33,22 +34,26 @@ export default function RootLayout() {
 
   if ((!loaded && !error) || !langReady) return null;
 
+  // Klaviatura butun ilovada bitta provayderdan (`react-native-keyboard-controller`): Expo SDK 58 — edge-to-edge,
+  // shuning uchun status va navigatsiya paneli shaffof deb beriladi. Modal (pastdan oyna) ichida ham ishlaydi.
   return (
-    <SafeAreaProvider>
-      <UpdateGate>
-        <AppStateProvider>
-          <LocationProvider>
-            <StatusBar style="dark" />
-            <PushHandler />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper }, animation: "slide_from_right" }}>
-              {/* Talaba ilovasi tablarida "orqaga" kirish ekranlariga qaytmaydi */}
-              <Stack.Screen name="(tabs)" options={{ gestureEnabled: false, animation: "fade" }} />
-            </Stack>
-            <OfflineBanner />
-          </LocationProvider>
-        </AppStateProvider>
-      </UpdateGate>
-    </SafeAreaProvider>
+    <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+      <SafeAreaProvider>
+        <UpdateGate>
+          <AppStateProvider>
+            <LocationProvider>
+              <StatusBar style="dark" />
+              <PushHandler />
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper }, animation: "slide_from_right" }}>
+                {/* Talaba ilovasi tablarida "orqaga" kirish ekranlariga qaytmaydi */}
+                <Stack.Screen name="(tabs)" options={{ gestureEnabled: false, animation: "fade" }} />
+              </Stack>
+              <OfflineBanner />
+            </LocationProvider>
+          </AppStateProvider>
+        </UpdateGate>
+      </SafeAreaProvider>
+    </KeyboardProvider>
   );
 }
 

@@ -10,10 +10,12 @@ import { resetTo, routeFor, useApp } from "@/state";
 import { colors, font } from "@/theme";
 import { Card, Failed, Loading, RoundButton } from "@/ui/app";
 import { ErrorBox, Field, Label, Note, PrimaryButton, Screen, Title, TopBar, Txt } from "@/ui/kit";
+import { PhotoField } from "@/ui/photo-field";
 
 /**
- * Biznes ma'lumotlari (saytdagi `/biznes/profil/tahrir`): nom, manzil, mo'ljal, ish vaqti, tavsif va talabalar uchun aloqa.
- * Nom yoki manzil o'zgarsa — qayta tekshiruv (server `rereview`), ilova tekshiruv ekraniga o'tadi.
+ * Biznes ma'lumotlari (saytdagi `/biznes/profil/tahrir`): logotip (kvadrat kesiladi, 512×512), nom, manzil, mo'ljal,
+ * ish vaqti, tavsif va talabalar uchun aloqa. Nom yoki manzil o'zgargan bo'lsa — saqlashdan OLDIN ogohlantiriladi:
+ * biznes qayta tekshiruvga tushadi (server `rereview`), ilova tekshiruv ekraniga o'tadi.
  */
 export default function BusinessEdit() {
   const remote = useLoad(useCallback(() => bizApi.profile(), []));
@@ -45,10 +47,24 @@ function EditForm({ initial: b }: { initial: BusinessProfile }) {
   const field = (key: keyof ProfileEdit, label: string, placeholder?: string, extra: Partial<React.ComponentProps<typeof Field>> = {}) => (
     <View style={styles.block}>
       <Label>{label}</Label>
-      <Field value={form[key]} onChangeText={(v) => set({ [key]: v })} placeholder={placeholder} invalid={invalid.includes(key)} text={17} {...extra} />
+      <Field value={form[key]} onChangeText={(v) => set({ [key]: v })} placeholder={placeholder} invalid={invalid.includes(key)} text={17} returnKeyType="next" {...extra} />
       {invalid.includes(key) ? <Note error>{ed.errors[key] ?? ""}</Note> : null}
     </View>
   );
+
+  // Saytdagi `editBusinessInfo` bilan bir xil taqqoslash: bo'shliqlarsiz nom yoki manzil o'zgarsa — qayta tekshiruv
+  const rereview = form.name.trim() !== b.name.trim() || form.address.trim() !== b.address.trim();
+
+  const confirmSave = () => {
+    if (!rereview) {
+      void save();
+      return;
+    }
+    Alert.alert(ed.rereviewTitle, ed.rereviewText, [
+      { text: ed.cancel, style: "cancel" },
+      { text: ed.rereviewConfirm, onPress: () => void save() },
+    ]);
+  };
 
   const save = async () => {
     if (busy) return;
@@ -84,20 +100,36 @@ function EditForm({ initial: b }: { initial: BusinessProfile }) {
         <Txt style={styles.noteText}>{ed.note}</Txt>
       </Card>
 
+      <View style={styles.block}>
+        <PhotoField
+          url={b.logoUrl}
+          fallback={b.name.trim().charAt(0).toUpperCase() || "B"}
+          label={ed.logo}
+          hint={ed.logoHint}
+          tone="orange"
+          onPick={async (file) => {
+            await bizApi.uploadLogo(file);
+          }}
+          onRemove={async () => {
+            await bizApi.removeLogo();
+          }}
+        />
+      </View>
+
       {field("name", ed.name)}
       {field("address", ed.address)}
       {field("landmark", ed.landmark, ed.landmarkPlaceholder)}
       {field("workingHours", ed.hours, copy.business.hoursPlaceholder)}
-      {field("description", ed.description, undefined, { multiline: true, height: 64 })}
+      {field("description", ed.description, undefined, { multiline: true, height: 64, returnKeyType: "default" })}
 
       <Txt style={[font(900, 112), styles.section]}>{copy.biz.profile.contacts}</Txt>
       <Note>{ed.contactHint}</Note>
       {field("phone", ed.phone, ed.phonePlaceholder, { keyboardType: "phone-pad" })}
       {field("telegram", ed.telegram, ed.telegramPlaceholder, { autoCapitalize: "none", autoCorrect: false })}
-      {field("instagram", ed.instagram, ed.instagramPlaceholder, { autoCapitalize: "none", autoCorrect: false })}
+      {field("instagram", ed.instagram, ed.instagramPlaceholder, { autoCapitalize: "none", autoCorrect: false, returnKeyType: "done" })}
 
       <ErrorBox>{error}</ErrorBox>
-      <PrimaryButton tone="orange" icon="tick" onPress={() => void save()} loading={busy} style={styles.cta}>
+      <PrimaryButton tone="orange" icon="tick" onPress={confirmSave} loading={busy} style={styles.cta}>
         {ed.save}
       </PrimaryButton>
     </Screen>
