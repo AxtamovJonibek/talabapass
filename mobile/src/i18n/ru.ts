@@ -401,7 +401,7 @@ export const ru: Copy = {
     left: (left: number, total: number) => `Осталось ${left}/${total}`,
     leftLow: (left: number, total: number) => `Осталось всего ${left}/${total}`,
     hot: (left: number, total: number) => `Скоро закончится · ${left}/${total}`,
-    pending: "Фото скоро появится",
+    pending: "Фото ожидается",
     saves: (amount: string) => `Экономия ${amount}`,
     bogo: "Второй бесплатно",
     free: "Бесплатно",

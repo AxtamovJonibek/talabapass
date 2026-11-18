@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { appApi, type FeedDeal } from "@/api/endpoints";
@@ -69,6 +69,12 @@ export default function Deals() {
       return () => clearInterval(id);
     }, [refreshFeed, refreshInbox]),
   );
+
+  // Sana qatoridagi vaqt jonli: daqiqa o'tishi bilan yangilanadi
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 10_000);
+    return () => clearInterval(id);
+  }, []);
 
   const categories = useMemo(() => feed.data?.categories ?? [], [feed.data]);
   const names = useMemo(() => new Map(categories.map((c) => [c.slug, c.name])), [categories]);

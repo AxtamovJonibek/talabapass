@@ -300,7 +300,7 @@ export default function DealScreen() {
       <DirectionsSheet
         visible={directions}
         onClose={() => setDirections(false)}
-        target={{ address: business.address, district: business.district, landmark: business.landmark, point: business.point, distanceKm: deal.distanceKm }}
+        target={{ address: business.address, district: business.district, point: business.point }}
       />
     </View>
   );

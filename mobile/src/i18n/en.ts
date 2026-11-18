@@ -401,7 +401,7 @@ export const en: Copy = {
     left: (left: number, total: number) => `${left}/${total} left`,
     leftLow: (left: number, total: number) => `Only ${left}/${total} left`,
     hot: (left: number, total: number) => `Going fast · ${left}/${total}`,
-    pending: "Photo coming soon",
+    pending: "Photo pending",
     saves: (amount: string) => `You save ${amount}`,
     bogo: "Second one free",
     free: "Free",
