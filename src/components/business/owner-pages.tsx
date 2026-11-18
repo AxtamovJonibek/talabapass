@@ -32,8 +32,12 @@ function DiscountsBlock({ discounts }: { discounts: OwnerDiscount[] }) {
 /** Telefon: profil sahifasi oxirida (veb'da — yon paneldagi "Hisobdan chiqish"). */
 function PhoneLogout() {
   const t = useTranslations("common");
+  const profile = useTranslations("profile");
   return (
     <form action={logoutAction}>
+      <Link href="/kirish/parol" className="tp-row mt-3 flex h-[50px] items-center justify-center rounded-14 text-15 font-bold text-ink no-underline">
+        {profile("password")}
+      </Link>
       <button type="submit" className="tp-row mt-3 h-[50px] w-full rounded-14 border-0 bg-transparent font-sans text-15 font-bold text-danger">
         {t("logout")}
       </button>

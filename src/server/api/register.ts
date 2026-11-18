@@ -4,6 +4,7 @@ import { cleanRequestedName, OTHER_UNIVERSITY } from "@/lib/universities";
 import { NAME } from "@/lib/profile";
 import { acceptPhoneInvite } from "../business/cashiers";
 import { cleanBusinessInfo, createBusinessOwner } from "../business/registration";
+import { savePassword } from "../auth/password";
 import { db } from "../db";
 import { createStudent, studentFormSchema } from "../student/registration";
 import { openRegisterTicket, type NewRole, type SignedIn } from "./auth-flow";
@@ -11,9 +12,9 @@ import { ApiError } from "./http";
 import { loadApiUser, meView, openApiSession, type Device } from "./session";
 
 /*
- * Ro'yxat API orqali: `registrationTicket` (SMS bilan tasdiqlangan yangi raqam + o'rnatilgan parol xeshi yoki
- * Google/Apple identifikatori — parolsiz) bilan hisob ochiladi va darhol tokenlar beriladi. Qoidalar saytdagi bilan bir xil (`student/registration.ts`,
- * `business/registration.ts`); hisob ochilgach parol yoziladi — `applyPendingPassword` kabi.
+ * Ro'yxat API orqali: `registrationTicket` (SMS bilan tasdiqlangan yangi raqam yoki Google/Apple identifikatori + o'rnatilgan
+ * parol xeshi) bilan hisob ochiladi va darhol tokenlar beriladi. Qoidalar saytdagi bilan bir xil (`student/registration.ts`,
+ * `business/registration.ts`); hisob ochilgach parol yoziladi (sayt ro'yxati kabi).
  */
 
 export const studentRegisterSchema = z.object({
@@ -42,9 +43,9 @@ async function freshTicket(ticket: string, role: NewRole) {
   return opened;
 }
 
-async function finish(userId: string, passwordHash: string | null, device: Device): Promise<SignedIn> {
-  // Google/Apple hisobi parolsiz (ilovaga shu provayder bilan kiradi)
-  if (passwordHash) await db.user.update({ where: { id: userId }, data: { passwordHash, passwordFails: 0, passwordLockedUntil: null } });
+async function finish(userId: string, passwordHash: string, device: Device): Promise<SignedIn> {
+  // Parol ro'yxatdan oldin o'rnatilgan (telefon ham, Google/Apple ham) — parolsiz hisob ochilmaydi
+  await savePassword(userId, passwordHash, "set", { via: "api", deviceName: device.deviceName, userAgent: device.userAgent });
   const tokens = await openApiSession(userId, device);
   return { tokens, user: meView(await loadApiUser(userId)) };
 }

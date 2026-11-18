@@ -4,7 +4,9 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import type { BusinessField } from "@/lib/business";
 import { normalizePhone } from "@/lib/format";
-import { applyPendingPassword } from "../auth/password";
+import { isAppRequest } from "../app-mode";
+import { savePassword } from "../auth/password";
+import { forgetPendingPassword, readPendingPassword } from "../auth/password-steps";
 import { confirmPhone } from "../auth/phone-check";
 import { createSession, forgetVerifiedPhone, getCurrentUser, homePathFor, requireRole } from "../auth/session";
 import { cleanBusinessInfo, createBusinessOwner, removeBusinessDoc, submitBusiness, updateBusinessInfo, type SubmitProblem } from "../business/registration";
@@ -72,10 +74,13 @@ export async function saveBusinessAction(raw: unknown): Promise<SaveResult> {
     return { ok: true, step: "existing", href: homePathFor(existing.role) };
   }
 
+  // Parolsiz hisob ochilmaydi: kirish sahifasida (telefon → kod → parol) o'rnatilgan parol shu raqamniki bo'lishi shart
+  const passwordHash = await readPendingPassword(phone);
+  if (!passwordHash) return { ok: false, error: "stepExpired" };
   const created = await createBusinessOwner(phone, cleaned.info);
   if (!created.ok) return { ok: false, error: created.error };
-  // Ilovada raqam tasdiqlangach o'rnatilgan parol (saytda yo'q)
-  await applyPendingPassword(created.userId, phone);
+  await savePassword(created.userId, passwordHash, "set", { via: (await isAppRequest()) ? "app" : "web", userAgent });
+  await forgetPendingPassword();
   await forgetVerifiedPhone();
   await createSession(created.userId, userAgent);
   return { ok: true, step: "saved" };

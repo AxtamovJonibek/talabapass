@@ -3,7 +3,7 @@ import { verifyCode } from "@/server/api/auth-flow";
 import { clientIpOf, ok, readJson, route } from "@/server/api/http";
 import { limit } from "@/server/api/rate-limit";
 
-/** SMS kodni tekshirish → keyingi qadam (`password` | `setPassword`) va qadam tokeni (`ticket`). */
+/** Ro'yxat: SMS kodni tekshirish → `setPassword` va qadam tokeni (`ticket`); paroli bor hisob — `account_exists`. */
 export const POST = route(async (request) => {
   await limit("verify", clientIpOf(request));
   const body = await readJson(

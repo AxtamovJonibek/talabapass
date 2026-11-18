@@ -5,7 +5,9 @@ import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { normalizePhone } from "@/lib/format";
-import { applyPendingPassword } from "../auth/password";
+import { savePassword } from "../auth/password";
+import { forgetPendingPassword, readPendingPassword } from "../auth/password-steps";
+import { isAppRequest } from "../app-mode";
 import { confirmPhone } from "../auth/phone-check";
 import { createSession, forgetVerifiedPhone, homePathFor } from "../auth/session";
 import { effectiveStudentStatus, studentPathFor } from "../auth/student-status";
@@ -74,9 +76,12 @@ export async function registerStudentAction(raw: unknown): Promise<RegisterResul
     return redirect({ href, locale });
   }
 
+  // Parolsiz hisob ochilmaydi: kirish sahifasida (telefon → kod → parol) o'rnatilgan parol shu raqamniki bo'lishi shart
+  const passwordHash = await readPendingPassword(phone);
+  if (!passwordHash) return redirect({ href: "/kirish?royxat=talaba", locale });
   const user = await createStudent(phone, form.data, otherName);
-  // Ilovada raqam tasdiqlangach o'rnatilgan parol (saytda yo'q)
-  await applyPendingPassword(user.id, phone);
+  await savePassword(user.id, passwordHash, "set", { via: (await isAppRequest()) ? "app" : "web", userAgent });
+  await forgetPendingPassword();
   await forgetVerifiedPhone();
   await createSession(user.id, userAgent);
   return redirect({ href: "/talaba/guvohnoma", locale });

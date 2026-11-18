@@ -4,6 +4,7 @@ import { AppStudentRegister } from "@/components/app/student-register";
 import { RegisterScreen } from "@/components/student/register-screen";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/locale";
+import { readPendingPassword } from "@/server/auth/password-steps";
 import { getCurrentUser, getVerifiedPhone, homePathFor } from "@/server/auth/session";
 import { effectiveStudentStatus, studentPathFor } from "@/server/auth/student-status";
 import { isAppRequest } from "@/server/app-mode";
@@ -22,11 +23,9 @@ async function Register() {
     getVerifiedPhone(),
     isAppRequest(),
   ]);
-  // Ilova (design/app-flow RoyxatTalaba): raqam kirishda SMS bilan tasdiqlangan bo'lishi kerak
-  if (app) {
-    if (!verifiedPhone) redirect({ href: "/kirish", locale: await getLocale() });
-    return <AppStudentRegister universities={universities} verifiedPhone={verifiedPhone} />;
-  }
+  // Ma'lumotlar formasi faqat telefon → SMS kod → parol qadamlaridan keyin (parolsiz hisob ochilmaydi)
+  if (!verifiedPhone || !(await readPendingPassword(verifiedPhone))) return redirect({ href: "/kirish?royxat=talaba", locale: await getLocale() });
+  if (app) return <AppStudentRegister universities={universities} verifiedPhone={verifiedPhone} />;
   return <RegisterScreen universities={universities} verifiedPhone={verifiedPhone} />;
 }
 

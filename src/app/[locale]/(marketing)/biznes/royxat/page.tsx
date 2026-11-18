@@ -5,18 +5,25 @@ import { BusinessRegisterScreen } from "@/components/business/register-screen";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/locale";
 import { isAppRequest } from "@/server/app-mode";
+import { readPendingPassword } from "@/server/auth/password-steps";
 import { getCurrentUser, getVerifiedPhone, homePathFor } from "@/server/auth/session";
+import { ownBusiness } from "@/server/business/registration";
 
 async function Register() {
   const user = await getCurrentUser();
-  // Kirgan egasi arizasini /biznes da davom ettiradi (yoki ko'radi); boshqa rollar — o'z bo'limiga.
-  if (user) redirect({ href: homePathFor(user.role), locale: await getLocale() });
-  const verifiedPhone = await getVerifiedPhone();
-  // Ilova (design/app-flow B6–B8): raqam kirishda SMS bilan tasdiqlangan bo'lishi kerak
-  if (await isAppRequest()) {
-    if (!verifiedPhone) redirect({ href: "/kirish?rol=biznes", locale: await getLocale() });
-    return <AppBusinessRegister verifiedPhone={verifiedPhone} />;
+  if (user) {
+    // Ariza shu sahifada yuborilayotganda hisob ochiladi (sessiya cookie'si sahifani yangilaydi): fayllar yuklanib bo'lguncha
+    // forma shu yerda qoladi. Yuborilgan ariza va boshqa rollar — o'z bo'limiga.
+    const business = user.role === "BUSINESS_OWNER" ? await ownBusiness(user.id) : null;
+    if (business && business.status === "PENDING" && !business.submittedAt) {
+      return (await isAppRequest()) ? <AppBusinessRegister signedIn verifiedPhone={user.phone} /> : <BusinessRegisterScreen signedIn verifiedPhone={user.phone} />;
+    }
+    return redirect({ href: homePathFor(user.role), locale: await getLocale() });
   }
+  const verifiedPhone = await getVerifiedPhone();
+  // Ma'lumotlar formasi faqat telefon → SMS kod → parol qadamlaridan keyin (parolsiz hisob ochilmaydi)
+  if (!verifiedPhone || !(await readPendingPassword(verifiedPhone))) return redirect({ href: "/kirish?royxat=biznes", locale: await getLocale() });
+  if (await isAppRequest()) return <AppBusinessRegister verifiedPhone={verifiedPhone} />;
   return <BusinessRegisterScreen verifiedPhone={verifiedPhone} />;
 }
 

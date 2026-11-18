@@ -6,36 +6,55 @@ import { authApi } from "@/api/endpoints";
 import { copy } from "@/copy";
 import { isValidPassword, passwordRules, passwordStrength, samePassword } from "@/lib/password";
 import { resetTo, routeFor, useApp } from "@/state";
-import { BackArrow, ErrorBox, Grow, IconTile, Label, Lead, PasswordBox, PrimaryButton, RoleChip, Screen, StepBars, StrengthBars, TickDot, TickRow, Title, TopBar } from "@/ui/kit";
+import { BackArrow, ErrorBox, Grow, IconTile, Label, Lead, PasswordBox, PrimaryButton, RoleChip, Screen, StepBars, StrengthBars, TickDot, TickRow, Title, TopBar, TopBarSpacer } from "@/ui/kit";
+
+type Mode = "new" | "set" | "reset" | "required" | "change";
 
 /**
- * Parol / ParolBiznes: `new` — yangi raqam (keyin ro'yxat), `set` — parolsiz eski hisob, `reset` — "Parolni unutdim"
- * (Kirish ekranidagi SMS tasdig'i bilan; boshqa qurilmalardagi kirishlar yopiladi).
+ * Parol / ParolBiznes:
+ * - `new` — yangi raqam yoki Google/Apple yangi foydalanuvchisi (keyin ro'yxat), `set` — parolsiz eski hisob (ro'yxat kodi bilan),
+ *   `reset` — "Parolni unutdim" (boshqa qurilmalardagi kirishlar yopiladi) — qadam tokeni bilan;
+ * - `required` — kirgan, lekin parolsiz yoki admin tiklagan hisob; `change` — profildan almashtirish (joriy parol bilan).
  */
 export default function SetPassword() {
-  const { mode = "new" } = useLocalSearchParams<{ mode?: "new" | "set" | "reset" }>();
-  const { flow, setFlow, signIn } = useApp();
+  const { mode: rawMode = "new" } = useLocalSearchParams<{ mode?: Mode }>();
+  const mode: Mode = (["new", "set", "reset", "required", "change"] as const).includes(rawMode) ? rawMode : "new";
+  const { flow, setFlow, signIn, me, reloadMe, signOut } = useApp();
+  const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
   const l = copy.login;
-  const role = flow.verify?.role ?? flow.intent;
+  const signedIn = mode === "required" || mode === "change";
+  const role = signedIn ? (me?.role === "STUDENT" ? "student" : "business") : (flow.verify?.role ?? flow.intent);
   const rules = passwordRules(password);
   const score = passwordStrength(password);
   const matches = confirm.length > 0 && samePassword(password, confirm);
 
   const submit = async () => {
     if (busy) return;
-    if (!flow.verify) return setError(l.stepExpired);
+    if (!signedIn && !flow.verify) return setError(l.stepExpired);
+    if (mode === "change" && !current) return setError(copy.login.currentLabel);
     if (!isValidPassword(password)) return setError(l.weakPassword);
     if (!matches) return setError(l.mismatch);
     setBusy(true);
     setError(null);
     try {
-      const result = await authApi.setPassword(flow.verify.ticket, password, confirm);
+      if (signedIn) {
+        await authApi.mePassword(password, confirm, mode === "change" ? current : undefined);
+        const user = await reloadMe();
+        if (mode === "required") return resetTo(routeFor(user));
+        setDone(true);
+        setCurrent("");
+        setPassword("");
+        setConfirm("");
+        return;
+      }
+      const result = await authApi.setPassword(flow.verify!.ticket, password, confirm);
       if (result.next === "register") {
-        setFlow({ registrationTicket: result.registrationTicket });
+        setFlow({ registrationTicket: result.registrationTicket, verify: null, reset: null });
         resetTo(result.role === "cashier" ? "/cashier/register" : result.role === "business" ? "/business/info" : "/student/register");
       } else {
         resetTo(routeFor(await signIn(result)));
@@ -47,19 +66,41 @@ export default function SetPassword() {
     }
   };
 
+  const title = mode === "reset" ? l.resetTitle : mode === "required" ? l.requiredTitle : mode === "change" ? l.changeTitle : l.setTitle;
+  const lead =
+    mode === "reset" ? l.resetLead : mode === "required" ? l.requiredLead : mode === "change" ? l.changeLead : flow.social && mode === "new" ? l.socialSetLead : l.setLead;
+
   return (
     <Screen>
       <TopBar>
-        <BackArrow label={copy.back} onPress={() => router.back()} />
-        <StepBars total={3} current={3} label={l.setSteps} />
+        {mode === "required" ? <TopBarSpacer /> : <BackArrow label={copy.back} onPress={() => router.back()} />}
+        {signedIn ? null : <StepBars total={3} current={3} label={l.setSteps} />}
         <RoleChip tone={role === "student" ? "student" : "business"}>{copy.role[role]}</RoleChip>
       </TopBar>
 
       <View style={styles.hero}>
         <IconTile icon="lock" />
-        <Title text={mode === "reset" ? l.resetTitle : l.setTitle} size={42} style={styles.title} />
-        <Lead text={mode === "reset" ? l.resetLead : l.setLead} size={16} style={styles.lead} />
+        <Title text={title} size={42} style={styles.title} />
+        <Lead text={done ? l.changed : lead} size={16} style={styles.lead} />
       </View>
+
+      {mode === "change" ? (
+        <View style={styles.block}>
+          <Label>{l.currentLabel}</Label>
+          <PasswordBox
+            value={current}
+            onChange={(v) => {
+              setCurrent(v);
+              setError(null);
+              setDone(false);
+            }}
+            autoFocus
+            returnKeyType="next"
+            toggle={{ show: l.showPassword, hide: l.hidePassword }}
+            label={l.currentLabel}
+          />
+        </View>
+      ) : null}
 
       <View style={styles.block}>
         <Label>{l.passwordLabel}</Label>
@@ -68,8 +109,9 @@ export default function SetPassword() {
           onChange={(v) => {
             setPassword(v);
             setError(null);
+            setDone(false);
           }}
-          autoFocus
+          autoFocus={mode !== "change"}
           newPassword
           returnKeyType="next"
           toggle={{ show: l.showPassword, hide: l.hidePassword }}
@@ -104,6 +146,11 @@ export default function SetPassword() {
       <PrimaryButton onPress={() => void submit()} loading={busy} style={styles.cta}>
         {busy ? l.saving : mode === "new" ? copy.next : l.save}
       </PrimaryButton>
+      {mode === "required" ? (
+        <PrimaryButton tone="orange" icon={null} onPress={() => void signOut()} style={styles.secondary}>
+          {copy.profile.logout}
+        </PrimaryButton>
+      ) : null}
     </Screen>
   );
 }
@@ -116,4 +163,5 @@ const styles = StyleSheet.create({
   rules: { gap: 8, marginTop: 14 },
   repeat: { marginTop: 20 },
   cta: { marginTop: 24 },
+  secondary: { marginTop: 10 },
 });

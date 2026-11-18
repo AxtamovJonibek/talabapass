@@ -43,6 +43,14 @@ model User {
   /// Ketma-ket noto'g'ri parollar (to'g'ri parol yoki bloklashda 0 ga qaytadi)
   passwordFails       Int        @default(0)
   passwordLockedUntil DateTime?
+  /// Parol birinchi marta o'rnatilgan vaqt
+  passwordSetAt       DateTime?
+  /// Parol oxirgi marta o'zgargan vaqt (o'rnatish, almashtirish, tiklash)
+  passwordChangedAt   DateTime?
+  /// Admin "parolni tiklash" bosgan: keyingi kirishda yangi parol majburiy (eski parol bilan kirish mumkin, lekin ichkariga o'tmaydi)
+  passwordResetRequired Boolean  @default(false)
+  /// Oxirgi muvaffaqiyatli kirish (har qanday usul)
+  lastLoginAt         DateTime?
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
 
@@ -100,6 +108,19 @@ model OtpCode {
   createdAt   DateTime  @default(now())
 
   @@index([phone, createdAt])
+}
+
+/// "Parolni unutdim" — emailga yuborilgan 6 raqamli kod (10 daqiqa, 5 urinish). Bazada faqat HMAC.
+model EmailCode {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
 }
 
 /// So'rovlar chegarasi uchun hisob (masalan, bitta IP'dan soatiga 10 ta SMS so'rovi).

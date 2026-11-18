@@ -13,6 +13,8 @@ const textButton = "tp-link border-0 bg-transparent p-0 font-sans text-13 font-b
 type Props = {
   /** Kod yuborilgan raqam (E.164) */
   phone: string;
+  /** Yorliq o'rniga (email kodi: "… manziliga yuborilgan kod") */
+  label?: string;
   code: string;
   onCode: (code: string) => void;
   /** 6 raqam to'liq kiritilganda */
@@ -26,13 +28,13 @@ type Props = {
   errorText?: string | null;
 };
 
-/** SMS kodni kiritish bloki (W2 dagi kod qadami) — kirish va ro'yxat formalarida bir xil. */
-export function CodeEntry({ phone, code, onCode, onComplete, onResend, onChangePhone, resendIn, pending, invalid, errorText }: Props) {
+/** SMS (yoki email) kodni kiritish bloki (W2 dagi kod qadami) — kirish, ro'yxat va parol tiklashda bir xil. */
+export function CodeEntry({ phone, label, code, onCode, onComplete, onResend, onChangePhone, resendIn, pending, invalid, errorText }: Props) {
   const t = useTranslations("auth");
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-13 font-semibold">{t("codeSentTo", { phone: formatPhone(phone) })}</span>
+      <span className="text-13 font-semibold">{label ?? t("codeSentTo", { phone: formatPhone(phone) })}</span>
       <OtpInput
         value={code}
         onChange={(next) => {

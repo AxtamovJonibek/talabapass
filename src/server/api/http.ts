@@ -79,6 +79,11 @@ const STATUS: Record<ApiErrorCode, number> = {
   social_unreachable: 503,
   social_mismatch: 403,
   password_required: 400,
+  invalid_credentials: 401,
+  invalid_identifier: 400,
+  password_setup_required: 403,
+  wrong_current_password: 401,
+  account_exists: 409,
 };
 
 export class ApiError extends Error {

@@ -15,7 +15,11 @@ import { priceAfterPercent } from "../src/lib/format";
 import { fromTashkent, toTashkent } from "../src/lib/time";
 import { syncUniversities } from "../src/server/universities/sync";
 import { maintainStoredFiles } from "../src/server/storage/maintenance";
+import { hashAdminPassword } from "../src/server/auth/admin-password";
 import { attachSeedImages } from "./seed-images";
+
+/** Lokal tekshiruv: admin'dan boshqa barcha seed foydalanuvchilarining paroli (kirish — raqam + shu parol). */
+const SEED_PASSWORD = "Talaba2026";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
@@ -600,6 +604,13 @@ async function main() {
     ],
   });
 
+  // Parolsiz hisob qolmasin (kirish SMSsiz: raqam/email + parol). Admin — o'z yo'li (SMS + ADMIN_PASSWORD_HASH).
+  const passwordAt = new Date();
+  await db.user.updateMany({
+    where: { role: { not: "ADMIN" } },
+    data: { passwordHash: hashAdminPassword(SEED_PASSWORD), passwordSetAt: passwordAt, passwordChangedAt: passwordAt },
+  });
+
   const files = await maintainStoredFiles({ generateMissing: true });
   const discountImages = await attachSeedImages(db);
 
@@ -611,7 +622,7 @@ async function main() {
       `  talabalar: ${students.length + 1} tasdiqlangan, ${PENDING_STUDENTS.length} navbatda`,
       `  bizneslar: ${BUSINESSES.length} faol, ${PENDING_BUSINESSES.length} navbatda`,
       `  sotuvlar: ${redemptions.length}, kuponlar: ${coupons.length}, rad etilgan skanlar: ${attempts.length}`,
-      "  kirish uchun raqamlar: admin +998900000001 · talaba (Dilnoza) +998904123785",
+      `  kirish: talaba (Dilnoza) +998904123785, parol ${SEED_PASSWORD} (barcha seed foydalanuvchilari) · admin +998900000001 — SMS + admin paroli`,
     ].join("\n"),
   );
 }

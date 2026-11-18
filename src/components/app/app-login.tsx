@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CodeBoxes } from "@/components/ui/app-code";
+import { CodeBoxes, PasswordBox } from "@/components/ui/app-code";
 import {
   AppLabel,
   AppLead,
@@ -11,6 +11,8 @@ import {
   AppScreen,
   AppTitle,
   BackArrow,
+  BoxInput,
+  FieldBox,
   FieldNote,
   FooterButton,
   FooterLink,
@@ -26,183 +28,52 @@ import { Link } from "@/i18n/navigation";
 import { PREF, readPref, writePref } from "@/lib/app-prefs";
 import { cn } from "@/lib/cn";
 import { formatPhone, normalizePhone, phoneNational } from "@/lib/format";
-import { useStepHistory } from "@/lib/use-step-history";
-import { appLoginAction, appSetPasswordAction, appVerifyCodeAction, type PasswordError } from "@/server/actions/app-auth";
-import { requestCodeAction, type AuthError } from "@/server/actions/auth";
-import { PasswordScreen, SetPasswordScreen } from "./app-password";
+import { useAuthFlow } from "@/components/auth/use-auth-flow";
+import { SetPasswordScreen } from "./app-password";
 
 const OTP_LENGTH = 6;
-const RESEND_SECONDS = 60;
-
-type Variant = "student" | "business" | "returning";
-type Step = "phone" | "code" | "password" | "setPassword";
-type Failure = { error: AuthError | PasswordError; retryInSeconds?: number; left?: number };
-type Account = { masked: string; initial: string | null; role: "student" | "business" };
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-const PASSWORD_ERRORS = new Set<string>(["wrongPassword", "passwordLocked", "weakPassword", "mismatch", "stepExpired"]);
 
 /**
- * Ilova kirishi (design/app-flow): Auth / AuthBiznes / Auth2 → Kod → Kirish (parol) yoki Parol (o'rnatish).
- * Auth2 ("Qayta xush kelibsiz") — qurilmada oxirgi kirilgan raqam bo'lsa (chiqib ketgandan keyin).
- * Raqam ro'yxatda bor-yo'qligi SMS kod tasdiqlanmaguncha oshkor qilinmaydi; parol koddan KEYIN so'raladi.
+ * Ilova kirishi (design/app-flow uslubida): Auth / AuthBiznes / Auth2 — raqam yoki email + parol (SMSsiz).
+ * Ro'yxat: telefon → Kod → Parol (→ ma'lumotlar formasi). "Parolni unutdim": raqam/email → Kod → Parol (tiklash).
+ * Holat va action'lar sayt bilan bitta (`useAuthFlow`). Auth2 ("Qayta xush kelibsiz") — qurilmada oxirgi raqam bo'lsa,
+ * maydon shu raqam bilan to'ldiriladi.
  */
 export function AppLogin() {
   const t = useTranslations("app.login");
-  const common = useTranslations("app");
   const auth = useTranslations("auth");
-  const business = useSearchParams().get("rol") === "biznes";
+  const common = useTranslations("app");
+  const params = useSearchParams();
+  const business = params.get("rol") === "biznes" || params.get("royxat") === "biznes";
+  const flow = useAuthFlow({
+    initialMode: params.get("royxat") ? "register" : "login",
+    initialRole: business ? "business" : "student",
+    leaveTo: business ? "/ilova/biznes?slayd=2" : "/ilova?slayd=4",
+  });
+  const { mode, step, failure, errorText, pending } = flow;
   const [lastPhone, setLastPhone] = useState<string | null | undefined>(undefined);
   const [switched, setSwitched] = useState(false);
-  const [step, setStep] = useState<Step>("phone");
-  const [phoneInput, setPhoneInput] = useState("");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [account, setAccount] = useState<Account | null>(null);
-  const [setMode, setSetMode] = useState<{ mode: "new" | "missing" | "reset"; role: "student" | "business" } | null>(null);
-  const [failure, setFailure] = useState<Failure | null>(null);
-  const [resendIn, setResendIn] = useState(0);
-  const [pending, startTransition] = useTransition();
-
-  const variant: Variant = business ? "business" : lastPhone && !switched ? "returning" : "student";
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     void readPref(PREF.lastPhone).then((value) => {
-      if (cancelled) return;
-      setLastPhone(value);
-      if (value) setPhoneInput(phoneNational(value));
+      if (!cancelled) setLastPhone(value);
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  useEffect(() => {
-    if (resendIn <= 0) return;
-    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [resendIn]);
-
-  // Tarix: telefon 0 → kod 1 → parol 2 → ("Parolni unutdim") 3. Ishlatilgan kodga qaytilmaydi — parol qadamidan telefonga.
-  const resetting = step === "setPassword" && setMode?.mode === "reset";
-  const depth = step === "phone" ? 0 : step === "code" ? 1 : resetting ? 3 : 2;
-  const goBack = useStepHistory(
-    depth,
-    () => {
-      setFailure(null);
-      setStep(resetting ? "password" : "phone");
-    },
-    business ? "/ilova/biznes?slayd=2" : "/ilova?slayd=4",
-  );
-
-  /** Telefon qadamiga: SMS tasdig'i eskirgan, parol qulflangan yoki "Boshqa raqam bilan kirish" */
-  function restart(next: Failure | null, otherPhone = false) {
-    setStep("phone");
-    setCode("");
-    setFailure(next);
-    if (otherPhone) {
-      setSwitched(true);
-      setPhoneInput("");
-    }
-  }
-
-  function sendCode(rawPhone: string = phoneInput) {
-    setFailure(null);
-    setPhoneInput(rawPhone);
-    startTransition(async () => {
-      const result = await requestCodeAction(rawPhone);
-      if (!result.ok) {
-        setFailure(result);
-        // Kod yaqinda yuborilgan — foydalanuvchida u bor, kiritish qadamiga o'tamiz
-        if (result.error !== "tooSoon" || step === "code") return;
-        setResendIn(result.retryInSeconds ?? RESEND_SECONDS);
-        setPhone(normalizePhone(rawPhone) ?? "");
-      } else {
-        setResendIn(RESEND_SECONDS);
-        setPhone(result.phone);
-      }
-      setCode("");
-      setStep("code");
-    });
-  }
-
-  function verify(value: string) {
-    setFailure(null);
-    startTransition(async () => {
-      // Admin bo'lsa server o'zi yo'naltiradi (o'z parol sahifasiga)
-      const result = await appVerifyCodeAction(phoneInput, value, business ? "business" : "student");
-      if (!result) return;
-      if (!result.ok) {
-        setFailure(result);
-        setCode("");
-        return;
-      }
-      await writePref(PREF.lastPhone, phone);
-      if (result.next === "password") {
-        setAccount(result);
-        setStep("password");
-      } else {
-        setSetMode({ mode: result.isNew ? "new" : "missing", role: result.role });
-        setStep("setPassword");
-      }
-    });
-  }
-
-  function onPasswordFailure(result: Failure) {
-    if (result.error === "stepExpired" || result.error === "passwordLocked") return restart(result);
-    setFailure(result);
-  }
-
-  function login(password: string) {
-    setFailure(null);
-    startTransition(async () => {
-      // Muvaffaqiyatda server yo'naltiradi
-      const result = await appLoginAction(password);
-      if (result) onPasswordFailure(result);
-    });
-  }
-
-  function savePassword(password: string, confirm: string) {
-    setFailure(null);
-    startTransition(async () => {
-      const result = await appSetPasswordAction(password, confirm);
-      if (result) onPasswordFailure(result);
-    });
-  }
-
-  const errorText = failure
-    ? PASSWORD_ERRORS.has(failure.error)
-      ? t(`errors.${failure.error as PasswordError}`, { left: failure.left ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
-      : auth(`errors.${failure.error as AuthError}`, { seconds: failure.retryInSeconds ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
-    : null;
-
-  if (step === "password" && account) {
-    return (
-      <PasswordScreen
-        masked={account.masked}
-        initial={account.initial}
-        onSubmit={login}
-        onForgot={() => {
-          setFailure(null);
-          setSetMode({ mode: "reset", role: account.role });
-          setStep("setPassword");
-        }}
-        onOtherPhone={() => restart(null, true)}
-        onBack={goBack}
-        pending={pending}
-        errorText={errorText}
-      />
-    );
-  }
-
-  if (step === "setPassword" && setMode) {
+  if (step === "password") {
     return (
       <SetPasswordScreen
-        mode={setMode.mode}
-        role={setMode.role}
-        onSubmit={savePassword}
-        onBack={goBack}
+        mode={flow.setMode}
+        role={flow.role}
+        onSubmit={flow.savePassword}
+        onBack={flow.goBack}
         pending={pending}
         errorText={errorText}
         mismatch={failure?.error === "mismatch"}
@@ -210,20 +81,19 @@ export function AppLogin() {
     );
   }
 
-  // Qurilma sozlamasi o'qilguncha (bir lahza) — bo'sh fon, aks holda Auth ↔ Auth2 almashib ko'rinadi
-  if (lastPhone === undefined) return <div className="min-h-dvh bg-paper" />;
-
-  if (step !== "phone") {
+  if (step === "code") {
+    const email = mode === "forgot" && flow.channel === "email";
+    const target = mode === "register" ? flow.phone : flow.identifier.trim();
     return (
       <AppScreen>
         <TopBar>
-          <BackArrow label={common("back")} onClick={goBack} />
+          <BackArrow label={common("back")} onClick={flow.goBack} />
           <AppLogo />
         </TopBar>
         <form
           className="flex flex-1 flex-col"
           action={() => {
-            if (code.length === OTP_LENGTH) verify(code);
+            if (flow.code.length === OTP_LENGTH) flow.verifyCode(flow.code);
           }}
         >
           <div className="mt-9">
@@ -232,17 +102,20 @@ export function AppLogin() {
               {t("codeTitle")}
             </AppTitle>
             <AppLead className="mt-3.5">
-              {t.rich("codeLead", { phone: formatPhone(phone), b: (chunks: ReactNode) => <b className="text-ink">{chunks}</b> })}
+              {email
+                ? auth("codeSentToEmail", { email: target })
+                : t.rich("codeLead", { phone: formatPhone(normalizePhone(target) ?? target), b: (chunks: ReactNode) => <b className="text-ink">{chunks}</b> })}
             </AppLead>
+            {mode === "forgot" ? <FieldNote>{auth("resetSent")}</FieldNote> : null}
           </div>
           <div className="mt-[30px]">
             <CodeBoxes
               id="app-code"
               label={t("codeLabel")}
-              value={code}
+              value={flow.code}
               onChange={(next) => {
-                setCode(next);
-                if (next.length === OTP_LENGTH && !pending) verify(next);
+                flow.setCode(next);
+                if (next.length === OTP_LENGTH && !pending) flow.verifyCode(next);
               }}
               invalid={failure?.error === "wrongCode"}
               disabled={pending}
@@ -250,16 +123,16 @@ export function AppLogin() {
             />
             {errorText ? <FieldNote error>{errorText}</FieldNote> : null}
             <div className="mt-[18px] flex items-center justify-between">
-              {resendIn > 0 ? (
+              {flow.resendIn > 0 ? (
                 <span className="text-15 font-medium text-muted-2">
-                  {t("resendIn")} <b className="text-ink tabular-nums">{clock(resendIn)}</b>
+                  {t("resendIn")} <b className="text-ink tabular-nums">{clock(flow.resendIn)}</b>
                 </span>
               ) : (
-                <button type="button" onClick={() => sendCode()} disabled={pending} className={textAction}>
+                <button type="button" onClick={() => (mode === "register" ? flow.sendRegisterCode() : flow.sendResetCode())} disabled={pending} className={textAction}>
                   {t("resend")}
                 </button>
               )}
-              <button type="button" onClick={goBack} className={textAction}>
+              <button type="button" onClick={flow.goBack} className={textAction}>
                 {t("changePhone")}
               </button>
             </div>
@@ -277,12 +150,59 @@ export function AppLogin() {
     );
   }
 
-  const returning = variant === "returning";
+  // Qurilma sozlamasi o'qilguncha (bir lahza) — bo'sh fon, aks holda Auth ↔ Auth2 almashib ko'rinadi
+  if (lastPhone === undefined) return <div className="min-h-dvh bg-paper" />;
+
+  const returning = mode === "login" && Boolean(lastPhone) && !switched && !business;
+
+  if (mode !== "login") {
+    const register = mode === "register";
+    return (
+      <AppScreen>
+        <TopBar>
+          <BackArrow label={common("back")} onClick={flow.goBack} />
+          <AppLogo />
+        </TopBar>
+        <div className="mt-9">
+          <IconTile icon={register ? "plus" : "lock"} />
+          <AppTitle size={42} className="mt-[22px]">
+            {register ? auth(`${flow.role}.registerTitle`) : auth("forgotTitle")}
+          </AppTitle>
+          <AppLead className="mt-3.5">{register ? auth("registerLead") : auth("forgotLead")}</AppLead>
+        </div>
+        {register ? (
+          <form className="mt-8 flex flex-col" action={(form) => flow.sendRegisterCode(String(form.get("phone") ?? ""))}>
+            <AppLabel htmlFor="app-phone">{t("phoneLabel")}</AppLabel>
+            <PhoneBox id="app-phone" name="phone" placeholder={t("phonePlaceholder")} defaultValue={flow.phone ? phoneNational(flow.phone) : ""} invalid={failure?.error === "phone"} autoFocus />
+            {errorText ? <FieldNote error>{errorText}</FieldNote> : null}
+            <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: "blue", size: "app", strong: true, block: true }, "mt-5")}>
+              {pending ? t("sending") : t("sendCode")}
+              <Icon name="arrowRight" size={22} strokeWidth={2.4} />
+            </button>
+          </form>
+        ) : (
+          <form className="mt-8 flex flex-col" action={(form) => flow.sendResetCode(String(form.get("identifier") ?? ""))}>
+            <AppLabel htmlFor="app-forgot">{auth("identifierLabel")}</AppLabel>
+            <FieldBox height={64} invalid={failure?.error === "identifier"} className="pr-[18px]">
+              <BoxInput id="app-forgot" name="identifier" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder={auth("identifierPlaceholder")} defaultValue={flow.identifier} text={18} autoFocus />
+            </FieldBox>
+            {errorText ? <FieldNote error>{errorText}</FieldNote> : null}
+            <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: "blue", size: "app", strong: true, block: true }, "mt-5")}>
+              {pending ? t("sending") : auth("sendResetCode")}
+              <Icon name="arrowRight" size={22} strokeWidth={2.4} />
+            </button>
+          </form>
+        )}
+        <div className="flex-1" />
+        <FooterButton lead={auth(register ? "haveAccount" : "rememberPassword")} action={auth("signInAction")} onClick={() => flow.switchMode("login")} />
+      </AppScreen>
+    );
+  }
 
   return (
     <AppScreen>
       <TopBar>
-        {returning ? null : <BackArrow label={common("back")} onClick={goBack} />}
+        {returning ? null : <BackArrow label={common("back")} onClick={flow.goBack} />}
         <AppLogo />
       </TopBar>
 
@@ -302,36 +222,60 @@ export function AppLogin() {
         <AppLead className="mt-4 max-w-[300px]">{t(returning ? "returningLead" : business ? "businessLead" : "lead")}</AppLead>
       </div>
 
-      <form className="mt-8 flex flex-col" action={(form) => sendCode(String(form.get("phone") ?? ""))}>
-        <AppLabel htmlFor="app-phone">{t("phoneLabel")}</AppLabel>
-        <PhoneBox
-          key={variant}
-          id="app-phone"
-          name="phone"
-          placeholder={t("phonePlaceholder")}
-          defaultValue={phoneInput}
-          invalid={failure?.error === "phone"}
-          autoFocus={!returning}
+      <form
+        className="mt-8 flex flex-col"
+        action={(form) => {
+          const identifier = String(form.get("identifier") ?? "");
+          const phone = normalizePhone(identifier);
+          // Auth2 uchun: oxirgi kirilgan raqam (email bilan kirilsa — o'zgarmaydi)
+          if (phone) void writePref(PREF.lastPhone, phone);
+          if (password) flow.login(identifier, password);
+        }}
+      >
+        <AppLabel htmlFor="app-identifier">{auth("identifierLabel")}</AppLabel>
+        <FieldBox height={64} invalid={failure?.error === "invalid" || failure?.error === "identifier"} className="pr-[18px]">
+          <BoxInput
+            key={returning ? "returning" : "new"}
+            id="app-identifier"
+            name="identifier"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder={auth("identifierPlaceholder")}
+            defaultValue={flow.identifier || (returning && lastPhone ? phoneNational(lastPhone) : "")}
+            text={18}
+            autoFocus={!returning}
+          />
+        </FieldBox>
+        <AppLabel htmlFor="app-password" className="mt-4">
+          {t("passwordLabel")}
+        </AppLabel>
+        <PasswordBox
+          id="app-password"
+          name="password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+          height={64}
+          invalid={failure?.error === "invalid"}
+          autoFocus={returning}
+          toggleLabels={{ show: t("showPassword"), hide: t("hidePassword") }}
         />
         {errorText ? <FieldNote error>{errorText}</FieldNote> : returning ? <FieldNote>{t("returningNote")}</FieldNote> : null}
-        <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: "blue", size: "app", strong: true, block: true }, "mt-5")}>
-          {pending ? t("sending") : t("sendCode")}
+        <button type="button" onClick={() => flow.switchMode("forgot")} className="mt-1.5 flex min-h-11 items-center self-start border-0 bg-transparent p-0 font-sans text-15 font-extrabold text-blue underline">
+          {t("forgot")}
+        </button>
+        <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: "blue", size: "app", strong: true, block: true }, "mt-3")}>
+          {pending ? t("signingIn") : t("signIn")}
           <Icon name="arrowRight" size={22} strokeWidth={2.4} />
         </button>
       </form>
 
       <div className="flex-1" />
 
+      <FooterButton lead={t("noAccount")} action={auth("registerAction")} onClick={() => flow.switchMode("register")} />
       {returning ? (
-        <FooterButton
-          lead={t("otherPhone")}
-          action={t("otherPhoneAction")}
-          onClick={() => {
-            setSwitched(true);
-            setPhoneInput("");
-            setFailure(null);
-          }}
-        />
+        <FooterButton lead={t("otherPhone")} action={t("otherPhoneAction")} onClick={() => setSwitched(true)} />
       ) : (
         <>
           {business ? (

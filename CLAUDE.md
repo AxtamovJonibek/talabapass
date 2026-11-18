@@ -201,18 +201,36 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
   ekranlarda o'lchamlar inline `style` da qoladi (aniqlik uchun); umumiy primitivlar (`components/ui`) Tailwind'da.
 
 ## Kirish va ruxsatlar
-- Kirish: telefon → 6 raqamli SMS kod (5 daqiqa amal qiladi; bazada faqat HMAC). Faqat +998 raqamlar.
-  Raqam ro'yxatda bor-yo'qligi kod so'rashda oshkor qilinmaydi.
+- **Kirish SMSsiz**: "Telefon raqam yoki email" + parol (`src/server/auth/login.ts` `checkLogin` — sayt, Capacitor ilova va API bitta).
+  Xato bo'lsa bitta umumiy matn "Raqam/email yoki parol noto'g'ri" (hisob yo'q, parolsiz, admin, parol xato — farqlanmaydi; scrypt
+  baribir hisoblanadi). 5 ketma-ket xato → 15 daqiqa qulf; hisobi yo'q identifikatorda ham xuddi shunday ("arvoh" hisob,
+  `RateLimitHit` `login-ghost:`). Bloklangan / biznessiz kassir — faqat parol to'g'ri bo'lsa aytiladi. Admin — o'z yo'li (pastda).
+- **Ro'yxat**: telefon → 6 raqamli SMS kod (faqat raqamni tasdiqlash, 5 daqiqa, bazada HMAC, faqat +998) → parol → ma'lumotlar formasi.
+  Saytda shu qadamlar `/kirish?royxat=talaba|biznes` da (`useAuthFlow`, `components/auth/use-auth-flow.ts`); `/talaba/royxat` va
+  `/biznes/royxat` tasdiqlangan raqam **va** o'rnatilgan parol (`tp_new_pw`, `password-steps.ts`) bo'lmasa ro'yxat boshiga qaytaradi —
+  parolsiz hisob ochilmaydi. Kod to'g'ri, raqamda paroli bor hisob — "hisob bor" (`exists`); parolsiz eski hisob — shu yerda parol qo'yadi.
+  Kassir taklifi (`/kassir/<token>`) formasida ham parol maydonlari.
+- **Parolsiz hisob qolmaydi**: `requireRole` (va API `requireApiRole` → `password_setup_required`) parolsiz yoki admin "parolni tiklash"
+  bosgan (`User.passwordResetRequired`) hisobni `/kirish/parol` ga yuboradi (`needsPassword`); profildan almashtirish ham shu sahifa.
+- **Parolni unutdim**: raqam yoki email → SMS kod yoki emailga 6 raqamli kod (`EmailCode`, 10 daqiqa, 5 urinish, `email-code.ts`) →
+  yangi parol, barcha boshqa sessiyalar yopiladi (`recovery.ts`). Javob hisob borligidan qat'i nazar bir xil ("Agar bunday hisob bo'lsa,
+  kod yuborildi"); kod faqat hisob bo'lsa yuboriladi; faqat IP chegarasi aytiladi.
+- Email: `src/server/email` (`EMAIL_PROVIDER=dev` — log'ga, faqat ishlab chiqish/staging; `resend` — `RESEND_API_KEY`, `EMAIL_FROM`),
+  matnlar 3 tilda (`email/templates.ts`, foydalanuvchi `locale` i bo'yicha). `env-check` production'da email provayderini talab qiladi.
+- Parol yozish faqat `savePassword` (`auth/password.ts`): vaqtlar (`passwordSetAt`, `passwordChangedAt`), qulf tushadi, audit.
+  Audit: `user.login.ok|fail` (`method`: phone|email|google|apple, `via`: web|app|api, `device`/`ua`), `user.password.set|change|reset|locked`.
+  Parol va kodlar log'ga yozilmaydi (`next.config.ts` `logging.serverFunctions: false` — dev terminalida action argumentlari chiqmaydi).
+- Lokal: seed foydalanuvchilarining paroli `Talaba2026` (admin'dan boshqa); e2e `signIn` — raqam + shu parol (`ensurePassword`).
 - SMS chegaralari (`otp-rules.ts`): bitta raqamga 60 soniyada 1 ta va kuniga 5 ta; bitta IP'dan soatiga 10 ta so'rov
   (IP bazada faqat xesh ko'rinishida). 5 ta noto'g'ri urinish → kod bekor, raqam 15 daqiqa bloklanadi.
   Qoidalar o'zgarsa uchala qatlamdagi testlar yangilanadi: `otp-rules.test.ts`, `otp.itest.ts`, `e2e/auth.spec.ts`.
-- `OTP_FIXED_CODE` faqat `.env.development` da va sinov serverida (`APP_ENV=staging`). `NODE_ENV=production` da `OTP_FIXED_CODE`, `SMS_PROVIDER=dev` yoki
+- `OTP_FIXED_CODE` (email kodi ham) faqat `.env.development` da va sinov serverida (`APP_ENV=staging`). `NODE_ENV=production` da `OTP_FIXED_CODE`, `SMS_PROVIDER=dev` yoki
   provayder/sir yo'qligi topilsa server start'da jarayon xato bilan to'xtaydi (`instrumentation-node.ts`, `env-check.ts`).
 - Bloklash faqat `src/server/moderation.ts` orqali: holat va barcha sessiyalarni yopish bitta tranzaksiyada
   (biznes bloklansa — egasi va barcha kassirlari). Holatni to'g'ridan-to'g'ri `update` bilan o'zgartirmang.
 - Auth cookie'lari: httpOnly, SameSite=Lax, Secure (faqat `next dev` da o'chiq) — `cookie-options.ts`.
-- Kod to'g'ri, hisob yo'q → raqam imzolangan cookie'da 30 daqiqa "tasdiqlangan" deb saqlanadi (`getVerifiedPhone`)
-  va ro'yxat formasiga o'tiladi; ro'yxat formalari shu raqamga tayanadi.
+- Kod to'g'ri, hisob yo'q → raqam imzolangan cookie'da 30 daqiqa "tasdiqlangan" deb saqlanadi (`getVerifiedPhone`), parol
+  qadamidan keyin ro'yxat formasiga o'tiladi; ro'yxat formalari shu raqamga tayanadi.
 - Sessiya: tasodifiy token httpOnly cookie'da, bazada SHA-256 xeshi, 30 kun. Bloklangan foydalanuvchi sessiyasi darhol o'ladi.
 - `requireRole(...)` — har bir himoyalangan sahifa, layout (`RoleGate`) va server action boshida. Kirmagan → `/kirish`,
   begona rol → o'z bosh sahifasi (`homePathFor`). Proxy (middleware) faqat til uchun.
@@ -361,7 +379,7 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - `proxy.ts` da faqat Edge'ga mos kod: `node:*`, baza, `src/server` importi yo'q.
 
 ## Admin paroli (ikkinchi qadam, production'da ham)
-- Admin: telefon → SMS kod → `/kirish/admin` da parol. Xesh `ADMIN_PASSWORD_HASH` env'da (`npm run admin:hash`,
+- Admin: `/kirish/admin` — telefon → SMS kod (faqat ADMIN hisobi uchun sessiya, boshqasiga "admin emas") → shu sahifada parol. Xesh `ADMIN_PASSWORD_HASH` env'da (`npm run admin:hash`,
   scrypt, `scrypt:N:r:p:salt:hash`); xesh yo'q/buzilgan bo'lsa admin umuman kira olmaydi.
   Env qiymati tozalanadi (`normalizeAdminHash`: prefiks, qo'shtirnoq, satr bo'linishi); xesh yaroqsiz bo'lsa formada
   "sozlanmagan" xabari (urinish hisoblanmaydi) va `check-env` deploy'ni to'xtatadi (`buildEnvProblems`).
@@ -490,13 +508,8 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   chiqishda ilova `/kirish` ga qaytadi. Primitivlar `ui/app-kit.tsx`, `ui/app-code.tsx`; yangi tokenlar `green-bright`, `green-ok`, `peach`, `shadow-*` (app-flow).
   Dizayndagi yuqori 56px status bar joyini ham o'z ichiga oladi — `AppScreen` `max(12px, 56px − safe-top)` beradi.
   Dizaynda yo'q: Slide2–4 (Main uslubida yig'ilgan), Auth2 da sarlavha doiradan ustun (dizaynda doira matnni yopardi). Test: `e2e/app-flow.spec.ts`.
-- **Ilova paroli** (faqat ilovada; sayt kirishi SMS bilan, o'zgarmagan): telefon → SMS kod → hisob bor va parol bor — Kirish (parol); yangi raqam yoki
-  parolsiz eski hisob — Parol (o'rnatish). Parol koddan KEYIN so'raladi (raqam oshkor bo'lmaydi). `User.passwordHash` (admin bilan bir xil scrypt formati),
-  `passwordFails`, `passwordLockedUntil`: 5 ketma-ket xato → 15 daqiqa qulf (to'g'ri parol ham o'tmaydi) va SMS tasdig'i bekor. Qoidalar `src/lib/password.ts`
-  (kamida 8, harf + raqam, ≤ 128, chetidagi bo'shliq kesiladi; kuch shkalasi), server `src/server/auth/password.ts`, action'lar `src/server/actions/app-auth.ts`.
-  Qadam holati imzolangan cookie'larda: `tp_pw_step` (10 daq: `login` | `set` | `new:student|business`), `tp_new_pw` (yangi raqam xeshi, 30 daq) —
-  ro'yxat action'lari hisob ochganda `applyPendingPassword`. "Parolni unutdim" — SMS tasdig'i amal qilsa yangi parol, boshqa sessiyalar yopiladi.
-  Admin ilovada ham o'z yo'li (SMS → `/kirish/admin`). Audit: `user.password.set|reset|locked`. `NativeApp` cookie birinchi qo'yilganda sahifani bir marta qayta yuklaydi.
+- **Ilova kirishi** (Capacitor, `app/app-login.tsx`): sayt bilan bitta `useAuthFlow` va action'lar — raqam/email + parol, "Ro'yxatdan o'tish"
+  (telefon → Kod → Parol), "Parolni unutdim". Auth2 — oxirgi raqam maydonda tayyor. Admin ilovada ham `/kirish/admin`.
 - **Ilova ro'yxati** (`isAppRequest()` bo'lsa shu sahifalar ilova ko'rinishini beradi; holat, action va qoidalar saytdagi bilan bitta):
   `/talaba/royxat` → RoyxatTalaba (`app/student-register.tsx`, `useRegistration`; tasdiqlangan raqamsiz → `/kirish`), `/talaba/guvohnoma` → Guvohnoma
   (`app/student-card.tsx`; kamera/yuklash mantiqi `student/use-card-capture.ts` — sayt T2 ham shundan), `/talaba/tekshiruv` → Tekshiruv;
@@ -514,8 +527,10 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   glifllari (`mobile/scripts/fonts-cyrillic.py`). Matnlar 3 tilda: `mobile/src/i18n/{uz,ru,en}.ts` (uz — messages/uz.json `app` nusxasi; saytda
   o'zgarsa u yerda ham, uchala tilda — `Copy` tipi tekshiradi), `copy` — joriy til (`src/copy.ts`). Til birinchi ochilishda (Til ekrani) va Profilda
   tanlanadi, serverga `Accept-Language`.
-- Kirish usuli (Auth): Google, Apple (iOS), telefon (`app-config` `auth`); Google/Apple yangi foydalanuvchisi SMS/parolsiz ro'yxatga
-  (`src/auth/use-social.ts`). Google SDK Expo Go'da yo'q — dev/preview build; Android SHA-1 qadamlari — `mobile/README.md`.
+- Kirish usuli (Auth): Google, Apple (iOS), "Telefon raqam yoki email bilan" → Kirish (parol, `auth/login.tsx`); "Ro'yxatdan o'tish" —
+  telefon → SMS kod → parol (`auth/phone`, `auth/code`, `auth/password`); "Parolni unutdim" — `auth/forgot`. Google/Apple yangi
+  foydalanuvchisi ham avval parol o'rnatadi (`auth/password?mode=new`), keyin SMSsiz ro'yxat (`src/auth/use-social.ts`).
+  `me.mustSetPassword` — `routeFor` `/auth/password?mode=required` ga; profildan `mode=change`. Google SDK Expo Go'da yo'q — dev/preview build; Android SHA-1 qadamlari — `mobile/README.md`.
 - Tekshiruv: `cd mobile && npm run check` (tsc + expo lint), `npx expo-doctor`.
 - Talaba ilovasi (`src/app/(tabs)`: Chegirmalar, Yaqin, Kupon, Saralangan, Profil) — faqat APPROVED. Kupon QR'i `mobile/src/lib/totp.ts` da
   (saytdagi `src/lib/totp.ts` bilan AYNAN bir xil algoritm — birini o'zgartirsangiz ikkinchisini ham, tengligini tekshiring); faol kupon

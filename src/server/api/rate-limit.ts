@@ -12,6 +12,7 @@ import { rateDecision } from "./rules";
 export const LIMITS = {
   verify: { max: 30, windowMs: 15 * 60_000 },
   login: { max: 30, windowMs: 15 * 60_000 },
+  forgot: { max: 20, windowMs: 15 * 60_000 },
   password: { max: 20, windowMs: 15 * 60_000 },
   refresh: { max: 120, windowMs: 60 * 60_000 },
   register: { max: 10, windowMs: 60 * 60_000 },
@@ -28,6 +29,12 @@ export const limitKey = (bucket: LimitBucket, subject: string) =>
 
 /** Chegara to'lgan bo'lsa `rate_limited` (+ `retryInSeconds`), aks holda urinish yoziladi. */
 export async function limit(bucket: LimitBucket, subject: string, now = new Date()): Promise<void> {
+  const retryInSeconds = await limitWait(bucket, subject, now);
+  if (retryInSeconds !== null) throw new ApiError("rate_limited", { retryInSeconds });
+}
+
+/** `limit` ning xato tashlamaydigan ko'rinishi (sayt server action'lari uchun): chegara to'lgan bo'lsa — kutish soniyalari. */
+export async function limitWait(bucket: LimitBucket, subject: string, now = new Date()): Promise<number | null> {
   const { max, windowMs } = LIMITS[bucket];
   const key = limitKey(bucket, subject);
   const hits = await db.rateLimitHit.findMany({ where: { key, createdAt: { gt: new Date(now.getTime() - windowMs) } }, select: { createdAt: true } });
@@ -37,6 +44,7 @@ export async function limit(bucket: LimitBucket, subject: string, now = new Date
     max,
     windowMs,
   );
-  if (!decision.ok) throw new ApiError("rate_limited", { retryInSeconds: Math.ceil(decision.retryInMs / 1000) });
+  if (!decision.ok) return Math.ceil(decision.retryInMs / 1000);
   await db.rateLimitHit.create({ data: { key } });
+  return null;
 }

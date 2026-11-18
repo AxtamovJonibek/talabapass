@@ -13,7 +13,7 @@ import { emptyDraft, resetTo, routeFor, useApp } from "@/state";
 
 /**
  * Google / Apple bilan kirish (docs/api-v1.md "Auth"): provayder oynasi → token → `POST /auth/google|apple`.
- * Hisob bor — ichkariga; yangi — SMS va parolsiz ro'yxatga (talaba 1/3 yoki biznes), ism oldindan to'ldiriladi.
+ * Hisob bor — ichkariga; yangi — parol o'rnatish (majburiy), keyin SMSsiz ro'yxat (talaba 1/3 yoki biznes), ism oldindan to'ldiriladi.
  *
  * - Google SDK native modul: Expo Go'da yo'q (dev/preview build kerak) — shuning uchun faqat bosilganda yuklanadi.
  *   Har bir xato log'ga haqiqiy kodi bilan (`[google] … code=10` — DEVELOPER_ERROR: ilova imzosi SHA-1 Google Cloud'dagi
@@ -185,17 +185,19 @@ export function useSocialSignIn(intent: Intent) {
         resetTo(routeFor(await signIn(result)));
         return;
       }
+      // Yangi foydalanuvchi: avval parol (majburiy), keyin ro'yxat formasi (ism oldindan to'ldiriladi)
       const firstName = result.profile.firstName ?? "";
       const lastName = result.profile.lastName ?? "";
       setFlow({
         intent: result.role,
         phone: "",
-        verify: null,
-        registrationTicket: result.registrationTicket,
+        verify: { next: "setPassword", ticket: result.ticket, role: result.role, isNew: true },
+        reset: null,
+        registrationTicket: null,
         social: { firstName, lastName, email: result.profile.email },
         business: { ...emptyDraft(), contactName: `${firstName} ${lastName}`.trim() },
       });
-      router.push(result.role === "business" ? "/business/info" : "/student/register");
+      router.push("/auth/password?mode=new");
     } catch (e) {
       setError(socialErrorText(e, provider));
     } finally {

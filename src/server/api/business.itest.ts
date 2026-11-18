@@ -31,6 +31,7 @@ import { authSecret } from "../env";
 import { notifyRedeemed } from "../notifications/direct";
 import { checkExpoReceipts, expoFromWebPayload, sendExpoPush } from "../notifications/expo-push";
 import { limitKey } from "./rate-limit";
+import { hashPassword } from "../auth/password";
 import { openApiSession } from "./session";
 
 // Faqat shu test ishlatadigan raqamlar va STIR
@@ -143,6 +144,11 @@ beforeAll(async () => {
     },
   });
   Object.assign(ids, { student: student.id, owner: owner.id, business: business.id, cashier: cashier.id, cashier2: cashier2.id, other: other.id, discount: discount.id });
+  // Parolsiz hisob API'da ichkariga kirmaydi (`password_setup_required`)
+  await db.user.updateMany({
+    where: { id: { in: [student.id, owner.id, cashier.id, cashier2.id, otherOwner.id, otherCashier.id, pendingOwner.id] } },
+    data: { passwordHash: hashPassword("Sinov2026") },
+  });
   Object.assign(t, {
     student: (await openApiSession(student.id)).accessToken,
     owner: (await openApiSession(owner.id)).accessToken,

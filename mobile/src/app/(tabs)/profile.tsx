@@ -95,6 +95,7 @@ export default function Profile() {
             {student ? <MenuRow icon="edit" label={p.edit} onPress={() => router.push("/profile/edit")} /> : null}
             <MenuRow icon="bell" label={p.notifications} value={unread > 0 ? String(unread) : undefined} onPress={() => router.push("/notifications")} />
             <MenuRow icon="globe" label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />
+            <MenuRow icon="lock" label={p.password} onPress={() => router.push("/auth/password?mode=change")} />
             <MenuRow icon="info" label={p.help} onPress={() => openSite("/#savollar")} />
             <MenuRow icon="lock" label={p.privacy} onPress={() => openSite(LEGAL.privacy)} />
             <MenuRow icon="doc" label={p.terms} onPress={() => openSite(LEGAL.terms)} last />

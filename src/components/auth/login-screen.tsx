@@ -1,21 +1,22 @@
 "use client";
 
 import { BackButton } from "@/components/ui/back-button";
-import { useStepHistory } from "@/lib/use-step-history";
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { buttonClass } from "@/components/ui/button";
-import { Field, PhoneInput } from "@/components/ui/field";
+import { Field, Input, PhoneInput } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
 import { Segmented } from "@/components/ui/segmented";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/cn";
-import { CodeEntry, OTP_LENGTH, RESEND_SECONDS } from "./code-entry";
-import { requestCodeAction, verifyCodeAction, type AuthError } from "@/server/actions/auth";
+import { PasswordInput } from "@/components/ui/password-input";
+import { normalizePhone, phoneNational } from "@/lib/format";
+import { CodeEntry, OTP_LENGTH } from "./code-entry";
+import { NewPasswordFields } from "./new-password-fields";
+import { useAuthFlow } from "./use-auth-flow";
 
-type Role = "student" | "business";
-type Failure = { error: AuthError; retryInSeconds?: number };
+const textLink = "tp-link border-0 bg-transparent p-0 font-sans text-14 font-bold text-blue";
 
 
 // Chap paneldagi qiya kartochkalar (W2): [fon/matn, burilish]
@@ -32,76 +33,24 @@ const STUBS = {
   ],
 } as const;
 
-/** W2 / W2m — kirish: telefon → SMS kod. Talaba va biznes uchun bitta ekran, ikki mavzu. */
-const subscribeToNothing = () => () => {};
-/** Manzildagi `?rol=biznes` — faqat brauzerda o'qiladi (sahifa statik qoladi, kiritilgan matn yo'qolmaydi). */
-const roleFromUrl = (): Role => (new URLSearchParams(window.location.search).get("rol") === "biznes" ? "business" : "student");
-
+/**
+ * W2 / W2m — kirish: raqam yoki email + parol (SMSsiz). Ro'yxat (telefon → SMS kod → parol) va "Parolni unutdim"
+ * (raqam/email → kod → yangi parol) — shu ekranda, chap panel o'zgarmaydi. `?rol=biznes` — Biznes mavzusi,
+ * `?royxat=talaba|biznes` — ro'yxat rejimida ochiladi (ma'lumotlar formasi parolsiz kelganni shu yerga qaytaradi).
+ * Ikkala rol bir xil kiradi: rol tanlovi faqat mavzu va ro'yxat turi.
+ */
 export function LoginScreen() {
   const t = useTranslations("auth");
-  const urlRole = useSyncExternalStore<Role>(subscribeToNothing, roleFromUrl, () => "student");
-  const [pickedRole, setRole] = useState<Role | null>(null);
-  const role = pickedRole ?? urlRole;
-  const [step, setStep] = useState<"phone" | "code">("phone");
-  const [phoneInput, setPhoneInput] = useState("");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [failure, setFailure] = useState<Failure | null>(null);
-  const [resendIn, setResendIn] = useState(0);
-  const [pending, startTransition] = useTransition();
-
-  // Kod qadamida telefon "orqaga" raqam qadamiga qaytaradi; raqam qadamida — bosh sahifaga
-  const goBack = useStepHistory(step === "code" ? 1 : 0, () => {
-    setStep("phone");
-    setFailure(null);
+  const params = useSearchParams();
+  const signup = params.get("royxat");
+  const flow = useAuthFlow({
+    initialMode: signup ? "register" : "login",
+    initialRole: params.get("rol") === "biznes" || signup === "biznes" ? "business" : "student",
   });
-
+  const { mode, step, role, failure, errorText, pending } = flow;
   const business = role === "business";
   const cta = business ? "orange" : "blue";
-
-  useEffect(() => {
-    if (resendIn <= 0) return;
-    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [resendIn]);
-
-  // Formalar `action` orqali ulanadi: sahifa hali ulanmagan paytda bosilsa ham React yuborishni ushlab qoladi
-  // (aks holda brauzer raqamni manzil satriga GET bilan yuborar edi).
-  // Raqam holatdan emas, formaning o'zidan o'qiladi: sahifa ulanmasdan oldin yozilgan matn ham yo'qolmaydi.
-  function sendCode(rawPhone: string = phoneInput) {
-    setFailure(null);
-    setPhoneInput(rawPhone);
-    startTransition(async () => {
-      const result = await requestCodeAction(rawPhone);
-      if (!result.ok) {
-        setFailure(result);
-        // Kod yaqinda yuborilgan bo'lsa ham kiritish qadamiga o'tamiz — foydalanuvchida kod bor.
-        if (result.error !== "tooSoon" || step === "code") return;
-        setResendIn(result.retryInSeconds ?? RESEND_SECONDS);
-      } else {
-        setResendIn(RESEND_SECONDS);
-        setPhone(result.phone);
-      }
-      setCode("");
-      setStep("code");
-    });
-  }
-
-  function verify(value: string) {
-    setFailure(null);
-    startTransition(async () => {
-      // Muvaffaqiyatli bo'lsa server yo'naltiradi; bu yerga faqat xato qaytadi.
-      const result = await verifyCodeAction(phoneInput, value, role);
-      if (result) {
-        setFailure(result);
-        setCode("");
-      }
-    });
-  }
-
-  const errorText = failure
-    ? t(`errors.${failure.error}`, { seconds: failure.retryInSeconds ?? 0, minutes: Math.ceil((failure.retryInSeconds ?? 0) / 60) })
-    : null;
+  const toggle = { show: t("showPassword"), hide: t("hidePassword") };
 
   return (
     <div className="@container flex min-h-screen flex-wrap bg-paper text-ink">
@@ -141,14 +90,14 @@ export function LoginScreen() {
 
       <main className="box-border flex min-w-0 flex-[1_1_460px] items-center justify-center px-[clamp(16px,4cqw,48px)] py-[clamp(24px,5cqw,64px)]">
         <div className="flex w-full max-w-[440px] flex-col gap-5">
-          <BackButton variant="text" onClick={goBack} className="-mb-3 self-start" />
+          <BackButton variant="text" onClick={flow.goBack} className="-mb-3 self-start" />
           <Segmented
             size="lg"
             label={t("roleLabel")}
             value={role}
             onChange={(next) => {
-              setRole(next);
-              setFailure(null);
+              flow.setRole(next);
+              flow.setFailure(null);
             }}
             options={[
               { value: "student", label: <><Icon name="student" size={18} />{t("role.student")}</> },
@@ -157,50 +106,110 @@ export function LoginScreen() {
           />
 
           <div>
-            <h2 className="m-0 text-32 font-black tracking-[-0.03em] font-stretch-110%">{t(`${role}.title`)}</h2>
-            <p className="mt-1.5 mb-0 text-15 text-muted">{t(`${role}.subtitle`)}</p>
+            <h2 className="m-0 text-32 font-black tracking-[-0.03em] font-stretch-110%">
+              {mode === "login" ? t(`${role}.title`) : mode === "register" ? t(`${role}.registerTitle`) : t("forgotTitle")}
+            </h2>
+            <p className="mt-1.5 mb-0 text-15 text-muted">
+              {mode === "login" ? t(`${role}.subtitle`) : mode === "register" ? t("registerLead") : t("forgotLead")}
+            </p>
           </div>
 
-          {step === "phone" ? (
+          {mode === "login" ? (
             <form
               className="flex flex-col gap-3.5"
-              action={(form) => sendCode(String(form.get("phone") ?? ""))}
+              action={(form) => flow.login(String(form.get("identifier") ?? ""), String(form.get("password") ?? ""))}
             >
-              <Field label={t("phoneLabel")} htmlFor="login-phone" error={errorText}>
-                <PhoneInput
-                  id="login-phone"
-                  name="phone"
-                  size="lg"
+              <Field label={t("identifierLabel")} htmlFor="login-identifier">
+                <Input
+                  id="login-identifier"
+                  name="identifier"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  placeholder={t("identifierPlaceholder")}
                   autoFocus
-                  invalid={failure?.error === "phone"}
-                  defaultValue={phoneInput}
+                  defaultValue={flow.identifier}
+                  invalid={failure?.error === "invalid" || failure?.error === "identifier"}
                 />
               </Field>
-              <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
-                {pending ? t("sending") : t("sendCode")}
+              <Field label={t("passwordLabel")} htmlFor="login-password" error={errorText}>
+                <PasswordInput id="login-password" name="password" autoComplete="current-password" invalid={failure?.error === "invalid"} toggleLabels={toggle} />
+              </Field>
+              <button type="button" onClick={() => flow.switchMode("forgot")} className={cn(textLink, "-mt-1.5 self-start")}>
+                {t("forgot")}
               </button>
+              <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
+                {pending ? t("signingIn") : t("submit")}
+              </button>
+              {failure?.error === "invalid" ? <p className="m-0 text-13 leading-[1.5] text-muted">{t("noPasswordHint")}</p> : null}
             </form>
-          ) : (
+          ) : step === "form" ? (
+            mode === "register" ? (
+              <form className="flex flex-col gap-3.5" action={(form) => flow.sendRegisterCode(String(form.get("phone") ?? ""))}>
+                <Field label={t("phoneLabel")} htmlFor="register-phone" error={errorText}>
+                  <PhoneInput id="register-phone" name="phone" size="lg" autoFocus invalid={failure?.error === "phone"} defaultValue={flow.phone ? phoneNational(flow.phone) : ""} />
+                </Field>
+                <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
+                  {pending ? t("sending") : t("sendCode")}
+                </button>
+              </form>
+            ) : (
+              <form className="flex flex-col gap-3.5" action={(form) => flow.sendResetCode(String(form.get("identifier") ?? ""))}>
+                <Field label={t("identifierLabel")} htmlFor="forgot-identifier" error={errorText}>
+                  <Input
+                    id="forgot-identifier"
+                    name="identifier"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    placeholder={t("identifierPlaceholder")}
+                    autoFocus
+                    defaultValue={flow.identifier}
+                    invalid={failure?.error === "identifier"}
+                  />
+                </Field>
+                <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
+                  {pending ? t("sending") : t("sendResetCode")}
+                </button>
+              </form>
+            )
+          ) : step === "code" ? (
             <form
               className="flex flex-col gap-3.5"
               action={() => {
-                if (code.length === OTP_LENGTH) verify(code);
+                if (flow.code.length === OTP_LENGTH) flow.verifyCode(flow.code);
               }}
             >
+              {mode === "forgot" ? <p className="m-0 text-14 text-muted">{t("resetSent")}</p> : null}
               <CodeEntry
-                phone={phone}
-                code={code}
-                onCode={setCode}
-                onComplete={verify}
-                onResend={() => sendCode()}
-                onChangePhone={goBack}
-                resendIn={resendIn}
+                phone={mode === "register" ? flow.phone : (normalizePhone(flow.identifier) ?? "")}
+                label={mode === "forgot" && flow.channel === "email" ? t("codeSentToEmail", { email: flow.identifier.trim() }) : undefined}
+                code={flow.code}
+                onCode={flow.setCode}
+                onComplete={flow.verifyCode}
+                onResend={() => (mode === "register" ? flow.sendRegisterCode() : flow.sendResetCode())}
+                onChangePhone={flow.goBack}
+                resendIn={flow.resendIn}
                 pending={pending}
                 invalid={failure?.error === "wrongCode"}
                 errorText={errorText}
               />
               <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
-                {pending ? t("checking") : t("submit")}
+                {pending ? t("checking") : t("confirmCode")}
+              </button>
+            </form>
+          ) : (
+            <form
+              className="flex flex-col gap-3.5"
+              action={(form) => flow.savePassword(String(form.get("password") ?? ""), String(form.get("confirm") ?? ""))}
+            >
+              <div>
+                <h3 className="m-0 text-20 font-extrabold">{t(`setPassword.${flow.setMode}Title`)}</h3>
+                <p className="mt-1 mb-0 text-14 text-muted">{t(`setPassword.${flow.setMode}Lead`)}</p>
+              </div>
+              <NewPasswordFields idPrefix="set" errorText={errorText} mismatch={failure?.error === "mismatch"} />
+              <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: cta, strong: true })}>
+                {pending ? t("setPassword.saving") : t(flow.setMode === "new" ? "setPassword.continue" : "setPassword.save")}
               </button>
             </form>
           )}
@@ -211,19 +220,29 @@ export function LoginScreen() {
             <span className="h-px flex-1 bg-line" />
           </div>
 
-          <Link
-            href={business ? "/biznes/royxat" : "/talaba/royxat"}
-            className="tp-card box-content flex min-h-16 items-center gap-3.5 rounded-14 border-[1.5px] border-dashed border-placeholder bg-white px-4 py-2.5 text-ink no-underline"
-          >
-            <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-10", business ? "bg-orange text-ink" : "bg-blue text-white")}>
-              <Icon name="plus" size={18} strokeWidth={2.4} />
-            </span>
-            <span className="flex flex-1 flex-col gap-0.5">
-              <b className="text-15">{t(`${role}.registerTitle`)}</b>
-              <span className="text-13 text-muted">{t(`${role}.registerSubtitle`)}</span>
-            </span>
-            <Icon name="chevronRight" size={18} strokeWidth={2.2} />
-          </Link>
+          {mode === "login" ? (
+            <button
+              type="button"
+              onClick={() => flow.switchMode("register")}
+              className="tp-card box-content flex min-h-16 items-center gap-3.5 rounded-14 border-[1.5px] border-dashed border-placeholder bg-white px-4 py-2.5 text-left font-sans text-ink"
+            >
+              <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-10", business ? "bg-orange text-ink" : "bg-blue text-white")}>
+                <Icon name="plus" size={18} strokeWidth={2.4} />
+              </span>
+              <span className="flex flex-1 flex-col gap-0.5">
+                <b className="text-15">{t(`${role}.registerTitle`)}</b>
+                <span className="text-13 text-muted">{t(`${role}.registerSubtitle`)}</span>
+              </span>
+              <Icon name="chevronRight" size={18} strokeWidth={2.2} />
+            </button>
+          ) : (
+            <p className="m-0 text-14 text-muted">
+              {t(mode === "register" ? "haveAccount" : "rememberPassword")}{" "}
+              <button type="button" onClick={() => flow.switchMode("login")} className={textLink}>
+                {t("signInAction")}
+              </button>
+            </p>
+          )}
 
           {business ? <p className="m-0 text-14 text-muted">{t("business.cashierNote")}</p> : null}
 

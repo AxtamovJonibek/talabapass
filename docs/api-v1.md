@@ -50,13 +50,23 @@ Kirish javobi (`SignedIn`):
 
 ## Auth
 
-Kirish usullari: **Google**, **Apple** (iOS) yoki **telefon**. Qaysi biri yoqilgani — `GET /app-config` `auth`.
+Kirish **SMSsiz**: telefon raqam yoki email + parol (`POST /auth/login`). Google va Apple (iOS) tugmalari ham bor — qaysi biri
+yoqilgani `GET /app-config` `auth`. SMS kod faqat ro'yxatda (raqamni tasdiqlash) va "Parolni unutdim"da. **Parolsiz hisob
+qolmaydi**: ro'yxat (telefon ham, Google/Apple ham) parol qadamisiz tugamaydi; eski parolsiz hisob yoki admin "parolni tiklash"
+bosgan hisob ichkarida `password_setup_required` (403) oladi — avval `POST /me/password` (`GET /me` → `mustSetPassword: true`).
+Admin API orqali kirmaydi.
+
+### Kirish
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `POST /auth/login` | `{ identifier, password, deviceName? }` — `identifier`: `+998…`/9 raqam yoki email | `SignedIn` · xato: `invalid_credentials` (401, **bitta umumiy**: hisob yo'q, parol yo'q, parol xato — farqlanmaydi), `password_locked` (+`retryInSeconds`; 5 ketma-ket xato → 15 daq, hisobi yo'q identifikatorda ham xuddi shunday), `account_blocked` / `no_business` (faqat parol to'g'ri bo'lsa) |
 
 ### Google / Apple
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
-| `POST /auth/google` | `{ idToken, intent: "student"\|"business", deviceName? }` | `SignedIn` + `next: "signedIn"` yoki `{ next: "register", role, registrationTicket, profile: { firstName, lastName, email } }` |
+| `POST /auth/google` | `{ idToken, intent: "student"\|"business", deviceName? }` | `SignedIn` + `next: "signedIn"` yoki `{ next: "setPassword", role, ticket, profile: { firstName, lastName, email } }` |
 | `POST /auth/apple` | `{ idToken, intent, firstName?, lastName?, deviceName? }` yoki (Android web oqimi) `{ ticket, verifier, intent, deviceName? }` | xuddi shunday |
 | `GET /auth/apple/start?state=` | — (brauzer) | 302 → Apple kirish sahifasi (Services ID, `form_post`); Services ID yo'q — `talabapass://auth/apple?error=unavailable` |
 | `POST /auth/apple/callback` | Apple `form_post`: `id_token`, `state`, `user?`, `error?` | 303 → `talabapass://auth/apple?ticket=…` (Android Chrome — `intent://…;package=uz.talabapass.app`) yoki `?error=cancelled\|failed` |
@@ -72,32 +82,46 @@ Kirish usullari: **Google**, **Apple** (iOS) yoki **telefon**. Qaysi biri yoqilg
   Services ID — `APPLE_CLIENT_ID` dagi bundle ID bo'lmagan birinchi qiymat; yo'q bo'lsa `app-config` `auth.appleWeb = false`.
 - Hisob `AuthIdentity` (`provider` + `sub`) bo'yicha topiladi. Topilmasa, lekin provayder **tasdiqlagan** email boshqa hisobda
   bo'lsa — shu hisobga bog'lanadi (bir xil email = bitta hisob, audit `user.identity.link`); tasdiqlanmagan email bog'lanmaydi
-  va saqlanmaydi. Hech biri yo'q — **SMS va parolsiz** ro'yxat: `registrationTicket` (30 daqiqa) bilan `POST /student/register`
-  yoki `POST /business/register` (pastda). `profile` — formani oldindan to'ldirish uchun (Google tokenidan; Apple ismni
-  faqat birinchi ruxsatda ilovaga beradi — mijoz `firstName`/`lastName` ni yuboradi).
-- Shunday ochilgan hisobda `phone: null` (email bo'lsa `email`), parol yo'q (`hasPassword: false`) — ilovaga shu provayder bilan
-  kiradi. Saytga kirish (SMS) bunday hisobga yo'q. Kassir — faqat telefon taklifi bilan.
+  va saqlanmaydi. Hech biri yo'q — **parol qadami (majburiy)**: `ticket` (10 daqiqa) bilan `POST /auth/password` →
+  `registrationTicket` (30 daqiqa) → `POST /student/register` yoki `POST /business/register` (SMSsiz). `profile` — formani
+  oldindan to'ldirish uchun (Google tokenidan; Apple ismni faqat birinchi ruxsatda ilovaga beradi — mijoz `firstName`/`lastName` ni yuboradi).
+- Shunday ochilgan hisobda `phone: null` (email bo'lsa `email`); keyin email + parol bilan ham kiradi. Kassir — faqat telefon taklifi bilan.
 - Xatolar: `social_invalid` 401 (imzo/aud/iss/muddat), `social_unavailable` 503, `social_unreachable` 503 (kalitlarni olib
   bo'lmadi), `account_blocked`, `admin_not_supported`, `no_business`. Chegara — kod tekshirish bilan bir xil (30 / 15 daq, IP).
+- Har kirish audit'da: `user.login.ok` `{ method: "google"\|"apple", via: "api", device }`.
 
-### Telefon
+### Ro'yxat (telefon)
 
-Oqim: telefon → SMS kod → (hisob bor va parol bor) parol bilan kirish | (yangi raqam yoki parolsiz hisob) parol
-o'rnatish → (yangi raqam) ro'yxat. Raqam ro'yxatda bor-yo'qligi kod to'g'ri kiritilmaguncha bilinmaydi. Qadamlar
-orasidagi holat — muhrlangan `ticket` (10 daqiqa; parol o'zgarsa yaroqsiz) va `registrationTicket` (30 daqiqa).
-Admin API orqali kirmaydi (`admin_not_supported`).
+Oqim: telefon → SMS kod → parol o'rnatish → ro'yxat. Raqam ro'yxatda bor-yo'qligi kod to'g'ri kiritilmaguncha bilinmaydi;
+kod to'g'ri bo'lsa (raqam egasi isbotlangan): paroli bor hisob — `account_exists` (409, parol bilan kirsin yoki tiklasin),
+parolsiz eski hisob — `setPassword` (`isNew: false`, keyin tokenlar). Qadamlar orasidagi holat — muhrlangan `ticket`
+(10 daqiqa; parol o'zgarsa yaroqsiz) va `registrationTicket` (30 daqiqa).
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
 | `POST /auth/code` | `{ phone }` | `{ phone, resendInSeconds }` · xato: `invalid_phone`, `too_soon`, `daily_limit`, `ip_limit`, `code_locked`, `sms_failed` |
-| `POST /auth/verify` | `{ phone, code, intent: "student"\|"business" }` | `{ next: "password", ticket, role, masked, initial }` yoki `{ next: "setPassword", ticket, role, isNew, businessName? }` · xato: `wrong_code`, `code_expired`, `code_locked`, `account_blocked`, `no_business`, `admin_not_supported` |
-| `POST /auth/login` | `{ ticket, password, deviceName? }` | `SignedIn` · xato: `wrong_password` (+`left`), `password_locked` (+`retryInSeconds`; 5 xato → 15 daq), `step_expired` |
-| `POST /auth/password` | `{ ticket, password, confirm, deviceName? }` | yangi raqam: `{ next: "register", role, registrationTicket }` (`role`: `student` \| `business` \| `cashier`); aks holda `{ next: "signedIn", tokens, user }` · xato: `weak_password` (≥ 8, harf + raqam), `password_mismatch`, `step_expired` |
+| `POST /auth/verify` | `{ phone, code, intent: "student"\|"business" }` | `{ next: "setPassword", ticket, role, isNew, businessName? }` · xato: `wrong_code`, `code_expired`, `code_locked`, `account_exists`, `account_blocked`, `no_business`, `admin_not_supported` |
+| `POST /auth/password` | `{ ticket, password, confirm, deviceName? }` | yangi raqam / Google/Apple: `{ next: "register", role, registrationTicket }` (`role`: `student` \| `business` \| `cashier`); aks holda `{ next: "signedIn", tokens, user }` · xato: `weak_password` (≥ 8, harf + raqam), `password_mismatch`, `step_expired` |
 | `POST /auth/refresh` | `{ refreshToken }` | `{ tokens }` · xato: `refresh_invalid`, `refresh_reused` |
 | `POST /auth/logout` | Bearer (muddati o'tgani ham) | `{ ok: true }` — sessiya va unga bog'langan push qurilmasi o'chadi |
 
-"Parolni unutdim": `verify` → `next: "password"` bo'lgan `ticket` bilan `POST /auth/password` — yangi parol, boshqa
-barcha sessiyalar (sayt ham) yopiladi.
+### Parolni unutdim
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `POST /auth/forgot` | `{ identifier }` | `{ channel: "sms"\|"email", resendInSeconds }` — **javob hisob borligidan qat'i nazar bir xil**; kod faqat hisob bo'lsa yuboriladi (telefon — SMS, 5 daqiqa; email — 6 raqamli kod, 10 daqiqa, 5 urinish). Faqat IP chegarasi aytiladi (`ip_limit`) |
+| `POST /auth/forgot/verify` | `{ identifier, code }` | `{ next: "setPassword", ticket }` · xato: `wrong_code`, `code_expired` (hisobi yo'q identifikator ham), `code_locked`, `invalid_identifier` |
+
+Keyin `POST /auth/password` shu `ticket` bilan — yangi parol, boshqa barcha sessiyalar (sayt ham) yopiladi, audit `user.password.reset`.
+
+### Parol (kirgan foydalanuvchi)
+
+| Endpoint | Kirish | Chiqish |
+|---|---|---|
+| `POST /me/password` | Bearer, `{ current?, password, confirm, deviceName? }` | `{ user }` — `mustSetPassword` bo'lsa joriy parolsiz (`user.password.set`), aks holda `current` majburiy (`user.password.change`); boshqa sessiyalar yopiladi, joriysi qoladi · xato: `password_required`, `wrong_current_password` (+`left`), `password_locked`, `weak_password`, `password_mismatch` |
+
+Audit (parol va kodlar hech qachon yozilmaydi): `user.login.ok|fail` (`method`: phone|email|google|apple, `via`: web|app|api,
+`device`, `ua`; muvaffaqiyatsizda `reason` va niqoblangan identifikator), `user.password.set|change|reset|locked`.
 
 ## Ilova sozlamasi
 
@@ -116,7 +140,7 @@ sozlanmagan bo'lsa bosilganda tushunarli xabar chiqadi.
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
-| `GET /me` | Bearer | `{ user: { id, phone (Google/Apple hisobida null), email, role, firstName, lastName, hasPassword, student: { status, publicId, course, faculty, districtId, cardExpiresAt, university } \| null, business: { id, name, status, submitted, rejectReason, memberRole } \| null } }` |
+| `GET /me` | Bearer | `{ user: { id, phone (Google/Apple hisobida null), email, role, firstName, lastName, hasPassword, mustSetPassword, passwordChangedAt, student: { status, publicId, course, faculty, districtId, cardExpiresAt, university } \| null, business: { id, name, status, submitted, rejectReason, memberRole } \| null } }` |
 | `DELETE /me` | Bearer, `{ password }`; parolsiz (Google/Apple) hisob — `{ provider: "GOOGLE"\|"APPLE", idToken }` (yangi token; Android Apple — `{ provider: "APPLE", ticket, verifier }`) | `{ ok: true }` · xato: `wrong_password`, `password_locked`, `password_required`, `social_mismatch` (boshqa hisob tokeni), `open_orders` |
 
 Hisobni o'chirish: qator qoladi (sotuv/kupon tarixi biznes hisobotlari uchun), shaxsiy ma'lumot tozalanadi, raqam

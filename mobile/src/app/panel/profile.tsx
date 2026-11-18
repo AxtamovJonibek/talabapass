@@ -141,6 +141,7 @@ export default function BusinessProfile() {
 
           <Card style={styles.card}>
             <MenuRow icon="globe" label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />
+            <MenuRow icon="lock" label={copy.profile.password} onPress={() => router.push("/auth/password?mode=change")} />
             <MenuRow icon="lock" label={copy.profile.privacy} onPress={() => openSite(LEGAL.privacy)} />
             <MenuRow icon="doc" label={copy.profile.terms} onPress={() => openSite(LEGAL.terms)} last={!owner} />
             {owner ? <MenuRow icon="doc" label={copy.biz.profile.partnerTerms} onPress={() => openSite(LEGAL.partnerTerms)} last /> : null}

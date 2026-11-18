@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearOtp, codeBox, enterCode, FIXED_CODE, local, seedPhones, signIn, withDb } from "./helpers";
+import { clearLoginLimits, clearOtp, codeBox, ensurePassword, enterCode, fillNewPassword, FIXED_CODE, local, seedPhones, signIn, TEST_PASSWORD, withDb } from "./helpers";
 
 // Kassir taklifi: bir martalik havola → kassir hisobi → faqat o'z biznesi; egasi o'chirsa sessiya yopiladi
 const CASHIER = "+998935550931";
@@ -34,11 +34,14 @@ test("taklif → qabul → o'chirish: sessiya darhol yopiladi, havola qayta ishl
   await cashier.locator("#inv-first").fill("Sinov");
   await cashier.locator("#inv-last").fill("Kassir");
   await cashier.locator("#inv-phone").fill(local(CASHIER));
+  await fillNewPassword(cashier, TEST_PASSWORD, "inv");
   await cashier.getByRole("button", { name: "SMS kod olish" }).click();
   await expect(codeBox(cashier)).toBeEnabled();
   await enterCode(cashier, FIXED_CODE);
   await expect(cashier).toHaveURL("/uz/biznes/skaner");
   await expect(cashier.getByTestId("cashier-business")).toHaveText("Bodom Choyxonasi");
+  const saved = await withDb((db) => db.query(`SELECT "passwordHash" FROM "User" WHERE phone = $1`, [CASHIER]));
+  expect(saved.rows[0].passwordHash, "kassir hisobi parol bilan").toMatch(/^scrypt:/);
   // Kassir biznes kabinetiga kira olmaydi
   await cashier.goto("/uz/biznes/profil");
   await expect(cashier).toHaveURL("/uz/biznes/skaner");
@@ -73,11 +76,12 @@ test("o'chirilgan kassir qayta kira olmaydi", async ({ page }) => {
       [rows[0].id],
     );
   });
+  await ensurePassword(CASHIER);
+  await clearLoginLimits();
   await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-  await page.locator("#login-phone").fill(local(CASHIER));
-  await page.getByRole("button", { name: "SMS kod olish" }).click();
-  await expect(codeBox(page)).toBeEnabled();
-  await enterCode(page, FIXED_CODE);
+  await page.locator("#login-identifier").fill(local(CASHIER));
+  await page.locator("#login-password").fill(TEST_PASSWORD);
+  await page.getByRole("button", { name: "Kirish", exact: true }).click();
   await expect(page.getByText("hech qaysi biznesga kassir sifatida biriktirilmagansiz")).toBeVisible();
   expect(page.url()).toContain("/uz/kirish");
 });

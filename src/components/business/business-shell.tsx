@@ -4,6 +4,7 @@ import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
 import { Sidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/cn";
+import { Link } from "@/i18n/navigation";
 import { logoutAction } from "@/server/actions/auth";
 import { OwnerBottomNav, type OwnerTab } from "./owner-nav";
 
@@ -31,6 +32,7 @@ export function BusinessShell({ active, phoneTab, children }: { active: Business
   const t = useTranslations("businessNav");
   const brand = useTranslations("brand");
   const common = useTranslations("common");
+  const profile = useTranslations("profile");
 
   const sidebar = (
     <Sidebar
@@ -39,7 +41,11 @@ export function BusinessShell({ active, phoneTab, children }: { active: Business
       header={<Logo size={17} variant="white" tag={brand("business")} className="px-2" />}
       items={ITEMS.map((item) => ({ href: item.href, icon: item.icon, label: t(item.key), active: item.key === active }))}
       footer={
-        <form action={logoutAction} className="px-1.5">
+        <form action={logoutAction} className="flex flex-col px-1.5">
+          <Link href="/kirish/parol" className="tap flex h-10 items-center gap-2.5 rounded-10 px-1.5 text-14 font-semibold text-fog-3 no-underline hover:text-white">
+            <Icon name="lock" size={18} />
+            {profile("password")}
+          </Link>
           <button type="submit" className="tap flex h-10 items-center gap-2.5 rounded-10 border-0 bg-transparent px-1.5 font-sans text-14 font-semibold text-fog-3 hover:text-white">
             <Icon name="logout" size={18} />
             {common("logout")}

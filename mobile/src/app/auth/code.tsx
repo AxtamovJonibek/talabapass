@@ -8,9 +8,12 @@ import { copy } from "@/copy";
 import { displayPhone, toE164 } from "@/lib/phone";
 import { useApp } from "@/state";
 import { colors, font } from "@/theme";
-import { BackArrow, CodeBoxes, ErrorBox, Grow, IconTile, Lead, Logo, PrimaryButton, Screen, TextAction, Title, TipCard, TopBar, Txt } from "@/ui/kit";
+import { BackArrow, CodeBoxes, ErrorBox, Grow, IconTile, Lead, Logo, Note, PrimaryButton, Screen, TextAction, Title, TipCard, TopBar, Txt } from "@/ui/kit";
 
-/** Kod / KodBiznes: 6 xonali SMS kod. 6-raqam kiritilishi bilan o'zi tekshiradi. */
+/**
+ * Kod / KodBiznes: 6 xonali kod. Ro'yxat — SMS kod (raqamni tasdiqlash) → parol; "Parolni unutdim" (`flow.reset`) —
+ * SMS yoki email kodi → yangi parol. 6-raqam kiritilishi bilan o'zi tekshiradi.
+ */
 export default function Code() {
   const { flow, setFlow } = useApp();
   const [code, setCode] = useState("");
@@ -18,7 +21,9 @@ export default function Code() {
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const resend = useSendCode();
+  const [resendError, setResendError] = useState<string | null>(null);
   const l = copy.login;
+  const reset = flow.reset;
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -31,10 +36,15 @@ export default function Code() {
     setBusy(true);
     setError(null);
     try {
-      const result = await authApi.verify(toE164(flow.phone), value, flow.intent);
-      setFlow({ verify: result });
-      if (result.next === "password") router.push("/auth/login");
-      else router.push(`/auth/password?mode=${result.isNew ? "new" : "set"}`);
+      if (reset) {
+        const result = await authApi.forgotVerify(reset.identifier, value);
+        setFlow({ verify: { next: "setPassword", ticket: result.ticket, role: flow.intent, isNew: false } });
+        router.push("/auth/password?mode=reset");
+      } else {
+        const result = await authApi.verify(toE164(flow.phone), value, flow.intent);
+        setFlow({ verify: result });
+        router.push(`/auth/password?mode=${result.isNew ? "new" : "set"}`);
+      }
     } catch (e) {
       setError(errorText(e));
       setCode("");
@@ -43,11 +53,25 @@ export default function Code() {
     }
   };
 
+  const again = async () => {
+    setResendError(null);
+    if (!reset) return void resend.send(flow.phone, flow.intent);
+    try {
+      const r = await authApi.forgot(reset.identifier);
+      setFlow({ resendAt: Date.now() + r.resendInSeconds * 1000 });
+    } catch (e) {
+      setResendError(errorText(e));
+    }
+  };
+
   const onChange = (value: string) => {
     setCode(value);
     if (error) setError(null);
     if (value.length === 6) void verify(value);
   };
+
+  const email = reset?.channel === "email";
+  const target = reset ? reset.identifier : displayPhone(flow.phone);
 
   return (
     <Screen>
@@ -59,11 +83,12 @@ export default function Code() {
       <View style={styles.hero}>
         <IconTile icon="sms" />
         <Title text={l.codeTitle} size={42} style={styles.title} />
-        <Lead text={l.codeLead(displayPhone(flow.phone))} style={styles.lead} />
+        <Lead text={email ? l.codeLeadEmail(target) : l.codeLead(target)} style={styles.lead} />
+        {reset ? <Note style={styles.note}>{l.resetSent}</Note> : null}
       </View>
 
       <View style={styles.code}>
-        <CodeBoxes value={code} onChange={onChange} invalid={Boolean(error)} disabled={busy} autoFocus label={l.codeLabel} />
+        <CodeBoxes value={code} onChange={onChange} invalid={Boolean(error)} disabled={busy} autoFocus label={email ? l.emailCodeLabel : l.codeLabel} />
         <View style={styles.row}>
           {left > 0 ? (
             <Txt style={[font(500), styles.timer]}>
@@ -73,24 +98,26 @@ export default function Code() {
               </Txt>
             </Txt>
           ) : (
-            <TextAction disabled={resend.busy} onPress={() => void resend.send(flow.phone, flow.intent)}>
+            <TextAction disabled={resend.busy} onPress={() => void again()}>
               {l.resend}
             </TextAction>
           )}
           <TextAction onPress={() => router.back()}>{l.changePhone}</TextAction>
         </View>
-        <ErrorBox>{error ?? resend.error}</ErrorBox>
+        <ErrorBox>{error ?? resend.error ?? resendError}</ErrorBox>
       </View>
 
       <Grow />
 
-      <View style={styles.tip}>
-        <TipCard icon="shieldCheck">
-          {l.tipLead}
-          <Txt style={[font(800), { color: colors.blue }]}>{l.tipAction}</Txt>
-          {l.tipTail}
-        </TipCard>
-      </View>
+      {reset ? null : (
+        <View style={styles.tip}>
+          <TipCard icon="shieldCheck">
+            {l.tipLead}
+            <Txt style={[font(800), { color: colors.blue }]}>{l.tipAction}</Txt>
+            {l.tipTail}
+          </TipCard>
+        </View>
+      )}
       <PrimaryButton icon="tick" onPress={() => void verify(code)} loading={busy} disabled={code.length !== 6}>
         {busy ? l.checking : l.confirm}
       </PrimaryButton>
@@ -102,6 +129,7 @@ const styles = StyleSheet.create({
   hero: { marginTop: 36 },
   title: { marginTop: 22 },
   lead: { marginTop: 14 },
+  note: { marginTop: 10 },
   code: { marginTop: 30 },
   row: { marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   timer: { fontSize: 15, color: colors.muted2 },

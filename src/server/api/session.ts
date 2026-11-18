@@ -140,8 +140,13 @@ export async function authenticate(request: NextRequest, { allowExpired = false 
 export async function requireApiRole(request: NextRequest, ...roles: Role[]): Promise<ApiAuth> {
   const auth = await authenticate(request);
   if (!roles.includes(auth.user.role)) throw new ApiError("forbidden");
+  // Parolsiz eski hisob yoki admin "parolni tiklash" bosgan — avval `POST /me/password` (sayt `requireRole` bilan bir xil)
+  if (mustSetPassword(auth.user)) throw new ApiError("password_setup_required");
   return auth;
 }
+
+export const mustSetPassword = (user: { role: Role; passwordHash: string | null; passwordResetRequired: boolean }) =>
+  user.role !== "ADMIN" && (!user.passwordHash || user.passwordResetRequired);
 
 /**
  * Talaba (sayt `requireStudent` / `requireActiveStudent`): guvohnoma muddati o'tgan bo'lsa shu yerda EXPIRED ga
@@ -184,6 +189,9 @@ export function meView(user: ApiUser) {
     firstName: user.firstName,
     lastName: user.lastName,
     hasPassword: user.passwordHash !== null,
+    /** true — ichkariga o'tishdan oldin parol o'rnatish/almashtirish majburiy (`POST /me/password`) */
+    mustSetPassword: mustSetPassword(user),
+    passwordChangedAt: user.passwordChangedAt?.toISOString() ?? null,
     student: student
       ? {
           status: effectiveStudentStatus(student.status, student.cardExpiresAt, new Date()),

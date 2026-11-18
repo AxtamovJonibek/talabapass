@@ -17,6 +17,7 @@ import { GET as profile, PATCH as editProfile } from "@/app/api/v1/student/profi
 import { toTashkent } from "@/lib/time";
 import { db } from "../db";
 import { limitKey } from "./rate-limit";
+import { hashPassword } from "../auth/password";
 import { openApiSession } from "./session";
 
 // Faqat shu test ishlatadigan raqamlar va STIR
@@ -100,6 +101,8 @@ beforeAll(async () => {
     },
   });
   discountId = discount.id;
+  // Parolsiz hisob API'da ichkariga kirmaydi (`password_setup_required`)
+  await db.user.updateMany({ where: { id: { in: [studentId, pending.id] } }, data: { passwordHash: hashPassword("Sinov2026") } });
   token = (await openApiSession(studentId, { deviceName: "itest" })).accessToken;
   pendingToken = (await openApiSession(pending.id)).accessToken;
 });

@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
-import { clearOtp, FIXED_CODE, local, sampleJpeg, seedPhones, withDb } from "./helpers";
+import { clearLoginLimits, clearOtp, FIXED_CODE, local, sampleJpeg, seedPhones, withDb } from "./helpers";
 
 /**
  * Capacitor ilovasidagi oqim (design/app-flow). Ilova `CapacitorCustomPlatform` bilan taqlid qilinadi:
@@ -25,7 +25,7 @@ test.describe("ilova: birinchi ochilish", () => {
 
     await expect(page).toHaveURL(/\/uz\/kirish$/);
     await expect(page.getByRole("heading", { name: /Boshla/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Kod yuborish" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Kirish", exact: true })).toBeVisible();
 
     // Ikkinchi ochilish — karuselsiz
     await page.goto("/uz/ilova");
@@ -54,16 +54,24 @@ test.describe("ilova: birinchi ochilish", () => {
     await expect(page.getByLabel("Google Play — tez orada")).toBeVisible();
     await expect(page.getByRole("button", { name: "Davom etish" })).toHaveCount(0);
     await page.goto("/uz/kirish");
-    await expect(page.getByRole("button", { name: "SMS kod olish" })).toBeVisible();
+    await expect(page.locator("#login-identifier")).toBeVisible();
   });
 });
 
-/** Ilova kirishi: telefon → SMS kod (sahifa ochiq bo'lishi kerak). */
-async function appCode(page: Page, phone: string, { fill = true } = {}) {
+/** Ilova ro'yxati: "Ro'yxatdan o'tish" → telefon → SMS kod (kirish sahifasi ochiq bo'lishi kerak). */
+async function appCode(page: Page, phone: string) {
   await clearOtp(phone);
-  if (fill) await page.locator("#app-phone").fill(local(phone));
+  await page.getByRole("button", { name: /Ro'yxatdan o'tish/ }).click();
+  await page.locator("#app-phone").fill(local(phone));
   await page.getByRole("button", { name: "Kod yuborish" }).click();
   await page.locator("#app-code").fill(FIXED_CODE);
+}
+
+/** Ilova kirishi: raqam + parol (SMSsiz). */
+async function appLogin(page: Page, password: string, phone?: string) {
+  if (phone) await page.locator("#app-identifier").fill(local(phone));
+  await page.locator("#app-password").fill(password);
+  await page.getByRole("button", { name: "Kirish", exact: true }).click();
 }
 
 const setPassword = (phone: string, hash: string | null) =>
@@ -74,18 +82,21 @@ const passwordState = (phone: string) =>
 test.describe("ilova: parol", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("parolsiz eski hisob SMS'dan keyin parol o'rnatadi, keyingi safar parol so'raladi", async ({ page, context }) => {
+  test("parolsiz eski hisob: kirish rad etiladi, ro'yxat kodi bilan parol o'rnatadi; keyin raqam + parol", async ({ page, context }) => {
     const { student } = await seedPhones();
     await setPassword(student, null);
+    await clearLoginLimits();
     await asNativeApp(context);
     await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-    await appCode(page, student);
+    await appLogin(page, "Talaba2026", student);
+    await expect(page.getByText("Raqam/email yoki parol noto'g'ri")).toBeVisible();
 
+    await appCode(page, student);
     await expect(page.getByRole("heading", { name: "Parol o'rnating." })).toBeVisible();
     await page.locator("#app-new-password").fill("abc");
     await page.locator("#app-repeat-password").fill("abc");
     await page.getByRole("button", { name: "Saqlash va kirish" }).click();
-    await expect(page.getByText("Parol kamida 8 ta belgi bo'lsin, harf va raqam birga.")).toBeVisible();
+    await expect(page.getByText("Parol kamida 8 ta belgi bo'lsin: harf va raqam birga.")).toBeVisible();
 
     await page.locator("#app-new-password").fill("Talaba2026");
     await page.locator("#app-repeat-password").fill("Talaba2027");
@@ -97,21 +108,16 @@ test.describe("ilova: parol", () => {
     await page.waitForURL(/\/uz\/chegirmalar/);
     expect((await passwordState(student)).hash).toMatch(/^scrypt:/);
 
-    // Chiqib ketgandan keyin — "Qayta xush kelibsiz", raqam yozilgan, endi parol so'raladi
+    // Chiqib ketgandan keyin — "Qayta xush kelibsiz", raqam yozilgan, faqat parol
     await context.clearCookies({ name: "tp_session" });
     await page.goto("/uz/kirish", { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { name: /Qayta/ })).toBeVisible();
-    await expect(page.locator("#app-phone")).toHaveValue(/\d/);
-    await appCode(page, student, { fill: false });
-    await expect(page.getByText("Hisobingiz topildi")).toBeVisible();
-
-    await page.locator("#app-password").fill("Notogri123");
-    await page.getByRole("button", { name: "Kirish", exact: true }).click();
-    await expect(page.getByText("Parol noto'g'ri. Yana 4 ta urinish qoldi.")).toBeVisible();
+    await expect(page.locator("#app-identifier")).toHaveValue(/\d/);
+    await appLogin(page, "Notogri123");
+    await expect(page.getByText("Raqam/email yoki parol noto'g'ri")).toBeVisible();
     expect((await passwordState(student)).fails).toBe(1);
 
-    await page.locator("#app-password").fill("Talaba2026");
-    await page.getByRole("button", { name: "Kirish", exact: true }).click();
+    await appLogin(page, "Talaba2026");
     await page.waitForURL(/\/uz\/chegirmalar/);
     expect((await passwordState(student)).fails).toBe(0);
   });
@@ -119,6 +125,7 @@ test.describe("ilova: parol", () => {
   test("5 ta xato parol — qulf; \"Parolni unutdim\" SMS bilan yangi parol o'rnatadi", async ({ page, context }) => {
     const { owner } = await seedPhones();
     await setPassword(owner, null);
+    await clearLoginLimits();
     await asNativeApp(context);
     await page.goto("/uz/kirish?rol=biznes", { waitUntil: "networkidle" });
     await appCode(page, owner);
@@ -129,26 +136,23 @@ test.describe("ilova: parol", () => {
 
     await context.clearCookies({ name: "tp_session" });
     await page.goto("/uz/kirish?rol=biznes", { waitUntil: "networkidle" });
-    await appCode(page, owner);
+    await page.locator("#app-identifier").fill(local(owner));
     for (let i = 0; i < 5; i++) {
-      await page.locator("#app-password").fill(`Xato${i}parol`);
-      await page.getByRole("button", { name: "Kirish", exact: true }).click();
-      if (i < 4) await expect(page.getByText(`Yana ${4 - i} ta urinish qoldi.`)).toBeVisible();
+      await appLogin(page, `Xato${i}parol`);
+      await expect(page.getByText(i < 4 ? "Raqam/email yoki parol noto'g'ri" : /Juda ko'p xato urinish\. 15 daqiqadan keyin/)).toBeVisible();
     }
-    // Qulf: SMS tasdig'i ham bekor — telefon qadamiga qaytadi
-    await expect(page.getByText(/Juda ko'p xato urinish\. 15 daqiqadan keyin/)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Kod yuborish" })).toBeVisible();
     expect((await passwordState(owner)).locked).not.toBeNull();
 
     // Qulf paytida to'g'ri parol ham o'tmaydi
-    await appCode(page, owner);
-    await page.locator("#app-password").fill("Biznes2026");
-    await page.getByRole("button", { name: "Kirish", exact: true }).click();
+    await appLogin(page, "Biznes2026");
     await expect(page.getByText(/Juda ko'p xato urinish/)).toBeVisible();
 
-    // Parolni unutdim: yangi SMS → yangi parol → kirish, qulf ochiladi
-    await appCode(page, owner);
+    // Parolni unutdim: raqam → SMS kod → yangi parol → kirish, qulf ochiladi
+    await clearOtp(owner);
     await page.getByRole("button", { name: "Parolni unutdim" }).click();
+    await page.locator("#app-forgot").fill(local(owner));
+    await page.getByRole("button", { name: "Kod olish" }).click();
+    await page.locator("#app-code").fill(FIXED_CODE);
     await expect(page.getByRole("heading", { name: "Yangi parol." })).toBeVisible();
     await page.locator("#app-new-password").fill("Yangi2026parol");
     await page.locator("#app-repeat-password").fill("Yangi2026parol");
@@ -164,6 +168,7 @@ test.describe("ilova: parol", () => {
     await asNativeApp(context);
     await page.goto("/uz/kirish", { waitUntil: "networkidle" });
     await clearOtp(phone);
+    await page.getByRole("button", { name: /Ro'yxatdan o'tish/ }).click();
     await page.locator("#app-phone").fill(local(phone));
     await page.getByRole("button", { name: "Kod yuborish" }).click();
     // Kod ekrani yangi va mavjud raqam uchun bir xil

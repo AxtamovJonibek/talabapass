@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import { codeBox, enterCode, FIXED_CODE, local, sampleJpeg, signIn, withDb } from "./helpers";
+import { registerPhone, sampleJpeg, signIn, withDb } from "./helpers";
 
-// B1 / WB1 — biznes ro'yxati: ma'lumot → hujjatlar → SMS kod → fayllar → tekshiruvga
+// B1 / WB1 — biznes ro'yxati: telefon → SMS kod → parol (kirish sahifasida) → ma'lumot → hujjatlar → fayllar → tekshiruvga
 const OWNER = "+998935550912";
 const TIN = "309100912";
 let JPEG: Buffer;
@@ -48,7 +48,8 @@ test.describe("veb (WB1)", () => {
   test.use({ viewport: { width: 1440, height: 1000 } });
 
   test("to'liq ariza: kod, fayllar, tekshiruvga yuborish → 3-qadam", async ({ page }) => {
-    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
+    test.slow(); // dev serverda birinchi kompilyatsiya uzoq (kirish → forma → admin)
+    await registerPhone(page, OWNER, "Biznes");
     // 1-qadam tekshiruvi brauzerda: bo'sh forma o'tmaydi
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await expect(page.getByText("Biznes nomini kiriting").locator("visible=true")).toBeVisible();
@@ -59,7 +60,6 @@ test.describe("veb (WB1)", () => {
 
     await page.locator("#wb-tin").fill("309 100 912");
     await page.locator("#wb-contact").fill("Sinov Egasi");
-    await page.locator("#wb-phone").fill(local(OWNER));
     // Fayl va rozilikdan oldin yuborilmaydi
     await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
     await expect(page.getByText("Ro'yxatdan o'tganlik guvohnomasini yuklang.").locator("visible=true")).toBeVisible();
@@ -72,10 +72,8 @@ test.describe("veb (WB1)", () => {
     await expect(page.getByText("Davom etish uchun shartlarga rozilik bildiring.").locator("visible=true")).toBeVisible();
     await web.locator('input[name="consent"]').check();
 
+    expect(await business()).toBeUndefined(); // forma yuborilmaguncha hisob ochilmaydi
     await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
-    await expect(codeBox(page)).toBeEnabled();
-    expect(await business()).toBeUndefined(); // kod tasdiqlanmaguncha hisob ochilmaydi
-    await enterCode(page, FIXED_CODE);
 
     await expect(page).toHaveURL("/uz/biznes");
     await expect(page.getByTestId("business-stamp").locator("visible=true")).toHaveText("TEKSHIRUVDA");
@@ -95,12 +93,11 @@ test.describe("veb (WB1)", () => {
 
   test("yarim yo'lda qolgan ariza navbatga chiqmaydi va /biznes da davom etadi", async ({ page }) => {
     test.slow(); // dev serverda birinchi kompilyatsiya uzoq
-    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
+    await registerPhone(page, OWNER, "Biznes");
     await fillInfo(page, "wb");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await page.locator("#wb-tin").fill(TIN);
     await page.locator("#wb-contact").fill("Sinov Egasi");
-    await page.locator("#wb-phone").fill(local(OWNER));
     const web = page.locator("div.hidden");
     await web.locator('input[name="registrationFile"]').setInputFiles(file("guvohnoma.jpg"));
     await web.locator('input[name="photoFiles"]').setInputFiles(file("zal.jpg"));
@@ -108,7 +105,6 @@ test.describe("veb (WB1)", () => {
     // Fayl yuklash rad etiladi — hisob ochiladi, lekin ariza yuborilmaydi
     await page.route("**/api/biznes/hujjat**", (route) => route.abort());
     await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
-    await enterCode(page, FIXED_CODE);
     await expect(page.getByText("Fayl yuklanmadi").locator("visible=true")).toBeVisible();
     expect(await business()).toMatchObject({ status: "PENDING", submittedAt: null, registration: 0 });
 
@@ -120,18 +116,16 @@ test.describe("veb (WB1)", () => {
 
   test("band STIR — xato, hisob ochilmaydi", async ({ page }) => {
     const taken = await withDb(async (db) => (await db.query(`SELECT tin FROM "Business" WHERE tin IS NOT NULL LIMIT 1`)).rows[0].tin as string);
-    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
+    await registerPhone(page, OWNER, "Biznes");
     await fillInfo(page, "wb");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await page.locator("#wb-tin").fill(taken);
     await page.locator("#wb-contact").fill("Sinov Egasi");
-    await page.locator("#wb-phone").fill(local(OWNER));
     const web = page.locator("div.hidden");
     await web.locator('input[name="registrationFile"]').setInputFiles(file("guvohnoma.jpg"));
     await web.locator('input[name="photoFiles"]').setInputFiles(file("zal.jpg"));
     await web.locator('input[name="consent"]').check();
     await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
-    await enterCode(page, FIXED_CODE);
     await expect(page.getByText("Bu STIR bilan biznes allaqachon").locator("visible=true")).toBeVisible();
     expect(await business()).toBeUndefined();
   });
@@ -139,7 +133,7 @@ test.describe("veb (WB1)", () => {
 
 test.describe("telefon (B1)", () => {
   test("STIR birinchi qadamda, ariza yuboriladi", async ({ page }) => {
-    await page.goto("/uz/biznes/royxat", { waitUntil: "networkidle" });
+    await registerPhone(page, OWNER, "Biznes");
     await fillInfo(page, "b1");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await expect(page.getByText("STIR 9 ta raqamdan iborat.").locator("visible=true")).toBeVisible();
@@ -147,13 +141,11 @@ test.describe("telefon (B1)", () => {
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
 
     await page.locator("#b1-contact").fill("Sinov Egasi");
-    await page.locator("#b1-phone").fill(local(OWNER));
     const phone = page.locator("div.\\@min-\\[700px\\]\\:hidden");
     await phone.locator('input[name="registrationFile"]').setInputFiles(file("guvohnoma.jpg"));
     await phone.locator('input[name="photoFiles"]').setInputFiles(file("zal.jpg"));
     await phone.locator('input[name="consent"]').check();
     await page.getByRole("button", { name: "Tekshiruvga yuborish" }).click();
-    await enterCode(page, FIXED_CODE);
     await expect(page).toHaveURL("/uz/biznes");
     await expect(page.getByTestId("business-stamp").locator("visible=true")).toBeVisible();
     expect(await business()).toMatchObject({ status: "PENDING", registration: 1, photos: 1 });
