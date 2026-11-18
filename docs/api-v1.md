@@ -237,6 +237,7 @@ o'z sotuvlari va cheklari; boshqa biznes endpoint'lari 403 `forbidden`. Biznes h
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
+| `GET /business/scan` | — | B3 sarlavhasi: `{ business: { name }, cashierName, todaySales, lastSale: { student, item, at } \| null }` |
 | `POST /business/scan` | `{ qr }` yoki `{ code, totp }` (kupon kodi **va** 6 raqam) | kupon: `{ kind: "coupon", preview }`; `TB-` buyurtma: `{ kind: "order", order }` |
 | `POST /business/scan/confirm` | `{ couponId, ticket, paymentType: "CASH"\|"CARD"\|"QR", amount? }` | 201 `{ receipt, pdfUrl }` |
 | `POST /business/orders/<id>` | `{ action: "complete", ticket }` ("Berildi") | `{ ok }` |
@@ -259,7 +260,7 @@ o'z sotuvlari va cheklari; boshqa biznes endpoint'lari 403 `forbidden`. Biznes h
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
-| `GET /business/stats` | `period=1\|7\|30` (standart 7) | `{ business, period, kpi { sold, delta, revenue, average, discount, fresh, returningPercent }, chart { hourly, bars: [{ key, count, current }] }, funnel { views, qr, sold }, heat { busiest, quietest }, universities, offers, offerTotals, sales, cashiers }` |
+| `GET /business/stats` | `period=1\|7\|30` (standart 7) | `{ business, period, kpi { sold, delta, revenue, average, discount, fresh, returningPercent }, chart { hourly, bars: [{ key, count, current }] }, funnel { views, qr, sold }, heat { hours, cells: [[kun 0–6, soat, soni]], busiest, quietest }, universities, offers, offerTotals, sales, cashiers, reportUrl }` — `reportUrl` Excel hisobot (imzoli) |
 | `GET /business/discounts` | — | `{ discounts: [{ id, title, type, originalPrice, percent, newPrice, weekdays, fromMinute, toMinute, dailyLimit, endsOn, status, rejectReason, soldToday, image }] }` |
 | `POST /business/discounts` | `{ draft, intent: "draft"\|"publish" }` | 201 `{ id, status }` (`publish` → `PENDING_REVIEW`) |
 | `GET /business/discounts/<id>` | — | `{ id, status, rejectReason, category, draft, images: [{ id, url }] }` |
@@ -296,7 +297,7 @@ bo'lsa `{ next: "setPassword", role: "cashier", businessName }` → `/auth/passw
 
 ## Fayllar
 
-`GET /api/v1/files/<tur>/<id>?exp=&sig=` — `discount-image`, `logo`, `avatar`, `receipt` (PDF). Imzo (HMAC, server siri) API javobida faqat
+`GET /api/v1/files/<tur>/<id>?exp=&sig=` — `discount-image`, `logo`, `avatar`, `receipt` (PDF), `report` (Excel, `<biznesId>_<davr>`). Imzo (HMAC, server siri) API javobida faqat
 ko'rishga ruxsati bor foydalanuvchiga beriladi (`signUrls`, `src/server/api/files.ts`), ya'ni havolaning o'zi ruxsat: `Authorization` sarlavhasi
 kerak emas, `<Image source={{ uri }}>` va brauzer to'g'ridan-to'g'ri ochadi. Muddat soat boshiga yaxlitlanadi — bir soat ichida manzil
 o'zgarmaydi (qurilma keshi ishlaydi), havola 1–2 soatda eskiradi (eskirsa ekranni yangilang — yangi havola keladi). Buzilgan/eskirgan/yo'q —

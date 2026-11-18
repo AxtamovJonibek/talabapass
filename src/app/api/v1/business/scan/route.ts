@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ok, readJson, route } from "@/server/api/http";
 import { scanError, requireApiScanner } from "@/server/api/business";
 import { limit } from "@/server/api/rate-limit";
-import { scanCoupon } from "@/server/coupons/scan";
+import { scanCoupon, scannerSummary, shortName } from "@/server/coupons/scan";
 import { orderCodeOf, scanOrder } from "@/server/preorder/scan";
 
 const input = z.union([z.object({ qr: z.string().min(1).max(200) }), z.object({ code: z.string().min(1).max(40), totp: z.string().max(20) })]);
@@ -25,4 +25,16 @@ export const POST = route(async (request) => {
   const outcome = await scanCoupon(scanner, body);
   if (!outcome.ok) throw scanError(outcome.result, outcome.attemptsLeft);
   return ok({ kind: "coupon", preview: outcome.preview });
+});
+
+/** B3 sarlavhasi: biznes nomi, kassir (qisqa ism), bugungi sotuvlar soni va oxirgi sotuv (`at` — ISO). */
+export const GET = route(async (request) => {
+  const { user, scanner } = await requireApiScanner(request);
+  const { todaySales, lastSale } = await scannerSummary(scanner);
+  return ok({
+    business: { name: scanner.businessName },
+    cashierName: shortName(user.firstName, user.lastName),
+    todaySales,
+    lastSale: lastSale ? { ...lastSale, at: lastSale.at.toISOString() } : null,
+  });
 });

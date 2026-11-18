@@ -18,7 +18,28 @@ export const colors = {
   warnBg: "#FFF0E6",
   ink2: "#232321",
   ink3: "#2A2A27",
+  fog0: "#CFCCC4",
+  fog1: "#D8D5CD",
+  fog2: "#BDBAB2",
   fog3: "#A9A69E",
+  ink4: "#2F2F2C",
+  /** skaner foni va kamera maydoni */
+  ink0: "#0E0E0D",
+  ink1: "#1B1B19",
+  /** B4 yashil sarlavha: tugma foni, kod matni, belgi */
+  green2: "#1B7448",
+  mint2: "#3FBF7F",
+  mint3: "#C9EBD7",
+  /** grafik yo'lagi, "qayta kelganlar" chizig'i foni */
+  bar: "#E7E5DE",
+  /** qora KPI kartadagi o'sish izohi */
+  mint: "#6FD39C",
+  /** issiqlik shkalasi */
+  heat0: "#EFEDE7",
+  heat1: "#FBD5C2",
+  heat2: "#FCA57D",
+  heat3: "#FF6A2E",
+  heat4: "#B83A0A",
   dash: "#DAD7CE",
   lineStrong: "#B9B6AD",
   // ───── ilovaning avvalgi (app-flow) qiymatlari ─────

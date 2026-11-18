@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { priceAfterPercent } from "@/lib/format";
+import { fromTashkent, toTashkent } from "@/lib/time";
 import { normalizeCouponCode, parseQr, verifyCode, verifyQr, COUPON_CODE_RE } from "@/lib/totp";
 import type { PaymentType, Prisma, ScanResult } from "@/generated/prisma/client";
 import { db } from "../db";
@@ -33,6 +34,26 @@ export async function scannerFor(user: { id: string; role: string }): Promise<Sc
         ? await db.business.findFirst({ where: { ownerId: user.id, status: { in: LIVE_BUSINESS_STATUSES } }, select: { id: true, name: true } })
         : null;
   return business ? { userId: user.id, businessId: business.id, businessName: business.name } : null;
+}
+
+/** "Jasur T." — skaner sarlavhasi va oxirgi sotuv uchun qisqa ism */
+export const shortName = (first?: string | null, last?: string | null) => [first, last ? `${last.charAt(0)}.` : null].filter(Boolean).join(" ");
+
+/** B3 sarlavhasi: biznesning bugungi (Toshkent kuni) sotuvlari soni va oxirgi sotuv — sayt va API bitta. */
+export async function scannerSummary(scanner: Scanner, now = new Date()) {
+  const today = fromTashkent(toTashkent(now).date);
+  const [todaySales, last] = await Promise.all([
+    db.redemption.count({ where: { businessId: scanner.businessId, createdAt: { gte: today } } }),
+    db.redemption.findFirst({
+      where: { businessId: scanner.businessId },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true, student: { select: { firstName: true, lastName: true } }, coupon: { select: { termsTitle: true } } },
+    }),
+  ]);
+  return {
+    todaySales,
+    lastSale: last ? { student: shortName(last.student.firstName, last.student.lastName), item: last.coupon.termsTitle, at: last.createdAt } : null,
+  };
 }
 
 export type ScanInput = { qr: string } | { code: string; totp: string };

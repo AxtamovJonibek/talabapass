@@ -1,456 +1,652 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Animated, Easing, Linking, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_URL, ApiError, errorText } from "@/api/client";
-import { bizApi, type OrderScan, type PaymentType, type Receipt, type ScanPreview } from "@/api/business";
-import { som } from "@/business/ui";
+import { bizApi, type OrderScan, type PaymentType, type Receipt, type ScanPreview, type ScanSummary } from "@/api/business";
 import { copy } from "@/copy";
 import { parseAmount, priceAfterPercent } from "@/lib/discount";
+import { clock, formatSom, MINUS, toTashkent, formatMinute } from "@/lib/format";
+import { localDigits, displayPhone } from "@/lib/phone";
 import { signal } from "@/lib/sound";
+import { PrintReceipt, ReceiptDivider, ReceiptRow } from "@/site/receipt";
+import { mono, SiteField, SiteInput, ToggleSquare } from "@/site/ui";
 import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
-import { Card, Chip, RoundButton, SecondaryButton, Sheet } from "@/ui/app";
 import { Icon } from "@/ui/icons";
-import { ErrorBox, Field, Label, Note, PrimaryButton, Press, Txt } from "@/ui/kit";
+import { Press, Rich, Txt } from "@/ui/kit";
 
-type State =
-  | { kind: "camera" }
-  | { kind: "busy" }
-  | { kind: "coupon"; preview: ScanPreview }
-  | { kind: "order"; order: OrderScan }
-  | { kind: "done"; receipt: Receipt | null; pdfUrl: string | null; title: string }
-  | { kind: "error"; message: string };
+type Stage =
+  | { kind: "scan" }
+  | { kind: "manual" }
+  | { kind: "preview"; preview: ScanPreview; at: string }
+  | { kind: "done"; receipt: Receipt; pdfUrl: string }
+  | { kind: "order"; order: OrderScan; at: string }
+  | { kind: "orderDone" };
 
-/** Bir xil QR'ni kamera ketma-ket bir necha marta o'qiydi — shu vaqt ichida qayta yuborilmaydi */
+const PAYMENTS = ["CASH", "CARD", "QR"] as const;
+/** Bir xil QR'ni kamera ketma-ket bir necha marta o'qiydi — shu vaqt ichida qayta yuborilmaydi (saytdagidek) */
 const SAME_QR_MS = 4000;
+const nowClock = () => formatMinute(toTashkent(new Date()).minute);
 
 /**
- * Skaner (saytdagi B3/B4, egasi va kassir): kamera QR'ni o'qiydi (expo-camera, faqat QR) yoki kupon kodi + 6 raqam
- * qo'lda. Server tekshiradi (`POST /business/scan`): kupon — talaba, narx, to'lov turi (narxsiz chegirmada summa) →
- * "Sotuvni tasdiqlash" → chek; `TB-` buyurtma — tafsilot → "Berildi". Natija tovush va tebranish bilan; xato — sababi
- * (muddati o'tgan, boshqa biznes, ishlatilgan…). Tab ko'rinmayotganda kamera o'chadi.
+ * B3 — skaner va B4 — sotuvni tasdiqlash / chek, saytdagi `/biznes/skaner` (`ScannerScreen`) ning nusxasi: qora fon,
+ * biznes va kassir, bugungi sotuvlar, ramka (expo-camera, faqat QR), "Kodni kiritish" (kupon kodi + 6 raqam), oxirgi
+ * sotuv; kassirda pastda "Hisobdan chiqish" (egasida — pastki menyu). Server tekshiradi (`POST /business/scan`):
+ * kupon → B4 (talaba, summa, to'lov turi) → chek; `TB-` buyurtma → tafsilot → "Berildi". Tab ko'rinmasa kamera o'chadi.
  */
 export default function Scan() {
   const sc = copy.biz.scan;
   const insets = useSafeAreaInsets();
-  const { me } = useApp();
+  const { me, signOut } = useApp();
+  const cashier = me?.role === "CASHIER";
   const [permission, requestPermission] = useCameraPermissions();
   const [focused, setFocused] = useState(false);
-  const [state, setState] = useState<State>({ kind: "camera" });
+  const [stage, setStage] = useState<Stage>({ kind: "scan" });
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
   const [torch, setTorch] = useState(false);
-  const [manual, setManual] = useState(false);
-  const [today, setToday] = useState<{ count: number; sum: number } | null>(null);
+  const [summary, setSummary] = useState<ScanSummary | null>(null);
+  const [noBusiness, setNoBusiness] = useState(false);
   const last = useRef<{ text: string; at: number } | null>(null);
-  const locked = useRef(false);
 
-  const loadToday = useCallback(() => {
-    // Kassir — o'z sotuvlari, egasi — hammasi (server o'zi cheklaydi)
-    void bizApi
-      .sales(1, 1, me?.role === "BUSINESS_OWNER" ? me.id : null)
-      .then((s) => setToday({ count: s.count, sum: s.sum }))
-      .catch(() => undefined);
-  }, [me]);
+  const loadSummary = useCallback(() => {
+    bizApi.scanSummary().then(
+      (s) => {
+        setSummary(s);
+        setNoBusiness(false);
+      },
+      (e: unknown) => {
+        if (e instanceof ApiError && e.code === "business_not_ready") setNoBusiness(true);
+      },
+    );
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       setFocused(true);
-      loadToday();
+      loadSummary();
       return () => setFocused(false);
-    }, [loadToday]),
+    }, [loadSummary]),
   );
 
-  const reset = () => {
-    locked.current = false;
-    setState({ kind: "camera" });
-  };
+  // Saytdagidek kamera ochilishi bilan ruxsat so'raladi (rad etilgan bo'lsa — sozlamalar havolasi)
+  useEffect(() => {
+    if (focused && permission && !permission.granted && permission.canAskAgain) void requestPermission();
+  }, [focused, permission, requestPermission]);
 
-  const fail = (e: unknown) => {
-    signal("error");
-    const left = e instanceof ApiError && typeof e.details.attemptsLeft === "number" && e.code === "scan_invalid" ? ` ${sc.attemptsLeft(e.details.attemptsLeft)}` : "";
-    setState({ kind: "error", message: `${errorText(e)}${left}` });
-  };
+  // Xato xabari 5 soniyadan keyin yo'qoladi (keyingi skan uchun)
+  useEffect(() => {
+    if (!error || stage.kind !== "scan") return;
+    const id = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(id);
+  }, [error, stage.kind]);
 
-  const check = async (input: { qr: string } | { code: string; totp: string }) => {
-    if (locked.current) return;
-    locked.current = true;
-    setState({ kind: "busy" });
+  const submit = async (input: { qr: string } | { code: string; totp: string }) => {
+    if (pending) return;
+    setPending(true);
+    setError(null);
     try {
       const result = await bizApi.scan(input);
       signal("success");
-      setState(result.kind === "coupon" ? { kind: "coupon", preview: result.preview } : { kind: "order", order: result.order });
+      setStage(result.kind === "order" ? { kind: "order", order: result.order, at: nowClock() } : { kind: "preview", preview: result.preview, at: nowClock() });
     } catch (e) {
-      fail(e);
+      signal("error");
+      const left = e instanceof ApiError && typeof e.details.attemptsLeft === "number" && e.details.attemptsLeft > 0 ? ` ${sc.attemptsLeft(e.details.attemptsLeft)}` : "";
+      setError(`${errorText(e)}${left}`);
+    } finally {
+      setPending(false);
     }
   };
 
   const onScanned = ({ data }: BarcodeScanningResult) => {
-    if (locked.current || state.kind !== "camera" || !data) return;
+    if (pending || stage.kind !== "scan" || !data) return;
     const now = Date.now();
     if (last.current && last.current.text === data && now - last.current.at < SAME_QR_MS) return;
     last.current = { text: data, at: now };
-    void check({ qr: data.trim().slice(0, 200) });
+    void submit({ qr: data.trim().slice(0, 200) });
   };
 
-  const done = (receipt: Receipt | null, pdfUrl: string | null, title: string) => {
-    signal("success");
-    setState({ kind: "done", receipt, pdfUrl, title });
-    loadToday();
+  const toScan = () => {
+    setError(null);
+    setStage({ kind: "scan" });
   };
 
-  const granted = permission?.granted ?? false;
-  const cameraOn = focused && granted && !manual && (state.kind === "camera" || state.kind === "busy");
-
-  return (
-    <View style={[styles.root, { paddingTop: insets.top + 12 }]}>
-      <View style={styles.head}>
-        <View style={styles.flex1}>
-          <Txt style={[font(900, 112), styles.title]}>{sc.title}</Txt>
-          <Txt numberOfLines={1} style={styles.sub}>
-            {[me?.business?.name, today ? `${sc.today}: ${sc.todayCount(today.count, som(today.sum))}` : null].filter(Boolean).join(" · ")}
-          </Txt>
-        </View>
-        {state.kind === "camera" && granted ? <RoundButton dark icon="torch" label={sc.torch} active={torch} onPress={() => setTorch((t) => !t)} /> : null}
-      </View>
-
-      {state.kind === "camera" || state.kind === "busy" ? (
-        <View style={styles.body}>
-          <View style={styles.frame}>
-            {cameraOn ? (
-              <CameraView style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} barcodeScannerSettings={{ barcodeTypes: ["qr"] }} onBarcodeScanned={onScanned} />
-            ) : null}
-            <View style={[styles.corner, styles.tl]} />
-            <View style={[styles.corner, styles.tr]} />
-            <View style={[styles.corner, styles.bl]} />
-            <View style={[styles.corner, styles.br]} />
-            {!granted && permission ? (
-              <View style={styles.center}>
-                <Txt style={styles.permission}>{sc.permission}</Txt>
-                {permission.canAskAgain ? (
-                  <PrimaryButton tone="orange" icon={null} onPress={() => void requestPermission()} style={styles.allow}>
-                    {sc.allowCamera}
-                  </PrimaryButton>
-                ) : (
-                  <PrimaryButton tone="orange" icon={null} onPress={() => void Linking.openSettings()} style={styles.allow}>
-                    {sc.allowCamera}
-                  </PrimaryButton>
-                )}
-              </View>
-            ) : null}
-            {state.kind === "busy" ? (
-              <View style={styles.busy}>
-                <ActivityIndicator color={colors.white} size="large" />
-              </View>
-            ) : null}
-          </View>
-          <Txt style={[font(800), styles.aim]}>{sc.aim}</Txt>
-          <View style={styles.grow} />
-          <SecondaryButton icon="edit" onPress={() => setManual(true)} style={[styles.manualBtn, { marginBottom: 16 }]}>
-            {sc.enterCode}
-          </SecondaryButton>
-        </View>
-      ) : (
-        // Narxsiz chegirmada summa maydoni: maydon, to'lov turi va "Tasdiqlash" klaviatura ustida ko'rinadi
-        <KeyboardAwareScrollView contentContainerStyle={styles.result} bottomOffset={SUM_GAP} keyboardShouldPersistTaps="handled">
-          {state.kind === "coupon" ? <CouponConfirm preview={state.preview} onDone={done} onFail={fail} onCancel={reset} /> : null}
-          {state.kind === "order" ? <OrderHandOver order={state.order} onDone={() => done(null, null, state.order.title)} onFail={fail} onCancel={reset} /> : null}
-          {state.kind === "done" ? <Done state={state} onNext={reset} /> : null}
-          {state.kind === "error" ? (
-            <>
-              <Card style={styles.errorCard}>
-                <View style={styles.errorIcon}>
-                  <Icon name="close" size={34} color={colors.white} strokeWidth={3.2} />
-                </View>
-                <Txt style={[font(900, 112), styles.errorTitle]}>{sc.failed}</Txt>
-                <Txt style={[font(700), styles.errorText]}>{state.message}</Txt>
-              </Card>
-              <PrimaryButton tone="orange" icon="refresh" onPress={reset} style={styles.next}>
-                {sc.backToScan}
-              </PrimaryButton>
-            </>
-          ) : null}
-        </KeyboardAwareScrollView>
-      )}
-
-      <ManualSheet
-        visible={manual}
-        onClose={() => setManual(false)}
-        onSubmit={(code, totp) => {
-          setManual(false);
-          void check({ code, totp });
+  if (stage.kind === "preview")
+    return (
+      <SalePreview
+        preview={stage.preview}
+        at={stage.at}
+        top={insets.top}
+        onCancel={toScan}
+        onDone={(receipt, pdfUrl) => {
+          signal("success");
+          setStage({ kind: "done", receipt, pdfUrl });
+          loadSummary();
         }}
       />
+    );
+  if (stage.kind === "done") return <SaleDone receipt={stage.receipt} pdfUrl={stage.pdfUrl} top={insets.top} onNext={toScan} />;
+  if (stage.kind === "order")
+    return (
+      <OrderPreview
+        order={stage.order}
+        at={stage.at}
+        top={insets.top}
+        onCancel={toScan}
+        onDone={() => {
+          signal("success");
+          setStage({ kind: "orderDone" });
+          loadSummary();
+        }}
+      />
+    );
+  if (stage.kind === "orderDone") return <OrderDone top={insets.top} onNext={toScan} />;
+
+  const footer = cashier ? (
+    <View style={styles.footer}>
+      <Press onPress={() => void signOut()} accessibilityRole="button" scale={0.98} style={styles.logout}>
+        <Icon name="logout" size={18} color={colors.fog2} />
+        <Txt style={[font(600), { fontSize: 14, color: colors.fog2 }]}>{copy.profile.logout}</Txt>
+      </Press>
+    </View>
+  ) : null;
+
+  if (noBusiness)
+    return (
+      <View style={[styles.root, { paddingBottom: insets.bottom }]}>
+        <View style={styles.noBusiness}>
+          <Txt style={[font(700), { fontSize: 18, color: colors.paper }]}>{sc.noBusinessTitle}</Txt>
+          <Txt style={{ fontSize: 14, lineHeight: 20, color: colors.fog0, textAlign: "center" }}>{sc.noBusinessText}</Txt>
+        </View>
+        {footer}
+      </View>
+    );
+
+  const granted = permission?.granted ?? false;
+  const cameraOn = focused && granted && stage.kind === "scan" && !pending;
+  const cameraText = !permission || (permission.canAskAgain && !granted) ? sc.cameraStarting : sc.cameraDenied;
+  const name = summary?.business.name ?? me?.business?.name ?? "";
+
+  return (
+    <View style={[styles.root, { paddingBottom: cashier ? insets.bottom : 0 }]}>
+      <View style={[styles.head, { paddingTop: insets.top + 54 }]}>
+        <View style={styles.headLeft}>
+          <View style={styles.initial}>
+            <Txt style={[font(900, 125), { fontSize: 16 }]}>{name.trim().charAt(0).toUpperCase()}</Txt>
+          </View>
+          <View style={styles.shrink}>
+            <Txt numberOfLines={1} testID="cashier-business" style={[font(700), { fontSize: 15, color: colors.paper }]}>
+              {name}
+            </Txt>
+            <Txt style={{ fontSize: 12, color: colors.fog3 }}>{sc.cashier(summary?.cashierName ?? "")}</Txt>
+          </View>
+        </View>
+        <View style={styles.headRight}>
+          <Txt testID="today-sales" style={[mono(600), { fontSize: 22, color: colors.paper }]}>
+            {summary?.todaySales ?? 0}
+          </Txt>
+          <Txt style={{ fontSize: 11, color: colors.fog3 }}>{sc.todaySales}</Txt>
+        </View>
+      </View>
+
+      <KeyboardAwareScrollView contentContainerStyle={styles.middle} keyboardShouldPersistTaps="handled" bottomOffset={24}>
+        {stage.kind === "manual" ? (
+          <ManualEntry pending={pending} error={error} onSubmit={(code, totp) => void submit({ code, totp })} onClose={toScan} />
+        ) : (
+          <>
+            <Txt style={[font(600), styles.aim]}>{sc.aimLines}</Txt>
+            <View style={styles.frame}>
+              {cameraOn ? (
+                <CameraView style={StyleSheet.absoluteFill} facing="back" enableTorch={torch} barcodeScannerSettings={{ barcodeTypes: ["qr"] }} onBarcodeScanned={onScanned} />
+              ) : null}
+              {!granted ? (
+                <Press
+                  onPress={() => (permission?.canAskAgain ? void requestPermission() : void Linking.openSettings())}
+                  accessibilityRole="button"
+                  scale={1}
+                  style={styles.cameraNote}
+                >
+                  <Txt style={{ fontSize: 13, color: colors.fog1, textAlign: "center" }}>{cameraText}</Txt>
+                </Press>
+              ) : null}
+              <View style={[styles.corner, styles.tl]} />
+              <View style={[styles.corner, styles.tr]} />
+              <View style={[styles.corner, styles.bl]} />
+              <View style={[styles.corner, styles.br]} />
+              <ScanLine />
+            </View>
+            {error ? <ScanErrorBox text={error} /> : null}
+            <View style={styles.tools}>
+              <Press
+                onPress={() => {
+                  setError(null);
+                  setStage({ kind: "manual" });
+                }}
+                accessibilityRole="button"
+                scale={0.96}
+                style={styles.enterCode}
+              >
+                <Icon name="keyboard" size={18} color={colors.paper} />
+                <Txt style={[font(600), { fontSize: 14, color: colors.paper }]}>{sc.enterCode}</Txt>
+              </Press>
+              {granted ? (
+                <Press
+                  onPress={() => setTorch((t) => !t)}
+                  accessibilityRole="button"
+                  accessibilityLabel={sc.torch}
+                  accessibilityState={{ selected: torch }}
+                  scale={0.94}
+                  style={[styles.torch, torch ? { backgroundColor: colors.orange } : null]}
+                >
+                  <Icon name="bolt" size={18} color={torch ? colors.ink : colors.paper} />
+                </Press>
+              ) : null}
+            </View>
+          </>
+        )}
+      </KeyboardAwareScrollView>
+
+      {summary?.lastSale ? (
+        <View style={styles.lastSale}>
+          <Icon name="check" size={18} color={colors.mint2} strokeWidth={2.6} />
+          <Rich text={sc.last(summary.lastSale.student, summary.lastSale.item)} style={styles.lastText} boldStyle={{ fontSize: 13, color: colors.white }} />
+          <Txt style={[mono(), { fontSize: 12, color: colors.fog3 }]}>{clock(summary.lastSale.at)}</Txt>
+        </View>
+      ) : null}
+      {footer}
     </View>
   );
 }
 
-/** Kupon: talaba, chegirma, summa (narxsiz bo'lsa kiritiladi), to'lov turi → sotuv */
-function CouponConfirm({ preview, onDone, onFail, onCancel }: { preview: ScanPreview; onDone: (r: Receipt, pdf: string, title: string) => void; onFail: (e: unknown) => void; onCancel: () => void }) {
+/** Ramka ichida yuqoridan pastga yuradigan to'q sariq chiziq (saytdagi `scan-line`, 2.4 s) */
+function ScanLine() {
+  const [y] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(y, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(y, { toValue: 0, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [y]);
+  return <Animated.View style={[styles.scanLine, { transform: [{ translateY: y.interpolate({ inputRange: [0, 1], outputRange: [0, 222] }) }] }]} />;
+}
+
+function ScanErrorBox({ text }: { text: string }) {
+  return (
+    <View accessibilityRole="alert" style={styles.errorBox}>
+      <Txt style={[font(600), { fontSize: 14, color: colors.danger, textAlign: "center" }]}>{text}</Txt>
+    </View>
+  );
+}
+
+/** "Kodni kiritish": kupon kodi VA 6 raqamli kod (faqat kupon kodi hech qachon yetarli emas) */
+function ManualEntry({ pending, error, onSubmit, onClose }: { pending: boolean; error: string | null; onSubmit: (code: string, totp: string) => void; onClose: () => void }) {
+  const sc = copy.biz.scan;
+  const [code, setCode] = useState("");
+  const [totp, setTotp] = useState("");
+  const send = () => {
+    if (code.trim() && totp.trim()) onSubmit(code.trim(), totp.replace(/\s/g, ""));
+  };
+  return (
+    <View style={styles.manual}>
+      <Txt style={[font(700), { fontSize: 18 }]}>{sc.manualTitle}</Txt>
+      <SiteField label={sc.couponCode}>
+        <SiteInput mono value={code} onChangeText={setCode} placeholder="TP-7K3Q-92XD / TB-…" autoCapitalize="characters" autoCorrect={false} autoFocus returnKeyType="next" />
+      </SiteField>
+      <SiteField label={sc.totpCode}>
+        <SiteInput mono value={totp} onChangeText={setTotp} keyboardType="number-pad" placeholder="000 000" autoComplete="one-time-code" returnKeyType="done" onSubmitEditing={send} />
+      </SiteField>
+      {error ? <ScanErrorBox text={error} /> : null}
+      <View style={styles.pair}>
+        <Press onPress={onClose} accessibilityRole="button" scale={0.97} style={[styles.btn, styles.btnQuiet, { height: 48, borderRadius: 12, flex: 1 }]}>
+          <Txt style={[font(700), { fontSize: 15 }]}>{sc.back}</Txt>
+        </Press>
+        <Press onPress={send} disabled={pending} accessibilityRole="button" accessibilityState={{ busy: pending }} scale={0.97} style={[styles.btn, styles.btnOrange, { height: 48, borderRadius: 12, flex: 2 }, pending ? styles.dim : null]}>
+          <Txt style={[font(800), { fontSize: 15 }]}>{sc.check}</Txt>
+        </Press>
+      </View>
+    </View>
+  );
+}
+
+/** B4 sarlavhasi: yashil, yopish (skanerga), "QR haqiqiy", kod · vaqt */
+function GreenHead({ title, sub, top, onClose }: { title: string; sub: string; top: number; onClose: () => void }) {
+  return (
+    <View style={[styles.green, { paddingTop: top + 54 }]}>
+      <Press onPress={onClose} accessibilityRole="button" accessibilityLabel={copy.biz.scan.backToScan} scale={0.94} style={styles.greenClose}>
+        <Icon name="close" size={20} color={colors.white} />
+      </Press>
+      <View style={styles.shrink}>
+        <Txt style={[font(800), { fontSize: 18, color: colors.white }]}>{title}</Txt>
+        <Txt style={[mono(), { fontSize: 12, color: colors.mint3 }]}>{sub}</Txt>
+      </View>
+      <Icon name="checkCircle" size={34} color={colors.white} />
+    </View>
+  );
+}
+
+function BottomPair({ left, right, onLeft, onRight, busy = false, dark = false }: { left: string; right: string; onLeft: () => void; onRight: () => void; busy?: boolean; dark?: boolean }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[styles.bottom, { paddingBottom: insets.bottom + 30 }]}>
+      <Press onPress={onLeft} accessibilityRole="button" scale={0.97} style={[styles.btn, styles.btnQuiet, { flex: 1 }]}>
+        <Txt style={[font(700), { fontSize: 15 }]}>{left}</Txt>
+      </Press>
+      <Press
+        onPress={onRight}
+        disabled={busy}
+        accessibilityRole="button"
+        accessibilityState={{ busy }}
+        scale={0.97}
+        style={[styles.btn, dark ? { backgroundColor: colors.ink } : styles.btnOrange, { flex: 2 }, busy ? styles.dim : null]}
+      >
+        <Txt style={[font(800), { fontSize: 16, color: dark ? colors.white : colors.ink }]}>{right}</Txt>
+      </Press>
+    </View>
+  );
+}
+
+function StudentCard({ initials, name, children }: { initials: string; name: string; children: ReactNode }) {
+  return (
+    <View style={styles.studentCard}>
+      <View style={styles.studentAvatar}>
+        <Txt style={[font(900), { fontSize: 20, color: colors.white }]}>{initials}</Txt>
+      </View>
+      <View style={[styles.shrink, { gap: 2 }]}>
+        <Txt style={[font(800), { fontSize: 17 }]}>{name}</Txt>
+        {children}
+      </View>
+    </View>
+  );
+}
+
+function MoneyRow({ label, value, tone }: { label: string; value: string; tone?: string }) {
+  return (
+    <View style={styles.between}>
+      <Txt style={[mono(), { fontSize: 14, color: tone ?? colors.muted }]}>{label}</Txt>
+      <Txt style={[mono(), { fontSize: 14, color: tone ?? colors.ink }]}>{value}</Txt>
+    </View>
+  );
+}
+
+function TotalRow({ label, value, testID }: { label: string; value: string; testID?: string }) {
+  return (
+    <View style={[styles.between, { alignItems: "baseline" }]}>
+      <Txt style={[font(700), { fontSize: 14 }]}>{label}</Txt>
+      <Txt testID={testID} style={[mono(600), { fontSize: 26 }]}>
+        {value}
+      </Txt>
+    </View>
+  );
+}
+
+/** B4 — QR haqiqiy: talaba, chegirma summalari, to'lov turi, "Sotuvni tasdiqlash" */
+function SalePreview({ preview: p, at, top, onCancel, onDone }: { preview: ScanPreview; at: string; top: number; onCancel: () => void; onDone: (r: Receipt, pdfUrl: string) => void }) {
   const sc = copy.biz.scan;
   const [payment, setPayment] = useState<PaymentType>("CASH");
-  const [amount, setAmount] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [amountText, setAmountText] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const needsAmount = preview.finalPrice === null;
-  const entered = parseAmount(amount);
+  const [busy, setBusy] = useState(false);
+
+  // Narxsiz chegirma: foizli — chek summasi, 1+1 — bitta mahsulot narxi
+  const needsAmount = p.finalPrice === null;
+  const amount = parseAmount(amountText);
+  const computed = !needsAmount
+    ? { original: p.originalPrice ?? 0, discount: p.discountAmount ?? 0, paid: p.finalPrice ?? 0 }
+    : amount
+      ? p.bogo
+        ? { original: amount * 2, discount: amount, paid: amount }
+        : p.percent !== null
+          ? { original: amount, discount: amount - priceAfterPercent(amount, p.percent), paid: priceAfterPercent(amount, p.percent) }
+          : null
+      : null;
 
   const confirm = async () => {
     if (busy) return;
-    if (needsAmount && (!entered || entered <= 0)) return setError(sc.amountError);
-    setBusy(true);
     setError(null);
+    if (needsAmount && !amount) return setError(sc.amountError);
+    setBusy(true);
     try {
-      const res = await bizApi.confirm({ couponId: preview.couponId, ticket: preview.ticket, paymentType: payment, amount: needsAmount ? entered : undefined });
-      onDone(res.receipt, res.pdfUrl, preview.title);
+      const res = await bizApi.confirm({ couponId: p.couponId, ticket: p.ticket, paymentType: payment, amount: needsAmount ? amount : null });
+      onDone(res.receipt, res.pdfUrl);
     } catch (e) {
-      if (e instanceof ApiError && e.fields.includes("amount")) setError(sc.amountError);
-      else onFail(e);
+      signal("error");
+      setError(e instanceof ApiError && e.fields.includes("amount") ? sc.amountError : errorText(e));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <>
-      <Card style={styles.card}>
-        <View style={styles.okRow}>
-          <Icon name="checkCircle" size={22} color={colors.greenOk} strokeWidth={2.6} />
-          <Txt style={[font(800), { fontSize: 14, color: colors.greenOk }]}>{`${sc.valid} · ${sc.verifiedStudent}`}</Txt>
-        </View>
-        <View style={styles.studentRow}>
-          <View style={styles.avatar}>
-            <Txt style={[font(900, 112), { fontSize: 22, color: colors.white }]}>{preview.student.initials || "T"}</Txt>
-          </View>
-          <View style={styles.flex1}>
-            <Txt style={[font(900), { fontSize: 19 }]}>{preview.student.name}</Txt>
-            <Txt style={styles.muted}>{`${preview.student.university} · ${copy.coupon.course(preview.student.course)}`}</Txt>
-          </View>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.itemRow}>
-          <Txt style={[font(800), styles.flex1, { fontSize: 17 }]}>{preview.title}</Txt>
-          <View style={styles.badge}>
-            <Txt style={[font(900, 62), { fontSize: 24 }]}>{preview.badge}</Txt>
-          </View>
-        </View>
-        {preview.finalPrice !== null ? (
-          <View style={styles.sums}>
-            {preview.originalPrice !== null ? <SumRow label={sc.original} value={som(preview.originalPrice)} /> : null}
-            {preview.discountAmount !== null ? <SumRow label={sc.studentDiscount} value={`−${som(preview.discountAmount)}`} /> : null}
-            <SumRow label={sc.toPay} value={som(preview.finalPrice)} big />
-          </View>
-        ) : (
-          <View style={styles.sums}>
-            <Label>{preview.bogo ? sc.itemPrice : sc.checkAmount}</Label>
-            <Field value={amount} onChangeText={(v) => setAmount(v)} keyboardType="number-pad" placeholder="50 000" text={22} autoFocus invalid={Boolean(error)} />
-            {entered && preview.percent !== null ? <SumRow label={sc.toPay} value={som(priceAfterPercent(entered, preview.percent))} big /> : null}
-            {entered && preview.bogo ? <SumRow label={sc.toPay} value={som(entered)} big /> : null}
-          </View>
-        )}
-        <Note>{sc.limit[preview.limit](preview.nth)}</Note>
-      </Card>
+    <View style={styles.paperRoot}>
+      <GreenHead title={sc.valid} sub={`${p.code} · ${at}`} top={top} onClose={onCancel} />
+      <KeyboardAwareScrollView contentContainerStyle={styles.sheet} keyboardShouldPersistTaps="handled" bottomOffset={24}>
+        <StudentCard initials={p.student.initials} name={p.student.name}>
+          <Txt style={{ fontSize: 13, color: colors.muted }}>{`${p.student.university} · ${copy.coupon.course(p.student.course)}`}</Txt>
+          <Txt style={[font(700), { fontSize: 12, color: colors.greenSite }]}>{sc.verifiedStudent}</Txt>
+        </StudentCard>
 
-      <Label style={styles.payLabel}>{sc.paymentType}</Label>
-      <View style={styles.pay}>
-        {(["CASH", "CARD", "QR"] as const).map((p) => (
-          <Chip key={p} selected={payment === p} onPress={() => setPayment(p)}>
-            {copy.biz.paymentType[p] ?? p}
-          </Chip>
-        ))}
-      </View>
-      <ErrorBox>{error}</ErrorBox>
-      <PrimaryButton tone="orange" icon="tick" onPress={() => void confirm()} loading={busy} style={styles.next}>
-        {sc.confirm}
-      </PrimaryButton>
-      <SecondaryButton onPress={onCancel} disabled={busy} style={styles.cancel}>
-        {sc.cancel}
-      </SecondaryButton>
-    </>
+        <View style={styles.dealCard}>
+          <View style={[styles.between, { alignItems: "flex-start", gap: 10 }]}>
+            <View style={styles.shrink}>
+              <Txt style={{ fontSize: 12, color: colors.muted }}>{sc.discount}</Txt>
+              <Txt style={[font(800), { fontSize: 17, marginTop: 2 }]}>{p.title}</Txt>
+            </View>
+            <View style={styles.scanBadge}>
+              <Txt style={[font(900, 62), { fontSize: 26, lineHeight: 26 }]}>{p.badge}</Txt>
+            </View>
+          </View>
+          {needsAmount ? (
+            <SiteField label={p.bogo ? sc.itemPrice : sc.checkAmount} style={{ marginTop: 14 }}>
+              <SiteInput mono value={amountText} onChangeText={setAmountText} keyboardType="number-pad" placeholder="40 000" autoFocus />
+            </SiteField>
+          ) : null}
+          {computed ? (
+            <View style={styles.sums}>
+              <MoneyRow label={sc.original} value={formatSom(computed.original)} />
+              <MoneyRow label={sc.studentDiscount} value={`${MINUS}${formatSom(computed.discount)}`} tone={colors.rust} />
+              <ReceiptDivider />
+              <TotalRow label={sc.toPay} value={formatSom(computed.paid)} testID="sale-total" />
+            </View>
+          ) : null}
+        </View>
+
+        <View>
+          <Txt style={[font(600), { fontSize: 13, marginBottom: 8 }]}>{sc.paymentType}</Txt>
+          <View style={styles.payments}>
+            {PAYMENTS.map((type) => (
+              <ToggleSquare key={type} bold textSize={14} selected={payment === type} onPress={() => setPayment(type)} style={styles.flex1}>
+                {copy.biz.paymentType[type] ?? type}
+              </ToggleSquare>
+            ))}
+          </View>
+        </View>
+        <View style={styles.info}>
+          <Icon name="info" size={16} color={colors.muted} />
+          <Txt style={{ fontSize: 13, color: colors.muted, flexShrink: 1 }}>{sc.limitLine[p.limit](p.nth)}</Txt>
+        </View>
+        {error ? (
+          <View accessibilityRole="alert" style={styles.errorWide}>
+            <Txt style={[font(600), { fontSize: 14, color: colors.danger }]}>{error}</Txt>
+          </View>
+        ) : null}
+      </KeyboardAwareScrollView>
+      <BottomPair left={sc.reject} right={sc.confirm} onLeft={onCancel} onRight={() => void confirm()} busy={busy} />
+    </View>
   );
 }
 
-/** Oldindan buyurtma: tafsilot va kassada olinadigan qoldiq → "Berildi" */
-function OrderHandOver({ order, onDone, onFail, onCancel }: { order: OrderScan; onDone: () => void; onFail: (e: unknown) => void; onCancel: () => void }) {
+/** B4 tasdiqlangandan keyin: "Chek chiqarildi" (saytda "Chop etish" — ilovada PDF) */
+function SaleDone({ receipt: r, pdfUrl, top, onNext }: { receipt: Receipt; pdfUrl: string; top: number; onNext: () => void }) {
   const sc = copy.biz.scan;
+  const rc = copy.biz.receipt;
+  const { width } = useWindowDimensions();
+  return (
+    <View style={styles.paperRoot}>
+      <ScrollView contentContainerStyle={[styles.done, { paddingTop: top + 22 }]}>
+        <Txt style={[font(900, 110), styles.doneTitle]}>{sc.receiptDone}</Txt>
+        <View style={{ marginTop: 16 }}>
+          <PrintReceipt business={r.business.name} address={[r.business.address, r.business.tin ? rc.tin(r.business.tin) : null].filter(Boolean).join(" · ")} width={width - 40}>
+            <ReceiptRow kind="plain" label={rc.no} value={r.no} />
+            <ReceiptRow kind="plain" label={rc.date} value={r.time} />
+            <ReceiptRow kind="plain" label={rc.student} value={r.student} />
+            <ReceiptRow kind="plain" label={rc.cashier} value={r.cashier} />
+            <ReceiptDivider wide />
+            <ReceiptRow kind="plain" label={r.item} value={formatSom(r.originalPrice)} />
+            <ReceiptRow kind="plain" label={`talabaPass ${r.badge}`} value={`${MINUS}${formatSom(r.discountAmount)}`} />
+            <ReceiptRow kind="grand" label={rc.total} value={formatSom(r.paidAmount)} />
+            <ReceiptRow label={rc.payment} value={copy.biz.paymentType[r.paymentType] ?? r.paymentType} />
+          </PrintReceipt>
+        </View>
+        <Txt style={{ marginTop: 14, fontSize: 13, color: colors.muted, textAlign: "center" }}>{sc.receiptSent}</Txt>
+      </ScrollView>
+      <BottomPair left={rc.pdf} right={sc.next} onLeft={() => void Linking.openURL(pdfUrl.startsWith("http") ? pdfUrl : `${API_URL}${pdfUrl}`)} onRight={onNext} dark />
+    </View>
+  );
+}
+
+/** Oldindan band qilingan buyurtma (saytdagi `OrderPreview`): kim, nima, nechta, vaqt, to'langan va kassada olinadigan */
+function OrderPreview({ order: o, at, top, onCancel, onDone }: { order: OrderScan; at: string; top: number; onCancel: () => void; onDone: () => void }) {
+  const sc = copy.biz.scan;
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const until = order.validUntil ? new Date(new Date(order.validUntil).getTime() - 86_400_000) : null;
+  const until = o.validUntil ? new Date(new Date(o.validUntil).getTime() - 86_400_000).toISOString().slice(0, 10).split("-").reverse().join(".") : null;
 
   const complete = async () => {
     if (busy) return;
     setBusy(true);
+    setError(null);
     try {
-      await bizApi.completeOrder(order.orderId, order.ticket);
+      await bizApi.completeOrder(o.orderId, o.ticket);
       onDone();
     } catch (e) {
-      onFail(e);
+      signal("error");
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <>
-      <Card style={styles.card}>
-        <Txt style={[font(800), styles.eyebrow]}>{`${sc.orderTitle.toUpperCase()} · ${order.code}`}</Txt>
-        <View style={styles.studentRow}>
-          <View style={styles.avatar}>
-            <Txt style={[font(900, 112), { fontSize: 22, color: colors.white }]}>{order.student.initials || "T"}</Txt>
+    <View style={styles.paperRoot}>
+      <GreenHead title={sc.order.valid} sub={`${o.code} · ${at}`} top={top} onClose={onCancel} />
+      <ScrollView contentContainerStyle={styles.sheet} testID="order-preview">
+        <StudentCard initials={o.student.initials} name={o.student.name}>
+          <Press onPress={() => void Linking.openURL(`tel:${o.student.phone}`)} accessibilityRole="link" scale={0.98}>
+            <Txt style={[mono(), { fontSize: 13, color: colors.muted }]}>{displayPhone(localDigits(o.student.phone))}</Txt>
+          </Press>
+        </StudentCard>
+        <View style={styles.dealCard}>
+          <Txt style={{ fontSize: 12, color: colors.muted }}>{sc.order.kind[o.kind] ?? ""}</Txt>
+          <View style={[styles.between, { alignItems: "baseline", gap: 12, marginTop: 2 }]}>
+            <Txt style={[font(800), { fontSize: 20, flexShrink: 1 }]}>{o.title}</Txt>
+            <Txt testID="order-quantity" style={[mono(600), { fontSize: 28 }]}>{`× ${o.quantity}`}</Txt>
           </View>
-          <View style={styles.flex1}>
-            <Txt style={[font(900), { fontSize: 19 }]}>{order.student.name}</Txt>
-            <Txt style={styles.muted}>{order.student.phone}</Txt>
+          <View style={[styles.sums, { marginTop: 12 }]}>
+            <MoneyRow label={until ? sc.order.validUntil : sc.order.slot} value={until ?? o.slot} />
+            {o.note ? (
+              <View style={[styles.between, { gap: 12 }]}>
+                <Txt style={[mono(), { fontSize: 14, color: colors.muted }]}>{sc.order.note}</Txt>
+                <Txt style={{ fontSize: 14, textAlign: "right", flexShrink: 1 }}>{o.note}</Txt>
+              </View>
+            ) : null}
+            <MoneyRow label={sc.prepaidLabel} value={formatSom(o.prepayAmount)} />
+            <ReceiptDivider />
+            <TotalRow label={sc.due} value={formatSom(o.dueNow)} />
+            {o.dueNow === 0 ? <Txt style={[font(600), { fontSize: 13, color: colors.greenSite, textAlign: "right" }]}>{sc.order.nothingDue}</Txt> : null}
           </View>
         </View>
-        <View style={styles.divider} />
-        <Txt style={[font(800), { fontSize: 17 }]}>{`${order.title} × ${order.quantity}`}</Txt>
-        <Txt style={styles.muted}>{until ? sc.validUntil(until.toISOString().slice(0, 10).split("-").reverse().join(".")) : order.slot}</Txt>
-        {order.note ? <Txt style={[styles.muted, { marginTop: 4 }]}>{order.note}</Txt> : null}
-        <View style={styles.sums}>
-          {order.prepayAmount > 0 ? <SumRow label={sc.prepaidLabel} value={som(order.prepayAmount)} /> : null}
-          <SumRow label={sc.due} value={som(order.dueNow)} big />
-        </View>
-      </Card>
-      <PrimaryButton tone="orange" icon="tick" onPress={() => void complete()} loading={busy} style={styles.next}>
-        {sc.handOver}
-      </PrimaryButton>
-      <SecondaryButton onPress={onCancel} disabled={busy} style={styles.cancel}>
-        {sc.cancel}
-      </SecondaryButton>
-    </>
-  );
-}
-
-function Done({ state, onNext }: { state: Extract<State, { kind: "done" }>; onNext: () => void }) {
-  const sc = copy.biz.scan;
-  const r = state.receipt;
-  return (
-    <>
-      <Card style={styles.card}>
-        <View style={styles.doneIcon}>
-          <Icon name="tick" size={40} color={colors.white} strokeWidth={3.4} />
-        </View>
-        <Txt style={[font(900, 112), styles.doneTitle]}>{r ? sc.done : sc.handed}</Txt>
-        <Txt style={styles.muted}>{state.title}</Txt>
-        {r ? (
-          <>
-            <View style={styles.divider} />
-            <SumRow label={copy.biz.receipt.title(r.no)} value={r.time} />
-            <SumRow label={copy.biz.receipt.student} value={r.student} />
-            <SumRow label={copy.biz.receipt.discount} value={`−${som(r.discountAmount)}`} />
-            <SumRow label={sc.toPay} value={som(r.paidAmount)} big />
-            <Note>{sc.receiptSent}</Note>
-          </>
+        {error ? (
+          <View accessibilityRole="alert" style={styles.errorWide}>
+            <Txt style={[font(600), { fontSize: 14, color: colors.danger }]}>{error}</Txt>
+          </View>
         ) : null}
-      </Card>
-      <PrimaryButton tone="orange" icon="arrow" onPress={onNext} style={styles.next}>
-        {sc.next}
-      </PrimaryButton>
-      {r ? (
-        <SecondaryButton icon="receipt" onPress={() => router.push(`/receipt/${r.id}`)} style={styles.cancel}>
-          {copy.biz.receipt.title(r.no)}
-        </SecondaryButton>
-      ) : null}
-      {r && state.pdfUrl ? (
-        <Press onPress={() => void Linking.openURL(`${API_URL}${state.pdfUrl}`)} accessibilityRole="link" style={styles.pdf}>
-          <Txt style={[font(800), { fontSize: 15, textDecorationLine: "underline" }]}>{copy.biz.receipt.pdf}</Txt>
-        </Press>
-      ) : null}
-    </>
-  );
-}
-
-function SumRow({ label, value, big = false }: { label: string; value: string; big?: boolean }) {
-  return (
-    <View style={styles.sumRow}>
-      <Txt style={[styles.flex1, { fontSize: big ? 16 : 14, color: big ? colors.ink : colors.muted2 }, big ? font(800) : null]}>{label}</Txt>
-      <Txt style={[font(big ? 900 : 700), { fontSize: big ? 22 : 15 }]}>{value}</Txt>
+      </ScrollView>
+      <BottomPair left={sc.back} right={sc.handOver} onLeft={onCancel} onRight={() => void complete()} busy={busy} />
     </View>
   );
 }
 
-/** Qo'lda: kupon kodi va 6 raqamli kod (faqat kod hech qachon yetmaydi) */
-function ManualSheet({ visible, onClose, onSubmit }: { visible: boolean; onClose: () => void; onSubmit: (code: string, totp: string) => void }) {
+/** "Buyurtma berildi" — keyingi skanga */
+function OrderDone({ top, onNext }: { top: number; onNext: () => void }) {
   const sc = copy.biz.scan;
-  const [code, setCode] = useState("");
-  const [totp, setTotp] = useState("");
-  const ready = code.trim().length >= 6 && /^\d{6}$/.test(totp);
-  const submit = () => {
-    onSubmit(code.trim(), totp);
-    setCode("");
-    setTotp("");
-  };
+  const insets = useSafeAreaInsets();
   return (
-    <Sheet visible={visible} onClose={onClose} title={sc.manualTitle}>
-      <View style={styles.sheetBody}>
-        <Label>{sc.couponCode}</Label>
-        <Field value={code} onChangeText={(v) => setCode(v.toUpperCase())} placeholder={sc.couponPlaceholder} autoCapitalize="characters" autoCorrect={false} text={19} autoFocus returnKeyType="next" />
-        <Label style={styles.sheetLabel}>{sc.totpCode}</Label>
-        <Field
-          value={totp}
-          onChangeText={(v) => setTotp(v.replace(/\D/g, "").slice(0, 6))}
-          keyboardType="number-pad"
-          placeholder="000000"
-          text={22}
-          maxLength={6}
-          returnKeyType="done"
-          onSubmitEditing={() => ready && submit()}
-        />
-        <PrimaryButton tone="orange" disabled={!ready} onPress={submit} style={styles.next}>
-          {sc.check}
-        </PrimaryButton>
+    <View style={[styles.paperRoot, { paddingTop: top }]}>
+      <View style={styles.orderDone}>
+        <View style={styles.doneIcon}>
+          <Icon name="check" size={32} color={colors.greenSite} strokeWidth={2.6} />
+        </View>
+        <Txt testID="order-done" style={[font(900, 110), styles.doneTitle]}>
+          {sc.handed}
+        </Txt>
+        <Txt style={{ fontSize: 14, color: colors.muted, textAlign: "center" }}>{sc.order.doneHint}</Txt>
       </View>
-    </Sheet>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 30 }}>
+        <Press onPress={onNext} accessibilityRole="button" scale={0.97} style={[styles.btn, { backgroundColor: colors.ink }]}>
+          <Txt style={[font(800), { fontSize: 16, color: colors.white }]}>{sc.next}</Txt>
+        </Press>
+      </View>
+    </View>
   );
 }
 
-const C = 34;
-/** Summa maydoni ostidagi to'lov turi va "Tasdiqlash" ham klaviatura ustida qolsin */
-const SUM_GAP = 260;
+const C = 44;
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.ink },
   flex1: { flex: 1 },
-  head: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24 },
-  title: { fontSize: 34, letterSpacing: em(34, -0.03), color: colors.white },
-  sub: { fontSize: 13, color: colors.line, marginTop: 2 },
-  body: { flex: 1, paddingHorizontal: 24, paddingTop: 20 },
-  frame: { aspectRatio: 1, width: "100%", borderRadius: 28, overflow: "hidden", backgroundColor: colors.frame },
+  shrink: { flex: 1, minWidth: 0 },
+  between: { flexDirection: "row", justifyContent: "space-between" },
+  root: { flex: 1, backgroundColor: colors.ink0 },
+  head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
+  headLeft: { flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 },
+  initial: { width: 40, height: 40, borderRadius: 10, backgroundColor: colors.orange, alignItems: "center", justifyContent: "center" },
+  headRight: { alignItems: "flex-end" },
+  middle: { flexGrow: 1, alignItems: "center", justifyContent: "center", gap: 22, paddingHorizontal: 16, paddingVertical: 16 },
+  aim: { fontSize: 16, color: colors.paper, textAlign: "center" },
+  frame: { width: 260, height: 260, borderRadius: 22, overflow: "hidden", backgroundColor: colors.ink1 },
+  cameraNote: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", padding: 24 },
   corner: { position: "absolute", width: C, height: C, borderColor: colors.orange },
-  tl: { top: 18, left: 18, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 12 },
-  tr: { top: 18, right: 18, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 12 },
-  bl: { bottom: 18, left: 18, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 12 },
-  br: { bottom: 18, right: 18, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 12 },
-  center: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", padding: 28, gap: 16 },
-  permission: { color: colors.white, fontSize: 15, lineHeight: 21, textAlign: "center" },
-  allow: { alignSelf: "stretch" },
-  busy: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(17,17,17,0.55)", alignItems: "center", justifyContent: "center" },
-  aim: { color: colors.white, fontSize: 15, textAlign: "center", marginTop: 16 },
-  grow: { flex: 1 },
-  manualBtn: { backgroundColor: colors.white },
-  result: { padding: 24, paddingTop: 18, paddingBottom: 32 },
-  card: { padding: 20, gap: 6 },
-  okRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  studentRow: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 10 },
-  avatar: { width: 56, height: 56, borderRadius: 18, backgroundColor: colors.orange, alignItems: "center", justifyContent: "center", transform: [{ rotate: "-4deg" }] },
-  muted: { fontSize: 14, color: colors.muted2 },
-  divider: { height: 1.5, backgroundColor: colors.lineSoft, marginVertical: 12 },
-  itemRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  badge: { backgroundColor: colors.orange, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 2, transform: [{ rotate: "-3deg" }] },
-  sums: { marginTop: 10, gap: 6 },
-  sumRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  payLabel: { color: colors.white, marginTop: 18 },
-  pay: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  next: { marginTop: 18 },
-  cancel: { marginTop: 10, backgroundColor: colors.white },
-  eyebrow: { fontSize: 12, letterSpacing: em(12, 0.08), color: colors.muted2 },
-  errorCard: { padding: 24, alignItems: "center", gap: 8 },
-  errorIcon: { width: 68, height: 68, borderRadius: 34, backgroundColor: colors.danger, alignItems: "center", justifyContent: "center" },
-  errorTitle: { fontSize: 28, marginTop: 6 },
-  errorText: { fontSize: 16, lineHeight: 22, textAlign: "center", color: colors.danger },
-  doneIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.greenOk, alignItems: "center", justifyContent: "center", alignSelf: "center" },
-  doneTitle: { fontSize: 28, textAlign: "center", marginTop: 8 },
-  pdf: { alignSelf: "center", marginTop: 16, padding: 6 },
-  sheetBody: { paddingHorizontal: 24, paddingBottom: 8 },
-  sheetLabel: { marginTop: 14 },
+  tl: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 22 },
+  tr: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 22 },
+  bl: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 22 },
+  br: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 22 },
+  scanLine: { position: "absolute", top: 18, left: 18, right: 18, height: 2, backgroundColor: colors.orange, boxShadow: `0 0 14px 2px ${colors.orange}` },
+  tools: { flexDirection: "row", gap: 10 },
+  enterCode: { height: 46, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 23, backgroundColor: colors.ink2, paddingHorizontal: 16 },
+  torch: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.ink2, alignItems: "center", justifyContent: "center" },
+  errorBox: { width: "100%", maxWidth: 320, borderRadius: 14, backgroundColor: colors.dangerBg, paddingHorizontal: 14, paddingVertical: 12 },
+  errorWide: { borderRadius: 14, backgroundColor: colors.dangerBg, paddingHorizontal: 14, paddingVertical: 12 },
+  lastSale: { flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 16, marginBottom: 14, borderRadius: 14, backgroundColor: colors.ink1, paddingHorizontal: 14, paddingVertical: 12 },
+  lastText: { flex: 1, fontSize: 13, color: colors.fog1 },
+  footer: { paddingHorizontal: 16, paddingBottom: 24 },
+  logout: { height: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, borderWidth: 1.5, borderColor: colors.ink4 },
+  noBusiness: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
+  manual: { width: "100%", maxWidth: 340, gap: 12, borderRadius: 22, backgroundColor: colors.white, padding: 20 },
+  pair: { flexDirection: "row", gap: 8 },
+  btn: { height: 56, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  btnQuiet: { borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.white },
+  btnOrange: { backgroundColor: colors.orange },
+  dim: { opacity: 0.5 },
+  paperRoot: { flex: 1, backgroundColor: colors.paper },
+  green: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.greenSite, paddingHorizontal: 16, paddingBottom: 18 },
+  greenClose: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.green2, alignItems: "center", justifyContent: "center" },
+  sheet: { padding: 16, gap: 10 },
+  studentCard: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, backgroundColor: colors.white, padding: 14 },
+  studentAvatar: { width: 56, height: 56, borderRadius: 14, backgroundColor: colors.blue, alignItems: "center", justifyContent: "center" },
+  dealCard: { borderRadius: 16, backgroundColor: colors.white, paddingHorizontal: 16, paddingVertical: 14 },
+  scanBadge: { borderRadius: 7, backgroundColor: colors.orange, paddingHorizontal: 8, paddingTop: 5, paddingBottom: 3, transform: [{ rotate: "-5deg" }] },
+  sums: { marginTop: 14, gap: 8 },
+  payments: { flexDirection: "row", gap: 6 },
+  info: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 2, paddingTop: 2 },
+  bottom: { flexDirection: "row", gap: 8, borderTopWidth: 1, borderTopColor: colors.lineSoft, paddingHorizontal: 16, paddingTop: 12 },
+  done: { paddingHorizontal: 20, paddingBottom: 16 },
+  doneTitle: { fontSize: 26, letterSpacing: em(26, -0.02), textAlign: "center" },
+  orderDone: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 24 },
+  doneIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.greenBg, alignItems: "center", justifyContent: "center" },
 });

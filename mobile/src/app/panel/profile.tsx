@@ -1,45 +1,66 @@
 import Constants from "expo-constants";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { errorText } from "@/api/client";
 import { bizApi } from "@/api/business";
-import { useOrdersWatch } from "@/business/orders-watch";
-import { som } from "@/business/ui";
 import { copy, langName } from "@/copy";
 import { initials } from "@/lib/format";
-import { contactLine, displayPhone, localDigits } from "@/lib/phone";
+import { contactLine } from "@/lib/phone";
 import { pickImage } from "@/lib/pick";
 import { useLoad } from "@/lib/use-load";
+import { BlockHead, CashierList, DiscountList, ProfileHeader } from "@/site/business";
 import { useApp } from "@/state";
-import { colors, em, font } from "@/theme";
-import { Card, imageUrl, InfoRow, MenuRow, ScreenHeader, TabScreen } from "@/ui/app";
+import { colors, font } from "@/theme";
+import { Failed, Loading } from "@/ui/app";
 import { LEGAL, openSite } from "@/ui/legal";
 import { Press, Txt } from "@/ui/kit";
 
+/** Saytdagi telefon profili oxiridagi qator (`tp-row`, 50px, markazda) */
+function Row({ label, onPress, danger = false, value }: { label: string; onPress: () => void; danger?: boolean; value?: string }) {
+  return (
+    <Press onPress={onPress} accessibilityRole="button" scale={0.98} style={styles.row}>
+      <Txt style={[font(700), { fontSize: 15, color: danger ? colors.danger : colors.ink }]}>
+        {label}
+        {value ? <Txt style={[font(700), { fontSize: 15, color: colors.blue }]}>{` · ${value}`}</Txt> : null}
+      </Txt>
+    </Press>
+  );
+}
+
 /**
- * Profil (saytdagi B5): egasi — biznes kartasi (logotip, holat, bugungi ko'rsatkichlar), aloqa, tahrirlash, kassirlar,
- * buyurtmalar (oldindan buyurtma yoqilgan bo'lsa), bildirishnomalar; kassir — ism, telefon, biznes. Hammaga: Maxfiylik,
- * Shartlar, chiqish; hisobni o'chirish — faqat egasi (kassir hisobini egasi faolsizlantiradi).
+ * B5 — biznes profili, saytdagi `/biznes/profil` ning telefon ko'rinishi: qora sarlavha (logotip, nom, holat, bugungi
+ * ko'rsatkichlar, tahrirlash), chegirmalar (kalit bilan), kassirlar, "Parolni o'zgartirish", "Hisobdan chiqish".
+ * Saytda yo'q, ilovaga kerak (do'kon talabi): til, bildirishnomalar, huquqiy havolalar, hisobni o'chirish, versiya —
+ * shu qator uslubida pastda. Kassir — ism, raqam, biznes va shu qatorlar.
  */
 export default function BusinessProfile() {
   const p = copy.biz.profile;
+  const insets = useSafeAreaInsets();
   const { me, signOut } = useApp();
   const owner = me?.role === "BUSINESS_OWNER";
   const profile = useLoad(useCallback(() => bizApi.profile(), []), owner, "biz.profile");
-  const orders = useOrdersWatch();
-  const { refresh } = profile;
+  const discounts = useLoad(useCallback(() => bizApi.discounts(), []), owner, "biz.discounts");
+  const cashiers = useLoad(useCallback(() => bizApi.cashiers(), []), owner, "biz.cashiers");
   const [busy, setBusy] = useState(false);
+  const { refresh: refreshProfile } = profile;
+  const { refresh: refreshDiscounts } = discounts;
+  const { refresh: refreshCashiers } = cashiers;
+  const refreshAll = useCallback(() => {
+    void refreshProfile();
+    void refreshDiscounts();
+    void refreshCashiers();
+  }, [refreshProfile, refreshDiscounts, refreshCashiers]);
 
   useFocusEffect(
     useCallback(() => {
-      if (owner) void refresh();
-    }, [owner, refresh]),
+      if (owner) refreshAll();
+    }, [owner, refreshAll]),
   );
 
   if (!me) return null;
   const b = profile.data?.profile;
-  const name = [me.firstName, me.lastName].filter(Boolean).join(" ");
 
   const logout = () =>
     Alert.alert(copy.profile.logout, undefined, [
@@ -61,7 +82,7 @@ export default function BusinessProfile() {
         const file = await pickImage("logo.jpg");
         if (!file) return;
         await bizApi.uploadLogo(file);
-        await refresh();
+        await profile.refresh();
       } catch (e) {
         Alert.alert(errorText(e));
       }
@@ -69,119 +90,88 @@ export default function BusinessProfile() {
     if (!b?.logoUrl) return void pick();
     Alert.alert(p.logo, undefined, [
       { text: p.logo, onPress: () => void pick() },
-      { text: p.logoRemove, style: "destructive", onPress: () => void bizApi.removeLogo().then(refresh, (e: unknown) => Alert.alert(errorText(e))) },
+      { text: p.logoRemove, style: "destructive", onPress: () => void bizApi.removeLogo().then(profile.refresh, (e: unknown) => Alert.alert(errorText(e))) },
       { text: copy.deleteAccount.confirmNo, style: "cancel" },
     ]);
   };
 
-  return (
-    <TabScreen>
-      <ScrollView contentContainerStyle={styles.content}>
-        <ScreenHeader title={p.title} />
-        <View style={styles.pad}>
-          {owner ? (
-            <>
-              <View style={styles.hero}>
-                <Press onPress={changeLogo} accessibilityRole="button" accessibilityLabel={p.logo} style={styles.logo}>
-                  {b?.logoUrl ? (
-                    <Image source={{ uri: imageUrl(b.logoUrl) }} style={StyleSheet.absoluteFill} accessibilityIgnoresInvertColors />
-                  ) : (
-                    <Txt style={[font(900, 112), { fontSize: 28 }]}>{(b?.name ?? me.business?.name ?? "B").charAt(0).toUpperCase()}</Txt>
-                  )}
-                </Press>
-                <View style={styles.flex1}>
-                  <Txt numberOfLines={2} style={[font(900, 112), styles.name]}>
-                    {b?.name ?? me.business?.name ?? ""}
-                  </Txt>
-                  <Txt style={styles.muted}>{p.statuses[b?.status ?? me.business?.status ?? ""] ?? ""}</Txt>
-                </View>
-              </View>
-
-              {b ? (
-                <View style={styles.kpis}>
-                  <Kpi value={String(b.salesToday)} label={p.salesToday} />
-                  <Kpi value={som(b.revenueToday)} label={p.revenueToday} />
-                  <Kpi value={String(b.activeDiscounts)} label={p.activeDiscounts} />
-                </View>
-              ) : null}
-
-              {b ? (
-                <Card style={styles.card}>
-                  <InfoRow icon="pin" label={copy.biz.edit.address} value={[b.address, b.district].filter(Boolean).join(", ")} />
-                  <InfoRow icon="clock" label={copy.biz.edit.hours} value={b.workingHours} />
-                  <InfoRow icon="phone" label={copy.biz.edit.phone} value={b.publicPhone ? displayPhone(localDigits(b.publicPhone)) : "—"} />
-                  <InfoRow icon="send" label={copy.biz.edit.telegram} value={b.telegram ? `@${b.telegram}` : "—"} />
-                  <InfoRow icon="camera" label={copy.biz.edit.instagram} value={b.instagram ? `@${b.instagram}` : "—"} last />
-                </Card>
-              ) : null}
-
-              <Card style={styles.card}>
-                <MenuRow icon="edit" label={p.edit} onPress={() => router.push("/biz/edit")} />
-                <MenuRow icon="users" label={p.cashiers} onPress={() => router.push("/biz/cashiers")} />
-                {orders.enabled || orders.waiting > 0 || b?.preorderEnabled ? (
-                  <MenuRow icon="bag" label={p.orders} value={orders.waiting > 0 ? String(orders.waiting) : undefined} onPress={() => router.push("/biz/orders")} />
-                ) : null}
-                <MenuRow icon="bell" label={p.notifications} onPress={() => router.push("/notifications")} last />
-              </Card>
-            </>
-          ) : (
-            <View style={styles.hero}>
-              <View style={[styles.logo, styles.cashierAvatar]}>
-                <Txt style={[font(900, 112), { fontSize: 28, color: colors.white }]}>{initials(me.firstName, me.lastName) || "K"}</Txt>
-              </View>
-              <View style={styles.flex1}>
-                <Txt numberOfLines={2} style={[font(900, 112), styles.name]}>
-                  {name}
-                </Txt>
-                <Txt style={styles.muted}>{contactLine(me)}</Txt>
-                <Txt style={[font(700), styles.muted]}>{p.cashierOf(me.business?.name ?? "")}</Txt>
-              </View>
-            </View>
-          )}
-
-          <Card style={styles.card}>
-            <MenuRow icon="globe" label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />
-            <MenuRow icon="lock" label={copy.profile.password} onPress={() => router.push("/auth/password?mode=change")} />
-            <MenuRow icon="lock" label={copy.profile.privacy} onPress={() => openSite(LEGAL.privacy)} />
-            <MenuRow icon="doc" label={copy.profile.terms} onPress={() => openSite(LEGAL.terms)} last={!owner} />
-            {owner ? <MenuRow icon="doc" label={copy.biz.profile.partnerTerms} onPress={() => openSite(LEGAL.partnerTerms)} last /> : null}
-          </Card>
-
-          <Card style={styles.card}>
-            <MenuRow icon="logout" label={copy.profile.logout} onPress={logout} last={!owner} />
-            {owner ? <MenuRow icon="trash" label={copy.profile.deleteAccount} danger onPress={() => router.push("/account/delete")} last /> : null}
-          </Card>
-
-          <Txt style={[font(600), styles.version]}>{copy.profile.version(Constants.expoConfig?.version ?? "1.0.0")}</Txt>
-        </View>
-      </ScrollView>
-    </TabScreen>
+  const rows = (
+    <>
+      <Row label={copy.profile.password} onPress={() => router.push("/auth/password?mode=change")} />
+      <Row label={copy.profile.logout} danger onPress={logout} />
+      <View style={styles.extra}>
+        <Row label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />
+        {owner ? <Row label={p.notifications} onPress={() => router.push("/notifications")} /> : null}
+        <Row label={copy.profile.privacy} onPress={() => openSite(LEGAL.privacy)} />
+        <Row label={copy.profile.terms} onPress={() => openSite(LEGAL.terms)} />
+        {owner ? <Row label={p.partnerTerms} onPress={() => openSite(LEGAL.partnerTerms)} /> : null}
+        {owner ? <Row label={copy.profile.deleteAccount} danger onPress={() => router.push("/account/delete")} /> : null}
+      </View>
+      <Txt style={[font(600), styles.version]}>{copy.profile.version(Constants.expoConfig?.version ?? "1.0.0")}</Txt>
+    </>
   );
-}
 
-function Kpi({ value, label }: { value: string; label: string }) {
+  if (!owner) {
+    const name = [me.firstName, me.lastName].filter(Boolean).join(" ");
+    return (
+      <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
+        <View style={[styles.cashierHead, { paddingTop: insets.top + 56 }]}>
+          <View style={styles.cashierAvatar}>
+            <Txt style={[font(900, 125), { fontSize: 22, color: colors.ink }]}>{initials(me.firstName, me.lastName) || "K"}</Txt>
+          </View>
+          <View style={styles.flex1}>
+            <Txt style={[font(800), { fontSize: 20, color: colors.paper }]}>{name}</Txt>
+            <Txt style={{ fontSize: 13, color: colors.fog2 }}>{contactLine(me)}</Txt>
+            <Txt style={[font(700), { fontSize: 12, color: colors.mint }]}>{p.cashierOf(me.business?.name ?? "")}</Txt>
+          </View>
+        </View>
+        <View style={styles.body}>{rows}</View>
+      </ScrollView>
+    );
+  }
+
   return (
-    <View style={styles.kpi}>
-      <Txt numberOfLines={1} adjustsFontSizeToFit style={[font(900, 62), { fontSize: 28 }]}>
-        {value}
-      </Txt>
-      <Txt style={styles.kpiLabel}>{label}</Txt>
-    </View>
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={{ paddingBottom: 20 }}
+      refreshControl={<RefreshControl refreshing={profile.refreshing} onRefresh={refreshAll} tintColor={colors.orange} />}
+    >
+      {b ? (
+        <ProfileHeader p={b} top={insets.top + 56} onLogo={changeLogo} />
+      ) : (
+        <View style={[styles.headPlaceholder, { paddingTop: insets.top + 56 }]}>{profile.error ? <Failed error={profile.error} onRetry={() => void profile.reload()} /> : <Loading />}</View>
+      )}
+      <View style={styles.body}>
+        <BlockHead title={copy.biz.discounts.title} action={copy.biz.discounts.addShort} onAction={() => router.push("/biz/discount/new")} />
+        {discounts.data ? (
+          <DiscountList discounts={discounts.data.discounts} onChange={(next) => discounts.setData(() => ({ discounts: next }))} />
+        ) : discounts.error ? (
+          <Failed error={discounts.error} onRetry={() => void discounts.reload()} />
+        ) : (
+          <Loading />
+        )}
+        <View style={styles.cashiers}>
+          {cashiers.data ? (
+            <CashierList data={cashiers.data} onChanged={() => void cashiers.refresh()} />
+          ) : cashiers.error ? (
+            <Failed error={cashiers.error} onRetry={() => void cashiers.reload()} />
+          ) : null}
+        </View>
+        {rows}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  flex1: { flex: 1 },
-  content: { paddingBottom: 28 },
-  pad: { paddingHorizontal: 24 },
-  hero: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 18 },
-  logo: { width: 72, height: 72, borderRadius: 24, backgroundColor: colors.orange, alignItems: "center", justifyContent: "center", overflow: "hidden", transform: [{ rotate: "-4deg" }] },
-  cashierAvatar: { backgroundColor: colors.ink },
-  name: { fontSize: 24, lineHeight: 26, letterSpacing: em(24, -0.02) },
-  muted: { fontSize: 14, color: colors.muted2, marginTop: 4 },
-  kpis: { flexDirection: "row", gap: 10, marginTop: 16 },
-  kpi: { flex: 1, backgroundColor: colors.white, borderRadius: 20, padding: 12, gap: 2 },
-  kpiLabel: { fontSize: 12, color: colors.muted2 },
-  card: { marginTop: 16 },
-  version: { fontSize: 12, color: colors.muted2, textAlign: "center", marginTop: 20 },
+  flex1: { flex: 1, minWidth: 0, gap: 3 },
+  root: { flex: 1, backgroundColor: colors.paper },
+  body: { paddingHorizontal: 16, paddingTop: 18 },
+  cashiers: { paddingTop: 18 },
+  row: { marginTop: 12, height: 50, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  extra: { marginTop: 12, borderTopWidth: 1, borderTopColor: colors.line },
+  version: { fontSize: 12, color: colors.muted2, textAlign: "center", marginTop: 16 },
+  headPlaceholder: { backgroundColor: colors.ink, minHeight: 180, paddingBottom: 20 },
+  cashierHead: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: colors.ink, paddingHorizontal: 20, paddingBottom: 20 },
+  cashierAvatar: { width: 60, height: 60, borderRadius: 16, backgroundColor: colors.orange, alignItems: "center", justifyContent: "center" },
 });

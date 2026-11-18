@@ -16,6 +16,14 @@ export function formatSom(amount: number): string {
   return sign + String(Math.abs(Math.trunc(amount))).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
+/** 1 250 000 → "1.25 mln" (saytdagi `formatMln`) */
+export function formatMln(amount: number): string {
+  if (Math.abs(amount) < 1_000_000) return formatSom(amount);
+  const digits = Math.abs(amount) >= 10_000_000 ? 1 : 2;
+  const value = (amount / 1_000_000).toFixed(digits).replace(/\.?0+$/, "");
+  return `${value} mln`;
+}
+
 /** Toshkent sanasi (UTC yarim tun), hafta kuni (1 = dushanba) va kun boshidan daqiqa. */
 export function toTashkent(instant: Date) {
   const shifted = new Date(instant.getTime() + OFFSET_MS);

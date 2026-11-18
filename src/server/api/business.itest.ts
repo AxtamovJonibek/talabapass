@@ -15,7 +15,7 @@ import { POST as orderRoute } from "@/app/api/v1/business/orders/[id]/route";
 import { GET as profileRoute, PATCH as editProfileRoute } from "@/app/api/v1/business/profile/route";
 import { GET as salesRoute } from "@/app/api/v1/business/sales/route";
 import { POST as confirmRoute } from "@/app/api/v1/business/scan/confirm/route";
-import { POST as scanRoute } from "@/app/api/v1/business/scan/route";
+import { GET as scanSummaryRoute, POST as scanRoute } from "@/app/api/v1/business/scan/route";
 import { GET as statsRoute } from "@/app/api/v1/business/stats/route";
 import { POST as cashierRegisterRoute } from "@/app/api/v1/cashier/register/route";
 import { GET as dealRoute } from "@/app/api/v1/deals/[id]/route";
@@ -271,6 +271,29 @@ describe("API biznes: skaner va sotuv", () => {
     expect(res.json.chart.hourly).toBe(true);
     expect(res.json.sales).toHaveLength(2);
     expect(res.json.funnel.sold).toBe(2);
+    // Saytdagi issiqlik xaritasi: soat ustunlari va bo'sh bo'lmagan kataklar yig'indisi = 30 kunlik sotuvlar
+    expect(res.json.heat.hours.length).toBeGreaterThan(0);
+    expect(res.json.heat.cells.reduce((sum: number, c: number[]) => sum + c[2]!, 0)).toBe(2);
+  });
+
+  it("Excel hisobot: imzoli havola faqat egasining statistika javobida; buzilgani — 404", async () => {
+    const { json } = await call(statsRoute, "/api/v1/business/stats?period=7", { auth: t.owner });
+    const url = new URL(json.reportUrl, "http://localhost");
+    const id = url.pathname.split("/").pop()!;
+    const file = await call(fileRoute, url.pathname + url.search, { params: { kind: "report", id } });
+    expect(file.status).toBe(200);
+    expect(file.type).toContain("spreadsheetml");
+    const forged = await call(fileRoute, url.pathname + url.search.replace(/sig=./, "sig=Z"), { params: { kind: "report", id } });
+    expect(forged.status).toBe(404);
+  });
+
+  it("skaner sarlavhasi: biznes, kassir, bugungi sotuvlar va oxirgi sotuv; talabaga — forbidden", async () => {
+    const res = await call(scanSummaryRoute, "/api/v1/business/scan", { auth: t.cashier });
+    expect(res.status).toBe(200);
+    expect(res.json.todaySales).toBe(2);
+    expect(res.json.lastSale).toMatchObject({ item: expect.any(String), at: expect.any(String) });
+    expect(res.json.cashierName).not.toBe("");
+    expect((await call(scanSummaryRoute, "/api/v1/business/scan", { auth: t.student })).json.error.code).toBe("forbidden");
   });
 });
 

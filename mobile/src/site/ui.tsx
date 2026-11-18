@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { useState, type ReactNode } from "react";
+import { Image, Pressable, ScrollView, StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { colors, em, font } from "@/theme";
 import { WORDMARK, WORDMARK_HEIGHTS, WORDMARK_RATIO, WORDMARK_WHITE } from "./wordmark";
@@ -251,6 +251,8 @@ export function FloatButton({ icon, label, onPress, bottom }: { icon?: IconName;
 }
 
 const s = StyleSheet.create({
+  input: { borderRadius: 12, borderWidth: 1.5, backgroundColor: colors.white, paddingHorizontal: 14, fontSize: 15, color: colors.ink },
+  square: { height: 44, borderRadius: 10, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
   pill: { height: 28, maxWidth: "100%", flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, paddingHorizontal: 10, alignSelf: "flex-start" },
   pillImage: { backgroundColor: "rgba(255,255,255,0.8)", borderWidth: 1, borderColor: "rgba(20,20,20,0.1)", boxShadow: "0 1px 3px rgba(20,20,20,0.1)" },
   pillDot: { width: 8, height: 8, borderRadius: 4 },
@@ -331,6 +333,7 @@ export function Button({
   strong = false,
   block = false,
   icon,
+  iconSize = 22,
   disabled = false,
   busy = false,
   style,
@@ -342,6 +345,7 @@ export function Button({
   strong?: boolean;
   block?: boolean;
   icon?: IconName;
+  iconSize?: number;
   disabled?: boolean;
   busy?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -363,7 +367,7 @@ export function Button({
         style,
       ]}
     >
-      {icon ? <Icon name={icon} size={22} color={look.fg} /> : null}
+      {icon ? <Icon name={icon} size={iconSize} color={look.fg} /> : null}
       <Txt style={[font(strong ? 800 : (look.weight as 600 | 700 | 800)), { fontSize: z.fontSize, color: look.fg }]}>{children}</Txt>
     </Press>
   );
@@ -388,4 +392,57 @@ export function weekdaysLabel(weekdays: number[], names: (day: number) => string
 export function Wordmark({ size = 20, white = false }: { size?: keyof typeof WORDMARK_HEIGHTS; white?: boolean }) {
   const h = WORDMARK_HEIGHTS[size];
   return <SvgXml xml={white ? WORDMARK_WHITE : WORDMARK} width={Math.round(h * WORDMARK_RATIO)} height={h} accessibilityLabel="Talaba Pass" />;
+}
+
+// ───────── forma (ui/field.tsx, ui/chip.tsx ToggleSquare) ─────────
+
+/** `Field`: yorliq (13 / 600), maydon, xato (12 / 600 qizil) — 6px oraliq */
+export function SiteField({ label, error, children, style }: { label: string; error?: string | null; children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[{ gap: 6 }, style]}>
+      <Txt style={[font(600), { fontSize: 13 }]}>{label}</Txt>
+      {children}
+      {error ? <Txt style={[font(600), { fontSize: 12, color: colors.danger }]}>{error}</Txt> : null}
+    </View>
+  );
+}
+
+/** `Input`: 52px (compact — 48), rounded-12, 1.5px chegara (fokusda qora), 15px; `mono` — raqamlar jadval kengligida */
+export function SiteInput({ invalid = false, compact = false, mono: isMono = false, style, onFocus, onBlur, ...props }: TextInputProps & { invalid?: boolean; compact?: boolean; mono?: boolean }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      placeholderTextColor={colors.placeholder}
+      {...props}
+      onFocus={(e) => {
+        setFocused(true);
+        onFocus?.(e);
+      }}
+      onBlur={(e) => {
+        setFocused(false);
+        onBlur?.(e);
+      }}
+      style={[
+        isMono ? mono() : font(400),
+        s.input,
+        { height: compact ? 48 : 52, borderColor: invalid ? colors.danger : focused ? colors.ink : colors.line },
+        style,
+      ]}
+    />
+  );
+}
+
+/** `ToggleSquare`: 44px, rounded-10, 1.5px chegara; tanlangani qora (kurs, hafta kunlari, to'lov turi) */
+export function ToggleSquare({ selected, onPress, children, textSize = 15, bold = false, style }: { selected: boolean; onPress: () => void; children: string; textSize?: 13 | 14 | 15; bold?: boolean; style?: StyleProp<ViewStyle> }) {
+  return (
+    <Press
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      scale={0.96}
+      style={[s.square, selected ? { backgroundColor: colors.ink, borderColor: colors.ink } : null, style]}
+    >
+      <Txt style={[font(bold ? 700 : 600), { fontSize: textSize, color: selected ? colors.white : colors.ink }]}>{children}</Txt>
+    </Press>
+  );
 }

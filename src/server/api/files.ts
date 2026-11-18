@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "../db";
 import { authSecret } from "../env";
 import { receipt, receiptPdfUz } from "../coupons/receipts";
+import { REPORT_MIME, statsReport } from "../business/report";
 import { storage } from "../storage";
 import { checkFileSignature, fileExpiry, fileSignature } from "./rules";
 
@@ -12,7 +13,7 @@ import { checkFileSignature, fileExpiry, fileSignature } from "./rules";
  * qo'shish shart emas, ilova keshi ishlaydi (manzil bir soat ichida o'zgarmaydi), havola 1–2 soatda eskiradi.
  */
 
-export const FILE_KINDS = ["discount-image", "logo", "avatar", "receipt"] as const;
+export const FILE_KINDS = ["discount-image", "logo", "avatar", "receipt", "report"] as const;
 export type FileKind = (typeof FILE_KINDS)[number];
 
 export function signedFileUrl(kind: FileKind, id: string, version?: string | null, now = Date.now()): string {
@@ -57,6 +58,15 @@ const mimeOf = (key: string) => (key.endsWith(".png") ? "image/png" : key.endsWi
 
 /** Imzo tekshirilgandan keyin: fayl baytlari. Yo'q bo'lsa (o'chirilgan) — null. */
 export async function readSignedFile(kind: FileKind, id: string): Promise<{ bytes: Uint8Array; mime: string; name?: string } | null> {
+  if (kind === "report") {
+    // id = `<biznesId>_<davr>` — havola faqat egasiga statistika javobida beriladi
+    const [businessId, period] = id.split("_");
+    if (!businessId || !["1", "7", "30"].includes(period ?? "")) return null;
+    const business = await db.business.findUnique({ where: { id: businessId }, select: { id: true, name: true } });
+    if (!business) return null;
+    const report = await statsReport(business, Number(period) as 1 | 7 | 30);
+    return { bytes: report.bytes, mime: REPORT_MIME, name: report.name };
+  }
   if (kind === "receipt") {
     const found = await receipt(id);
     return found ? { bytes: await receiptPdfUz(found.data), mime: "application/pdf", name: `chek-${found.data.no}.pdf` } : null;

@@ -20,6 +20,7 @@ const PASSWORD = process.env.COMPARE_PASSWORD ?? "Talaba2026";
 const W = 390;
 const H = 844;
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
+const SCROLL = Number(args.scroll ?? 0);
 const OUT = args.out ?? ".compare/app";
 const ONLY = args.only ? new Set(args.only.split(",")) : null;
 
@@ -93,6 +94,8 @@ async function appContext(browser, phone) {
 
 async function shot(context, url, inApp = false) {
   const page = await context.newPage();
+  // Ilova sahifasidagi xatolar (oq ekran sababi) — terminalga
+  page.on("pageerror", (e) => console.log(`  ! ${inApp ? "ilova" : "sayt"}: ${e.message.split(/\r?\n/)[0]}`));
   try {
     if (inApp) {
       // Ilova ishga tushish ekranidan (`index.tsx`: sessiya va foydalanuvchi) o'tadi, keyin ichki navigatsiya
@@ -111,7 +114,28 @@ async function shot(context, url, inApp = false) {
   } catch {
     // ochiq so'rovlar (polling) — baribir rasmga olamiz
   }
-  await page.waitForTimeout(4000);
+  await page.waitForTimeout(2000);
+  // Ilova: yuklanish ko'rsatkichi (role=progressbar) yo'qolguncha
+  await page.waitForFunction(() => !document.querySelector('[role="progressbar"]'), null, { timeout: 20_000 }).catch(() => undefined);
+  await page.waitForTimeout(800);
+  if (SCROLL > 0) {
+    // Uzun sahifaning pastki qismi: sayt — oyna, ilova — eng katta suriladigan blok (ScrollView)
+    await page.evaluate((y) => {
+      const boxes = [...document.querySelectorAll("div")].filter((el) => el.scrollHeight > el.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(el).overflowY));
+      const box = boxes.sort((a, b) => b.clientHeight - a.clientHeight)[0];
+      if (box && box.clientHeight >= innerHeight * 0.6) box.scrollTop = y;
+      else scrollTo(0, y);
+    }, SCROLL);
+    await page.waitForTimeout(600);
+  }
+  if (args.probe) {
+    // O'lchamlarni o'qish: --probe="table th" → har biri uchun matn, x, y, kenglik, balandlik (ikkala tomonda)
+    const boxes = await page.evaluate((sel) => [...document.querySelectorAll(sel)].map((el) => {
+      const r = el.getBoundingClientRect();
+      return `${(el.textContent ?? "").trim().slice(0, 24).padEnd(24)} x=${Math.round(r.x)} y=${Math.round(r.y)} w=${Math.round(r.width)} h=${Math.round(r.height)}`;
+    }), args.probe);
+    console.log([`── ${inApp ? "ilova" : "sayt"} ${url}`, ...boxes].join("\n"));
+  }
   const buf = await page.screenshot({ animations: "disabled" });
   await page.close();
   return PNG.sync.read(buf);
@@ -155,7 +179,7 @@ for (const s of screens(f)) {
   contexts[s.role] ??= { site: await siteContext(browser, phones[s.role]), app: await appContext(browser, phones[s.role]) };
   const [a, b] = [await shot(contexts[s.role].site, SITE + s.site), await shot(contexts[s.role].app, APP + s.app, true)];
   const { png, percent } = compose(a, b);
-  await writeFile(join(OUT, `${s.name}.png`), PNG.sync.write(png));
+  await writeFile(join(OUT, `${s.name}${SCROLL ? `@${SCROLL}` : ""}.png`), PNG.sync.write(png));
   results.push({ name: s.name, site: s.site, app: s.app, diffPercent: Number(percent.toFixed(2)) });
   console.log(`${s.name.padEnd(22)} ${percent.toFixed(2).padStart(6)}%  ${s.site}  ↔  ${s.app}`);
 }

@@ -24,18 +24,37 @@ export function ReceiptEdge({ width }: { width: number }) {
   );
 }
 
-export function ReceiptRow({ label, value, kind = "default" }: { label: string; value: string; kind?: "default" | "discount" | "total" }) {
+export function ReceiptRow({ label, value, kind = "default" }: { label: string; value: string; kind?: "default" | "discount" | "total" | "grand" | "plain" }) {
   const color = kind === "discount" ? colors.rust : colors.ink;
-  const size = kind === "total" ? 16 : 13;
+  // total — 16 (T7), grand — 18 (B4 "JAMI"); plain — yorliq ham qora
+  const big = kind === "total" || kind === "grand";
+  const size = kind === "grand" ? 18 : kind === "total" ? 16 : 13;
   return (
-    <View style={[s.row, kind === "total" ? { marginTop: 2 } : null]}>
-      <Txt style={[mono(kind === "total" ? 600 : 400), { fontSize: size, color: kind === "default" ? colors.muted : color }]}>{label}</Txt>
-      <Txt style={[mono(kind === "total" ? 600 : 400), { fontSize: size, color, flexShrink: 1, textAlign: "right" }]}>{value}</Txt>
+    <View style={[s.row, big ? { marginTop: kind === "grand" ? 4 : 2 } : null]}>
+      <Txt style={[mono(big ? 600 : 400), { fontSize: size, color: kind === "default" ? colors.muted : color }]}>{label}</Txt>
+      <Txt style={[mono(big ? 600 : 400), { fontSize: size, color, flexShrink: 1, textAlign: "right" }]}>{value}</Txt>
     </View>
   );
 }
 
-export const ReceiptDivider = () => <View style={s.divider} />;
+export const ReceiptDivider = ({ wide = false }: { wide?: boolean }) => <View style={[s.divider, wide ? { marginVertical: 6 } : null]} />;
+
+/** B4 — kassada chiqarilgan chek (`PrintReceipt`, "print" ko'rinishi): biznes nomi, manzil · STIR, qatorlar */
+export function PrintReceipt({ business, address, children, width }: { business: string; address: string; children: ReactNode; width: number }) {
+  return (
+    <View>
+      <View style={s.print}>
+        <View style={{ gap: 7 }}>
+          <Txt style={[mono(600), { fontSize: 13, textAlign: "center" }]}>{business.toUpperCase()}</Txt>
+          <Txt style={[mono(), { fontSize: 12, textAlign: "center", color: colors.muted }]}>{address}</Txt>
+          <ReceiptDivider wide />
+        </View>
+        <View style={{ gap: 7 }}>{children}</View>
+      </View>
+      <ReceiptEdge width={width} />
+    </View>
+  );
+}
 
 /** T7 chek kartasi: "✓ Sotuv tasdiqlandi" va "CHEK № …", keyin qatorlar */
 export function Receipt({ status, number, children, width }: { status: string; number: string; children: ReactNode; width: number }) {
@@ -61,6 +80,7 @@ const s = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   status: { flexDirection: "row", alignItems: "center", gap: 6 },
   rows: { marginTop: 12, gap: 6 },
+  print: { backgroundColor: colors.white, borderTopLeftRadius: 4, borderTopRightRadius: 4, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 22 },
   row: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
   divider: { marginVertical: 4, borderTopWidth: 1.5, borderStyle: "dashed", borderColor: colors.dash },
 });

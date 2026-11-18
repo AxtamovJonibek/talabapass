@@ -42,6 +42,9 @@ export type OrderScan = {
   dueNow: number;
 };
 
+/** B3 sarlavhasi */
+export type ScanSummary = { business: { name: string }; cashierName: string; todaySales: number; lastSale: { student: string; item: string; at: string } | null };
+
 export type ScanResult = { kind: "coupon"; preview: ScanPreview } | { kind: "order"; order: OrderScan };
 
 export type Receipt = {
@@ -87,11 +90,31 @@ export type Stats = {
   kpi: { sold: number; delta: { kind: "abs" | "pct"; value: number } | null; revenue: number; average: number; discount: number; fresh: number; returningPercent: number };
   chart: { hourly: boolean; bars: { key: string; count: number; current: boolean }[] };
   funnel: { views: number; qr: number; sold: number };
-  heat: { busiest: { weekday: number; from: number; to: number; count: number } | null; quietest: number | null };
+  /** cells: [hafta kuni 0–6 (Du=0), soat, soni] — faqat bo'sh bo'lmaganlari */
+  heat: { hours: number[]; cells: [number, number, number][]; busiest: { weekday: number; from: number; to: number; count: number } | null; quietest: number | null };
   universities: { name: string; count: number }[];
-  offers: { id: string; title: string; status: DiscountStatus; ended: boolean; views: number; qr: number; sold: number; revenue: number }[];
+  offers: StatsOffer[];
+  offerTotals: { views: number; qr: number; sold: number; revenue: number; discount: number };
   sales: { id: string; at: string; receiptNo: number; student: string; university: string; item: string; cashier: string; paid: number }[];
   cashiers: { rows: { name: string; count: number }[]; rejected: number };
+  /** Excel hisobot — imzoli nisbiy havola */
+  reportUrl: string;
+};
+
+export type StatsOffer = {
+  id: string;
+  title: string;
+  type: DiscountType;
+  percent: number | null;
+  originalPrice: number | null;
+  newPrice: number | null;
+  status: DiscountStatus;
+  ended: boolean;
+  views: number;
+  qr: number;
+  sold: number;
+  revenue: number;
+  discount: number;
 };
 
 /** Saytdagi `DiscountDraft` (src/lib/discount.ts) */
@@ -199,6 +222,7 @@ const enc = encodeURIComponent;
 export const bizApi = {
   registerCashier: (body: { registrationTicket: string; firstName: string; lastName: string }) =>
     api<SignedIn>("/cashier/register", { method: "POST", body: { ...body, deviceName }, auth: false }),
+  scanSummary: () => api<ScanSummary>("/business/scan"),
   scan: (input: { qr: string } | { code: string; totp: string }) => api<ScanResult>("/business/scan", { method: "POST", body: input }),
   confirm: (body: { couponId: string; ticket: string; paymentType: PaymentType; amount?: number | null }) =>
     api<{ receipt: Receipt; pdfUrl: string }>("/business/scan/confirm", { method: "POST", body }),
