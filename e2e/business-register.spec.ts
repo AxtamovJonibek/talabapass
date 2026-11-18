@@ -40,7 +40,10 @@ async function fillInfo(page: Page, prefix: "wb" | "b1") {
   await page.locator(`#${prefix}-name`).fill("Sinov Kafesi");
   await page.getByRole("button", { name: "Kafe / restoran" }).locator("visible=true").click();
   await page.locator(`#${prefix}-address`).fill("Bunyodkor ko'chasi 20, Chilonzor");
-  await page.locator(`#${prefix}-hours`).fill("09:00 – 22:00");
+  // Ish vaqti qo'lda yozilmaydi: "Boshqa vaqt" → 30 daqiqalik ro'yxat
+  await page.getByRole("button", { name: "Boshqa vaqt" }).locator("visible=true").click();
+  await page.locator(`#${prefix}-hours-from`).selectOption(String(9 * 60));
+  await page.locator(`#${prefix}-hours-to`).selectOption(String(22 * 60));
   await page.locator(`#${prefix}-desc`).fill("Osh va choy");
 }
 

@@ -31,9 +31,17 @@ test.describe("veb (WB2)", () => {
 
     // Yarim tundan o'tadigan oraliq ruxsat etiladi
     await page.locator("#wb2-limit").fill("25");
-    await page.locator("#wb2-from").fill("22:00");
-    await page.locator("#wb2-to").fill("02:00");
+    // Soat qo'lda yozilmaydi: tayyor oraliq yoki "Boshqa vaqt" (30 daqiqa qadamli ro'yxat)
+    const web = page.locator("main").locator("visible=true");
+    await web.getByRole("button", { name: "Ish kunlari" }).first().click();
+    await web.getByRole("button", { name: "Kechqurun 18–22" }).first().click();
+    await expect(page.getByText("18:00–22:00").locator("visible=true").first()).toBeVisible();
+    await web.getByRole("button", { name: "Boshqa vaqt" }).first().click();
+    await page.locator("#wb2-from").selectOption(String(22 * 60));
+    await page.locator("#wb2-to").selectOption(String(2 * 60));
     await expect(page.getByText("Yarim tundan o'tadi").locator("visible=true")).toBeVisible();
+    // Ish vaqtidan tashqarida — ogohlantirish (saqlashga to'sqinlik qilmaydi)
+    await expect(page.getByText("ish vaqtingizdan tashqarida").locator("visible=true")).toBeVisible();
     // Foiz: +5 → 35%
     await page.getByRole("button", { name: "Oshirish" }).locator("visible=true").click();
     await expect(page.getByTestId("discount-value").locator("visible=true")).toHaveValue("35");

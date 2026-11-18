@@ -343,6 +343,14 @@ ilova sahifalari `requireActiveStudent()`, ro'yxat qadamlari `requireStudent()` 
 (va biznesi `APPROVED`) ko'rinadi. Tasdiqlangan chegirmada mazmun (nom, tur, narx/foiz, shartlar)
 o'zgarsa qayta `PENDING_REVIEW`; to'xtatish/yoqish, kunlik son, kun/soat oralig'i — tekshiruvsiz.
 
+**Vaqt tanlash** (biznes ro'yxati, ish vaqti, chegirma muharriri — sayt va ilova): soat qo'lda yozilmaydi. Mantiq `src/lib/hours.ts`
+(ilovada AYNAN nusxa `mobile/src/lib/hours.ts`, testlar `hours.test.ts`), sayt primitivlari `ui/time-pickers.tsx` (`DayChips`,
+`TimeRangePicker`, `WorkingHoursField`), ilovada `mobile/src/ui/time-pickers.tsx` (g'ildirak, 30 daqiqa). Kunlar — Du…Ya + "Har kuni",
+"Ish kunlari", "Dam olish kunlari"; vaqt — "Ish vaqti bo'yicha", "Ertalab 08–12", "Tushlik 12–15", "Kechqurun 18–22", "Kun bo'yi"
+(00:00–23:59) + "Boshqa vaqt"; yarim tundan o'tish bor. Ish vaqti `Business.workingHours` matnida qoladi (o'zbekcha:
+"Har kuni · 09:00–21:00", "Du–Ju 09:00–18:00; Sh 10:00–16:00", ≤ 160 belgi) — `parseSchedule` uni qayta o'qiydi (eski "09:00 – 22:00"
+ham). Chegirma vaqti ish vaqtidan chiqsa — ogohlantirish (`outsideHours`), saqlashga to'sqinlik qilmaydi. `validateDiscount`/`dealTiming` o'zgarmagan.
+
 Chegirma muharriri (B2 / WB2): `/biznes/chegirma/yangi`, `/biznes/chegirma/<id>`; ro'yxat `/biznes/chegirmalar`.
 Server — `src/server/business/discounts.ts` (`saveDiscount`, `setDiscountActive`); forma va server bitta
 `validateDiscount`. Chegirma faqat arizasi yuborilgan (bloklanmagan/rad etilmagan) biznesda. Kategoriya biznes

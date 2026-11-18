@@ -18,6 +18,8 @@ import {
 } from "@/lib/discount";
 import { formatSom, MINUS } from "@/lib/format";
 import { formatMinute, parseMinute } from "@/lib/time";
+import { daysText, formatSchedule, hoursFor, outsideHours, parseSchedule, type Range } from "@/lib/hours";
+import { useHoursLabels } from "@/components/ui/time-pickers";
 import { useRouter } from "@/i18n/navigation";
 import { saveDiscountAction } from "@/server/actions/discounts";
 
@@ -40,6 +42,8 @@ type Options = {
   initial: DiscountDraft | null;
   /** Toshkent sanasi "YYYY-MM-DD" (serverdan — soat mintaqasi farqi bo'lmasligi uchun) */
   today: string;
+  /** Biznes ish vaqti matni (`Business.workingHours`): "Ish vaqti bo'yicha" tanlovi va ogohlantirish uchun */
+  workingHours: string;
 };
 
 function addDays(iso: string, days: number) {
@@ -53,10 +57,13 @@ function addDays(iso: string, days: number) {
  * ("38 000", "60 ta", "13.10 – 31.10") — dizayndagidek; yuborishda `DiscountDraft` ga o'giriladi va
  * forma bilan server bir xil `validateDiscount` dan o'tadi.
  */
-export function useDiscountEditor({ id, initial, images: savedImages, today }: Options) {
+export function useDiscountEditor({ id, initial, images: savedImages, today, workingHours }: Options) {
   const t = useTranslations("discountEditor");
   const weekday = useTranslations("weekday");
   const common = useTranslations("common");
+  const timePicker = useTranslations("timePicker");
+  const hoursLabels = useHoursLabels();
+  const [schedule] = useState(() => parseSchedule(workingHours, hoursLabels) ?? []);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [type, setType] = useState<DiscountKind>(initial?.type ?? "PERCENT");
   const [original, setOriginal] = useState(initial?.originalPrice != null ? groupDigits(initial.originalPrice) : "");
@@ -172,6 +179,8 @@ export function useDiscountEditor({ id, initial, images: savedImages, today }: O
     });
   }
 
+  const range: Range = { from: parseMinute(from) ?? 720, to: parseMinute(to) ?? 900 };
+  const outside = outsideHours(weekdays, range, schedule);
   const daysLabel = weekdaysLabel(weekdays, (d) => weekday(`short.${d}` as "short.1"), weekday("everyDay"));
   const overnight = draft.fromMinute !== null && draft.toMinute !== null && draft.toMinute <= draft.fromMinute;
 
@@ -191,6 +200,19 @@ export function useDiscountEditor({ id, initial, images: savedImages, today }: O
     setOriginal,
     weekdays,
     toggleDay: (day: number) => setWeekdays((list) => (list.includes(day) ? list.filter((d) => d !== day) : [...list, day].sort())),
+    setWeekdays,
+    /** Tanlangan oraliq (daqiqa) — vaqt tanlovi uchun; matn qiymatlari (`from`/`to`) shu bilan yangilanadi */
+    range,
+    setRange: (r: Range) => {
+      setFrom(formatMinute(r.from));
+      setTo(formatMinute(r.to));
+    },
+    /** "Ish vaqti bo'yicha": tanlangan kunlardagi biznes ish vaqti (jadval noma'lum — null) */
+    workHours: hoursFor(weekdays, schedule),
+    /** Chegirma vaqti ish vaqtidan chiqsa — tushunarli ogohlantirish (saqlashga to'sqinlik qilmaydi) */
+    outsideText: outside.length
+      ? timePicker("outside", { days: daysText(outside, hoursLabels), hours: schedule.length ? formatSchedule(schedule, hoursLabels) : timePicker("noHours") })
+      : null,
     from,
     setFrom,
     to,

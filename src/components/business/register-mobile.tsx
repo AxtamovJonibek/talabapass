@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { CodeEntry, OTP_LENGTH } from "@/components/auth/code-entry";
 import { buttonClass } from "@/components/ui/button";
+import { WorkingHoursField } from "@/components/ui/time-pickers";
 import { Field, IconInput, Input, PhoneInput, Textarea } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
@@ -114,18 +115,11 @@ export function RegisterMobile({ r, rejectReason }: { r: BusinessRegistration; r
               icon={<Icon name="pin" size={18} className="shrink-0 text-rust" />}
             />
           </Field>
-          <div className="grid grid-cols-2 gap-2.5">
-            <Field label={t("workingHours")} htmlFor="b1-hours" error={r.fieldError("workingHours")}>
-              <Input
-                id="b1-hours"
-                name="workingHours"
-                dense
-                mono={14}
-                placeholder={t("workingHoursPlaceholder")}
-                defaultValue={v.workingHours}
-                invalid={r.invalid.includes("workingHours")}
-              />
-            </Field>
+          <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
+            <legend className="mb-1.5 p-0 text-13 font-semibold">{t("workingHours")}</legend>
+            <WorkingHoursField name="workingHours" idPrefix="b1-hours" initial={v.workingHours} error={r.fieldError("workingHours")} />
+          </fieldset>
+          <div className="grid grid-cols-1 gap-2.5">
             <Field label={t("tin")} htmlFor="b1-tin" error={r.fieldError("tin")}>
               <Input
                 id="b1-tin"

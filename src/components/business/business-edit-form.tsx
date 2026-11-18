@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { AvatarEditor } from "@/components/profile-image/avatar-editor";
+import { WorkingHoursField } from "@/components/ui/time-pickers";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { DESCRIPTION_MAX, LANDMARK_MAX } from "@/lib/business";
 import { editBusinessAction, type BusinessEditState } from "@/server/actions/business-profile";
@@ -32,9 +33,10 @@ export function BusinessEditForm({ initial, logoUrl, idPrefix }: { initial: Init
       <Field label={e("landmark")} htmlFor={id("landmark")} error={bad("landmark") ? e("errors.landmark") : null}>
         <Input id={id("landmark")} name="landmark" defaultValue={initial.landmark} maxLength={LANDMARK_MAX} placeholder={e("landmarkPlaceholder")} invalid={bad("landmark")} />
       </Field>
-      <Field label={t("workingHours")} htmlFor={id("hours")} error={err("workingHours")}>
-        <Input id={id("hours")} name="workingHours" mono={14} defaultValue={initial.workingHours} placeholder={t("workingHoursPlaceholder")} invalid={bad("workingHours")} />
-      </Field>
+      <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
+        <legend className="mb-1.5 p-0 text-13 font-semibold">{t("workingHours")}</legend>
+        <WorkingHoursField name="workingHours" idPrefix={id("hours")} initial={initial.workingHours} error={err("workingHours")} />
+      </fieldset>
       <Field label={t("description")} htmlFor={id("desc")} error={err("description")}>
         <Textarea id={id("desc")} name="description" rows={3} maxLength={DESCRIPTION_MAX} defaultValue={initial.description} invalid={bad("description")} />
       </Field>

@@ -4,6 +4,7 @@ import { Alert, StyleSheet, View } from "react-native";
 import { ApiError, errorText } from "@/api/client";
 import { bizApi, type BusinessProfile, type ProfileEdit } from "@/api/business";
 import { copy } from "@/copy";
+import { WorkingHoursField } from "@/ui/time-pickers";
 import { displayPhone, localDigits } from "@/lib/phone";
 import { useLoad } from "@/lib/use-load";
 import { resetTo, routeFor, useApp } from "@/state";
@@ -119,7 +120,11 @@ function EditForm({ initial: b }: { initial: BusinessProfile }) {
       {field("name", ed.name)}
       {field("address", ed.address)}
       {field("landmark", ed.landmark, ed.landmarkPlaceholder)}
-      {field("workingHours", ed.hours, copy.business.hoursPlaceholder)}
+      <View style={styles.block}>
+        <Label>{ed.hours}</Label>
+        <WorkingHoursField value={form.workingHours} onChange={(workingHours) => set({ workingHours })} invalid={invalid.includes("workingHours")} />
+        {invalid.includes("workingHours") ? <Note error>{ed.errors.workingHours ?? ""}</Note> : null}
+      </View>
       {field("description", ed.description, undefined, { multiline: true, height: 64, returnKeyType: "default" })}
 
       <Txt style={[font(900, 112), styles.section]}>{copy.biz.profile.contacts}</Txt>

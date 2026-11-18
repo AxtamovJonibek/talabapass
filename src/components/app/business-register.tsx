@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { CodeBoxes } from "@/components/ui/app-code";
 import { AppLabel, AppLead, AppScreen, AppTitle, BoxInput, Choice, FieldBox, FieldNote, FooterLink, Highlight, TickDot } from "@/components/ui/app-kit";
 import { buttonClass, ButtonLink } from "@/components/ui/button";
+import { WorkingHoursField } from "@/components/ui/time-pickers";
 import { Icon } from "@/components/ui/icon";
 import { RejectedNote } from "@/components/business/register-mobile";
 import { useBusinessRegistration, type BusinessRegistration, type ExistingDoc } from "@/components/business/use-business-registration";
@@ -161,12 +162,8 @@ export function AppBusinessRegister({ rejectReason, signedIn = false, ...props }
         </RegisterTitle>
         <form className="flex flex-1 flex-col" action={(form) => r.next(form, "app")}>
           <div className="mt-6">
-            <AppLabel htmlFor="app-biz-hours">{t("hours")}</AppLabel>
-            <FieldBox invalid={r.invalid.includes("workingHours")}>
-              <Icon name="time" size={22} strokeWidth={2.4} className="shrink-0 text-blue" />
-              <BoxInput id="app-biz-hours" name="workingHours" placeholder={t("hoursPlaceholder")} defaultValue={r.values.workingHours} />
-            </FieldBox>
-            {r.fieldError("workingHours") ? <FieldNote error>{r.fieldError("workingHours")}</FieldNote> : null}
+            <AppLabel>{t("hours")}</AppLabel>
+            <WorkingHoursField name="workingHours" idPrefix="app-biz-hours" initial={r.values.workingHours} error={r.fieldError("workingHours")} />
           </div>
 
           <div className="mt-[18px]">

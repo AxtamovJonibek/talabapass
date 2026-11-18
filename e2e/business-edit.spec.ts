@@ -25,10 +25,25 @@ test("egasi ish vaqtini o'zgartiradi (holat qoladi), nomni o'zgartirsa qayta tek
   await page.getByRole("link", { name: "Tahrirlash" }).locator("visible=true").click();
   await expect(page).toHaveURL(/\/biznes\/profil\/tahrir$/);
 
-  await page.locator("#bp-hours").fill("08:00 – 22:00");
+  // Ish vaqti tanlovdan: "Boshqa vaqt" → 08:00–22:00; keyin kunlar bo'yicha — yakshanba dam olish
+  const form = page.locator("form").locator("visible=true").first();
+  await form.getByRole("button", { name: "Boshqa vaqt" }).click();
+  await form.locator("select[id$='hours-from']").selectOption(String(8 * 60));
+  await form.locator("select[id$='hours-to']").selectOption(String(22 * 60));
+  await expect(form.getByText("Har kuni · 08:00–22:00")).toBeVisible();
   await page.getByRole("button", { name: "Saqlash" }).locator("visible=true").click();
   await expect(page.getByTestId("business-saved").locator("visible=true")).toHaveText("Saqlandi");
-  expect(await business(phones.owner)).toMatchObject({ workingHours: "08:00 – 22:00", status: before.status });
+  expect(await business(phones.owner)).toMatchObject({ workingHours: "Har kuni · 08:00–22:00", status: before.status });
+
+  await form.getByRole("switch", { name: "Har kuni bir xil" }).click();
+  await form.getByRole("switch", { name: "Yakshanba" }).click();
+  await expect(form.getByText("Du–Sh 08:00–22:00")).toBeVisible();
+  await page.getByRole("button", { name: "Saqlash" }).locator("visible=true").click();
+  // "Saqlandi" yozuvi oldingi saqlashdan qolgan — bazani kutamiz
+  await expect.poll(async () => (await business(phones.owner)).workingHours).toBe("Du–Sh 08:00–22:00");
+  // Qayta ochilganda jadval tiklanadi
+  await page.reload();
+  await expect(page.getByText("Du–Sh 08:00–22:00").locator("visible=true")).toBeVisible();
 
   await page.locator("#bp-name").fill("A");
   await page.getByRole("button", { name: "Saqlash" }).locator("visible=true").click();

@@ -294,7 +294,6 @@ test.describe("kirish", () => {
     await page.locator("#b1-name").fill("Test");
     await page.getByRole("button", { name: "Kafe / restoran" }).locator("visible=true").click();
     await page.locator("#b1-address").fill("Test ko'chasi 1");
-    await page.locator("#b1-hours").fill("09:00 – 18:00");
     await page.locator("#b1-tin").fill("309000997");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await expect(page.locator("#b1-phone")).toHaveValue("90 555 09 97");

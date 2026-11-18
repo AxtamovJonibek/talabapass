@@ -226,7 +226,9 @@ test.describe("ilova: parol", () => {
 
     // 2/4: ish vaqti, STIR, tavsif
     await expect(page.getByRole("heading", { name: /STIR/ })).toBeVisible();
-    await page.locator("#app-biz-hours").fill("09:00 – 23:00");
+    // Ish vaqti — tanlov (standart: har kuni 09:00–21:00), "Kechqurun" tayyor oralig'i
+    await page.getByRole("button", { name: "Kechqurun 18–22" }).click();
+    await expect(page.getByText("Har kuni · 18:00–22:00")).toBeVisible();
     await page.locator("#app-biz-tin").fill(tin);
     await page.locator("#app-biz-desc").fill("Qahva va desert");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();

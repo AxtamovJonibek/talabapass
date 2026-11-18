@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
 import { ApiError, errorText } from "@/api/client";
 import { bizApi, type DiscountDraft, type DiscountForm, type DiscountStatus, type DiscountType, type StudentLimit } from "@/api/business";
@@ -14,6 +14,9 @@ import { colors, font } from "@/theme";
 import { Card, Failed, imageUrl, Loading, RoundButton, SecondaryButton } from "@/ui/app";
 import { Icon } from "@/ui/icons";
 import { Choice, ErrorBox, Field, Label, Note, PrimaryButton, Press, Screen, Title, TopBar, Txt } from "@/ui/kit";
+import { DayChips, hoursLabels, TimeRangePicker, UZ_HOURS_LABELS } from "@/ui/time-pickers";
+import { daysText, formatSchedule, hoursFor, outsideHours, parseSchedule, type WeekSchedule } from "@/lib/hours";
+import { useApp } from "@/state";
 
 type Form = {
   title: string;
@@ -81,6 +84,15 @@ export default function DiscountEditor() {
 function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm | null }) {
   const isNew = id === null;
   const e = copy.biz.editor;
+  const { me } = useApp();
+  const [schedule, setSchedule] = useState<WeekSchedule>([]);
+  useEffect(() => {
+    // Ish vaqti matni biznes profilidan (bazada o'zbekcha)
+    void bizApi
+      .profile()
+      .then((p) => setSchedule(parseSchedule(p.profile.workingHours, UZ_HOURS_LABELS) ?? []))
+      .catch(() => undefined);
+  }, [me?.business?.id]);
   const [form, setForm] = useState<Form>(() => toForm(initial?.draft ?? emptyDraft()));
   const [status, setStatus] = useState<DiscountStatus | null>(initial?.status ?? null);
   const rejectReason = initial?.rejectReason ?? null;
@@ -110,7 +122,10 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
     if (form.type === "FIXED_PRICE" && o && draftNow.newPrice && draftNow.newPrice < o) return e.calcFixed(`${formatSom(o - draftNow.newPrice)} ${copy.currency}`);
     return null;
   })();
-  const overnight = draftNow.fromMinute !== null && draftNow.toMinute !== null && draftNow.toMinute < draftNow.fromMinute;
+  // Biznes ish vaqti: "Ish vaqti bo'yicha" tanlovi va ish vaqtidan chiqsa ogohlantirish (saqlashga to'sqinlik qilmaydi)
+  const range = { from: draftNow.fromMinute ?? 720, to: draftNow.toMinute ?? 900 };
+  const workHours = hoursFor(form.weekdays, schedule);
+  const outside = outsideHours(form.weekdays, range, schedule);
 
   const addImage = async () => {
     try {
@@ -230,38 +245,21 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
 
       <View style={styles.block}>
         <Label>{e.days}</Label>
-        <View style={styles.days}>
-          {copy.weekdaysShort.map((label, i) => {
-            const day = i + 1;
-            const on = form.weekdays.includes(day);
-            return (
-              <Choice
-                key={label}
-                shape="square"
-                selected={on}
-                label={copy.weekdays[i]}
-                onPress={() => !ended && set({ weekdays: on ? form.weekdays.filter((d) => d !== day) : [...form.weekdays, day].sort((a, b) => a - b) })}
-              >
-                {label}
-              </Choice>
-            );
-          })}
-        </View>
+        <DayChips value={form.weekdays} onChange={(weekdays) => set({ weekdays })} disabled={ended} />
         {fieldError("weekdays")}
       </View>
 
-      <View style={[styles.block, styles.row]}>
-        <View style={styles.half}>
-          <Label>{e.from}</Label>
-          <Field value={form.from} onChangeText={(v) => set({ from: v })} placeholder={e.timePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("time")} text={17} editable={!ended} returnKeyType="next" />
-        </View>
-        <View style={styles.half}>
-          <Label>{e.to}</Label>
-          <Field value={form.to} onChangeText={(v) => set({ to: v })} placeholder={e.timePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("time")} text={17} editable={!ended} returnKeyType="next" />
-        </View>
+      <View style={styles.block}>
+        <Label>{e.time}</Label>
+        <TimeRangePicker
+          value={{ from: draftNow.fromMinute ?? 720, to: draftNow.toMinute ?? 900 }}
+          onChange={(r) => set({ from: formatMinute(r.from), to: formatMinute(r.to) })}
+          workHours={workHours}
+          disabled={ended}
+        />
+        {fieldError("time")}
+        {outside.length ? <Note style={styles.warn}>{copy.time.outside(daysText(outside, hoursLabels()), schedule.length ? formatSchedule(schedule, hoursLabels()) : copy.time.noHours)}</Note> : null}
       </View>
-      {fieldError("time")}
-      {overnight && !errors.time ? <Note>{e.overnight(form.to)}</Note> : null}
 
       <View style={styles.block}>
         <Label>{e.dailyLimit}</Label>
@@ -358,6 +356,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 14, lineHeight: 20, color: colors.ink5 },
   block: { marginTop: 18 },
   row: { flexDirection: "row", gap: 10 },
+  warn: { marginTop: 10, color: colors.rust },
   half: { flex: 1 },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   days: { flexDirection: "row", gap: 6 },

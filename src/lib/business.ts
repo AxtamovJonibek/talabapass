@@ -38,6 +38,9 @@ export function normalizeTin(value: string): string | null {
   return /^\d{9}$/.test(digits) ? digits : null;
 }
 
+/** Ish vaqti matni (tanlovdan yig'iladi: "Du–Ju 09:00–18:00; Sh 10:00–16:00", `lib/hours.ts`) */
+export const WORKING_HOURS_MAX = 160;
+
 /** "307482915" → "307 482 915" */
 export const formatTin = (tin: string) => tin.replace(/^(\d{3})(\d{3})(\d{3})$/, "$1 $2 $3");
 
@@ -47,7 +50,7 @@ export function validateBusiness(d: BusinessInfo, only?: readonly BusinessField[
     name: length(d.name, 2, 60),
     kind: (BUSINESS_KINDS as readonly string[]).includes(d.kind),
     address: length(d.address, 5, 160),
-    workingHours: length(d.workingHours, 3, 60),
+    workingHours: length(d.workingHours, 3, WORKING_HOURS_MAX),
     description: d.description.trim().length <= DESCRIPTION_MAX,
     tin: normalizeTin(d.tin) !== null,
     contactName: PERSON.test(d.contactName.trim()),

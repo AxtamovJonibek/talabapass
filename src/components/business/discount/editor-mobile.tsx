@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Link } from "@/i18n/navigation";
-import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueDisplay, ValueErrors, type Category } from "./editor-parts";
+import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, PeriodField, TimeFields, TypePicker, ValueDisplay, ValueErrors, type Category } from "./editor-parts";
 import type { DiscountEditor } from "./use-discount-editor";
 
 export type EditorViewProps = {
@@ -106,12 +106,7 @@ export function EditorMobile({ e, category, businessName, statusText, businessPe
           <DayPicker e={e} size="phone" />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <div className="grid grid-cols-2 gap-2.5">
-            <TimeFields e={e} prefix="b2" />
-          </div>
-          <OvernightNote e={e} />
-        </div>
+        <TimeFields e={e} prefix="b2" />
 
         <div className="grid grid-cols-2 gap-2.5">
           <LimitField e={e} prefix="b2" />

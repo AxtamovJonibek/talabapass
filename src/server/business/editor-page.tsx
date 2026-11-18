@@ -34,6 +34,7 @@ export async function DiscountEditorPage({ discountId }: { discountId: string | 
       images={existing ? await discountImages(existing.id) : []}
       initial={existing?.draft ?? null}
       today={todayInTashkent()}
+      workingHours={business.workingHours}
       category={{ ...category, icon: category.icon as IconName }}
       businessName={business.name}
       statusText={statusText}

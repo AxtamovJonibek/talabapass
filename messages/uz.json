@@ -1477,7 +1477,8 @@
       "too_many": "Ko'pi bilan 4 ta rasm.",
       "daily_limit": "Bugun juda ko'p rasm yuklandi. Ertaga urinib ko'ring.",
       "failed": "Rasm yuklanmadi. Chegirma saqlandi — qayta urinib ko'ring."
-    }
+    },
+    "time": "Soat"
   },
   "businessStats": {
     "title": "Statistika",
@@ -3026,5 +3027,31 @@
     "webText": "Talaba Pass saytida hammasi bor: ro'yxatdan o'tish, chegirmalar lentasi va QR kupon. Telefon brauzerida oching va «Bosh ekranga qo'shish» orqali ilovadek ishlating.",
     "student": "Talaba sifatida boshlash",
     "business": "Biznesni ulash"
+  },
+  "timePicker": {
+    "quickDays": "Kunlarni tez tanlash",
+    "quickTime": "Vaqtni tez tanlash",
+    "days": {
+      "everyDay": "Har kuni",
+      "workdays": "Ish kunlari",
+      "weekend": "Dam olish kunlari"
+    },
+    "presets": {
+      "byHours": "Ish vaqti bo'yicha",
+      "morning": "Ertalab 08–12",
+      "lunch": "Tushlik 12–15",
+      "evening": "Kechqurun 18–22",
+      "allDay": "Kun bo'yi",
+      "custom": "Boshqa vaqt"
+    },
+    "from": "Boshlanishi",
+    "to": "Tugashi",
+    "overnight": "Yarim tundan o'tadi: keyingi kun {time} gacha",
+    "sameEveryDay": "Har kuni bir xil",
+    "copyToAll": "Barchasiga nusxalash ({hours})",
+    "dayOff": "Dam olish",
+    "summaryEmpty": "Ish kuni tanlanmagan",
+    "outside": "Diqqat: {days} — chegirma vaqti ish vaqtingizdan tashqarida ({hours}). Talaba yopiq paytda kelib qolmasin: vaqtni ish vaqti ichiga oling.",
+    "noHours": "ish vaqti yo'q"
   }
 }

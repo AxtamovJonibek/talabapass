@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ToggleSquare } from "@/components/ui/chip";
+import { DayChips, TimeRangePicker as TimePickerRange } from "@/components/ui/time-pickers";
 import { Field, Input } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import type { IconName } from "@/components/ui/icons";
@@ -14,7 +14,6 @@ export type Category = { icon: IconName; tileColor: string; inkColor: string };
 type Size = "phone" | "web";
 
 const KINDS: DiscountKind[] = ["PERCENT", "FIXED_PRICE", "BOGO"];
-const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 /** Kategoriya rangidagi kvadrat (ranglar bazadan — Category.tileColor / inkColor). */
 export function CategoryTile({ category, size, plus = false, image, children }: { category: Category; size: number; plus?: boolean; image?: string; children?: React.ReactNode }) {
@@ -56,35 +55,24 @@ export function TypePicker({ e, size }: { e: DiscountEditor; size: Size }) {
   );
 }
 
+/** Kunlar: chiplar va tez tanlov ("Har kuni", "Ish kunlari", "Dam olish kunlari"). */
 export function DayPicker({ e, size }: { e: DiscountEditor; size: Size }) {
-  const weekday = useTranslations("weekday");
-  const error = e.errorOf("weekdays");
-  return (
-    <>
-      <div className={cn("grid grid-cols-7", size === "phone" ? "gap-[5px]" : "max-w-[520px] gap-1.5")}>
-        {DAYS.map((d) => (
-          <ToggleSquare key={d} day tall={size === "web"} textSize={size === "phone" ? 13 : 14} selected={e.weekdays.includes(d)} onClick={() => e.toggleDay(d)}>
-            {weekday(`short.${d}`)}
-          </ToggleSquare>
-        ))}
-      </div>
-      {error ? <p className="m-0 text-12 font-semibold text-danger">{error}</p> : null}
-    </>
-  );
+  return <DayChips value={e.weekdays} onChange={e.setWeekdays} size={size} error={e.errorOf("weekdays")} />;
 }
 
-/** Soat oralig'i, kunlik son va muddat maydonlari (ikkala ko'rinishda bir xil). */
+/** Soat oralig'i — tayyor oraliqlar ("Ish vaqti bo'yicha" ham) yoki "Boshqa vaqt" (30 daqiqa qadam); qo'lda yozilmaydi. */
 export function TimeFields({ e, prefix }: { e: DiscountEditor; prefix: string }) {
   const t = useTranslations("discountEditor");
   return (
-    <>
-      <Field label={t("from")} htmlFor={`${prefix}-from`} error={e.errorOf("time")}>
-        <Input id={`${prefix}-from`} type="time" compact tight mono={15} value={e.from} onChange={(x) => e.setFrom(x.target.value)} invalid={Boolean(e.errorOf("time"))} />
-      </Field>
-      <Field label={t("to")} htmlFor={`${prefix}-to`}>
-        <Input id={`${prefix}-to`} type="time" compact tight mono={15} value={e.to} onChange={(x) => e.setTo(x.target.value)} invalid={Boolean(e.errorOf("time"))} />
-      </Field>
-    </>
+    <div className="flex flex-col gap-2">
+      <span className="text-13 font-semibold">{t("time")}</span>
+      <TimePickerRange idPrefix={prefix} value={e.range} onChange={e.setRange} workHours={e.workHours} invalid={Boolean(e.errorOf("time"))} error={e.errorOf("time")} />
+      {e.outsideText ? (
+        <p role="status" className="m-0 rounded-10 bg-warn-bg px-3 py-2 text-12 leading-[1.45] font-semibold text-warn">
+          {e.outsideText}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -128,10 +116,6 @@ export function PeriodField({ e, prefix }: { e: DiscountEditor; prefix: string }
   );
 }
 
-/** "Yarim tundan o'tadi: keyingi kun 02:00 gacha" — 22:00–02:00 kabi oraliqlarda. */
-export function OvernightNote({ e }: { e: DiscountEditor }) {
-  return e.overnightText ? <p className="m-0 font-mono text-12 text-muted">{e.overnightText}</p> : null;
-}
 
 /**
  * Qiymat: foizda — "−[35]%" (raqam qo'lda yoziladi, 1–100), boshqa turlarda matn.

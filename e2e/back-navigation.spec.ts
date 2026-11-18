@@ -37,7 +37,6 @@ test("biznes ro'yxati: 2-qadamdan ← va brauzer 'orqaga' 1-qadamga, 1-qadamda �
   await registerPhone(page, "+998905550978", "Biznes");
   await page.locator("#b1-name").fill("Sinov Kafesi");
   await page.locator("#b1-address").fill("Chilonzor, Bunyodkor ko'chasi 12");
-  await page.locator("#b1-hours").fill("09:00 – 22:00");
   await page.locator("#b1-tin").fill("309100913");
   await page.getByRole("button", { name: "Kafe / restoran" }).locator("visible=true").click();
   await page.getByRole("button", { name: /Keyingi/ }).locator("visible=true").click();

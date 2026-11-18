@@ -44,7 +44,7 @@ export async function ownerBusinessForDiscounts(ownerId: string) {
   const business = await db.business.findFirst({
     where: { ownerId, status: { in: ["PENDING", "APPROVED", "WARNED"] }, submittedAt: { not: null } },
     orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, kind: true, status: true },
+    select: { id: true, name: true, kind: true, status: true, workingHours: true },
   });
   return business;
 }

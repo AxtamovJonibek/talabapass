@@ -6,6 +6,7 @@ import { businessApi } from "@/api/endpoints";
 import { BusinessTop } from "@/business/header";
 import { copy } from "@/copy";
 import { useApp } from "@/state";
+import { WorkingHoursField } from "@/ui/time-pickers";
 import { colors, em, font } from "@/theme";
 import { ErrorBox, Eyebrow, Field, Grow, Label, Note, PrimaryButton, Screen, Title, Txt } from "@/ui/kit";
 
@@ -48,15 +49,7 @@ export default function BusinessDetails() {
 
       <View style={styles.first}>
         <Label>{b.hours}</Label>
-        <Field
-          value={d.workingHours}
-          onChangeText={(workingHours) => setDraft({ workingHours })}
-          placeholder={b.hoursPlaceholder}
-          icon={{ name: "clock", color: colors.blue }}
-          invalid={invalid.includes("workingHours")}
-          maxLength={60}
-          returnKeyType="next"
-        />
+        <WorkingHoursField value={d.workingHours} onChange={(workingHours) => setDraft({ workingHours })} invalid={invalid.includes("workingHours")} />
       </View>
 
       <View style={styles.block}>
