@@ -27,7 +27,7 @@ export function pushRoute(url: string | null, me: Me): Href | null {
     if (path === "/tarix" && q.get("chek")) return `/receipt/${encodeURIComponent(q.get("chek")!)}`;
     return "/notifications";
   }
-  if (owner && path === "/biznes/buyurtmalar") return "/biz/orders";
+  if (owner && path === "/biznes/buyurtmalar") return "/panel/orders";
   if (path.startsWith("/biznes")) return null;
   return owner ? "/notifications" : null;
 }

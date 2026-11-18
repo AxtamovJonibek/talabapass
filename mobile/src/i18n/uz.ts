@@ -789,6 +789,7 @@ export const uz = {
       cashiers: "Kassirlar, 30 kun",
       rejected: "Rad etilgan QR",
       cashiersEmpty: "Hali skan yo'q.",
+      salesPage: { title: "Sotuvlar va cheklar", summary: (count: string, sum: string) => `${count} ta sotuv · ${sum} so'm`, prev: "← Oldingi", next: "Keyingi →", page: (page: number, pages: number) => `${page}-sahifa, ${pages} dan` },
     },
 
     discounts: {
@@ -985,6 +986,16 @@ export const uz = {
     },
 
     orders: {
+      settingsShort: "Sozlamalar",
+      reportKeys: { orders: "Buyurtmalar", revenue: "Tushum", cancelled: "Bekor qilingan", noShow: "Kelmagan" } as Record<string, string>,
+      sound: "Ovozli signal",
+      live: "Jonli · har 5 soniyada",
+      cancelReject: "Bekor",
+      respondMin: (min: number) => `${min} daqiqada javob bering`,
+      prepaidSom: (amount: string) => `To'langan: ${amount} so'm`,
+      dueSom: (amount: string) => `Joyida: ${amount} so'm`,
+      kindShort: { APPOINTMENT: "Vaqtli uchrashuv", PREPAID_PICKUP: "To'lab olib ketish", PICKUP_WINDOW: "Olib ketish oynasi" } as Record<string, string>,
+      modes: { PICKUP: "Olib ketaman", DINE_IN: "Joyida yeyman" } as Record<string, string>,
       title: "Buyurtmalar",
       off: "Oldindan buyurtma o'chiq. Yoqish va sozlash — saytda (Sozlamalar).",
       settings: "Sozlamalar (sayt)",

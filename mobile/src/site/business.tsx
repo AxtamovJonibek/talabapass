@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Alert, Image, StyleSheet, View } from "react-native";
 import { errorText } from "@/api/client";
 import { bizApi, type BusinessProfile, type Cashiers, type OwnerDiscount } from "@/api/business";
@@ -167,8 +167,8 @@ const hhmm = (iso: string) => {
   return `${day.slice(8, 10)}.${day.slice(5, 7)} ${formatMinute(local.minute)}`;
 };
 
-/** B5 kassirlar: ro'yxat, ochiq takliflar, o'chirish. Taklif — ilovada telefon raqami bilan (`/biz/cashiers`). */
-export function CashierList({ data, onChanged }: { data: Cashiers; onChanged: () => void }) {
+/** B5 kassirlar: ro'yxat, ochiq takliflar, o'chirish. Taklif — ilovada telefon raqami bilan (`/panel/cashiers`). */
+export function CashierList({ data, onChanged, onInvite, extra }: { data: Cashiers; onChanged: () => void; onInvite?: () => void; extra?: ReactNode }) {
   const t = copy.biz.cashiers;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -188,13 +188,14 @@ export function CashierList({ data, onChanged }: { data: Cashiers; onChanged: ()
 
   return (
     <View>
-      <BlockHead title={t.title} action={data.canInvite ? t.inviteShort : undefined} onAction={() => router.push("/biz/cashiers")} />
+      <BlockHead title={t.title} action={data.canInvite ? t.inviteShort : undefined} onAction={onInvite ?? (() => router.push("/panel/cashiers?invite=1"))} />
       {!data.canInvite ? <Txt style={[s.muted13, { marginBottom: 8 }]}>{t.notApproved}</Txt> : null}
       {error ? (
         <Txt accessibilityRole="alert" style={[font(600), { fontSize: 13, color: colors.danger, marginBottom: 8 }]}>
           {error}
         </Txt>
       ) : null}
+      {extra}
       {data.cashiers.length === 0 ? (
         <Txt style={s.empty}>{t.empty}</Txt>
       ) : (

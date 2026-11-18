@@ -783,6 +783,7 @@ export const ru: Copy = {
       cashiers: "Кассиры, 30 дней",
       rejected: "Отклонённые QR",
       cashiersEmpty: "Сканов пока нет.",
+      salesPage: { title: "Продажи и чеки", summary: (count: string, sum: string) => `${count} продаж · ${sum} сум`, prev: "← Назад", next: "Далее →", page: (page: number, pages: number) => `Стр. ${page} из ${pages}` },
     },
 
     discounts: {
@@ -983,6 +984,16 @@ export const ru: Copy = {
     },
 
     orders: {
+      settingsShort: "Настройки",
+      reportKeys: { orders: "Заказы", revenue: "Выручка", cancelled: "Отменены", noShow: "Не пришли" } as Record<string, string>,
+      sound: "Звуковой сигнал",
+      live: "В реальном времени · каждые 5 секунд",
+      cancelReject: "Отмена",
+      respondMin: (min: number) => `Ответьте в течение ${min} мин`,
+      prepaidSom: (amount: string) => `Оплачено: ${amount} сум`,
+      dueSom: (amount: string) => `На месте: ${amount} сум`,
+      kindShort: { APPOINTMENT: "Запись на время", PREPAID_PICKUP: "Оплата и самовывоз", PICKUP_WINDOW: "Окно самовывоза" } as Record<string, string>,
+      modes: { PICKUP: "С собой", DINE_IN: "На месте" } as Record<string, string>,
       title: "Заказы",
       off: "Предзаказы выключены. Включить и настроить можно на сайте (Настройки).",
       settings: "Настройки (сайт)",

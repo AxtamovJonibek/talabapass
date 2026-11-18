@@ -1,38 +1,30 @@
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { bizApi, type Period, type Sales as SalesData } from "@/api/business";
-import { PeriodChips, SaleItem, som } from "@/business/ui";
+import { Alert, Linking, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { API_URL, errorText } from "@/api/client";
+import { bizApi, type Period } from "@/api/business";
 import { copy } from "@/copy";
+import { formatSom } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
-import { useApp } from "@/state";
-import { colors, font } from "@/theme";
-import { Card, Chip, Empty, Failed, Loading, ScreenHeader, SecondaryButton, TabScreen } from "@/ui/app";
-import { Txt } from "@/ui/kit";
+import { PERIOD_OPTIONS, SalesTable, Segmented } from "@/site/stats";
+import { BackText } from "@/site/ui";
+import { colors, em, font } from "@/theme";
+import { Failed, Loading } from "@/ui/app";
+import { Press, Txt } from "@/ui/kit";
 import { StaleNote } from "@/ui/offline";
 
 /**
- * Sotuvlar (saytdagi `/biznes/sotuvlar`): davr, jami, chek bilan ro'yxat (25 tadan, "Yana yuklash"). Egasi — hammasi yoki
- * xodim bo'yicha filtr; kassir — faqat o'zi tasdiqlaganlari (server cheklaydi).
+ * "Sotuvlar va cheklar" — saytdagi `/biznes/sotuvlar` telefon ko'rinishi: "← Orqaga", jami, davr, jadval (sana, vaqt,
+ * chek, talaba, mahsulot, kassir, to'landi, PDF), sahifalar. PDF — chekning imzoli havolasi.
  */
 export default function Sales() {
-  const sl = copy.biz.sales;
-  const { me } = useApp();
-  const owner = me?.role === "BUSINESS_OWNER";
-  const [period, setPeriod] = useState<Period>(1);
-  const [cashier, setCashier] = useState<string | null>(null);
-  const [extra, setExtra] = useState<SalesData["rows"]>([]);
+  const t = copy.biz.stats;
+  const p = t.salesPage;
+  const insets = useSafeAreaInsets();
+  const [period, setPeriod] = useState<Period>(30);
   const [page, setPage] = useState(1);
-  const [more, setMore] = useState(false);
-  const sales = useLoad(
-    useCallback(() => {
-      setExtra([]);
-      setPage(1);
-      return bizApi.sales(period, 1, cashier);
-    }, [period, cashier]),
-    true,
-    `biz.sales.${period}.${cashier ?? "all"}`,
-  );
+  const sales = useLoad(useCallback(() => bizApi.sales(period, page), [period, page]), true, `biz.sales.${period}.${page}`);
   const { refresh } = sales;
 
   useFocusEffect(
@@ -41,84 +33,83 @@ export default function Sales() {
     }, [refresh]),
   );
 
-  const loadMore = async () => {
-    if (more || !sales.data || page >= sales.data.pages) return;
-    setMore(true);
-    try {
-      const next = await bizApi.sales(period, page + 1, cashier);
-      setExtra((rows) => [...rows, ...next.rows]);
-      setPage(next.page);
-    } catch {
-      // Keyingi bosishda qayta uriniladi
-    } finally {
-      setMore(false);
-    }
-  };
+  const openPdf = (id: string) =>
+    void bizApi.receipt(id).then(
+      ({ pdfUrl }) => Linking.openURL(pdfUrl.startsWith("http") ? pdfUrl : `${API_URL}${pdfUrl}`),
+      (e: unknown) => Alert.alert(errorText(e)),
+    );
 
   const d = sales.data;
-  const rows = d ? [...d.rows, ...extra] : [];
-
   return (
-    <TabScreen>
-      <ScreenHeader title={sl.title} />
-      <PeriodChips value={period} onChange={setPeriod} style={styles.chips} />
-      {owner && d?.staff && d.staff.length > 1 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, styles.staff]}>
-          <Chip selected={cashier === null} onPress={() => setCashier(null)}>
-            {sl.everyone}
-          </Chip>
-          {d.staff.map((s) => (
-            <Chip key={s.id} selected={cashier === s.id} onPress={() => setCashier(s.id)}>
-              {s.id === me?.id ? sl.me : s.name}
-            </Chip>
-          ))}
-        </ScrollView>
-      ) : null}
-
-      {sales.loading ? (
-        <Loading />
-      ) : !d ? (
-        <Failed error={sales.error ?? copy.unknownError} onRetry={() => void sales.reload()} />
-      ) : (
-        <FlatList
-          data={rows}
-          keyExtractor={(r) => r.id}
-          contentContainerStyle={styles.content}
-          refreshControl={<RefreshControl refreshing={sales.refreshing} onRefresh={() => void sales.reload()} tintColor={colors.orange} />}
-          ListHeaderComponent={
-            <Card style={styles.summary}>
-              <Txt style={[font(900, 62), { fontSize: 34 }]}>{som(d.sum)}</Txt>
-              <Txt style={styles.muted}>{owner ? sl.summary(d.count, som(d.sum)) : `${sl.cashierOnly} · ${sl.summary(d.count, som(d.sum))}`}</Txt>
-              <StaleNote at={sales.staleAt} />
-            </Card>
-          }
-          ListEmptyComponent={<Empty icon="receipt" title={sl.empty} text={sl.emptyText} />}
-          renderItem={({ item, index }) => (
-            <View style={[styles.row, index === 0 ? styles.first : null, index === rows.length - 1 ? styles.last : null]}>
-              <SaleItem sale={item} showCashier={owner} last={index === rows.length - 1} onPress={() => router.push(`/receipt/${item.id}`)} />
-            </View>
-          )}
-          ListFooterComponent={
-            page < d.pages ? (
-              <SecondaryButton onPress={() => void loadMore()} disabled={more} style={styles.more}>
-                {sl.more}
-              </SecondaryButton>
-            ) : undefined
-          }
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 56 }]}
+      refreshControl={<RefreshControl refreshing={sales.refreshing} onRefresh={() => void sales.reload()} tintColor={colors.orange} />}
+    >
+      <BackText label={copy.back} onPress={() => router.navigate("/panel/stats")} style={styles.back} />
+      <View style={styles.header}>
+        <View>
+          <Txt testID="sales-summary" style={{ fontSize: 13, color: colors.muted }}>
+            {p.summary(formatSom(d?.count ?? 0), formatSom(d?.sum ?? 0))}
+          </Txt>
+          <Txt accessibilityRole="header" style={[font(900, 112), styles.title]}>
+            {p.title}
+          </Txt>
+        </View>
+        <Segmented
+          options={PERIOD_OPTIONS.map((x) => ({ value: x, label: t.period[x] ?? "" }))}
+          value={period}
+          onChange={(x) => {
+            setPeriod(x);
+            setPage(1);
+          }}
         />
-      )}
-    </TabScreen>
+      </View>
+      <StaleNote at={sales.staleAt} />
+      <View style={styles.card}>
+        {!d ? (
+          sales.loading ? (
+            <Loading />
+          ) : (
+            <Failed error={sales.error ?? copy.unknownError} onRetry={() => void sales.reload()} />
+          )
+        ) : d.rows.length === 0 ? (
+          <Txt style={{ fontSize: 13, color: colors.muted }}>{t.noSales}</Txt>
+        ) : (
+          <SalesTable withDate pdf={openPdf} sales={d.rows} />
+        )}
+        {d && d.pages > 1 ? (
+          <View style={styles.pager}>
+            {d.page > 1 ? (
+              <Press onPress={() => setPage(d.page - 1)} accessibilityRole="link" scale={0.96} style={[styles.pagerBtn, { borderColor: colors.line }]}>
+                <Txt style={[font(700), { fontSize: 14 }]}>{p.prev}</Txt>
+              </Press>
+            ) : (
+              <View />
+            )}
+            <Txt style={{ fontSize: 13, color: colors.muted }}>{p.page(d.page, d.pages)}</Txt>
+            {d.page < d.pages ? (
+              <Press onPress={() => setPage(d.page + 1)} accessibilityRole="link" scale={0.96} style={[styles.pagerBtn, { borderColor: colors.ink }]}>
+                <Txt style={[font(700), { fontSize: 14 }]}>{p.next}</Txt>
+              </Press>
+            ) : (
+              <View />
+            )}
+          </View>
+        ) : null}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  chips: { marginTop: 14 },
-  staff: { marginTop: 8 },
-  content: { paddingHorizontal: 24, paddingBottom: 28, paddingTop: 16 },
-  summary: { padding: 18, marginBottom: 12, gap: 2 },
-  muted: { fontSize: 13, color: colors.muted2 },
-  row: { backgroundColor: colors.white, paddingHorizontal: 16 },
-  first: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 4 },
-  last: { borderBottomLeftRadius: 24, borderBottomRightRadius: 24, paddingBottom: 4 },
-  more: { marginTop: 14 },
+  root: { flex: 1, backgroundColor: colors.paper },
+  content: { paddingHorizontal: 16, paddingBottom: 24, gap: 16 },
+  // saytda `-mb-2 self-start`
+  back: { alignSelf: "flex-start", marginBottom: -8 },
+  header: { gap: 14 },
+  title: { marginTop: 4, fontSize: 28, lineHeight: 28, letterSpacing: em(28, -0.035) },
+  card: { minWidth: 0, borderRadius: 18, backgroundColor: colors.white, padding: 20 },
+  pager: { marginTop: 14, flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  pagerBtn: { height: 44, justifyContent: "center", borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 16 },
 });

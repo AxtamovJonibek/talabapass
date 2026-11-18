@@ -45,7 +45,9 @@ export default function BusinessTabs() {
         <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts, ...hidden }} />
         <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats, ...hidden }} />
         <Tabs.Screen name="profile" options={{ title: copy.biz.tabs.profile, ...hidden }} />
-        <Tabs.Screen name="sales" options={{ title: copy.biz.tabs.sales, href: null }} />
+        {/* Menyuda yo'q (TabBar belgisi yo'q tabni ko'rsatmaydi); `href: null` emas — manzil bilan ochilishi uchun */}
+        <Tabs.Screen name="sales" options={{ title: copy.biz.tabs.sales, ...hidden }} />
+        <Tabs.Screen name="cashiers" options={{ title: copy.biz.cashiers.title, ...hidden }} />
       </Tabs>
     </OrdersWatch>
   );

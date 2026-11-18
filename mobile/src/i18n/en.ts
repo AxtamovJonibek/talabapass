@@ -783,6 +783,7 @@ export const en: Copy = {
       cashiers: "Cashiers, 30 days",
       rejected: "Rejected QR",
       cashiersEmpty: "No scans yet.",
+      salesPage: { title: "Sales and receipts", summary: (count: string, sum: string) => `${count} sales · ${sum} UZS`, prev: "← Previous", next: "Next →", page: (page: number, pages: number) => `Page ${page} of ${pages}` },
     },
 
     discounts: {
@@ -983,6 +984,16 @@ export const en: Copy = {
     },
 
     orders: {
+      settingsShort: "Settings",
+      reportKeys: { orders: "Orders", revenue: "Revenue", cancelled: "Cancelled", noShow: "No-show" } as Record<string, string>,
+      sound: "Sound alert",
+      live: "Live · every 5 seconds",
+      cancelReject: "Cancel",
+      respondMin: (min: number) => `Reply within ${min} min`,
+      prepaidSom: (amount: string) => `Paid: ${amount} UZS`,
+      dueSom: (amount: string) => `At the counter: ${amount} UZS`,
+      kindShort: { APPOINTMENT: "Appointment", PREPAID_PICKUP: "Prepaid pickup", PICKUP_WINDOW: "Pickup window" } as Record<string, string>,
+      modes: { PICKUP: "Takeaway", DINE_IN: "Dine in" } as Record<string, string>,
       title: "Orders",
       off: "Pre-orders are off. Turn them on and set them up on the website (Settings).",
       settings: "Settings (website)",

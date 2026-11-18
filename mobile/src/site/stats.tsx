@@ -23,13 +23,14 @@ const barHeight = (count: number, axisMax: number) => (count <= 0 || axisMax <= 
 const heatLevel = (count: number, max: number) => (count <= 0 || max <= 0 ? 0 : Math.min(4, Math.max(1, Math.ceil((count / max) * 4))));
 export const receiptNo = (n: number) => String(n).padStart(6, "0");
 
-/** Saytdagi `Segmented` (md): kulrang yo'lak, oq faol bo'lak */
-export function Segmented<T extends string | number>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+/** Saytdagi `Segmented` (md): kulrang yo'lak, oq faol bo'lak; `badge` — yozuv yonidagi son (buyurtmalar) */
+export function Segmented<T extends string | number>({ options, value, onChange }: { options: { value: T; label: string; badge?: ReactNode }[]; value: T; onChange: (v: T) => void }) {
   return (
     <View style={s.seg} accessibilityRole="tablist">
       {options.map((o) => (
         <Press key={String(o.value)} onPress={() => onChange(o.value)} accessibilityRole="tab" accessibilityState={{ selected: o.value === value }} scale={0.97} style={[s.segItem, o.value === value ? s.segOn : null]}>
           <Txt style={[font(700), { fontSize: 14 }]}>{o.label}</Txt>
+          {o.badge}
         </Press>
       ))}
     </View>
@@ -504,7 +505,7 @@ const s = StyleSheet.create({
   betweenBase: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 8 },
   headWrap: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", gap: 10 },
   seg: { flexDirection: "row", alignSelf: "flex-start", gap: 4, borderRadius: 12, backgroundColor: colors.track, padding: 4 },
-  segItem: { height: 36, borderRadius: 9, paddingHorizontal: 14, alignItems: "center", justifyContent: "center" },
+  segItem: { height: 36, flexDirection: "row", gap: 8, borderRadius: 9, paddingHorizontal: 14, alignItems: "center", justifyContent: "center" },
   segOn: { backgroundColor: colors.white },
   card: { minWidth: 0, borderRadius: 18, backgroundColor: colors.white, padding: 20 },
   cardTitle: { fontSize: 17 },

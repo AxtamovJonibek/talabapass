@@ -172,6 +172,8 @@ export type BusinessOrder = {
   title: string;
   quantity: number;
   kind: BookingKind;
+  /** Eski buyurtmalarda: olib ketish / joyida */
+  mode?: "PICKUP" | "DINE_IN" | null;
   slotStart: string;
   slotEnd: string;
   note: string | null;

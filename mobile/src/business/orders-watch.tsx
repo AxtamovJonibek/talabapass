@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppState } from "react-native";
 import { bizApi } from "@/api/business";
 import { signal } from "@/lib/sound";
@@ -13,12 +14,17 @@ import { signal } from "@/lib/sound";
 const FAST_MS = 15_000;
 const SLOW_MS = 5 * 60_000;
 
-type Ctx = { enabled: boolean; waiting: number; refresh: () => void };
-const OrdersContext = createContext<Ctx>({ enabled: false, waiting: 0, refresh: () => undefined });
+/** Saytdagi "Ovozli signal" kaliti (`tp:buyurtma-ovoz`) — qurilmada */
+const SOUND_KEY = "tp.orderSound";
+
+type Ctx = { enabled: boolean; waiting: number; refresh: () => void; sound: boolean; setSound: (on: boolean) => void };
+const OrdersContext = createContext<Ctx>({ enabled: false, waiting: 0, refresh: () => undefined, sound: true, setSound: () => undefined });
 
 export function OrdersWatch({ active, children }: { active: boolean; children: ReactNode }) {
   const [enabled, setEnabled] = useState(false);
   const [waiting, setWaiting] = useState(0);
+  const [sound, setSoundState] = useState(true);
+  const soundRef = useRef(true);
   const seen = useRef<Set<string> | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const live = useRef(false);
@@ -35,7 +41,7 @@ export function OrdersWatch({ active, children }: { active: boolean; children: R
         setWaiting(data.newIds.length);
         const fresh = data.newIds.filter((id) => !seen.current?.has(id));
         // Birinchi so'rovda — faqat eslab qolinadi (ilova ochilganda eski buyurtmalar uchun signal chalinmaydi)
-        if (seen.current && fresh.length > 0) signal("order");
+        if (seen.current && fresh.length > 0) signal("order", { mute: !soundRef.current });
         seen.current = new Set([...(seen.current ?? []), ...data.newIds]);
         if (data.enabled || data.newIds.length > 0) next = FAST_MS;
       } catch {
@@ -43,6 +49,13 @@ export function OrdersWatch({ active, children }: { active: boolean; children: R
       }
       if (live.current && AppState.currentState === "active") timer.current = setTimeout(() => void poll.current(), next);
     };
+  }, []);
+
+  useEffect(() => {
+    void AsyncStorage.getItem(SOUND_KEY).then((v) => {
+      soundRef.current = v !== "0";
+      setSoundState(v !== "0");
+    }, () => undefined);
   }, []);
 
   useEffect(() => {
@@ -60,7 +73,21 @@ export function OrdersWatch({ active, children }: { active: boolean; children: R
     };
   }, [active]);
 
-  const value = useMemo(() => ({ enabled, waiting, refresh: () => void poll.current() }), [enabled, waiting]);
+  const value = useMemo(
+    () => ({
+      enabled,
+      waiting,
+      refresh: () => void poll.current(),
+      sound,
+      setSound: (on: boolean) => {
+        soundRef.current = on;
+        setSoundState(on);
+        void AsyncStorage.setItem(SOUND_KEY, on ? "1" : "0").catch(() => undefined);
+        if (on) signal("order");
+      },
+    }),
+    [enabled, waiting, sound],
+  );
   return <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>;
 }
 

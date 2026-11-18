@@ -446,3 +446,13 @@ export function ToggleSquare({ selected, onPress, children, textSize = 15, bold 
     </Press>
   );
 }
+
+/** `BackLink variant="text"`: "← Orqaga" — 44px, markazda, 14 / 700 (ichki sahifalar tepasida) */
+export function BackText({ label, onPress, style }: { label: string; onPress: () => void; style?: StyleProp<ViewStyle> }) {
+  return (
+    <Press onPress={onPress} accessibilityRole="link" scale={0.96} style={[{ height: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }, style]}>
+      <Icon name="arrowLeft" size={18} strokeWidth={2.2} />
+      <Txt style={[font(700), { fontSize: 14 }]}>{label}</Txt>
+    </Press>
+  );
+}

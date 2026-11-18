@@ -9,14 +9,28 @@ import { Txt } from "./kit";
 /** Talaba (saytdagi `StudentBottomNav`): Asosiy, Kuponlar, Tarix, Profil */
 export const STUDENT_TABS = { icons: { deals: "home", coupon: "ticket", history: "clock", profile: "user" } as Record<string, IconName>, tone: "light" as const };
 /** Biznes egasi (saytdagi `OwnerBottomNav`): qora, faoli to'q sariq */
-export const BIZ_TABS = { icons: { scan: "scan", orders: "receipt", discounts: "ticket", stats: "chart", profile: "store" } as Record<string, IconName>, tone: "dark" as const };
+export const BIZ_TABS = {
+  icons: { scan: "scan", orders: "receipt", discounts: "ticket", stats: "chart", profile: "store" } as Record<string, IconName>,
+  tone: "dark" as const,
+  // Menyuda yo'q sahifalar: "Sotuvlar" — "Statistika", "Kassirlar" — "Profil" faol (saytdagidek)
+  activeAs: { sales: "stats", cashiers: "profile" } as Record<string, string>,
+};
 
 /**
  * Pastki menyu — saytdagi `ui/bottom-nav.tsx` bilan bir xil: 66px + pastki xavfsiz hudud (kamida 18), yuqorida 1px chiziq;
  * ikonka 22 (→ 20, shkala) va 11px yozuv; faoli — qalin (talabada qora, "Asosiy" to'ldirilgan; biznesda to'q sariq).
  * "Kuponlar" ustida faol kuponlar soni (qurilmadagi nusxadan — internetsiz ham). `href: null` (rolga yopiq) tab ko'rinmaydi.
  */
-export function TabBar({ state, descriptors, emitter, navigateToTab, insets, icons = STUDENT_TABS.icons, tone = "light" }: BottomTabBarProps & { icons?: Record<string, IconName>; tone?: "light" | "dark" }) {
+export function TabBar({
+  state,
+  descriptors,
+  emitter,
+  navigateToTab,
+  insets,
+  icons = STUDENT_TABS.icons,
+  tone = "light",
+  activeAs = {},
+}: BottomTabBarProps & { icons?: Record<string, IconName>; tone?: "light" | "dark"; activeAs?: Record<string, string> }) {
   const [coupons, setCoupons] = useState(0);
   useEffect(() => {
     void cachedCoupons().then((list) => setCoupons(list.length));
@@ -27,12 +41,14 @@ export function TabBar({ state, descriptors, emitter, navigateToTab, insets, ico
   return (
     <View style={[styles.bar, dark ? styles.barDark : null, { paddingBottom: Math.max(insets.bottom, 18) }]} accessibilityRole="tablist">
       {state.routes.map((route, index) => {
-        if ((descriptors[route.key]?.options as { hidden?: boolean } | undefined)?.hidden) return null;
-        const focused = index === state.index;
+        // Belgisi yo'q tab (masalan "Sotuvlar") menyuda chiqmaydi, lekin manzil bilan ochiladi
+        if (!(route.name in icons) || (descriptors[route.key]?.options as { hidden?: boolean } | undefined)?.hidden) return null;
+        const current = state.routes[state.index]?.name ?? "";
+        const focused = index === state.index || activeAs[current] === route.name;
         const title = descriptors[route.key]?.options.title ?? route.name;
         const onPress = () => {
           const event = emitter.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
-          if (!focused && !event.defaultPrevented) navigateToTab(route.key);
+          if (index !== state.index && !event.defaultPrevented) navigateToTab(route.key);
         };
         const icon = icons[route.name] ?? "all";
         const color = dark ? (focused ? colors.orange : colors.fog3) : focused ? colors.ink : colors.muted;

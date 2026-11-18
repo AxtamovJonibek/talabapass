@@ -19,8 +19,10 @@ const VIBRATION: Record<Signal, number | number[]> = { success: 120, error: [0, 
 const players: Partial<Record<Signal, AudioPlayer>> = {};
 let configured = false;
 
-export function signal(kind: Signal): void {
+/** `mute` — faqat tebranish (buyurtmalardagi "Ovozli signal" o'chiq) */
+export function signal(kind: Signal, { mute = false }: { mute?: boolean } = {}): void {
   Vibration.vibrate(VIBRATION[kind]);
+  if (mute) return;
   try {
     if (!configured) {
       configured = true;
