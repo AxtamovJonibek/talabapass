@@ -53,15 +53,13 @@ export type Flow = {
   /** Kod qayta yuborilishi mumkin bo'lgan vaqt (ms) */
   resendAt: number;
   verify: VerifyResult | null;
-  /** "Parolni unutdim": kod qayerga ketgani (kod ekrani tiklash kodini tekshiradi) */
-  reset: { identifier: string; channel: "sms" | "email" } | null;
   registrationTicket: string | null;
   /** Google/Apple bilan kelgan yangi foydalanuvchi: ro'yxat formasi shu bilan oldindan to'ldiriladi (telefon yo'q) */
   social: { firstName: string; lastName: string; email: string | null } | null;
   business: BusinessDraft;
 };
 
-const initialFlow = (): Flow => ({ intent: "student", phone: "", resendAt: 0, verify: null, reset: null, registrationTicket: null, social: null, business: emptyDraft() });
+const initialFlow = (): Flow => ({ intent: "student", phone: "", resendAt: 0, verify: null, registrationTicket: null, social: null, business: emptyDraft() });
 
 type Ctx = {
   me: Me | null;
@@ -167,8 +165,6 @@ export function resetTo(href: Href) {
 
 /** Kirgan foydalanuvchi qayerda bo'lishi kerak (saytdagi `studentPathFor` / biznes holatlari bilan bir xil). */
 export function routeFor(me: Me): Href {
-  // Parolsiz eski hisob (SMS yoki Google/Apple) yoki admin tiklagan — avval parol
-  if (me.mustSetPassword) return "/auth/password?mode=required";
   if (me.role === "STUDENT" && me.student) {
     switch (me.student.status) {
       case "DRAFT":

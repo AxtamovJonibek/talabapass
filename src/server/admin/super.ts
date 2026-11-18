@@ -4,12 +4,14 @@ import { z } from "zod";
 import type { Prisma, Role } from "@/generated/prisma/client";
 import { validateDiscount, type DiscountField, type DiscountProblem } from "@/lib/discount";
 import { normalizePhone } from "@/lib/format";
+import { isValidPassword, PASSWORD_MAX } from "@/lib/password";
 import { permissionsFrom, permissionsInput, type BusinessPermissionSet } from "@/lib/permissions";
 import { deleteOwnAccount } from "../account";
 import { audit } from "../audit";
 import { discountDraftSchema, discountForAdmin } from "../business/discounts";
 import { db } from "../db";
 import { isUniqueViolation } from "../db-errors";
+import { hashPassword } from "../auth/password";
 import { blockUser, unblockUser } from "../moderation";
 import { storage } from "../storage";
 import { checkUpload } from "../storage/file-rules";
@@ -160,12 +162,13 @@ export const newUserSchema = z
     lastName: z.string().trim().max(40),
     phone: z.string().trim().max(32),
     email: z.string().trim().max(120),
+    password: z.string().max(PASSWORD_MAX * 2).refine(isValidPassword),
   })
   .refine((v) => v.phone !== "" || v.email !== "", { message: "contact", path: ["phone"] });
 
 /**
- * Yangi foydalanuvchi (admin): ism, raqam va/yoki email, rol. Parol yo'q — odam "Parolni unutdim" (SMS yoki email kodi)
- * bilan o'zi o'rnatadi; parolsiz hisob ichkariga kirmaydi (`needsPassword`). Talaba ro'yxat formasidan (OTM, guvohnoma) o'tadi.
+ * Yangi foydalanuvchi (admin): ism, raqam va/yoki email, rol va majburiy parol (qoidalari ro'yxatdagi bilan bir xil).
+ * Talaba ro'yxat formasidan (OTM, guvohnoma) o'tadi.
  */
 export async function createUser(actorId: string, raw: unknown): Promise<SuperResult> {
   const parsed = newUserSchema.safeParse(raw);
@@ -177,7 +180,7 @@ export async function createUser(actorId: string, raw: unknown): Promise<SuperRe
   if (email && !z.string().email().safeParse(email).success) return { ok: false, error: "invalid", fields: ["email"] };
   try {
     const user = await db.$transaction(async (tx) => {
-      const user = await tx.user.create({ data: { role: v.role, firstName: v.firstName, lastName: v.lastName || null, phone, email }, select: { id: true } });
+      const user = await tx.user.create({ data: { role: v.role, firstName: v.firstName, lastName: v.lastName || null, phone, email, passwordHash: hashPassword(v.password), passwordSetAt: new Date() }, select: { id: true } });
       await audit({ actorId, action: "user.create", entity: "User", entityId: user.id, meta: { role: v.role, phone, email } }, tx);
       return user;
     });

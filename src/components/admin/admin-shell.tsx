@@ -39,7 +39,7 @@ const ITEMS = [
   // Super admin: biznes boshqaruvi (ruxsatlar, statistika, chegirmalar), faoliyat jurnali, landing
   { key: "partners", href: "/admin/hamkorlar", icon: "store" },
   { key: "journal", href: "/admin/jurnal", icon: "clock" },
-  { key: "landing", href: "/admin/landing", icon: "globe" },
+  { key: "landing", href: "/admin/landing", icon: "home" },
   { key: "universities", href: "/admin/universitetlar", icon: "student" },
   { key: "profile", href: "/admin/profil", icon: "user" },
 ] as const;

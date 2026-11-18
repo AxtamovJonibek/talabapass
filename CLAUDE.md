@@ -1,5 +1,7 @@
 # talabaPass
 
+**Sayt muzlatilgan: faqat admin panel (`src/app/[locale]/(admin)`, `src/server/admin`) va ilova uchun `/api/v1` o'zgartiriladi. Landing, kirish, talaba va biznes sahifalariga, `globals.css` ga tegilmaydi. Asosiy ish — `mobile/`.**
+
 O'zbekiston talabalari uchun chegirma platformasi. Talaba guvohnomasini tasdiqlatadi,
 hamkor joyda QR ko'rsatib chegirma oladi. 4 qism: landing, talaba ilovasi, biznes paneli, admin.
 
@@ -201,36 +203,18 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
   ekranlarda o'lchamlar inline `style` da qoladi (aniqlik uchun); umumiy primitivlar (`components/ui`) Tailwind'da.
 
 ## Kirish va ruxsatlar
-- **Kirish SMSsiz**: "Telefon raqam yoki email" + parol (`src/server/auth/login.ts` `checkLogin` — sayt, Capacitor ilova va API bitta).
-  Xato bo'lsa bitta umumiy matn "Raqam/email yoki parol noto'g'ri" (hisob yo'q, parolsiz, admin, parol xato — farqlanmaydi; scrypt
-  baribir hisoblanadi). 5 ketma-ket xato → 15 daqiqa qulf; hisobi yo'q identifikatorda ham xuddi shunday ("arvoh" hisob,
-  `RateLimitHit` `login-ghost:`). Bloklangan / biznessiz kassir — faqat parol to'g'ri bo'lsa aytiladi. Admin — o'z yo'li (pastda).
-- **Ro'yxat**: telefon → 6 raqamli SMS kod (faqat raqamni tasdiqlash, 5 daqiqa, bazada HMAC, faqat +998) → parol → ma'lumotlar formasi.
-  Saytda shu qadamlar `/kirish?royxat=talaba|biznes` da (`useAuthFlow`, `components/auth/use-auth-flow.ts`); `/talaba/royxat` va
-  `/biznes/royxat` tasdiqlangan raqam **va** o'rnatilgan parol (`tp_new_pw`, `password-steps.ts`) bo'lmasa ro'yxat boshiga qaytaradi —
-  parolsiz hisob ochilmaydi. Kod to'g'ri, raqamda paroli bor hisob — "hisob bor" (`exists`); parolsiz eski hisob — shu yerda parol qo'yadi.
-  Kassir taklifi (`/kassir/<token>`) formasida ham parol maydonlari.
-- **Parolsiz hisob qolmaydi**: `requireRole` (va API `requireApiRole` → `password_setup_required`) parolsiz yoki admin "parolni tiklash"
-  bosgan (`User.passwordResetRequired`) hisobni `/kirish/parol` ga yuboradi (`needsPassword`); profildan almashtirish ham shu sahifa.
-- **Parolni unutdim**: raqam yoki email → SMS kod yoki emailga 6 raqamli kod (`EmailCode`, 10 daqiqa, 5 urinish, `email-code.ts`) →
-  yangi parol, barcha boshqa sessiyalar yopiladi (`recovery.ts`). Javob hisob borligidan qat'i nazar bir xil ("Agar bunday hisob bo'lsa,
-  kod yuborildi"); kod faqat hisob bo'lsa yuboriladi; faqat IP chegarasi aytiladi.
-- Email: `src/server/email` (`EMAIL_PROVIDER=dev` — log'ga, faqat ishlab chiqish/staging; `resend` — `RESEND_API_KEY`, `EMAIL_FROM`),
-  matnlar 3 tilda (`email/templates.ts`, foydalanuvchi `locale` i bo'yicha). `env-check` production'da email provayderini talab qiladi.
-- Parol yozish faqat `savePassword` (`auth/password.ts`): vaqtlar (`passwordSetAt`, `passwordChangedAt`), qulf tushadi, audit.
-  Audit: `user.login.ok|fail` (`method`: phone|email|google|apple, `via`: web|app|api, `device`/`ua`), `user.password.set|change|reset|locked`.
-  Parol va kodlar log'ga yozilmaydi (`next.config.ts` `logging.serverFunctions: false` — dev terminalida action argumentlari chiqmaydi).
-- Lokal: seed foydalanuvchilarining paroli `Talaba2026` (admin'dan boshqa); e2e `signIn` — raqam + shu parol (`ensurePassword`).
+- Kirish: telefon → 6 raqamli SMS kod (5 daqiqa amal qiladi; bazada faqat HMAC). Faqat +998 raqamlar.
+  Raqam ro'yxatda bor-yo'qligi kod so'rashda oshkor qilinmaydi.
 - SMS chegaralari (`otp-rules.ts`): bitta raqamga 60 soniyada 1 ta va kuniga 5 ta; bitta IP'dan soatiga 10 ta so'rov
   (IP bazada faqat xesh ko'rinishida). 5 ta noto'g'ri urinish → kod bekor, raqam 15 daqiqa bloklanadi.
   Qoidalar o'zgarsa uchala qatlamdagi testlar yangilanadi: `otp-rules.test.ts`, `otp.itest.ts`, `e2e/auth.spec.ts`.
-- `OTP_FIXED_CODE` (email kodi ham) faqat `.env.development` da va sinov serverida (`APP_ENV=staging`). `NODE_ENV=production` da `OTP_FIXED_CODE`, `SMS_PROVIDER=dev` yoki
+- `OTP_FIXED_CODE` faqat `.env.development` da va sinov serverida (`APP_ENV=staging`). `NODE_ENV=production` da `OTP_FIXED_CODE`, `SMS_PROVIDER=dev` yoki
   provayder/sir yo'qligi topilsa server start'da jarayon xato bilan to'xtaydi (`instrumentation-node.ts`, `env-check.ts`).
 - Bloklash faqat `src/server/moderation.ts` orqali: holat va barcha sessiyalarni yopish bitta tranzaksiyada
   (biznes bloklansa — egasi va barcha kassirlari). Holatni to'g'ridan-to'g'ri `update` bilan o'zgartirmang.
 - Auth cookie'lari: httpOnly, SameSite=Lax, Secure (faqat `next dev` da o'chiq) — `cookie-options.ts`.
-- Kod to'g'ri, hisob yo'q → raqam imzolangan cookie'da 30 daqiqa "tasdiqlangan" deb saqlanadi (`getVerifiedPhone`), parol
-  qadamidan keyin ro'yxat formasiga o'tiladi; ro'yxat formalari shu raqamga tayanadi.
+- Kod to'g'ri, hisob yo'q → raqam imzolangan cookie'da 30 daqiqa "tasdiqlangan" deb saqlanadi (`getVerifiedPhone`)
+  va ro'yxat formasiga o'tiladi; ro'yxat formalari shu raqamga tayanadi.
 - Sessiya: tasodifiy token httpOnly cookie'da, bazada SHA-256 xeshi, 30 kun. Bloklangan foydalanuvchi sessiyasi darhol o'ladi.
 - `requireRole(...)` — har bir himoyalangan sahifa, layout (`RoleGate`) va server action boshida. Kirmagan → `/kirish`,
   begona rol → o'z bosh sahifasi (`homePathFor`). Proxy (middleware) faqat til uchun.

@@ -95,16 +95,8 @@ export async function requireRole(...roles: Role[]): Promise<CurrentUser> {
   if (!user) return go("/kirish");
   if (user.role === "ADMIN" && !(await adminUnlocked())) return go(ADMIN_PASSWORD_PATH);
   if (!roles.includes(user.role)) return go(homePathFor(user.role));
-  // Parolsiz hisob (eski SMS hisobi) yoki admin "parolni tiklash" bosgan — avval yangi parol
-  if (user.role !== "ADMIN" && needsPassword(user)) return go(PASSWORD_SETUP_PATH);
   return user;
 }
-
-export const PASSWORD_SETUP_PATH = "/kirish/parol";
-
-/** Parol o'rnatilmagan yoki keyingi kirishda almashtirish majburiy (admin bundan mustasno — o'z paroli bor). */
-export const needsPassword = (user: { role: Role; passwordHash: string | null; passwordResetRequired: boolean }) =>
-  user.role !== "ADMIN" && (!user.passwordHash || user.passwordResetRequired);
 
 // ───────── admin: SMS koddan keyin parol (ikkinchi qadam) ─────────
 // Admin sessiyasi parolsiz hech narsa ochmaydi: sahifa, layout va action'lar `requireRole` orqali,
@@ -115,13 +107,6 @@ export const ADMIN_PASSWORD_PATH = "/kirish/admin";
 async function currentSessionHash(): Promise<string | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   return token ? hashToken(token) : null;
-}
-
-/** Joriy sayt sessiyasining id'si (parol almashtirilganda shu qurilma ochiq qoladi). */
-export async function currentSessionId(): Promise<string | null> {
-  const hash = await currentSessionHash();
-  if (!hash) return null;
-  return (await db.session.findUnique({ where: { tokenHash: hash }, select: { id: true } }))?.id ?? null;
 }
 
 export async function adminUnlocked(): Promise<boolean> {
@@ -145,7 +130,7 @@ export async function getUnlockedAdmin(): Promise<CurrentUser | null> {
 /** Kirgan foydalanuvchini kirish sahifasidan o'z bosh sahifasiga o'tkazadi. */
 export async function redirectIfSignedIn(): Promise<void> {
   const user = await getCurrentUser();
-  if (user) await go(user.role === "ADMIN" && !(await adminUnlocked()) ? ADMIN_PASSWORD_PATH : needsPassword(user) ? PASSWORD_SETUP_PATH : homePathFor(user.role));
+  if (user) await go(user.role === "ADMIN" && !(await adminUnlocked()) ? ADMIN_PASSWORD_PATH : homePathFor(user.role));
 }
 
 // ───────── tasdiqlangan, lekin hali ro'yxatdan o'tmagan raqam ─────────

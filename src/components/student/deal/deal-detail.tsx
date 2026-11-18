@@ -86,9 +86,10 @@ function LeftBar({ pct, web = false }: { pct: number; web?: boolean }) {
 /** Tasdiqlangan biznes belgisi (ko'k rozetka). */
 function VerifiedMark({ label }: { label: string }) {
   return (
-    <span role="img" aria-label={label} className="flex shrink-0 text-blue">
-      <Icon name="verified" size={16} filled />
-    </span>
+    <svg aria-label={label} role="img" width="15" height="15" viewBox="0 0 24 24" className="shrink-0 fill-blue">
+      <path d="M12 2l2.6 2.1 3.3-.4 1 3.2 2.9 1.7-1 3.2 1 3.2-2.9 1.7-1 3.2-3.3-.4L12 22l-2.6-2.1-3.3.4-1-3.2-2.9-1.7 1-3.2-1-3.2 2.9-1.7 1-3.2 3.3.4z" />
+      <path d="M8 12l3 3 5-6" fill="none" className="stroke-white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -174,7 +175,6 @@ function DealPhone({ detail, now, saved, claim, booking }: Props) {
           <DirectionsButton
             name={business.name}
             address={x.address}
-            district={business.district}
             landmark={x.landmark}
             point={business.point}
             distanceKm={deal.distanceKm}
@@ -272,7 +272,6 @@ function DealWeb({ detail, now, initials, avatarUrl, claim, booking }: Props) {
               <DirectionsButton
                 name={business.name}
                 address={x.address}
-                district={business.district}
                 landmark={x.landmark}
                 point={business.point}
                 distanceKm={deal.distanceKm}

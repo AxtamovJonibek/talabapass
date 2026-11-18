@@ -443,25 +443,27 @@
   "directions": {
     "button": "Borish · {distance}",
     "buttonShort": "Borish",
-    "title": "Qanday borasiz?",
+    "title": "Qanday boraman?",
     "close": "Yopish",
+    "away": "{distance} uzoqlikda",
+    "metro": "{station} metrosidan ~{distance}",
     "landmark": "Mo'ljal: {text}",
+    "modeLabel": "Marshrut turi",
+    "modes": {
+      "car": "Mashinada",
+      "transit": "Jamoat transporti",
+      "walk": "Piyoda"
+    },
     "options": "Qayerda ochish",
     "providers": {
       "yandex": "Yandex Xaritalar",
       "google": "Google Maps",
-      "yandexGo": "Yandex Go"
+      "yandexGo": "Taksi chaqirish"
     },
-    "copy": "Nusxalash",
+    "recent": "Oxirgi ishlatilgan",
+    "copy": "Manzilni nusxalash",
     "copied": "Nusxalandi",
-    "copyFailed": "Nusxalab bo'lmadi",
-    "cell": {
-      "yandex": "Yandex\nXaritalar",
-      "google": "Google\nMaps",
-      "yandexGo": "Yandex Go"
-    },
-    "taxi": "taksi",
-    "logo": "{name} rasmiy belgisi"
+    "copyFailed": "Nusxalab bo'lmadi"
   },
   "course": {
     "label": "Kurs",
@@ -627,7 +629,7 @@
       "headline": "Qaytganingizdan xursandmiz.",
       "lead": "Bugun yangi chegirmalar qo'shildi. Kirib, yoningdagilarini ko'r.",
       "title": "Hisobga kirish",
-      "subtitle": "Telefon raqam yoki email va parol bilan",
+      "subtitle": "Ro'yxatdan o'tgan telefon raqaming bilan",
       "registerTitle": "Yangi talaba hisobini ochish",
       "registerSubtitle": "Ism, universitet va guvohnoma — 2 daqiqa",
       "stubs": {
@@ -649,10 +651,10 @@
       "headline": "Talabalar sizni allaqachon qidiryapti.",
       "lead": "Chegirmalar, kassirlar va statistika — bitta kabinetda.",
       "title": "Biznes kabinetiga kirish",
-      "subtitle": "Biznes egasi yoki kassir: raqam yoki email va parol bilan",
+      "subtitle": "Biznes egasi yoki administrator raqami bilan",
       "registerTitle": "Biznesni ro'yxatdan o'tkazish",
       "registerSubtitle": "STIR va qisqa ma'lumot — 5 daqiqa",
-      "cashierNote": "Kassirmisiz? Biznes egasi yuborgan taklif havolasi orqali ro'yxatdan o'ting — keyin raqamingiz va parolingiz bilan kirasiz.",
+      "cashierNote": "Kassirmisiz? Biznes egasi yuborgan taklif havolasi orqali kiring — raqamingiz avtomatik ulanadi.",
       "stubs": {
         "1": {
           "label": "bugun sotuv",
@@ -690,16 +692,7 @@
       "blocked": "Bu hisob bloklangan. Yordam uchun biz bilan bog'laning.",
       "dailyLimit": "Bu raqamga bugun juda ko'p kod yuborildi. Ertaga urinib ko'ring.",
       "ipLimit": "Juda ko'p so'rov yuborildi. {minutes} daqiqadan keyin urinib ko'ring.",
-      "noBusiness": "Siz hech qaysi biznesga kassir sifatida biriktirilmagansiz. Biznes egasidan yangi taklif havolasini so'rang.",
-      "identifier": "Telefon raqam (9 ta raqam) yoki to'g'ri email kiriting.",
-      "invalid": "Raqam/email yoki parol noto'g'ri",
-      "loginLocked": "Juda ko'p xato urinish. {minutes} daqiqadan keyin qayta urinib ko'ring yoki parolni tiklang.",
-      "exists": "Bu raqamda hisob bor. Parolingiz bilan kiring yoki parolni tiklang.",
-      "notAdmin": "Bu raqam admin hisobiga tegishli emas.",
-      "weakPassword": "Parol kamida 8 ta belgi bo'lsin: harf va raqam birga.",
-      "mismatch": "Parollar bir xil emas.",
-      "stepExpired": "Tasdiqlash muddati tugadi. Kodni qaytadan oling.",
-      "wrongCurrent": "Joriy parol noto'g'ri. Yana {left} ta urinish qoldi."
+      "noBusiness": "Siz hech qaysi biznesga kassir sifatida biriktirilmagansiz. Biznes egasidan yangi taklif havolasini so'rang."
     },
     "admin": {
       "title": "Admin paroli",
@@ -711,57 +704,8 @@
         "wrong": "Parol noto'g'ri",
         "notConfigured": "Admin paroli serverda sozlanmagan (ADMIN_PASSWORD_HASH). Administratorga murojaat qiling.",
         "locked": "Juda ko'p xato urinish. {minutes} daqiqadan keyin SMS kod bilan qayta kiring."
-      },
-      "smsTitle": "Admin kirishi",
-      "smsSubtitle": "Admin raqamiga SMS kod yuboramiz, keyin admin paroli so'raladi."
-    },
-    "resetSms": "talabaPass: parolni tiklash kodi {code}. Uni hech kimga bermang.",
-    "identifierLabel": "Telefon raqam yoki email",
-    "identifierPlaceholder": "90 123 45 67 yoki siz@pochta.uz",
-    "passwordLabel": "Parol",
-    "showPassword": "Parolni ko'rsatish",
-    "hidePassword": "Parolni yashirish",
-    "forgot": "Parolni unutdim",
-    "signingIn": "Kirilmoqda…",
-    "noPasswordHint": "Avval faqat SMS kod bilan kirganmisiz? «Parolni unutdim» orqali parol o'rnating.",
-    "registerLead": "Raqamni SMS kod bilan tasdiqlaymiz, keyin parol o'rnatasiz va ma'lumotlarni to'ldirasiz.",
-    "haveAccount": "Hisobingiz bormi?",
-    "rememberPassword": "Parol esingizga tushdimi?",
-    "signInAction": "Kirish",
-    "forgotTitle": "Parolni tiklash",
-    "forgotLead": "Raqam yoki emailingizni kiriting — tasdiqlash kodini yuboramiz.",
-    "sendResetCode": "Kod olish",
-    "resetSent": "Agar bunday hisob bo'lsa, kod yuborildi.",
-    "codeSentToEmail": "{email} manziliga yuborilgan kod",
-    "confirmCode": "Tasdiqlash",
-    "setPassword": {
-      "newTitle": "Parol o'rnating",
-      "newLead": "Keyingi safar raqamingiz va shu parol bilan kirasiz.",
-      "missingTitle": "Hisobingizga parol qo'ying",
-      "missingLead": "Bu raqamda hisob bor, lekin paroli yo'q. Parol o'rnating — keyin raqam va parol bilan kirasiz.",
-      "resetTitle": "Yangi parol",
-      "resetLead": "Yangi parolni saqlaganingizdan keyin boshqa qurilmalardagi kirishlar yopiladi.",
-      "newLabel": "Yangi parol",
-      "repeatLabel": "Parolni takrorlang",
-      "ruleLength": "Kamida 8 ta belgi",
-      "ruleMix": "Harf va raqam birga",
-      "continue": "Davom etish",
-      "save": "Saqlash va kirish",
-      "saving": "Saqlanmoqda…"
-    },
-    "ownPassword": {
-      "setTitle": "Parol o'rnating",
-      "setLead": "Endi kirish SMSsiz: raqamingiz (yoki emailingiz) va parol bilan. Davom etish uchun parol o'rnating.",
-      "requiredTitle": "Yangi parol o'rnating",
-      "requiredLead": "Administrator parolingizni tiklashni so'radi. Davom etish uchun yangi parol o'rnating.",
-      "changeTitle": "Parolni o'zgartirish",
-      "changeLead": "Yangi parol saqlangach boshqa qurilmalardagi kirishlar yopiladi, bu qurilma ochiq qoladi.",
-      "currentLabel": "Joriy parol",
-      "save": "Saqlash",
-      "saved": "Parol o'zgartirildi.",
-      "lastChanged": "Oxirgi o'zgarish: {date}"
-    },
-    "registerAction": "Ro'yxatdan o'tish"
+      }
+    }
   },
   "landing": {
     "header": {
@@ -2949,7 +2893,7 @@
       "admin_not_supported": "Admin panelga faqat sayt orqali kiriladi.",
       "step_expired": "Tasdiqlash muddati tugadi. SMS kodni qaytadan oling.",
       "wrong_password": "Parol noto'g'ri.",
-      "password_locked": "Juda ko'p xato urinish. Parol vaqtincha qulflandi — 15 daqiqadan keyin urinib ko'ring yoki parolni tiklang.",
+      "password_locked": "Juda ko'p xato urinish. Parol vaqtincha qulflandi — keyinroq SMS kod bilan qayta kiring.",
       "weak_password": "Parol kamida 8 ta belgi bo'lsin: harf va raqam birga.",
       "password_mismatch": "Parollar bir xil emas.",
       "refresh_invalid": "Sessiya tugagan. Qaytadan kiring.",
@@ -3138,7 +3082,7 @@
     },
     "create": {
       "title": "Yangi foydalanuvchi",
-      "hint": "Parol o'rnatilmaydi: odam “Parolni unutdim” (SMS yoki email kodi) bilan o'zi o'rnatadi. Talaba OTM va guvohnomani o'zi kiritadi.",
+      "hint": "Parol majburiy: kamida 8 belgi, harf va raqam. Talaba OTM va guvohnomani o'zi kiritadi.",
       "role": "Rol",
       "firstName": "Ism",
       "lastName": "Familiya",
@@ -3146,7 +3090,8 @@
       "email": "Email",
       "submit": "Yaratish",
       "created": "Yaratildi",
-      "open": "Ochish →"
+      "open": "Ochish →",
+      "password": "Parol"
     },
     "errors": {
       "invalid": "Qiymatlarni tekshiring.",
@@ -3161,7 +3106,8 @@
       "reason": "Sababni yozing (kamida 3 belgi).",
       "errors": "Chegirma maydonlarini tekshiring.",
       "contact": "Telefon yoki emaildan kamida bittasini kiriting.",
-      "failed": "Bajarib bo'lmadi. Sahifani yangilang."
+      "failed": "Bajarib bo'lmadi. Sahifani yangilang.",
+      "weakPassword": "Kamida 8 belgi, harf va raqam bilan"
     },
     "journal": {
       "title": "Faoliyat jurnali",

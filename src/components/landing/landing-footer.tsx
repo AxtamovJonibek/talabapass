@@ -1,6 +1,5 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useTranslations } from "next-intl";
-import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
 import { Link } from "@/i18n/navigation";
 import { CONTACTS } from "@/lib/contacts";
@@ -17,18 +16,28 @@ export function LandingFooter() {
           </p>
           <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
             <a className="tp-lift" href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" aria-label={t("telegram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- rasmiy belgi (public/brands, o'zgartirilmagan) */}
-              <img src="/brands/telegram.png" alt="" width={24} height={24} style={{ display: "block" }} />
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 4L3 11l6 2 2 6 3-4 5 4z" />
+                <path d="M9 13l12-9" />
+              </svg>
             </a>
             <a className="tp-lift" href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" aria-label={t("instagram")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- rasmiy belgi (public/brands, o'zgartirilmagan) */}
-              <img src="/brands/instagram.png" alt="" width={22} height={22} style={{ display: "block" }} />
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <path d="M17.5 6.5h.01" />
+              </svg>
             </a>
             <a className="tp-lift" href="#" aria-label={t("youtube")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="youtube" size={20} />
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="4" />
+                <path d="M10 9l5 3-5 3z" />
+              </svg>
             </a>
             <a className="tp-lift" href={CONTACTS.x} target="_blank" rel="noopener noreferrer" aria-label={t("x")} style={{ width: "44px", height: "44px", borderRadius: "22px", background: "var(--color-ink-3)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="xBrand" size={20} />
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
             </a>
           </div>
         </div>

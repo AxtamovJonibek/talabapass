@@ -53,7 +53,6 @@ yoki GitHub → Actions → deploy → Run workflow. Jurnal: `pm2 logs talabapas
 | Baza | `DATABASE_URL` (ilova ham, migratsiya ham) |
 | Fayllar | `STORAGE_DRIVER=local`, `STORAGE_LOCAL_DIR` (absolyut yo'l); S3 tanlansa — `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` |
 | Kirish | `SMS_PROVIDER`, `OTP_FIXED_CODE` (faqat `APP_ENV=staging`) |
-| Email | `EMAIL_PROVIDER` (`resend` \| `dev` — faqat staging), `RESEND_API_KEY`, `EMAIL_FROM` ("Parolni unutdim" kodi) |
 | Cron | `CRON_SECRET` |
 | Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (uchalasi birga yoki hech biri) |
 | Ixtiyoriy | `TELEGRAM_BOT_TOKEN`, `SUPPORT_PHONE`, `SUPPORT_TELEGRAM` |

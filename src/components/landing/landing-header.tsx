@@ -2,7 +2,6 @@
 
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useState } from "react";
-import { Icon } from "@/components/ui/icon";
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/ui/logo";
 import { Link } from "@/i18n/navigation";
@@ -12,7 +11,7 @@ export function LandingHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((open) => !open);
   const closeMenu = () => setMenuOpen(false);
-  const menuIcon = menuOpen ? ("close" as const) : ("menu" as const);
+  const menuIcon = menuOpen ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16";
   return (
     <header style={{ position: "sticky", top: "var(--safe-top)", zIndex: 20, background: "var(--color-paper)", borderBottom: "1.5px solid var(--color-ink)" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 clamp(16px, 4cqw, 48px)", height: "72px", display: "flex", alignItems: "center", gap: "16px" }}>
@@ -44,7 +43,9 @@ export function LandingHeader() {
             {t("boshlash_bepul")}
           </Link>
           <button className="tp-btn tp-stamp [--tp-shadow:var(--color-orange)]" type="button" onClick={toggleMenu} aria-label={t("menyu")} aria-expanded={menuOpen} style={{ width: "clamp(0px, calc((920px - 100cqw) * 999), 44px)", height: "44px", overflow: "hidden", padding: "0", border: "0", borderRadius: "12px", background: "var(--color-ink)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Icon name={menuIcon} size={20} />
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d={menuIcon} />
+            </svg>
           </button>
         </div>
       </div>

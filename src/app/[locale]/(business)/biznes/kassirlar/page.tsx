@@ -1,4 +1,3 @@
-import { PermissionNotice } from "@/components/business/permission-notice";
 import { PageSkeleton } from "@/components/state/page-skeleton";
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
@@ -12,7 +11,7 @@ import { ownerBusinessForDiscounts } from "@/server/business/discounts";
 async function Cashiers() {
   const user = await requireRole("BUSINESS_OWNER");
   if (!(await ownerBusinessForDiscounts(user.id))) return redirect({ href: "/biznes", locale: await getLocale() });
-  return <CashiersPage cashiers={await ownerCashiers(user.id)} notice={<PermissionNotice ownerId={user.id} only={["canAddCashiers"]} />} />;
+  return <CashiersPage cashiers={await ownerCashiers(user.id)} />;
 }
 
 // Kassirlar — taklif qilish va o'chirish (B5 bloki)

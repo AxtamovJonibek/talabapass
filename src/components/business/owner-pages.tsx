@@ -32,12 +32,8 @@ function DiscountsBlock({ discounts }: { discounts: OwnerDiscount[] }) {
 /** Telefon: profil sahifasi oxirida (veb'da — yon paneldagi "Hisobdan chiqish"). */
 function PhoneLogout() {
   const t = useTranslations("common");
-  const profile = useTranslations("profile");
   return (
     <form action={logoutAction}>
-      <Link href="/kirish/parol" className="tp-row mt-3 flex h-[50px] items-center justify-center rounded-14 text-15 font-bold text-ink no-underline">
-        {profile("password")}
-      </Link>
       <button type="submit" className="tp-row mt-3 h-[50px] w-full rounded-14 border-0 bg-transparent font-sans text-15 font-bold text-danger">
         {t("logout")}
       </button>
@@ -98,7 +94,7 @@ export function ProfilePage({ profile, discounts, cashiers }: { profile: OwnerPr
 }
 
 /** Kassirlar (B5 bloki alohida sahifada). */
-export function CashiersPage({ cashiers, notice }: { cashiers: OwnerCashiers; notice?: ReactNode }) {
+export function CashiersPage({ cashiers }: { cashiers: OwnerCashiers }) {
   return (
     <OwnerFrame
       tab="profile"
@@ -106,13 +102,11 @@ export function CashiersPage({ cashiers, notice }: { cashiers: OwnerCashiers; no
       phone={
         <div className="px-4 pt-14 pb-5">
           <BackLink href="/biznes/profil" variant="text" className="mb-1" />
-          {notice ? <div className="mb-3">{notice}</div> : null}
           <CashierList data={cashiers} />
         </div>
       }
       web={
-        <div className="flex max-w-[640px] flex-col gap-3">
-          {notice}
+        <div className="max-w-[640px]">
           <CashierList data={cashiers} />
         </div>
       }

@@ -157,7 +157,7 @@ export function CloseSessionButton({ userId, sessionId }: { userId: string; sess
 
 const IDLE: SuperState = { status: "idle" };
 
-/** Yangi foydalanuvchi: rol, ism, raqam va/yoki email (parol — o'zi "Parolni unutdim" bilan) */
+/** Yangi foydalanuvchi: rol, ism, raqam va/yoki email va majburiy parol */
 export function CreateUserForm() {
   const t = useTranslations("adminSuper.create");
   const errors = useTranslations("adminSuper.errors");
@@ -189,6 +189,9 @@ export function CreateUserForm() {
         </Field>
         <Field label={t("email")} htmlFor="new-email" error={bad("email") ? errors(state.status === "error" && state.error === "emailInUse" ? "emailInUse" : "invalid") : null}>
           <Input id="new-email" name="email" type="email" compact invalid={bad("email")} />
+        </Field>
+        <Field label={t("password")} htmlFor="new-password" error={bad("password") ? errors("weakPassword") : null}>
+          <Input id="new-password" name="password" type="password" compact required autoComplete="new-password" invalid={bad("password")} />
         </Field>
       </div>
       <div className="flex flex-wrap items-center gap-3">

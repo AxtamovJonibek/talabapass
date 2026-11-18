@@ -1,98 +1,59 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { router } from "expo-router";
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { ApiError, errorText } from "@/api/client";
 import { authApi } from "@/api/endpoints";
 import { copy } from "@/copy";
 import { resetTo, routeFor, useApp } from "@/state";
-import { getLastPhone } from "@/storage";
-import { colors } from "@/theme";
+import { colors, font } from "@/theme";
 import { Icon } from "@/ui/icons";
-import { BackArrow, ErrorBox, Field, FooterLink, formatLocalPhone, Grow, Label, Lead, Logo, Note, PasswordBox, PrimaryButton, Screen, TextAction, Title, TopBar } from "@/ui/kit";
+import { BackArrow, ErrorBox, FooterLink, Grow, Label, Logo, PasswordBox, PrimaryButton, Screen, TextAction, Title, TopBar, Txt } from "@/ui/kit";
 
-/**
- * Kirish (SMSsiz): telefon raqam yoki email + parol. Xato bo'lsa — bitta umumiy matn (hisob borligi bilinmaydi).
- * `returning` — Auth2 ("Qayta xush kelibsiz"): oxirgi raqam maydonda tayyor.
- */
-export function LoginScreen({ returning = false }: { returning?: boolean }) {
-  const params = useLocalSearchParams<{ intent?: string }>();
-  const intent = params.intent === "business" ? "business" : "student";
-  const { signIn } = useApp();
-  const [identifier, setIdentifier] = useState("");
+/** Kirish (12): hisob topildi — parol. "Parolni unutdim" — shu SMS tasdig'i bilan yangi parol. */
+export default function Login() {
+  const { flow, signIn } = useApp();
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const l = copy.login;
-
-  useEffect(() => {
-    if (returning) void getLastPhone().then((last) => last && setIdentifier(formatLocalPhone(last)));
-  }, [returning]);
+  const verify = flow.verify?.next === "password" ? flow.verify : null;
 
   const submit = async () => {
-    if (busy) return;
-    if (!identifier.trim()) return setError(l.identifierInvalid);
-    if (!password) return;
+    if (!verify || busy || !password) return;
     setBusy(true);
     setError(null);
     try {
-      const me = await signIn(await authApi.login(identifier, password));
+      const me = await signIn(await authApi.login(verify.ticket, password));
       resetTo(routeFor(me));
     } catch (e) {
-      // Noto'g'ri raqam/email ham, parol ham — server bitta umumiy javob beradi
-      setError(e instanceof ApiError && e.code === "invalid_request" ? l.identifierInvalid : errorText(e));
+      const left = e instanceof ApiError && e.code === "wrong_password" ? e.details.left : undefined;
+      setError(typeof left === "number" ? l.wrongPassword(left) : errorText(e));
     } finally {
       setBusy(false);
     }
   };
 
-  // Tarix bo'lmasa — kirish usuli tanloviga
-  const back = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace(`/auth?intent=${intent}`);
-  };
-
   return (
     <Screen>
-      <TopBar style={returning ? styles.startBar : undefined}>
-        {returning ? null : <BackArrow label={copy.back} onPress={back} />}
+      <TopBar>
+        <BackArrow label={copy.back} onPress={() => router.back()} />
         <Logo />
       </TopBar>
 
       <View style={styles.hero}>
-        {returning ? (
-          <View style={styles.badge}>
-            <Icon name="house" size={48} strokeWidth={2.4} />
+        <View style={styles.account}>
+          <View style={styles.avatar}>
+            {verify?.initial ? <Txt style={[font(900), { fontSize: 24 }]}>{verify.initial}</Txt> : <Icon name="user" size={28} strokeWidth={2.4} />}
           </View>
-        ) : null}
-        <Title text={returning ? l.returningTitle : l.loginTitle} size={returning ? 44 : 46} />
-        <Lead text={returning ? l.returningLead : l.loginLead} style={styles.lead} />
+          <View style={styles.accountText}>
+            <Txt style={[font(600), { fontSize: 14, color: colors.muted }]}>{l.found}</Txt>
+            <Txt style={[font(800), { fontSize: 20 }]}>{verify?.masked ?? ""}</Txt>
+          </View>
+        </View>
+        <Title text={l.passwordTitle} size={42} style={styles.title} />
       </View>
 
       <View style={styles.field}>
-        <Label>{l.identifierLabel}</Label>
-        <Field
-          height={64}
-          text={18}
-          value={identifier}
-          onChangeText={(v) => {
-            setIdentifier(v);
-            setError(null);
-          }}
-          invalid={Boolean(error)}
-          placeholder={l.identifierPlaceholder}
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="username"
-          textContentType="username"
-          keyboardType="email-address"
-          autoFocus={!returning}
-          returnKeyType="next"
-          accessibilityLabel={l.identifierLabel}
-        />
-        {returning ? <Note style={styles.note}>{l.returningNote}</Note> : null}
-      </View>
-
-      <View style={styles.password}>
         <Label>{l.passwordLabel}</Label>
         <PasswordBox
           height={64}
@@ -102,55 +63,37 @@ export function LoginScreen({ returning = false }: { returning?: boolean }) {
             setError(null);
           }}
           invalid={Boolean(error)}
-          autoFocus={returning}
+          autoFocus
           toggle={{ show: l.showPassword, hide: l.hidePassword }}
           onSubmit={() => void submit()}
           label={l.passwordLabel}
         />
         <View style={styles.forgot}>
-          <TextAction underline weight={800} onPress={() => router.push(`/auth/forgot?intent=${intent}`)}>
+          <TextAction underline weight={800} onPress={() => router.push("/auth/password?mode=reset")}>
             {l.forgot}
           </TextAction>
         </View>
-        <ErrorBox>{error}</ErrorBox>
+        <ErrorBox>{verify ? error : l.stepExpired}</ErrorBox>
       </View>
 
-      <PrimaryButton onPress={() => void submit()} loading={busy} disabled={!password} style={styles.cta}>
+      <PrimaryButton onPress={() => void submit()} loading={busy} disabled={!verify || !password} style={styles.cta}>
         {busy ? l.signingIn : l.signIn}
       </PrimaryButton>
 
       <Grow />
 
-      <FooterLink lead={l.noAccount} action={l.registerAction} onPress={() => router.push(`/auth/phone?intent=${intent}`)} />
-      {returning ? <FooterLink lead={l.otherPhone} action={l.otherPhoneAction} onPress={() => router.push("/auth?intent=student")} style={styles.second} /> : null}
+      <FooterLink lead={l.otherNumber} onPress={() => resetTo("/auth/phone?intent=student")} />
     </Screen>
   );
 }
 
-export default function Login() {
-  return <LoginScreen />;
-}
-
 const styles = StyleSheet.create({
-  startBar: { justifyContent: "flex-start" },
   hero: { marginTop: 36 },
-  badge: {
-    position: "absolute",
-    right: 0,
-    top: -6,
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: colors.green,
-    alignItems: "center",
-    justifyContent: "center",
-    transform: [{ rotate: "10deg" }],
-  },
-  lead: { marginTop: 16, maxWidth: 300 },
-  field: { marginTop: 32 },
-  note: { marginTop: 10 },
-  password: { marginTop: 18 },
+  account: { flexDirection: "row", alignItems: "center", gap: 14 },
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.green, alignItems: "center", justifyContent: "center", transform: [{ rotate: "-6deg" }] },
+  accountText: { gap: 2 },
+  title: { marginTop: 24 },
+  field: { marginTop: 28 },
   forgot: { marginTop: 6 },
   cta: { marginTop: 12 },
-  second: { marginTop: 10 },
 });

@@ -7,7 +7,7 @@ import { discountDraftSchema as draftSchema, saveDiscount, setDiscountActive } f
 
 export type SaveDiscountActionResult =
   | { ok: true; id: string }
-  | { ok: false; error: "noBusiness" | "notFound" | "notEditable" | "noPermission" | "activeLimit" }
+  | { ok: false; error: "noBusiness" | "notFound" | "notEditable" }
   | { ok: false; errors: Partial<Record<DiscountField, DiscountProblem>> };
 
 /** B2 / WB2 — "Qoralama" yoki "E'lon qilish". Muvaffaqiyatda id qaytadi: klient rasmlarni yuklab, ro'yxatga o'tadi. */
@@ -17,7 +17,11 @@ export async function saveDiscountAction(discountId: string | null, raw: unknown
   if (!draft.success) return { ok: false, errors: { title: "title" } };
   const id = discountId === null ? null : z.string().max(40).parse(discountId);
   const result = await saveDiscount(user.id, id, draft.data, intent === "publish" ? "publish" : "draft");
-  if (!result.ok) return result;
+  if (!result.ok) {
+    if ("errors" in result) return result;
+    // Admin ruxsat/chegara rad etishi — eski ekran faqat shu xato turlarini biladi (sayt muzlatilgan)
+    return { ok: false, error: result.error === "noPermission" || result.error === "activeLimit" ? "notEditable" : result.error };
+  }
   return { ok: true, id: result.id };
 }
 

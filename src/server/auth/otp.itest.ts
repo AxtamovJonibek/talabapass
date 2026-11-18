@@ -90,9 +90,12 @@ describe("SMS chegaralari (baza bilan)", () => {
 });
 
 describe("kodni tekshirish (baza bilan)", () => {
-  it("to'g'ri kod bir marta o'tadi, ikkinchi marta — yo'q", async () => {
+  it("to'g'ri kod: takroriy so'rov 2 daqiqa ichida o'tadi (javob yetmagan bo'lishi mumkin), keyin — yo'q", async () => {
     await issue(PHONE, "481207");
     expect(await verifyOtp(PHONE, "481207")).toBe("ok");
+    expect(await verifyOtp(PHONE, "481207")).toBe("ok");
+    expect(await verifyOtp(PHONE, "000001")).toBe("no_code");
+    await db.otpCode.updateMany({ where: { phone: PHONE }, data: { consumedAt: ago(3 * MIN) } });
     expect(await verifyOtp(PHONE, "481207")).toBe("no_code");
   });
 

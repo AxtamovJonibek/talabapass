@@ -35,13 +35,14 @@ async function LiveDealsSection() {
 
 async function PartnersSection() {
   await connection();
-  return <Partners {...await landingPartners()} />;
+  const partners = await landingPartners();
+  return <Partners businesses={partners.businesses.map((b) => b.name)} universities={partners.universities} />;
 }
 
 async function StatsSection() {
   await connection();
   const section = await landingStatsSection(new Date());
-  return section ? <Stats stats={section.stats} force={section.force} /> : null;
+  return section ? <Stats stats={section.stats} /> : null;
 }
 
 // W1 / W1m — bosh sahifa. `containerType` dizayndagi cqw o'lchamlari uchun shart.

@@ -5,9 +5,9 @@ import { useSendCode } from "@/auth/use-send-code";
 import { copy } from "@/copy";
 import { colors, font } from "@/theme";
 import { Consent } from "@/ui/legal";
-import { BackArrow, ErrorBox, FooterLink, Grow, Label, Lead, Logo, PhoneBox, PrimaryButton, Screen, Title, TopBar, Txt } from "@/ui/kit";
+import { BackArrow, ErrorBox, Grow, Label, Lead, Logo, PhoneBox, PrimaryButton, Screen, Title, TopBar, Txt } from "@/ui/kit";
 
-/** Ro'yxat, 1-qadam (AuthTelefon / AuthBiznes uslubida): telefon raqam → SMS kod → parol → ma'lumotlar. Kirish — `/auth/login`. */
+/** AuthTelefon (talaba) / AuthBiznes: telefon raqam → SMS kod. Ro'yxat ham, kirish ham shu yerdan; usul tanlovi — `/auth`. */
 export default function Phone() {
   const params = useLocalSearchParams<{ intent?: string }>();
   const intent = params.intent === "business" ? "business" : "student";
@@ -36,8 +36,8 @@ export default function Phone() {
         <View style={styles.badge}>
           <Txt style={[font(900, 62), styles.badgeText]}>{l.badge}</Txt>
         </View>
-        <Title text={l.registerTitle} size={46} />
-        <Lead text={l.registerLead} style={styles.lead} />
+        <Title text={l.title} size={46} />
+        <Lead text={intent === "business" ? l.businessLead : l.lead} style={styles.lead} />
       </View>
 
       <View style={styles.field}>
@@ -52,7 +52,6 @@ export default function Phone() {
 
       <Grow />
 
-      <FooterLink lead={l.haveAccount} action={l.signInAction} onPress={() => router.replace(`/auth/login?intent=${intent}`)} />
       <Consent />
     </Screen>
   );

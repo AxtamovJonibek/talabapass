@@ -70,20 +70,6 @@ function storageProblems(env: Env): string[] {
   return [`Noma'lum STORAGE_DRIVER: ${driver} (local yoki s3).`];
 }
 
-/** Email ("Parolni unutdim" kodi): `dev` faqat sinov serverida, `resend` — kalit va jo'natuvchi bilan. */
-function emailProblems(env: Env): string[] {
-  const provider = (env.EMAIL_PROVIDER ?? "").trim().toLowerCase();
-  if (provider === "resend") {
-    const missing = ["RESEND_API_KEY", "EMAIL_FROM"].filter((name) => !env[name]?.trim());
-    return missing.length ? [`EMAIL_PROVIDER=resend: ${missing.join(", ")} o'rnatilmagan.`] : [];
-  }
-  if (provider === "dev") {
-    return isStaging(env) ? [] : ["EMAIL_PROVIDER=dev: xatlar server log'iga chiqadi. Resend'ni ulang (RESEND_API_KEY, EMAIL_FROM)."];
-  }
-  if (provider) return [`Noma'lum EMAIL_PROVIDER: ${provider} (dev yoki resend).`];
-  return isStaging(env) ? [] : ["EMAIL_PROVIDER o'rnatilmagan: emailga parol tiklash kodi yuborilmaydi."];
-}
-
 export function productionEnvProblems(env: Env): string[] {
   if (env.NODE_ENV !== "production") return [];
   const problems = storageProblems(env);
@@ -105,7 +91,7 @@ export function productionEnvProblems(env: Env): string[] {
   if (env.VAPID_SUBJECT?.trim() && !/^(mailto:|https:\/\/)/.test(env.VAPID_SUBJECT.trim())) {
     problems.push("VAPID_SUBJECT mailto:… yoki https://… ko'rinishida bo'lishi kerak.");
   }
-  problems.push(...emailProblems(env), ...appConfigProblems(env), ...reviewProblems(env));
+  problems.push(...appConfigProblems(env), ...reviewProblems(env));
   if (!env.AUTH_SECRET || env.AUTH_SECRET.length < 32) {
     problems.push("AUTH_SECRET o'rnatilmagan yoki 32 belgidan qisqa.");
   }

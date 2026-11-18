@@ -4,8 +4,8 @@ import { clientIpOf, ok, readJson, route } from "@/server/api/http";
 import { limit } from "@/server/api/rate-limit";
 
 /**
- * Parol o'rnatish (`ticket` — `/auth/verify`, `/auth/google|apple` yoki `/auth/forgot/verify` dan): yangi raqam yoki
- * Google/Apple (→ `registrationTicket`), parolsiz eski hisob yoki "Parolni unutdim" (boshqa sessiyalar yopiladi).
+ * Parol o'rnatish: yangi raqam (→ `registrationTicket`), parolsiz eski hisob yoki "Parolni unutdim" (`verify` dan
+ * `next: "password"` bo'lgan ticket bilan — boshqa sessiyalar yopiladi).
  */
 export const POST = route(async (request) => {
   await limit("password", clientIpOf(request));

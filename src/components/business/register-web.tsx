@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { CodeEntry, OTP_LENGTH } from "@/components/auth/code-entry";
 import { Button } from "@/components/ui/button";
-import { WorkingHoursField } from "@/components/ui/time-pickers";
 import { Field, Input, PhoneInput, Textarea } from "@/components/ui/field";
 import { DESCRIPTION_MAX } from "@/lib/business";
 import { phoneNational } from "@/lib/format";
@@ -74,13 +73,21 @@ export function RegisterWeb({ r, rejectReason }: { r: BusinessRegistration; reje
             </Field>
           </div>
           <KindPicker r={r} size="web" />
-          <Field label={t("address")} htmlFor="wb-address" error={r.fieldError("address")}>
-            <Input id="wb-address" name="address" autoComplete="street-address" defaultValue={v.address} invalid={r.invalid.includes("address")} />
-          </Field>
-          <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
-            <legend className="mb-1.5 p-0 text-13 font-semibold">{t("workingHours")}</legend>
-            <WorkingHoursField name="workingHours" idPrefix="wb-hours" initial={v.workingHours} error={r.fieldError("workingHours")} />
-          </fieldset>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(240px,100%),1fr))] gap-3.5">
+            <Field label={t("address")} htmlFor="wb-address" error={r.fieldError("address")}>
+              <Input id="wb-address" name="address" autoComplete="street-address" defaultValue={v.address} invalid={r.invalid.includes("address")} />
+            </Field>
+            <Field label={t("workingHours")} htmlFor="wb-hours" error={r.fieldError("workingHours")}>
+              <Input
+                id="wb-hours"
+                name="workingHours"
+                mono={14}
+                placeholder={t("workingHoursPlaceholder")}
+                defaultValue={v.workingHours}
+                invalid={r.invalid.includes("workingHours")}
+              />
+            </Field>
+          </div>
           <Field
             label={t("description")}
             htmlFor="wb-desc"

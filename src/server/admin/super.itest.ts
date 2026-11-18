@@ -153,12 +153,14 @@ describe("admin: foydalanuvchi hisobi", () => {
   });
 
   it("yaratish, takror raqam, rol almashtirish (biznesi bor — yo'q), bloklash", async () => {
-    const created = await createUser(admin, { role: "CASHIER", firstName: "Yangi", lastName: "Kassir", phone: "93 555 98 92", email: EMAIL });
+    const created = await createUser(admin, { role: "CASHIER", firstName: "Yangi", lastName: "Kassir", phone: "93 555 98 92", email: EMAIL, password: "Parol2026" });
     expect(created).toMatchObject({ ok: true });
     const id = (created as { id: string }).id;
-    expect(await db.user.findUniqueOrThrow({ where: { id } })).toMatchObject({ phone: PHONES[2], email: EMAIL, role: "CASHIER", passwordHash: null });
-    expect(await createUser(admin, { role: "STUDENT", firstName: "Takror", lastName: "", phone: PHONES[2]!, email: "" })).toMatchObject({ ok: false, error: "phoneInUse" });
-    expect(await createUser(admin, { role: "STUDENT", firstName: "Aloqasiz", lastName: "", phone: "", email: "" })).toMatchObject({ ok: false, error: "invalid" });
+    expect(await db.user.findUniqueOrThrow({ where: { id } })).toMatchObject({ phone: PHONES[2], email: EMAIL, role: "CASHIER" });
+    expect((await db.user.findUniqueOrThrow({ where: { id } })).passwordHash).not.toBeNull();
+    expect(await createUser(admin, { role: "STUDENT", firstName: "Takror", lastName: "", phone: PHONES[2]!, email: "", password: "Parol2026" })).toMatchObject({ ok: false, error: "phoneInUse" });
+    expect(await createUser(admin, { role: "STUDENT", firstName: "Aloqasiz", lastName: "", phone: "", email: "", password: "Parol2026" })).toMatchObject({ ok: false, error: "invalid" });
+    expect(await createUser(admin, { role: "STUDENT", firstName: "Parolsiz", lastName: "", phone: "93 555 98 93", email: "", password: "" })).toMatchObject({ ok: false, error: "invalid", fields: ["password"] });
 
     expect(await changeRole(admin, id, "STUDENT")).toEqual({ ok: true });
     expect(await changeRole(admin, owner, "STUDENT")).toEqual({ ok: false, error: "hasRoleData" });

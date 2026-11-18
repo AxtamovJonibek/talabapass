@@ -8,7 +8,7 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { BusinessShell } from "../business-shell";
-import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, PeriodField, TimeFields, TypePicker, ValueDisplay, ValueErrors } from "./editor-parts";
+import { CategoryTile, DayPicker, EditorNotes, ImagePicker, LimitField, OvernightNote, PeriodField, TimeFields, TypePicker, ValueDisplay, ValueErrors } from "./editor-parts";
 import type { EditorViewProps } from "./editor-mobile";
 
 /** "Talabalar qachon keladi" issiqlik xaritasi: ikki qator (ish kunlari, dam olish), 08–22 ikki soatlik ustunlar. */
@@ -127,8 +127,8 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
               <span className="text-13 font-semibold">{t("daysWeb", { count: e.dayCount })}</span>
               <DayPicker e={e} size="web" />
             </div>
-            <TimeFields e={e} prefix="wb2" />
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-2.5">
+              <TimeFields e={e} prefix="wb2" />
               <LimitField e={e} prefix="wb2" />
               <Field label={t("perStudent")} htmlFor="wb2-per">
                 <Select id="wb2-per" native compact value={e.perStudent} onChange={(x) => e.setPerStudent(x.target.value as typeof e.perStudent)}>
@@ -141,6 +141,7 @@ export function EditorWeb({ e, category, businessName, statusText, businessPendi
               </Field>
               <PeriodField e={e} prefix="wb2" />
             </div>
+            <OvernightNote e={e} />
           </section>
         </div>
 

@@ -23,11 +23,11 @@ export function useSendCode() {
     setError(null);
     try {
       const r = await authApi.requestCode(toE164(digits));
-      setFlow({ phone: digits, intent, verify: null, reset: null, social: null, resendAt: Date.now() + r.resendInSeconds * 1000 });
+      setFlow({ phone: digits, intent, verify: null, social: null, resendAt: Date.now() + r.resendInSeconds * 1000 });
       return true;
     } catch (e) {
       if (e instanceof ApiError && e.code === "too_soon") {
-        setFlow({ phone: digits, intent, verify: null, reset: null, social: null, resendAt: Date.now() + Number(e.details.retryInSeconds ?? 60) * 1000 });
+        setFlow({ phone: digits, intent, verify: null, social: null, resendAt: Date.now() + Number(e.details.retryInSeconds ?? 60) * 1000 });
         return true;
       }
       setError(errorText(e));

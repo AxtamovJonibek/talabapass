@@ -9,6 +9,7 @@ import {
   generateOtp,
   hashOtp,
   OTP_LOCK_MS,
+  otpMatches,
   OTP_TTL_MS,
   rateLimitKeyForIp,
   shouldLock,
@@ -18,6 +19,8 @@ import {
 
 const HOUR_MS = 3_600_000;
 const DAY_MS = 24 * HOUR_MS;
+/** Yangi kod yuborilmagan bo'lsa, shu kod bilan takroriy so'rov (qayta urinish, ikki marta bosish) shu muddat ichida o'tadi. */
+const REPLAY_MS = 2 * 60_000;
 
 /**
  * Raqamga yangi kod yuboradi. Chegaralar: bitta IP'dan soatiga 10 ta so'rov, bitta raqamga 60 soniyada 1 ta
@@ -62,18 +65,6 @@ export async function requestOtp(phone: string, ip: string, smsText: (code: stri
 }
 
 /**
- * Faqat IP chegarasi (soatiga 10 ta so'rov, SMS kodi bilan umumiy hisob): email kodi va hisobi yo'q identifikatorga
- * "Parolni unutdim" so'rovi ham shu hisobga yoziladi — javob vaqti va chegarasi bir xil, hisob borligi bilinmaydi.
- */
-export async function recordIpRequest(ip: string, now = new Date()): Promise<SendDecision> {
-  const ipKey = rateLimitKeyForIp(ip, authSecret());
-  const ipHits = await db.rateLimitHit.findMany({ where: { key: ipKey, createdAt: { gt: new Date(now.getTime() - HOUR_MS) } }, select: { createdAt: true } });
-  const decision = canSendOtp({ ipRequestsAt: ipHits.map((h) => h.createdAt), phoneSentAt: [], lockedUntil: null }, now);
-  if (decision.ok) await db.rateLimitHit.create({ data: { key: ipKey } });
-  return decision;
-}
-
-/**
  * Kodni tekshiradi. To'g'ri bo'lsa bir martalik sifatida yopadi. Xato bo'lsa urinishlar sonini oshiradi;
  * 5-xatoda kod bekor qilinadi va raqam 15 daqiqaga bloklanadi.
  */
@@ -86,6 +77,10 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyDeci
   const record = await db.otpCode.findFirst({ where: { phone }, orderBy: { createdAt: "desc" } });
   const decision = checkOtp(record, phone, code, authSecret(), now);
   if (!record) return decision;
+  // Kod hozirgina to'g'ri kiritilgan, javob esa yetib bormagan bo'lishi mumkin — "Kod muddati o'tgan" demaymiz
+  if (decision === "no_code" && record.consumedAt && !record.lockedUntil && now.getTime() - record.consumedAt.getTime() <= REPLAY_MS) {
+    if (record.expiresAt.getTime() > now.getTime() && otpMatches(phone, code, authSecret(), record.codeHash)) return "ok";
+  }
 
   if (decision === "ok") {
     // Poyga holati: ikki so'rov bir vaqtda kelsa faqat bittasi yopa oladi.
@@ -106,5 +101,4 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyDeci
 export async function pruneOtpData(now = new Date()): Promise<void> {
   await db.rateLimitHit.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - DAY_MS) } } });
   await db.otpCode.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 2 * DAY_MS) } } });
-  await db.emailCode.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 2 * DAY_MS) } } });
 }

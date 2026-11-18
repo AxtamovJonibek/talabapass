@@ -1,21 +1,5 @@
 import { expect, test } from "@playwright/test";
-import {
-  clearLoginLimits,
-  clearOtp,
-  codeBox,
-  ensurePassword,
-  enterCode,
-  fillNewPassword,
-  FIXED_CODE,
-  local,
-  registerPhone,
-  requestCode,
-  seedPhones,
-  signIn,
-  TEST_PASSWORD,
-  withDb,
-  type SeedPhones,
-} from "./helpers";
+import { codeBox, clearOtp, enterCode, FIXED_CODE, requestCode, seedPhones, signIn, withDb, type SeedPhones } from "./helpers";
 
 let phones: SeedPhones;
 
@@ -57,9 +41,6 @@ test.describe("kirish", () => {
       ["Foydalanuvchilar", "/uz/admin/foydalanuvchilar", "Foydalanuvchilar"],
       ["Universitetlar", "/uz/admin/universitetlar", "Universitetlar"],
       ["Profil va adminlar", "/uz/admin/profil", "Profil va adminlar"],
-      ["Hamkorlar", "/uz/admin/hamkorlar", "Hamkorlar boshqaruvi"],
-      ["Faoliyat jurnali", "/uz/admin/jurnal", "Faoliyat jurnali"],
-      ["Landing", "/uz/admin/landing", "Landing boshqaruvi"],
     ] as const;
     for (const [label, href, heading] of sections) {
       await nav.getByRole("link", { name: new RegExp(label) }).click();
@@ -79,102 +60,17 @@ test.describe("kirish", () => {
     await expect(page).toHaveURL("/uz/kirish");
   });
 
-  test("noto'g'ri parol va hisobi yo'q raqam/email — bitta umumiy xato (hisob borligi bilinmaydi)", async ({ page }) => {
-    await ensurePassword(phones.student);
-    await clearLoginLimits();
-    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-    for (const identifier of [local(phones.student), "90 555 09 91", "hech-kim@talabapass.uz"]) {
-      await page.locator("#login-identifier").fill(identifier);
-      await page.locator("#login-password").fill("NotoGri123");
-      await page.getByRole("button", { name: "Kirish", exact: true }).click();
-      await expect(page.getByText("Raqam/email yoki parol noto'g'ri"), identifier).toBeVisible();
-      await expect(page).toHaveURL("/uz/kirish");
-    }
-    await ensurePassword(phones.student);
-  });
-
-  test("email + parol bilan kirish", async ({ page }) => {
-    await withDb((db) => db.query(`UPDATE "User" SET email = 'dilnoza.e2e@talabapass.uz' WHERE phone = $1`, [phones.student]));
-    try {
-      await ensurePassword(phones.student);
-      await clearLoginLimits();
-      await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-      await page.locator("#login-identifier").fill("Dilnoza.E2E@talabapass.uz");
-      await page.locator("#login-password").fill(TEST_PASSWORD);
-      await page.getByRole("button", { name: "Kirish", exact: true }).click();
-      await expect(page).toHaveURL(HOME.student);
-      const log = await withDb((db) =>
-        db.query(`SELECT meta FROM "AuditLog" WHERE action = 'user.login.ok' AND "entityId" = (SELECT id FROM "User" WHERE phone = $1) ORDER BY "createdAt" DESC LIMIT 1`, [phones.student]),
-      );
-      expect(log.rows[0].meta).toMatchObject({ method: "email", via: "web" });
-      // Parol hech qachon audit'ga tushmaydi
-      expect(JSON.stringify(log.rows[0].meta)).not.toContain(TEST_PASSWORD);
-    } finally {
-      await withDb((db) => db.query(`UPDATE "User" SET email = NULL WHERE phone = $1`, [phones.student]));
-    }
-  });
-
-  test("5 ta xato parol: 15 daqiqa qulf, to'g'ri parol ham o'tmaydi; hisobi yo'q raqamda ham xuddi shunday", async ({ page }) => {
-    const LOCKED = "+998905550981";
-    await withDb((db) => db.query(`INSERT INTO "User" (id, phone, role, "firstName", "updatedAt") VALUES ('e2e_lock', $1, 'STUDENT', 'Qulf', now()) ON CONFLICT DO NOTHING`, [LOCKED]));
-    await ensurePassword(LOCKED);
-    await clearLoginLimits();
-    try {
-      for (const phone of [LOCKED, "+998905550982"]) {
-        await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-        await page.locator("#login-identifier").fill(local(phone));
-        for (let i = 0; i < 5; i++) {
-          await page.locator("#login-password").fill(`Xato${i}parol`);
-          await page.getByRole("button", { name: "Kirish", exact: true }).click();
-          await expect(page.getByText(i < 4 ? "Raqam/email yoki parol noto'g'ri" : "Juda ko'p xato urinish"), `${phone} #${i + 1}`).toBeVisible();
-        }
-        await page.locator("#login-password").fill(TEST_PASSWORD);
-        await page.getByRole("button", { name: "Kirish", exact: true }).click();
-        await expect(page.getByText("Juda ko'p xato urinish"), phone).toBeVisible();
-        await expect(page).toHaveURL("/uz/kirish");
-      }
-    } finally {
-      await withDb((db) => db.query(`DELETE FROM "User" WHERE id = 'e2e_lock'`));
-      await clearLoginLimits();
-    }
-  });
-
-  test("ro'yxat: noto'g'ri kod rad etiladi, to'g'risidan keyin parol, keyin ma'lumotlar formasi", async ({ page }) => {
-    const fresh = "+998905550998";
-    await requestCode(page, fresh);
+  test("noto'g'ri kod rad etiladi, to'g'risi qabul qilinadi", async ({ page }) => {
+    await requestCode(page, phones.student);
     await enterCode(page, "123456");
     await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
+    await expect(page).toHaveURL("/uz/kirish");
     await enterCode(page, FIXED_CODE);
-    await expect(page.locator("#set-password")).toBeVisible();
-    // Zaif va mos kelmaydigan parol rad etiladi
-    await page.locator("#set-password").fill("qisqa");
-    await page.locator("#set-confirm").fill("qisqa");
-    await page.getByRole("button", { name: "Davom etish" }).click();
-    await expect(page.getByText("Parol kamida 8 ta belgi")).toBeVisible();
-    await page.locator("#set-password").fill("Yaxshi2026");
-    await page.locator("#set-confirm").fill("Yaxshi2027");
-    await page.getByRole("button", { name: "Davom etish" }).click();
-    await expect(page.getByText("Parollar bir xil emas")).toBeVisible();
-    await fillNewPassword(page);
-    await page.getByRole("button", { name: "Davom etish" }).click();
-    await expect(page).toHaveURL("/uz/talaba/royxat");
-    // Tasdiqlangan raqam formada tayyor turadi va o'zgartirib bo'lmaydi
-    await expect(page.locator("#reg-phone")).toHaveValue("90 555 09 98");
-    await expect(page.locator("#reg-phone")).toHaveAttribute("readonly", "");
-    await clearOtp(fresh);
+    await expect(page).toHaveURL(HOME.student);
   });
 
-  test("ma'lumotlar formasi parolsiz ochilmaydi — ro'yxat boshiga qaytaradi", async ({ page }) => {
-    await page.goto("/uz/talaba/royxat");
-    await expect(page).toHaveURL("/uz/kirish?royxat=talaba");
-    await expect(page.locator("#register-phone")).toBeVisible();
-    await page.goto("/uz/biznes/royxat");
-    await expect(page).toHaveURL("/uz/kirish?royxat=biznes");
-  });
-
-  test("ro'yxat kodi: 5 ta xato — kod bekor, raqam bloklanadi, yangi kod ham so'ralmaydi", async ({ page }) => {
-    const fresh = "+998905550993";
-    await requestCode(page, fresh);
+  test("5 ta xato urinish: kod bekor bo'ladi, raqam bloklanadi, to'g'ri kod va yangi kod so'rash ishlamaydi", async ({ page }) => {
+    await requestCode(page, phones.student);
     for (let i = 0; i < 4; i++) {
       await enterCode(page, "111111");
       await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
@@ -182,54 +78,53 @@ test.describe("kirish", () => {
     }
     await enterCode(page, "111111");
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
+    await expect(codeBox(page)).toBeEnabled();
+
     await enterCode(page, FIXED_CODE);
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
-    await expect(page.locator("#set-password")).toHaveCount(0);
+    await expect(page).toHaveURL("/uz/kirish");
 
+    // yangi kod so'rash ham blok tugaguncha rad etiladi
     await page.getByRole("button", { name: "Raqamni o'zgartirish" }).click();
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
-    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [fresh]));
+    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
     expect(codes.rows[0].n).toBe(1);
-    await clearOtp(fresh);
   });
 
-  test("kod bir martalik: ro'yxatda ishlatilgan kod yopiladi", async ({ page }) => {
-    const fresh = "+998905550994";
-    await registerPhone(page, fresh);
-    const consumed = await withDb((db) => db.query(`SELECT "consumedAt" FROM "OtpCode" WHERE phone = $1`, [fresh]));
-    expect(consumed.rows.length).toBeGreaterThan(0);
+  test("kod bir martalik: ishlatilgan kod bilan qayta kirib bo'lmaydi", async ({ page, context }) => {
+    await signIn(page, phones.student);
+    await expect(page).toHaveURL(HOME.student);
+    await context.clearCookies();
+    // Yangi kod so'ramasdan eski kodni yuboramiz: serverda u allaqachon yopilgan.
+    const consumed = await withDb((db) => db.query(`SELECT "consumedAt" FROM "OtpCode" WHERE phone = $1`, [phones.student]));
     expect(consumed.rows.every((row) => row.consumedAt !== null)).toBe(true);
-    await clearOtp(fresh);
   });
 
   test("60 soniya ichida ikkinchi kod yuborilmaydi", async ({ page }) => {
-    const fresh = "+998905550995";
-    await requestCode(page, fresh);
+    await requestCode(page, phones.student);
     await page.getByRole("button", { name: "Raqamni o'zgartirish" }).click();
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Kod hozirgina yuborildi")).toBeVisible();
-    const count = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [fresh]));
+    const count = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
     expect(count.rows[0].n).toBe(1);
-    await clearOtp(fresh);
   });
 
   test("bitta IP'dan soatiga 10 ta so'rovdan keyin kod yuborilmaydi", async ({ page }) => {
-    await requestCode(page, "+998905550995");
+    await requestCode(page, phones.student);
     // Shu brauzer IP'si nomidan yana 9 ta so'rov yozib qo'yamiz (jami 10)
-    await withDb((db) => db.query(`INSERT INTO "RateLimitHit" (id, key) SELECT 'e2e_hit_' || n, (SELECT key FROM "RateLimitHit" WHERE key LIKE 'otp-ip:%' LIMIT 1) FROM generate_series(1, 9) n`));
-    await page.goto("/uz/kirish?royxat=talaba", { waitUntil: "networkidle" });
-    await page.locator("#register-phone").fill("90 555 09 96");
+    await withDb((db) => db.query(`INSERT INTO "RateLimitHit" (id, key) SELECT 'e2e_hit_' || n, (SELECT key FROM "RateLimitHit" LIMIT 1) FROM generate_series(1, 9) n`));
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
+    await page.locator("#login-phone").fill("90 555 09 96");
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Juda ko'p so'rov yuborildi")).toBeVisible();
     const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = '+998905550996'`));
     expect(codes.rows[0].n).toBe(0);
-    await clearOtp("+998905550995");
   });
 
   test("faqat +998: boshqa davlat raqamiga kod yuborilmaydi", async ({ page }) => {
-    await page.goto("/uz/kirish?royxat=talaba", { waitUntil: "networkidle" });
-    await page.locator("#register-phone").fill("+7 904 123 78 56");
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
+    await page.locator("#login-phone").fill("+7 904 123 78 56");
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
     const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone LIKE '+7%' OR phone LIKE '%9041237856'`));
@@ -257,13 +152,13 @@ test.describe("kirish", () => {
   });
 
   test("noto'g'ri raqam uchun kod yuborilmaydi", async ({ page }) => {
-    await page.goto("/uz/kirish?royxat=talaba", { waitUntil: "networkidle" });
-    await page.locator("#register-phone").fill("90 412");
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
+    await page.locator("#login-phone").fill("90 412");
     await page.getByRole("button", { name: "SMS kod olish" }).click();
     await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
   });
 
-  test("bloklangan foydalanuvchi: to'g'ri paroldan keyingina 'bloklangan' deyiladi", async ({ page }) => {
+  test("bloklangan foydalanuvchi kira olmaydi", async ({ page }) => {
     const blocked = "+998905550999";
     await withDb((db) =>
       db.query(
@@ -273,163 +168,41 @@ test.describe("kirish", () => {
       ),
     );
     try {
-      await withDb((db) => db.query(`UPDATE "User" SET status = 'ACTIVE' WHERE phone = $1`, [blocked]));
-      await ensurePassword(blocked);
-      await withDb((db) => db.query(`UPDATE "User" SET status = 'BLOCKED' WHERE phone = $1`, [blocked]));
-      await clearLoginLimits();
-      await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-      await page.locator("#login-identifier").fill(local(blocked));
-      await page.locator("#login-password").fill("BoshqaParol1");
-      await page.getByRole("button", { name: "Kirish", exact: true }).click();
-      await expect(page.getByText("Raqam/email yoki parol noto'g'ri")).toBeVisible();
-      await page.locator("#login-password").fill(TEST_PASSWORD);
-      await page.getByRole("button", { name: "Kirish", exact: true }).click();
+      await requestCode(page, blocked);
+      await enterCode(page, FIXED_CODE);
       await expect(page.getByText("Bu hisob bloklangan")).toBeVisible();
       await expect(page).toHaveURL("/uz/kirish");
     } finally {
+      await clearOtp(blocked);
       await withDb((db) => db.query(`DELETE FROM "User" WHERE id = 'e2e_blocked'`));
     }
   });
 
-  test("biznes ro'yxati: telefon → kod → parol → ariza formasi (raqam o'zgartirib bo'lmaydi)", async ({ page }) => {
+  test("ro'yxatda yo'q raqam: kod tasdiqlangach ro'yxat formasiga o'tadi", async ({ page }) => {
+    const fresh = "+998905550998";
+    await signIn(page, fresh);
+    await expect(page).toHaveURL("/uz/talaba/royxat");
+    // Tasdiqlangan raqam formada tayyor turadi va o'zgartirib bo'lmaydi
+    await expect(page.locator("#reg-phone")).toHaveValue("90 555 09 98");
+    await expect(page.locator("#reg-phone")).toHaveAttribute("readonly", "");
+    await clearOtp(fresh);
+  });
+
+  test("biznes tabidan ro'yxatda yo'q raqam biznes ro'yxatiga o'tadi", async ({ page }) => {
     const fresh = "+998905550997";
-    await registerPhone(page, fresh, "Biznes");
+    await requestCode(page, fresh, "Biznes");
+    await enterCode(page, FIXED_CODE);
+    await expect(page).toHaveURL("/uz/biznes/royxat");
+    // Tasdiqlangan raqam ariza formasiga o'zgartirib bo'lmaydigan qilib qo'yiladi (2-qadam)
     await page.locator("#b1-name").fill("Test");
     await page.getByRole("button", { name: "Kafe / restoran" }).locator("visible=true").click();
     await page.locator("#b1-address").fill("Test ko'chasi 1");
+    await page.locator("#b1-hours").fill("09:00 – 18:00");
     await page.locator("#b1-tin").fill("309000997");
     await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
     await expect(page.locator("#b1-phone")).toHaveValue("90 555 09 97");
     await expect(page.locator("#b1-phone")).toHaveAttribute("readonly", "");
     await clearOtp(fresh);
-  });
-
-  test("ro'yxatda paroli bor raqam: kod tasdiqlangach 'hisob bor' deyiladi", async ({ page }) => {
-    await ensurePassword(phones.student);
-    await requestCode(page, phones.student);
-    await enterCode(page, FIXED_CODE);
-    await expect(page.getByText("Bu raqamda hisob bor")).toBeVisible();
-    await expect(page.locator("#set-password")).toHaveCount(0);
-    await clearOtp(phones.student);
-  });
-
-  test("parolsiz eski hisob: kirish rad etiladi; ro'yxat kodi bilan parol o'rnatib kiradi", async ({ page }) => {
-    const OLD = "+998905550983";
-    await withDb((db) => db.query(`INSERT INTO "User" (id, phone, role, "firstName", "updatedAt") VALUES ('e2e_nopw', $1, 'BUSINESS_OWNER', 'Eski', now()) ON CONFLICT DO NOTHING`, [OLD]));
-    try {
-      await clearLoginLimits();
-      await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-      await page.locator("#login-identifier").fill(local(OLD));
-      await page.locator("#login-password").fill(TEST_PASSWORD);
-      await page.getByRole("button", { name: "Kirish", exact: true }).click();
-      await expect(page.getByText("Raqam/email yoki parol noto'g'ri")).toBeVisible();
-      await expect(page.getByText("«Parolni unutdim» orqali parol o'rnating")).toBeVisible();
-
-      await requestCode(page, OLD, "Biznes");
-      await enterCode(page, FIXED_CODE);
-      await expect(page.getByRole("heading", { name: "Hisobingizga parol qo'ying" })).toBeVisible();
-      await fillNewPassword(page);
-      await page.getByRole("button", { name: "Saqlash va kirish" }).click();
-      await expect(page).toHaveURL("/uz/biznes");
-      const user = await withDb((db) => db.query(`SELECT "passwordHash", "passwordSetAt" FROM "User" WHERE id = 'e2e_nopw'`));
-      expect(user.rows[0].passwordHash).toMatch(/^scrypt:/);
-      expect(user.rows[0].passwordSetAt).not.toBeNull();
-    } finally {
-      await clearOtp(OLD);
-      await withDb((db) => db.query(`DELETE FROM "User" WHERE id = 'e2e_nopw'`));
-    }
-  });
-
-  test("parolsiz sessiya yoki admin tiklagan parol: ichkariga emas, /kirish/parol ga", async ({ page }) => {
-    await signIn(page, phones.student);
-    await expect(page).toHaveURL(HOME.student);
-    await withDb((db) => db.query(`UPDATE "User" SET "passwordResetRequired" = true WHERE phone = $1`, [phones.student]));
-    try {
-      await page.goto("/uz/chegirmalar");
-      await expect(page).toHaveURL("/uz/kirish/parol");
-      await expect(page.getByRole("heading", { name: "Yangi parol o'rnating" })).toBeVisible();
-      await fillNewPassword(page, TEST_PASSWORD, "own");
-      await page.getByRole("button", { name: "Saqlash", exact: true }).click();
-      await expect(page).toHaveURL(HOME.student);
-      const user = await withDb((db) => db.query(`SELECT "passwordResetRequired" FROM "User" WHERE phone = $1`, [phones.student]));
-      expect(user.rows[0].passwordResetRequired).toBe(false);
-    } finally {
-      await ensurePassword(phones.student);
-    }
-  });
-
-  test("parolni unutdim (SMS): kod → yangi parol → ichkarida, boshqa sessiyalar yopiladi", async ({ page, browser }) => {
-    const other = await browser.newPage();
-    await signIn(other, phones.owner);
-    await expect(other).toHaveURL(HOME.owner);
-    await clearOtp(phones.owner);
-    try {
-      await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-      await page.getByRole("button", { name: "Parolni unutdim" }).click();
-      await page.locator("#forgot-identifier").fill(local(phones.owner));
-      await page.getByRole("button", { name: "Kod olish" }).click();
-      await expect(page.getByText("Agar bunday hisob bo'lsa, kod yuborildi")).toBeVisible();
-      await enterCode(page, FIXED_CODE);
-      await expect(page.getByRole("heading", { name: "Yangi parol" })).toBeVisible();
-      await fillNewPassword(page, "Yangi2026parol");
-      await page.getByRole("button", { name: "Saqlash va kirish" }).click();
-      await expect(page).toHaveURL(HOME.owner);
-      // Boshqa brauzerdagi sessiya yopilgan
-      await other.goto("/uz/biznes");
-      await expect(other).toHaveURL("/uz/kirish");
-      const log = await withDb((db) =>
-        db.query(`SELECT meta FROM "AuditLog" WHERE action = 'user.password.reset' AND "entityId" = (SELECT id FROM "User" WHERE phone = $1) ORDER BY "createdAt" DESC LIMIT 1`, [phones.owner]),
-      );
-      expect(log.rows[0].meta).toMatchObject({ method: "phone", via: "web" });
-    } finally {
-      await other.close();
-      await withDb((db) => db.query(`UPDATE "User" SET "passwordHash" = NULL WHERE phone = $1`, [phones.owner]));
-      await ensurePassword(phones.owner);
-      await clearOtp(phones.owner);
-    }
-  });
-
-  test("parolni unutdim: hisobi yo'q raqam va email — bir xil javob, kod yuborilmaydi", async ({ page }) => {
-    await clearOtp("+998905550984");
-    await clearLoginLimits();
-    for (const identifier of ["90 555 09 84", "yoq-hisob@talabapass.uz"]) {
-      await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-      await page.getByRole("button", { name: "Parolni unutdim" }).click();
-      await page.locator("#forgot-identifier").fill(identifier);
-      await page.getByRole("button", { name: "Kod olish" }).click();
-      await expect(page.getByText("Agar bunday hisob bo'lsa, kod yuborildi"), identifier).toBeVisible();
-      await enterCode(page, FIXED_CODE);
-      await expect(page.getByText("Kod muddati o'tgan"), identifier).toBeVisible();
-    }
-    const codes = await withDb((db) =>
-      db.query(`SELECT (SELECT count(*) FROM "OtpCode" WHERE phone = '+998905550984')::int + (SELECT count(*) FROM "EmailCode" WHERE email = 'yoq-hisob@talabapass.uz')::int AS n`),
-    );
-    expect(codes.rows[0].n).toBe(0);
-  });
-
-  test("parolni unutdim (email): kod emailga, 5 ta xato — kod bekor", async ({ page }) => {
-    await withDb((db) => db.query(`UPDATE "User" SET email = 'owner.e2e@talabapass.uz' WHERE phone = $1`, [phones.owner]));
-    await clearOtp(phones.owner);
-    await clearLoginLimits();
-    try {
-      await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-      await page.getByRole("button", { name: "Parolni unutdim" }).click();
-      await page.locator("#forgot-identifier").fill("owner.e2e@talabapass.uz");
-      await page.getByRole("button", { name: "Kod olish" }).click();
-      await expect(page.getByText("owner.e2e@talabapass.uz manziliga yuborilgan kod")).toBeVisible();
-      const row = await withDb((db) => db.query(`SELECT extract(epoch FROM "expiresAt" - "createdAt")::float AS ttl FROM "EmailCode" WHERE email = 'owner.e2e@talabapass.uz'`));
-      expect(row.rows).toHaveLength(1);
-      expect(Math.round(row.rows[0].ttl / 60)).toBe(10);
-      for (let i = 0; i < 5; i++) {
-        await enterCode(page, "222222");
-        await expect(page.getByText(i < 4 ? "Kod noto'g'ri" : "Juda ko'p xato urinish")).toBeVisible();
-      }
-      await enterCode(page, FIXED_CODE);
-      await expect(page.getByRole("heading", { name: "Yangi parol" })).toHaveCount(0);
-    } finally {
-      await withDb((db) => db.query(`UPDATE "User" SET email = NULL WHERE phone = $1`, [phones.owner]));
-      await clearOtp(phones.owner);
-    }
   });
 
   test("chiqish sessiyani yopadi", async ({ page }) => {
@@ -445,7 +218,7 @@ test.describe("kirish", () => {
 });
 
 test.describe("rol himoyasi", () => {
-  const PROTECTED = ["/uz/chegirmalar", "/uz/kuponlar", "/uz/tarix", "/uz/profil", "/uz/profil/tahrir", "/uz/profil/guvohnoma", "/uz/yordam", "/uz/biznes/profil/tahrir", "/uz/biznes", "/uz/biznes/skaner", "/uz/biznes/chegirmalar", "/uz/biznes/chegirma/yangi", "/uz/biznes/profil", "/uz/biznes/kassirlar", "/uz/admin", "/uz/admin/talabalar", "/uz/admin/bizneslar", "/uz/admin/chegirmalar", "/uz/admin/tranzaksiyalar", "/uz/admin/bildirishnomalar", "/uz/admin/bloklanganlar", "/uz/admin/foydalanuvchilar", "/uz/admin/universitetlar", "/uz/admin/profil", "/uz/admin/hamkorlar", "/uz/admin/jurnal", "/uz/admin/landing", "/uz/bildirishnomalar", "/uz/biznes/bildirishnomalar", "/uz/talaba/guvohnoma", "/uz/talaba/tekshiruv", "/uz/buyurtmalar", "/uz/biznes/buyurtmalar", "/uz/biznes/sozlamalar", "/uz/kirish/parol"];
+  const PROTECTED = ["/uz/chegirmalar", "/uz/kuponlar", "/uz/tarix", "/uz/profil", "/uz/profil/tahrir", "/uz/profil/guvohnoma", "/uz/yordam", "/uz/biznes/profil/tahrir", "/uz/biznes", "/uz/biznes/skaner", "/uz/biznes/chegirmalar", "/uz/biznes/chegirma/yangi", "/uz/biznes/profil", "/uz/biznes/kassirlar", "/uz/admin", "/uz/admin/talabalar", "/uz/admin/bizneslar", "/uz/admin/chegirmalar", "/uz/admin/tranzaksiyalar", "/uz/admin/bildirishnomalar", "/uz/admin/bloklanganlar", "/uz/admin/foydalanuvchilar", "/uz/admin/universitetlar", "/uz/admin/profil", "/uz/bildirishnomalar", "/uz/biznes/bildirishnomalar", "/uz/talaba/guvohnoma", "/uz/talaba/tekshiruv", "/uz/buyurtmalar", "/uz/biznes/buyurtmalar", "/uz/biznes/sozlamalar"];
 
   test("kirmagan foydalanuvchi himoyalangan sahifalardan kirishga yo'naltiriladi", async ({ page }) => {
     test.setTimeout(180_000); // ko'p sahifa — dev serverda birinchi kompilyatsiya uzoq
@@ -457,9 +230,9 @@ test.describe("rol himoyasi", () => {
 
   // Har bir rol begona sahifani ochmoqchi bo'lganda qayerga tushishi
   const MATRIX = {
-    student: { "/uz/admin/foydalanuvchilar": "/uz/chegirmalar", "/uz/admin/hamkorlar": "/uz/chegirmalar", "/uz/admin/jurnal": "/uz/chegirmalar", "/uz/admin/landing": "/uz/chegirmalar", "/uz/admin/universitetlar": "/uz/chegirmalar", "/uz/admin/profil": "/uz/chegirmalar", "/uz/biznes/chegirma/yangi": "/uz/chegirmalar", "/uz/biznes/profil/tahrir": "/uz/chegirmalar", "/uz/biznes": "/uz/chegirmalar", "/uz/biznes/skaner": "/uz/chegirmalar", "/uz/admin": "/uz/chegirmalar", "/uz/admin/talabalar": "/uz/chegirmalar", "/uz/admin/bizneslar": "/uz/chegirmalar", "/uz/admin/tranzaksiyalar": "/uz/chegirmalar", "/uz/admin/bildirishnomalar": "/uz/chegirmalar", "/uz/admin/bloklanganlar": "/uz/chegirmalar", "/uz/biznes/bildirishnomalar": "/uz/chegirmalar", "/uz/biznes/buyurtmalar": "/uz/chegirmalar", "/uz/biznes/sozlamalar": "/uz/chegirmalar" },
-    owner: { "/uz/admin/foydalanuvchilar": "/uz/biznes", "/uz/admin/hamkorlar": "/uz/biznes", "/uz/admin/jurnal": "/uz/biznes", "/uz/admin/landing": "/uz/biznes", "/uz/admin/universitetlar": "/uz/biznes", "/uz/admin/profil": "/uz/biznes", "/uz/yordam": "/uz/biznes", "/uz/chegirmalar": "/uz/biznes", "/uz/profil": "/uz/biznes", "/uz/profil/tahrir": "/uz/biznes", "/uz/profil/guvohnoma": "/uz/biznes", "/uz/bildirishnomalar": "/uz/biznes", "/uz/admin": "/uz/biznes", "/uz/admin/bildirishnomalar": "/uz/biznes", "/uz/admin/tranzaksiyalar": "/uz/biznes", "/uz/biznes/skaner": "/uz/biznes/skaner", "/uz/buyurtmalar": "/uz/biznes" },
-    cashier: { "/uz/admin/foydalanuvchilar": "/uz/biznes/skaner", "/uz/admin/hamkorlar": "/uz/biznes/skaner", "/uz/admin/jurnal": "/uz/biznes/skaner", "/uz/admin/landing": "/uz/biznes/skaner", "/uz/admin/universitetlar": "/uz/biznes/skaner", "/uz/admin/profil": "/uz/biznes/skaner", "/uz/yordam": "/uz/biznes/skaner", "/uz/kuponlar": "/uz/biznes/skaner", "/uz/profil/tahrir": "/uz/biznes/skaner", "/uz/biznes/profil": "/uz/biznes/skaner", "/uz/biznes/profil/tahrir": "/uz/biznes/skaner", "/uz/biznes/kassirlar": "/uz/biznes/skaner", "/uz/biznes/chegirmalar": "/uz/biznes/skaner", "/uz/biznes/chegirma/yangi": "/uz/biznes/skaner", "/uz/chegirmalar": "/uz/biznes/skaner", "/uz/admin": "/uz/biznes/skaner", "/uz/biznes": "/uz/biznes/skaner", "/uz/admin/talabalar": "/uz/biznes/skaner", "/uz/admin/chegirmalar": "/uz/biznes/skaner", "/uz/admin/tranzaksiyalar": "/uz/biznes/skaner", "/uz/admin/bildirishnomalar": "/uz/biznes/skaner", "/uz/admin/bloklanganlar": "/uz/biznes/skaner", "/uz/bildirishnomalar": "/uz/biznes/skaner", "/uz/biznes/bildirishnomalar": "/uz/biznes/skaner", "/uz/biznes/buyurtmalar": "/uz/biznes/skaner", "/uz/biznes/sozlamalar": "/uz/biznes/skaner", "/uz/buyurtmalar": "/uz/biznes/skaner" },
+    student: { "/uz/admin/foydalanuvchilar": "/uz/chegirmalar", "/uz/admin/universitetlar": "/uz/chegirmalar", "/uz/admin/profil": "/uz/chegirmalar", "/uz/biznes/chegirma/yangi": "/uz/chegirmalar", "/uz/biznes/profil/tahrir": "/uz/chegirmalar", "/uz/biznes": "/uz/chegirmalar", "/uz/biznes/skaner": "/uz/chegirmalar", "/uz/admin": "/uz/chegirmalar", "/uz/admin/talabalar": "/uz/chegirmalar", "/uz/admin/bizneslar": "/uz/chegirmalar", "/uz/admin/tranzaksiyalar": "/uz/chegirmalar", "/uz/admin/bildirishnomalar": "/uz/chegirmalar", "/uz/admin/bloklanganlar": "/uz/chegirmalar", "/uz/biznes/bildirishnomalar": "/uz/chegirmalar", "/uz/biznes/buyurtmalar": "/uz/chegirmalar", "/uz/biznes/sozlamalar": "/uz/chegirmalar" },
+    owner: { "/uz/admin/foydalanuvchilar": "/uz/biznes", "/uz/admin/universitetlar": "/uz/biznes", "/uz/admin/profil": "/uz/biznes", "/uz/yordam": "/uz/biznes", "/uz/chegirmalar": "/uz/biznes", "/uz/profil": "/uz/biznes", "/uz/profil/tahrir": "/uz/biznes", "/uz/profil/guvohnoma": "/uz/biznes", "/uz/bildirishnomalar": "/uz/biznes", "/uz/admin": "/uz/biznes", "/uz/admin/bildirishnomalar": "/uz/biznes", "/uz/admin/tranzaksiyalar": "/uz/biznes", "/uz/biznes/skaner": "/uz/biznes/skaner", "/uz/buyurtmalar": "/uz/biznes" },
+    cashier: { "/uz/admin/foydalanuvchilar": "/uz/biznes/skaner", "/uz/admin/universitetlar": "/uz/biznes/skaner", "/uz/admin/profil": "/uz/biznes/skaner", "/uz/yordam": "/uz/biznes/skaner", "/uz/kuponlar": "/uz/biznes/skaner", "/uz/profil/tahrir": "/uz/biznes/skaner", "/uz/biznes/profil": "/uz/biznes/skaner", "/uz/biznes/profil/tahrir": "/uz/biznes/skaner", "/uz/biznes/kassirlar": "/uz/biznes/skaner", "/uz/biznes/chegirmalar": "/uz/biznes/skaner", "/uz/biznes/chegirma/yangi": "/uz/biznes/skaner", "/uz/chegirmalar": "/uz/biznes/skaner", "/uz/admin": "/uz/biznes/skaner", "/uz/biznes": "/uz/biznes/skaner", "/uz/admin/talabalar": "/uz/biznes/skaner", "/uz/admin/chegirmalar": "/uz/biznes/skaner", "/uz/admin/tranzaksiyalar": "/uz/biznes/skaner", "/uz/admin/bildirishnomalar": "/uz/biznes/skaner", "/uz/admin/bloklanganlar": "/uz/biznes/skaner", "/uz/bildirishnomalar": "/uz/biznes/skaner", "/uz/biznes/bildirishnomalar": "/uz/biznes/skaner", "/uz/biznes/buyurtmalar": "/uz/biznes/skaner", "/uz/biznes/sozlamalar": "/uz/biznes/skaner", "/uz/buyurtmalar": "/uz/biznes/skaner" },
     admin: { "/uz/yordam": "/uz/admin", "/uz/profil": "/uz/admin", "/uz/profil/guvohnoma": "/uz/admin", "/uz/biznes/profil/tahrir": "/uz/admin", "/uz/tarix": "/uz/admin", "/uz/chegirmalar": "/uz/admin", "/uz/bildirishnomalar": "/uz/admin", "/uz/biznes": "/uz/admin", "/uz/biznes/bildirishnomalar": "/uz/admin", "/uz/biznes/skaner": "/uz/admin", "/uz/buyurtmalar": "/uz/admin", "/uz/biznes/buyurtmalar": "/uz/admin" },
   } as const;
 

@@ -20,9 +20,6 @@ export type Me = {
   firstName: string | null;
   lastName: string | null;
   hasPassword: boolean;
-  /** true — ichkariga o'tishdan oldin parol o'rnatish/almashtirish majburiy (`POST /me/password`) */
-  mustSetPassword: boolean;
-  passwordChangedAt: string | null;
   student: {
     status: StudentStatus;
     publicId: string;
@@ -41,16 +38,17 @@ export type SignedIn = { tokens: TokenPair; user: Me };
 /** Ro'yxat turi: `cashier` — yangi raqamga biznes egasi kassir taklifini yuborgan ("Biznes" bilan kirilganda) */
 export type NewRole = Intent | "cashier";
 
-/** Ro'yxat kodi, "Parolni unutdim" kodi yoki Google/Apple yangi foydalanuvchisi → parol qadami */
-export type VerifyResult = { next: "setPassword"; ticket: string; role: NewRole; isNew: boolean; businessName?: string };
+export type VerifyResult =
+  | { next: "password"; ticket: string; role: Intent; masked: string; initial: string | null }
+  | { next: "setPassword"; ticket: string; role: NewRole; isNew: boolean; businessName?: string };
 
 export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "register"; registrationTicket: string; role: NewRole };
 
 export type SocialProvider = "GOOGLE" | "APPLE";
-/** Google/Apple: hisob bor — kirish; yo'q — avval parol (majburiy), keyin ro'yxat (`profile` — formani oldindan to'ldirish uchun) */
+/** Google/Apple: hisob bor — kirish; yo'q — SMS va parolsiz ro'yxat (`profile` — formani oldindan to'ldirish uchun) */
 export type SocialResult =
   | ({ next: "signedIn" } & SignedIn)
-  | { next: "setPassword"; role: Intent; ticket: string; profile: { firstName: string | null; lastName: string | null; email: string | null } };
+  | { next: "register"; role: Intent; registrationTicket: string; profile: { firstName: string | null; lastName: string | null; email: string | null } };
 
 export type University = { id: string; name: string; shortName: string; region: string; kind: string };
 
@@ -182,13 +180,7 @@ export const deviceName = (Constants.deviceName ?? (Platform.OS === "ios" ? "iOS
 export const authApi = {
   requestCode: (phone: string) => api<{ phone: string; resendInSeconds: number }>("/auth/code", { method: "POST", body: { phone }, auth: false }),
   verify: (phone: string, code: string, intent: Intent) => api<VerifyResult>("/auth/verify", { method: "POST", body: { phone, code, intent }, auth: false }),
-  /** Kirish SMSsiz: telefon raqam yoki email + parol */
-  login: (identifier: string, password: string) => api<SignedIn>("/auth/login", { method: "POST", body: { identifier, password, deviceName }, auth: false }),
-  /** "Parolni unutdim": javob hisob borligidan qat'i nazar bir xil */
-  forgot: (identifier: string) => api<{ channel: "sms" | "email"; resendInSeconds: number }>("/auth/forgot", { method: "POST", body: { identifier }, auth: false }),
-  forgotVerify: (identifier: string, code: string) => api<{ next: "setPassword"; ticket: string }>("/auth/forgot/verify", { method: "POST", body: { identifier, code }, auth: false }),
-  /** Kirgan foydalanuvchi: majburiy parol (joriysiz) yoki almashtirish (`current` bilan) */
-  mePassword: (password: string, confirm: string, current?: string) => api<{ user: Me }>("/me/password", { method: "POST", body: { password, confirm, current, deviceName } }),
+  login: (ticket: string, password: string) => api<SignedIn>("/auth/login", { method: "POST", body: { ticket, password, deviceName }, auth: false }),
   setPassword: (ticket: string, password: string, confirm: string) =>
     api<SetPasswordResult>("/auth/password", { method: "POST", body: { ticket, password, confirm, deviceName }, auth: false }),
   /** Google va Apple (iOS) — `idToken`; Apple Android web oqimi — `ticket` + `verifier` */

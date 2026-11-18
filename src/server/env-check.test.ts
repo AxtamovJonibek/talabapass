@@ -8,9 +8,6 @@ const SAFE = {
   AUTH_SECRET: "x".repeat(43),
   DATABASE_URL: "postgres://u:p@host/db",
   SMS_PROVIDER: "eskiz",
-  EMAIL_PROVIDER: "resend",
-  RESEND_API_KEY: "re_test",
-  EMAIL_FROM: "talabaPass <noreply@talabapass.uz>",
   STORAGE_LOCAL_DIR: "/var/lib/talabapass/files",
 };
 
@@ -58,17 +55,7 @@ describe("production muhit tekshiruvi", () => {
 
   it("barcha muammolar bitta xabarda sanab o'tiladi", () => {
     const problems = productionEnvProblems({ NODE_ENV: "production", OTP_FIXED_CODE: "000000", SMS_PROVIDER: "dev" });
-    expect(problems).toHaveLength(6);
-  });
-
-  it("email: resend kalit va jo'natuvchi bilan; dev va bo'sh — production'da to'xtaydi, staging'da ruxsat", () => {
-    expect(productionEnvProblems({ ...SAFE, RESEND_API_KEY: " " }).join()).toMatch(/RESEND_API_KEY/);
-    expect(productionEnvProblems({ ...SAFE, EMAIL_FROM: undefined }).join()).toMatch(/EMAIL_FROM/);
-    expect(productionEnvProblems({ ...SAFE, EMAIL_PROVIDER: "dev" }).join()).toMatch(/EMAIL_PROVIDER=dev/);
-    expect(productionEnvProblems({ ...SAFE, EMAIL_PROVIDER: undefined }).join()).toMatch(/EMAIL_PROVIDER o'rnatilmagan/);
-    expect(productionEnvProblems({ ...SAFE, EMAIL_PROVIDER: "smtp" }).join()).toMatch(/Noma'lum EMAIL_PROVIDER/);
-    expect(productionEnvProblems({ ...SAFE, APP_ENV: "staging", EMAIL_PROVIDER: "dev" }).join()).not.toMatch(/EMAIL/);
-    expect(productionEnvProblems({ ...SAFE, APP_ENV: "staging", EMAIL_PROVIDER: undefined }).join()).not.toMatch(/EMAIL/);
+    expect(problems).toHaveLength(5);
   });
 
   it("fayllar: lokal disk faqat absolyut STORAGE_LOCAL_DIR bilan", () => {

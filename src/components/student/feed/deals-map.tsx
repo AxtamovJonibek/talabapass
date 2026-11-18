@@ -109,7 +109,6 @@ export default function DealsMap({ deals, origin, now, className }: { deals: Fee
           <DirectionsButton
             name={deal.store}
             address={deal.address}
-            district={deal.district}
             landmark={deal.landmark}
             point={deal.point}
             distanceKm={deal.distanceKm}

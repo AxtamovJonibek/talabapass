@@ -6,22 +6,18 @@ import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { localizedPath, type Locale } from "@/i18n/routing";
 import { normalizePhone } from "@/lib/format";
-import { cleanPassword, isValidPassword, PASSWORD_MAX } from "@/lib/password";
-import { isAppRequest } from "../app-mode";
-import { hashPassword, savePassword } from "../auth/password";
 import { confirmPhone } from "../auth/phone-check";
-import { db } from "../db";
 import { createSession, forgetVerifiedPhone, requireRole } from "../auth/session";
 import { acceptInvite, createInvite, removeCashier, revokeInvite, type AcceptError } from "../business/cashiers";
 import type { AuthError } from "./auth";
 
-export type InviteActionResult = { ok: true; path: string; expiresAt: string } | { ok: false; error: "notApproved" | "tooMany" | "noPermission" };
+export type InviteActionResult = { ok: true; path: string; expiresAt: string } | { ok: false; error: "notApproved" | "tooMany" };
 
 /** B5 "+ Taklif qilish": bir martalik, 48 soatlik havola (token faqat shu javobda ko'rinadi). */
 export async function createInviteAction(): Promise<InviteActionResult> {
   const user = await requireRole("BUSINESS_OWNER");
   const result = await createInvite(user.id);
-  if (!result.ok) return result;
+  if (!result.ok) return { ok: false, error: result.error === "noPermission" ? "notApproved" : result.error };
   return { ok: true, path: localizedPath(`/kassir/${result.token}`, (await getLocale()) as Locale), expiresAt: result.expiresAt.toISOString() };
 }
 
@@ -42,18 +38,16 @@ const acceptSchema = z.object({
   phone: z.string().max(32),
   firstName: z.string().max(80),
   lastName: z.string().max(80),
-  password: z.string().max(PASSWORD_MAX * 2),
-  confirm: z.string().max(PASSWORD_MAX * 2),
   code: z.string().max(12).optional(),
 });
 
-export type AcceptField = "phone" | "firstName" | "lastName" | "password" | "confirm";
+export type AcceptField = "phone" | "firstName" | "lastName";
 export type AcceptResult =
   | { ok: false; fields: AcceptField[] }
   | { ok: false; error: AuthError | AcceptError; retryInSeconds?: number }
   | { ok: true; step: "code"; phone: string; retryInSeconds?: number };
 
-/** Kassir taklifini qabul qilish: ism, raqam, parol → SMS kod → kassir hisobi (parol bilan) va sessiya → skaner. */
+/** Kassir taklifini qabul qilish: ism, raqam → SMS kod → kassir hisobi va sessiya → skaner. */
 export async function acceptInviteAction(raw: unknown): Promise<AcceptResult> {
   const input = acceptSchema.safeParse(raw);
   if (!input.success) return { ok: false, error: "invalid" };
@@ -64,8 +58,6 @@ export async function acceptInviteAction(raw: unknown): Promise<AcceptResult> {
   if (!phone) fields.push("phone");
   if (!NAME.test(firstName)) fields.push("firstName");
   if (!NAME.test(lastName)) fields.push("lastName");
-  if (!isValidPassword(input.data.password)) fields.push("password");
-  else if (cleanPassword(input.data.password) !== cleanPassword(input.data.confirm)) fields.push("confirm");
   if (!phone || fields.length > 0) return { ok: false, fields };
 
   const check = await confirmPhone(phone, input.data.code);
@@ -74,11 +66,7 @@ export async function acceptInviteAction(raw: unknown): Promise<AcceptResult> {
 
   const accepted = await acceptInvite(input.data.token, phone, { firstName, lastName });
   if (!accepted.ok) return { ok: false, error: accepted.error };
-  const userAgent = (await headers()).get("user-agent");
-  // Kirish SMSsiz (raqam + parol): taklifda o'rnatilgan parol — raqam SMS bilan tasdiqlangan
-  const { passwordHash } = await db.user.findUniqueOrThrow({ where: { id: accepted.userId }, select: { passwordHash: true } });
-  await savePassword(accepted.userId, hashPassword(input.data.password), passwordHash ? "reset" : "set", { via: (await isAppRequest()) ? "app" : "web", userAgent });
   await forgetVerifiedPhone();
-  await createSession(accepted.userId, userAgent);
+  await createSession(accepted.userId, (await headers()).get("user-agent"));
   return redirect({ href: "/biznes/skaner", locale: await getLocale() });
 }

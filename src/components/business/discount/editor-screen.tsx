@@ -12,7 +12,6 @@ type Props = {
   images: { id: string; url: string }[];
   initial: DiscountDraft | null;
   today: string;
-  workingHours: string;
   category: Category;
   businessName: string;
   statusText: string | null;
@@ -22,7 +21,7 @@ type Props = {
 };
 
 /** Chegirma muharriri: bitta holat, ikki ko'rinish (B2 telefon, WB2 veb). */
-export function DiscountEditorScreen({ id, images, initial, today, workingHours, hint, ...view }: Props) {
-  const e = useDiscountEditor({ id, initial, images, today, workingHours });
+export function DiscountEditorScreen({ id, images, initial, today, hint, ...view }: Props) {
+  const e = useDiscountEditor({ id, initial, images, today });
   return <PhoneOrWeb phone={<EditorMobile e={e} {...view} />} web={<EditorWeb e={e} hint={hint} {...view} />} />;
 }

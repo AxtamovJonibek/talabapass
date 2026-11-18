@@ -4,10 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { OwnerBottomNav } from "@/components/business/owner-nav";
 import { ScannerScreen } from "@/components/cashier/scanner-screen";
 import { Icon } from "@/components/ui/icon";
-import { formatMinute, toTashkent } from "@/lib/time";
+import { formatMinute, fromTashkent, toTashkent } from "@/lib/time";
 import { logoutAction } from "@/server/actions/auth";
 import { requireRole } from "@/server/auth/session";
-import { scannerFor, scannerSummary, shortName } from "@/server/coupons/scan";
+import { scannerFor } from "@/server/coupons/scan";
+import { db } from "@/server/db";
+
+const short = (first?: string | null, last?: string | null) => [first, last ? `${last.charAt(0)}.` : null].filter(Boolean).join(" ");
 
 // B3 / B4 — kassir skaneri (egasi ham skanerlay oladi). Biznes faqat sessiyadan (`scannerFor`).
 async function ScannerContent() {
@@ -40,14 +43,22 @@ async function ScannerContent() {
     );
   }
 
-  const { todaySales, lastSale } = await scannerSummary(scanner);
+  const today = fromTashkent(toTashkent(new Date()).date);
+  const [todaySales, last] = await Promise.all([
+    db.redemption.count({ where: { businessId: scanner.businessId, createdAt: { gte: today } } }),
+    db.redemption.findFirst({
+      where: { businessId: scanner.businessId },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true, student: { select: { firstName: true, lastName: true } }, coupon: { select: { termsTitle: true } } },
+    }),
+  ]);
 
   return (
     <ScannerScreen
       business={{ name: scanner.businessName, initial: scanner.businessName.trim().charAt(0).toUpperCase() }}
-      cashierName={shortName(user.firstName, user.lastName)}
+      cashierName={short(user.firstName, user.lastName)}
       todaySales={todaySales}
-      lastSale={lastSale ? { student: lastSale.student, item: lastSale.item, time: formatMinute(toTashkent(lastSale.at).minute) } : null}
+      lastSale={last ? { student: short(last.student.firstName, last.student.lastName), item: last.coupon.termsTitle, time: formatMinute(toTashkent(last.createdAt).minute) } : null}
       footer={footer}
     />
   );

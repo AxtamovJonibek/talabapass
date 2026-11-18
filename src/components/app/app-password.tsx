@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { PasswordBox, StrengthBars } from "@/components/ui/app-code";
 import {
   AppLabel,
   AppLead,
+  AppLogo,
   AppScreen,
   AppTitle,
   BackArrow,
   FieldNote,
+  FooterButton,
+  Highlight,
   IconTile,
   RoleChip,
   StepBars,
@@ -25,6 +28,78 @@ type Common = {
   pending: boolean;
   errorText: string | null;
 };
+
+/** 12 · Parol bilan kirish (hisob topildi). */
+export function PasswordScreen({
+  masked,
+  initial,
+  onSubmit,
+  onForgot,
+  onOtherPhone,
+  onBack,
+  pending,
+  errorText,
+}: Common & { masked: string; initial: string | null; onSubmit: (password: string) => void; onForgot: () => void; onOtherPhone: () => void }) {
+  const t = useTranslations("app.login");
+  const common = useTranslations("app");
+  const [password, setPassword] = useState("");
+
+  return (
+    <AppScreen>
+      <TopBar>
+        <BackArrow label={common("back")} onClick={onBack} />
+        <AppLogo />
+      </TopBar>
+      <form
+        className="flex flex-1 flex-col"
+        action={() => {
+          if (password) onSubmit(password);
+        }}
+      >
+        <div className="mt-9">
+          <div className="flex items-center gap-3.5">
+            <span className="flex size-15 -rotate-6 items-center justify-center rounded-full bg-green-bright text-24 font-black">
+              {initial ?? <Icon name="user" size={26} strokeWidth={2.4} />}
+            </span>
+            <span className="flex flex-col gap-0.5">
+              <span className="text-14 font-semibold text-muted">{t("found")}</span>
+              <span className="text-20 font-extrabold tabular-nums">{masked}</span>
+            </span>
+          </div>
+          <AppTitle size={42} className="mt-6">
+            {t.rich("passwordTitle", { hl: (chunks: ReactNode) => <Highlight tone="orange">{chunks}</Highlight> })}
+          </AppTitle>
+        </div>
+
+        <div className="mt-7 flex flex-col">
+          <AppLabel htmlFor="app-password">{t("passwordLabel")}</AppLabel>
+          <PasswordBox
+            id="app-password"
+            name="password"
+            value={password}
+            onChange={setPassword}
+            autoComplete="current-password"
+            height={64}
+            invalid={Boolean(errorText)}
+            autoFocus
+            toggleLabels={{ show: t("showPassword"), hide: t("hidePassword") }}
+          />
+          {errorText ? <FieldNote error>{errorText}</FieldNote> : null}
+          <button type="button" onClick={onForgot} className="mt-1.5 flex min-h-11 items-center self-start border-0 bg-transparent p-0 font-sans text-15 font-extrabold text-blue underline">
+            {t("forgot")}
+          </button>
+        </div>
+
+        <button type="submit" disabled={pending} aria-busy={pending} className={buttonClass({ variant: "blue", size: "app", strong: true, block: true }, "mt-3")}>
+          {pending ? t("signingIn") : t("signIn")}
+          <Icon name="arrowRight" size={22} strokeWidth={2.4} />
+        </button>
+        <div className="flex-1" />
+        <FooterButton lead={t("otherNumber")} onClick={onOtherPhone} />
+      </form>
+    </AppScreen>
+  );
+}
 
 /** 7 · Parol o'rnatish (yangi raqam, parolsiz eski hisob) va "Parolni unutdim" — B5 ParolBiznes ham shu (yorliq rolga qarab). */
 export function SetPasswordScreen({

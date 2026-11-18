@@ -160,7 +160,6 @@ export default function Profile() {
           }
         />
         <Row label={copy.language} onPress={() => router.push("/lang?from=profile")} right={<Txt style={{ fontSize: 14, color: colors.muted }}>{langName()}</Txt>} />
-        <Row label={p.password} onPress={() => router.push("/auth/password?mode=change")} />
         <Row label={p.help} onPress={() => router.push("/help")} last />
       </View>
 

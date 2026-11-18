@@ -1,8 +1,7 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { Fragment } from "react";
 import { useTranslations } from "next-intl";
-import { Icon } from "@/components/ui/icon";
-import { isIconName } from "@/components/ui/icons";
+import { ICONS, isIconName } from "@/components/ui/icons";
 import { useDealText } from "@/components/student/feed/labels";
 import type { FeedDeal } from "@/lib/feed";
 import { Link } from "@/i18n/navigation";
@@ -14,7 +13,7 @@ export function LiveDeals({ items, now }: { items: FeedDeal[]; now: Date }) {
   const text = useDealText();
   const deals = items.map((d) => ({
     ...d,
-    icon: isIconName(d.icon) ? d.icon : ("bowl" as const),
+    icon: ICONS[isIconName(d.icon) ? d.icon : "bowl"],
     store: [d.store, d.district].filter(Boolean).join(" · "),
     price: d.price ? `${formatSom(d.price.now)} ${text.currency}` : text.note(d, true),
     old: d.price?.old ? formatSom(d.price.old) : "",
@@ -40,9 +39,9 @@ export function LiveDeals({ items, now }: { items: FeedDeal[]; now: Date }) {
                   // eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili
                   <img src={d.images[0]} alt="" loading="lazy" style={{ position: "absolute", inset: "0", width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px" }} />
                 ) : (
-                  <span style={{ color: d.ink, display: "flex" }}>
-                    <Icon name={d.icon} size={74} />
-                  </span>
+                  <svg aria-hidden="true" width="74" height="74" viewBox="0 0 24 24" fill="none" stroke={d.ink} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={d.icon} />
+                  </svg>
                 )}
                 <span style={{ position: "absolute", left: "-4px", top: "-6px", background: "var(--color-orange)", fontWeight: 900, fontStretch: "65%", fontSize: "26px", lineHeight: 1, padding: "5px 9px 3px", borderRadius: "8px", transform: "rotate(-5deg)" }}>
                   {d.badge}

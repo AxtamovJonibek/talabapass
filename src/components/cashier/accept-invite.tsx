@@ -3,14 +3,13 @@
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { CodeEntry, OTP_LENGTH, RESEND_SECONDS } from "@/components/auth/code-entry";
-import { NewPasswordFields } from "@/components/auth/new-password-fields";
 import { Button } from "@/components/ui/button";
 import { Field, Input, PhoneInput } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
 import { acceptInviteAction, type AcceptField } from "@/server/actions/cashiers";
 
-type Values = { phone: string; firstName: string; lastName: string; password: string; confirm: string };
+type Values = { phone: string; firstName: string; lastName: string };
 
 /** Kassir taklifini qabul qilish (dizaynda chizilmagan — B1 sarlavhasi va kirish sahifasidagi kod bloki). */
 export function AcceptInvite({ token, businessName }: { token: string; businessName: string }) {
@@ -93,13 +92,7 @@ export function AcceptInvite({ token, businessName }: { token: string; businessN
         <form
           className="mt-6 flex flex-1 flex-col gap-3"
           action={(form) =>
-            send({
-              phone: String(form.get("phone") ?? ""),
-              firstName: String(form.get("firstName") ?? ""),
-              lastName: String(form.get("lastName") ?? ""),
-              password: String(form.get("password") ?? ""),
-              confirm: String(form.get("confirm") ?? ""),
-            })
+            send({ phone: String(form.get("phone") ?? ""), firstName: String(form.get("firstName") ?? ""), lastName: String(form.get("lastName") ?? "") })
           }
         >
           <div className="grid grid-cols-2 gap-2.5">
@@ -113,8 +106,6 @@ export function AcceptInvite({ token, businessName }: { token: string; businessN
           <Field label={t("phone")} htmlFor="inv-phone" error={fieldError("phone") ?? error}>
             <PhoneInput id="inv-phone" name="phone" defaultValue={values?.phone} invalid={invalid.includes("phone")} />
           </Field>
-          {/* Kirish SMSsiz: raqam + shu parol (dizaynda chizilmagan — sayt kirishidagi parol maydonlari) */}
-          <NewPasswordFields idPrefix="inv" autoFocus={false} errorText={fieldError("password") ?? fieldError("confirm")} mismatch={invalid.includes("confirm")} />
           <Button type="submit" variant="orange" spread block disabled={pending} aria-busy={pending} className="mt-auto">
             <span>{pending ? auth("sending") : t("submit")}</span>
             <Icon name="arrowRight" size={22} strokeWidth={2.2} />

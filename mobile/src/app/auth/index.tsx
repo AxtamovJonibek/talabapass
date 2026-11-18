@@ -17,7 +17,7 @@ type Methods = NonNullable<AppConfig["auth"]>;
 const ALL: Methods = { phone: true, google: true, apple: true };
 
 /**
- * Auth (design/app-flow/Auth.dc.html): Google, Apple, "yoki", telefon raqam yoki email → Kirish (parol); "Ro'yxatdan o'tish" — telefon → SMS kod → parol. Apple tugmasi DOIM ko'rinadi:
+ * Auth (design/app-flow/Auth.dc.html): Google, Apple, "yoki", telefon raqam → AuthTelefon. Apple tugmasi DOIM ko'rinadi:
  * iOS — rasmiy `AppleAuthenticationButton`, Android — Apple'ning rasmiy belgisi bilan qora tugma (web oqimi). Serverda
  * sozlanmagan bo'lsa bosilganda "Apple orqali kirib bo'lmadi…" chiqadi. Google va telefon — `GET /app-config` `auth` bo'yicha.
  */
@@ -109,7 +109,7 @@ export default function Auth() {
         ) : null}
 
         {methods.phone ? (
-          <Press onPress={() => router.push(`/auth/login?intent=${intent}`)} disabled={busy !== null} accessibilityRole="button" style={[styles.method, styles.phone]}>
+          <Press onPress={() => router.push(`/auth/phone?intent=${intent}`)} disabled={busy !== null} accessibilityRole="button" style={[styles.method, styles.phone]}>
             <Icon name="mobile" size={26} strokeWidth={2} color={colors.blue} />
             <Txt style={[font(800), styles.methodText]}>{a.phone}</Txt>
             <Icon name="chevronRight" size={20} strokeWidth={2.4} />
@@ -119,10 +119,7 @@ export default function Auth() {
         <ErrorBox>{error}</ErrorBox>
       </View>
 
-      {methods.phone ? (
-        <FooterLink lead={copy.login.noAccount} action={copy.login.registerAction} onPress={() => router.push(`/auth/phone?intent=${intent}`)} style={styles.footer} />
-      ) : null}
-      <FooterLink lead={intent === "business" ? copy.login.studentQuestion : copy.login.businessQuestion} action={copy.login.here} onPress={() => void switchRole()} style={methods.phone ? styles.second : styles.footer} />
+      <FooterLink lead={intent === "business" ? copy.login.studentQuestion : copy.login.businessQuestion} action={copy.login.here} onPress={() => void switchRole()} style={styles.footer} />
       <Consent />
     </Screen>
   );
@@ -159,5 +156,4 @@ const styles = StyleSheet.create({
   dash: { flex: 1, borderTopWidth: 2, borderStyle: "dashed", borderColor: colors.line },
   or: { fontSize: 13, color: colors.muted2 },
   footer: { marginTop: 18 },
-  second: { marginTop: 8 },
 });

@@ -3,18 +3,47 @@
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Chip } from "@/components/ui/chip";
 import { Icon } from "@/components/ui/icon";
 import { toast } from "@/components/ui/toast";
-import { cn } from "@/lib/cn";
-import { defaultRouteMode, detectPlatform, directionsUrl, DIRECTIONS_PROVIDERS, formatDistance, type DirectionsProvider, type Platform } from "@/lib/directions";
+import {
+  defaultRouteMode,
+  detectPlatform,
+  directionsUrl,
+  formatDistance,
+  orderProviders,
+  ROUTE_MODES,
+  type DirectionsProvider,
+  type Platform,
+  type RouteMode,
+} from "@/lib/directions";
 import type { Point } from "@/lib/geo";
+import { formatMetroDistance, nearestMetro } from "@/lib/transit/metro";
 
-/** Rasmiy belgilar (o'zgartirilmagan; ilovadagi `mobile/assets/brands` bilan bir xil fayllar, manba — SOURCE.md) */
+const PROVIDER_KEY = "tp:yonalish";
+const MODE_KEY = "tp:yonalish-turi";
+
 const LOGOS: Record<DirectionsProvider, string> = {
-  yandex: "/brands/yandex-maps.png",
-  google: "/brands/google-maps.png",
-  yandexGo: "/brands/yandex-go.png",
+  yandex: "/brands/yandex-maps.svg",
+  google: "/brands/google-maps.svg",
+  yandexGo: "/brands/yandex-go.svg",
 };
+
+function read(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function write(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // saqlab bo'lmasa — keyingi safar standart tanlov, xolos
+  }
+}
 
 async function copyText(text: string): Promise<boolean> {
   try {
@@ -38,8 +67,6 @@ async function copyText(text: string): Promise<boolean> {
 type Props = {
   name: string;
   address: string;
-  /** Tuman ("Chilonzor") — manzil ostida, masofa bilan */
-  district?: string | null;
   /** Biznes mo'ljali ("Chilonzor metrosidan 5 daqiqa") — bo'lsa oynada ko'rsatiladi */
   landmark?: string | null;
   point: Point | null;
@@ -49,87 +76,111 @@ type Props = {
 };
 
 /**
- * "Borish · 6 km" tugmasi va "Qanday borasiz?" oynasi (T5 / WT3 manzil qatori, xaritadagi tanlangan joy) — ilovadagi
- * oyna bilan bir xil: manzil (tuman · masofa, mo'ljal) va "Nusxalash", pastda 3 katak — Yandex Xaritalar, Google Maps,
- * Yandex Go (rasmiy belgilar). Marshrut turi tanlanmaydi: 1 km dan yaqin — piyoda, aks holda jamoat transporti
- * (`defaultRouteMode`). Havolalar `src/lib/directions.ts` da (ilova bo'lsa ilova, bo'lmasa sayt). Dizaynda chizilmagan.
+ * "Borish · 6 km" tugmasi va "Qanday boraman?" oynasi (T5 / WT3 manzil qatori, xaritadagi tanlangan joy): tepada biznes,
+ * manzil, masofa, eng yaqin metro va mo'ljal; marshrut turi (mashinada / jamoat transporti / piyoda); Yandex Xaritalar,
+ * Google Maps, taksi (Yandex Go), manzilni nusxalash. Havolalar `src/lib/directions.ts` da (ilova bo'lsa ilova, bo'lmasa sayt —
+ * foydalanuvchiga aytilmaydi). Oxirgi tanlangan xizmat va tur eslab qolinadi. Dizaynda chizilmagan.
  */
-export function DirectionsButton({ name, address, district = null, landmark, point, distanceKm, className }: Props) {
+export function DirectionsButton({ name, address, landmark, point, distanceKm, className }: Props) {
   const t = useTranslations("directions");
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [recent, setRecent] = useState<string | null>(null);
+  const [mode, setMode] = useState<RouteMode>(() => defaultRouteMode(null, distanceKm));
   const [platform, setPlatform] = useState<Platform>("desktop");
 
   const show = () => {
-    setCopied(false);
+    setRecent(read(PROVIDER_KEY));
+    setMode(defaultRouteMode(read(MODE_KEY), distanceKm));
     setPlatform(detectPlatform(navigator.userAgent, navigator.maxTouchPoints));
     setOpen(true);
   };
 
-  const mode = defaultRouteMode(null, distanceKm);
+  const pickMode = (next: RouteMode) => {
+    setMode(next);
+    write(MODE_KEY, next);
+  };
+
   const target = { point, address };
-  const options = DIRECTIONS_PROVIDERS.flatMap((p) => {
+  const options = orderProviders(recent).flatMap((p) => {
     const href = directionsUrl(p, target, platform, mode);
     return href ? [{ provider: p, href }] : [];
   });
-  const sub = [district, distanceKm !== null ? formatDistance(distanceKm) : null].filter(Boolean).join(" · ");
+  const metro = point ? nearestMetro(point) : null;
 
   const copy = async () => {
-    const ok = await copyText([address, district].filter(Boolean).join(", "));
-    if (ok) setCopied(true);
-    else toast(t("copyFailed"), "info");
+    const ok = await copyText([name, address].join(", "));
+    setOpen(false);
+    toast(ok ? t("copied") : t("copyFailed"), ok ? "ok" : "info");
   };
 
+  const row = "tp-row flex min-h-13 items-center gap-3 rounded-14 bg-white px-3 py-2 text-ink no-underline";
   return (
     <>
       <button ref={trigger} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={show} className={className} data-testid="directions-open">
-        <Icon name="navigate" size={16} />
+        <Icon name="navigate" size={15} strokeWidth={2.4} />
         {distanceKm !== null ? t("button", { distance: formatDistance(distanceKm) }) : t("buttonShort")}
       </button>
-      <BottomSheet open={open} onClose={() => setOpen(false)} title={t("title")} closeLabel={t("close")} anchor={trigger} width={380}>
-        <div className="flex flex-col gap-2.5 px-4 pb-2">
-          <div className="flex items-center gap-3 rounded-18 bg-white py-3 pr-2 pl-4" data-testid="directions-place">
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="sr-only">{name}</span>
-              <span className="text-15 font-extrabold">{address}</span>
-              {sub ? <span className="text-13 font-semibold text-muted">{sub}</span> : null}
-              {landmark ? (
-                <span className="text-13 font-semibold text-muted" data-testid="directions-landmark">
-                  {t("landmark", { text: landmark })}
-                </span>
-              ) : null}
-            </span>
-            <button
-              type="button"
-              onClick={copy}
-              aria-live="polite"
-              className={cn("tp-lift flex h-11 shrink-0 items-center gap-1.5 rounded-14 border-0 px-3.5 font-sans text-14 font-extrabold", copied ? "bg-green-bg text-green" : "bg-paper text-ink")}
-            >
-              {copied ? <Icon name="check" size={16} /> : null}
-              {copied ? t("copied") : t("copy")}
-            </button>
+      <BottomSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t("title")}
+        closeLabel={t("close")}
+        anchor={trigger}
+        width={380}
+        description={
+          <span className="flex flex-col gap-1 text-ink" data-testid="directions-place">
+            <span className="text-15 font-bold">{name}</span>
+            <span className="text-13 text-muted">{address}</span>
+            {distanceKm !== null || metro ? (
+              <span className="flex flex-wrap gap-x-3 gap-y-0.5 text-13 font-semibold">
+                {distanceKm !== null ? <span>{t("away", { distance: formatDistance(distanceKm) })}</span> : null}
+                {metro ? <span data-testid="directions-metro">{t("metro", { station: metro.name, distance: formatMetroDistance(metro.km) })}</span> : null}
+              </span>
+            ) : null}
+            {landmark ? <span className="text-13 text-muted" data-testid="directions-landmark">{t("landmark", { text: landmark })}</span> : null}
+          </span>
+        }
+      >
+        <div className="flex flex-col gap-3 px-4 pb-2">
+          <div role="radiogroup" aria-label={t("modeLabel")} className="flex flex-wrap gap-1.5">
+            {ROUTE_MODES.map((m) => (
+              <Chip key={m} selected={mode === m} role="radio" aria-checked={mode === m} aria-pressed={undefined} size="sm" onClick={() => pickMode(m)}>
+                {t(`modes.${m}`)}
+              </Chip>
+            ))}
           </div>
-          <ul aria-label={t("options")} className="m-0 grid list-none grid-cols-3 gap-2 p-0">
+          <ul aria-label={t("options")} className="m-0 flex list-none flex-col gap-1.5 p-0">
             {options.map(({ provider, href }) => (
               <li key={provider}>
                 <a
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    write(PROVIDER_KEY, provider);
+                    setOpen(false);
+                  }}
                   data-provider={provider}
-                  className="tp-card flex h-full flex-col items-center gap-2.5 rounded-20 bg-white px-1.5 pt-4 pb-3.5 text-center text-ink no-underline"
+                  className={row}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- rasmiy belgi (public/brands, o'zgartirilmagan) */}
-                  <img src={LOGOS[provider]} alt={t("logo", { name: t(`providers.${provider}`) })} width={52} height={52} className="block size-13 object-contain" />
-                  <span className="text-13 leading-[16px] font-extrabold whitespace-pre-line">
-                    {t(`cell.${provider}`)}
-                    {provider === "yandexGo" ? <span className="block font-semibold text-muted">{t("taxi")}</span> : null}
+                  <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-10 border-hair border-line-soft bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- kichik SVG logotip, optimallashtirish kerak emas */}
+                    <img src={LOGOS[provider]} alt="" width={provider === "yandexGo" ? 36 : 22} height={provider === "yandexGo" ? 36 : 22} className="block" />
                   </span>
+                  <span className="flex-1 text-15 font-bold">{t(`providers.${provider}`)}</span>
+                  {provider === recent ? <span className="rounded-6 bg-info-bg px-1.5 py-[3px] text-11 font-bold text-blue">{t("recent")}</span> : null}
                 </a>
               </li>
             ))}
+            <li>
+              <button type="button" onClick={copy} className={`${row} w-full text-left font-sans`}>
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-10 bg-surface">
+                  <Icon name="copy" size={18} strokeWidth={2.2} />
+                </span>
+                <span className="flex-1 text-15 font-bold">{t("copy")}</span>
+              </button>
+            </li>
           </ul>
         </div>
       </BottomSheet>

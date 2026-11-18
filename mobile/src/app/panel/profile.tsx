@@ -97,7 +97,6 @@ export default function BusinessProfile() {
 
   const rows = (
     <>
-      <Row label={copy.profile.password} onPress={() => router.push("/auth/password?mode=change")} />
       <Row label={copy.profile.logout} danger onPress={logout} />
       <View style={styles.extra}>
         <Row label={copy.language} value={langName()} onPress={() => router.push("/lang?from=profile")} />

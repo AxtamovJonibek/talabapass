@@ -94,7 +94,7 @@ export async function createUserAction(_prev: SuperState, formData: FormData): P
     const v = formData.get(k);
     return typeof v === "string" ? v : "";
   };
-  const r = await createUser(admin.id, { role: field("role"), firstName: field("firstName"), lastName: field("lastName"), phone: field("phone"), email: field("email") });
+  const r = await createUser(admin.id, { role: field("role"), firstName: field("firstName"), lastName: field("lastName"), phone: field("phone"), email: field("email"), password: field("password") });
   if (!r.ok) return { status: "error", error: r.error, fields: r.fields ?? [] };
   refresh(USERS);
   return { status: "saved", id: r.id };

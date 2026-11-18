@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { PermissionNotice } from "@/components/business/permission-notice";
 import { getLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { PageSkeleton } from "@/components/state/page-skeleton";
@@ -39,18 +38,12 @@ async function EditContent() {
       phone={
         <div className="px-5 pt-[50px] pb-5">
           {head}
-          <div className="mb-4">
-            <PermissionNotice ownerId={user.id} only={["canEditProfile", "canEditContacts"]} />
-          </div>
           <BusinessEditForm initial={initial} logoUrl={logoUrl} idPrefix="bp" />
         </div>
       }
       web={
         <section className="max-w-[560px] rounded-22 bg-white p-5">
           {head}
-          <div className="mb-4">
-            <PermissionNotice ownerId={user.id} only={["canEditProfile", "canEditContacts"]} />
-          </div>
           <BusinessEditForm initial={initial} logoUrl={logoUrl} idPrefix="bw" />
         </section>
       }
