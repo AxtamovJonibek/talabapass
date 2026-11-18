@@ -61,7 +61,7 @@ export function LoginScreen({ returning = false }: { returning?: boolean }) {
       <View style={styles.hero}>
         {returning ? (
           <View style={styles.badge}>
-            <Icon name="homeIn" size={48} strokeWidth={2.4} />
+            <Icon name="house" size={48} strokeWidth={2.4} />
           </View>
         ) : null}
         <Title text={returning ? l.returningTitle : l.loginTitle} size={returning ? 44 : 46} />

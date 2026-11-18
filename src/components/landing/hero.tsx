@@ -1,5 +1,6 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { Fragment } from "react";
+import { Icon } from "@/components/ui/icon";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { miniQr } from "./mini-qr";
@@ -25,9 +26,7 @@ export function Hero() {
         <div style={{ marginTop: "clamp(18px, 3.2vh, 30px)", display: "flex", flexWrap: "wrap", gap: "10px" }}>
           <Link className="tp-btn tp-stamp" href="/talaba/royxat" style={{ height: "58px", padding: "0 24px", borderRadius: "16px", background: "var(--color-blue)", color: "var(--color-white)", display: "flex", alignItems: "center", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
             {t("talaba_sifatida_boshlash")}
-            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
+            <Icon name="arrowRight" size={20} />
           </Link>
           <a className="tp-btn tp-paint" href="#biznes" style={{ height: "58px", padding: "0 22px", borderRadius: "16px", border: "1.5px solid var(--color-ink)", color: "var(--color-ink)", display: "flex", alignItems: "center", textDecoration: "none", fontWeight: 700, fontSize: "17px", background: "var(--color-white)" }}>
             {t("men_biznes_egasiman")}
@@ -65,9 +64,7 @@ export function Hero() {
             </div>
             <div style={{ background: "var(--color-white)", borderRadius: "12px", padding: "8px", display: "flex", gap: "8px" }}>
               <div style={{ width: "54px", height: "54px", borderRadius: "9px", background: "var(--color-tile-xizmat)", position: "relative", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1E2A9E" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z" />
-                </svg>
+                <span style={{ display: "flex", color: "var(--color-tint-xizmat)" }}><Icon name="print" size={28} /></span>
                 <span style={{ position: "absolute", left: "-4px", top: "-5px", background: "var(--color-orange)", fontWeight: 900, fontStretch: "70%", fontSize: "11px", padding: "2px 4px", borderRadius: "4px", transform: "rotate(-6deg)" }}>
                   −40%
                 </span>
@@ -83,9 +80,7 @@ export function Hero() {
             </div>
             <div style={{ background: "var(--color-white)", borderRadius: "12px", padding: "8px", display: "flex", gap: "8px" }}>
               <div style={{ width: "54px", height: "54px", borderRadius: "9px", background: "var(--color-tile-kino)", position: "relative", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5B2479" strokeWidth="1.4" strokeLinejoin="round">
-                  <path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10" />
-                </svg>
+                <span style={{ display: "flex", color: "var(--color-tint-kino)" }}><Icon name="ticket" size={28} /></span>
                 <span style={{ position: "absolute", left: "-4px", top: "-5px", background: "var(--color-orange)", fontWeight: 900, fontStretch: "70%", fontSize: "11px", padding: "2px 4px", borderRadius: "4px", transform: "rotate(-6deg)" }}>
                   −44%
                 </span>
@@ -101,9 +96,7 @@ export function Hero() {
             </div>
             <div style={{ background: "var(--color-white)", borderRadius: "12px", padding: "8px", display: "flex", gap: "8px" }}>
               <div style={{ width: "54px", height: "54px", borderRadius: "9px", background: "var(--color-tile-sport)", position: "relative", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#145A33" strokeWidth="1.4" strokeLinecap="round">
-                  <path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12" />
-                </svg>
+                <span style={{ display: "flex", color: "var(--color-tint-sport)" }}><Icon name="gym" size={28} /></span>
                 <span style={{ position: "absolute", left: "-4px", top: "-5px", background: "var(--color-orange)", fontWeight: 900, fontStretch: "70%", fontSize: "11px", padding: "2px 4px", borderRadius: "4px", transform: "rotate(-6deg)" }}>
                   −36%
                 </span>

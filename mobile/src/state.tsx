@@ -1,6 +1,6 @@
 import { router, type Href } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { dropTokens, onSignedOut, setTokens } from "@/api/client";
+import { dropTokens, hasSession, onSignedOut, setTokens } from "@/api/client";
 import { authApi, type Intent, type LocalFile, type Me, type SignedIn, type VerifyResult } from "@/api/endpoints";
 import { clearOffline, rememberMe } from "@/lib/offline";
 import { forgetLastPhone, getLastPhone, setLastPhone } from "@/storage";
@@ -116,6 +116,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setFlowState(initialFlow());
     resetTo((await getLastPhone()) ? "/auth/returning" : "/auth");
   }, []);
+
+  // Ilova ichki manzildan ochilsa (push havolasi, web) ishga tushish ekrani (`index.tsx`) chetlab o'tiladi —
+  // sessiya bo'lsa foydalanuvchi shu yerda yuklanadi (aks holda tablar `me` ni kutib bo'sh qolardi)
+  useEffect(() => {
+    void hasSession().then((ok) => {
+      if (ok && !meRef.current) reloadMe().catch(() => undefined);
+    });
+  }, [reloadMe]);
 
   // Server sessiyani yopdi (refresh rad etildi, bloklandi, boshqa qurilmada parol tiklandi) — kirish ekraniga
   useEffect(

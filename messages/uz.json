@@ -442,27 +442,25 @@
   "directions": {
     "button": "Borish · {distance}",
     "buttonShort": "Borish",
-    "title": "Qanday boraman?",
+    "title": "Qanday borasiz?",
     "close": "Yopish",
-    "away": "{distance} uzoqlikda",
-    "metro": "{station} metrosidan ~{distance}",
     "landmark": "Mo'ljal: {text}",
-    "modeLabel": "Marshrut turi",
-    "modes": {
-      "car": "Mashinada",
-      "transit": "Jamoat transporti",
-      "walk": "Piyoda"
-    },
     "options": "Qayerda ochish",
     "providers": {
       "yandex": "Yandex Xaritalar",
       "google": "Google Maps",
-      "yandexGo": "Taksi chaqirish"
+      "yandexGo": "Yandex Go"
     },
-    "recent": "Oxirgi ishlatilgan",
-    "copy": "Manzilni nusxalash",
+    "copy": "Nusxalash",
     "copied": "Nusxalandi",
-    "copyFailed": "Nusxalab bo'lmadi"
+    "copyFailed": "Nusxalab bo'lmadi",
+    "cell": {
+      "yandex": "Yandex\nXaritalar",
+      "google": "Google\nMaps",
+      "yandexGo": "Yandex Go"
+    },
+    "taxi": "taksi",
+    "logo": "{name} rasmiy belgisi"
   },
   "course": {
     "label": "Kurs",

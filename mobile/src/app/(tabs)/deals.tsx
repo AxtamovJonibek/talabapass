@@ -101,7 +101,7 @@ export default function Deals() {
         />
         {q ? (
           <Pressable onPress={() => setQ("")} accessibilityRole="button" accessibilityLabel={f.clearSearch} style={styles.clear} hitSlop={4}>
-            <Icon name="x" size={18} strokeWidth={2.4} color={colors.muted} />
+            <Icon name="close" size={18} strokeWidth={2.4} color={colors.muted} />
           </Pressable>
         ) : null}
         <Press onPress={() => setSheet("sort")} accessibilityRole="button" accessibilityLabel={f.sortOpen} scale={0.94} style={styles.sortButton}>

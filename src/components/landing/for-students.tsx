@@ -1,5 +1,6 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useTranslations } from "next-intl";
+import { Icon } from "@/components/ui/icon";
 
 export function ForStudents() {
   const t = useTranslations("landing.students");
@@ -17,39 +18,28 @@ export function ForStudents() {
         </p>
         <ul style={{ listStyle: "none", margin: "28px 0 0", padding: "0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))", gap: "22px 28px" }}>
           <li style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" />
-              <circle cx="12" cy="9.5" r="2.5" />
-            </svg>
+            <span style={{ display: "flex", color: "var(--color-blue)" }}><Icon name="pin" size={28} /></span>
             <b style={{ fontSize: "18px" }}>{t("yoningdagi_chegirmalar")}</b>
             <span style={{ fontSize: "15px", color: "var(--color-muted)", lineHeight: 1.5 }}>
               {t("xarita_va_masofa_bilan")}
             </span>
           </li>
           <li style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
+            <span style={{ display: "flex", color: "var(--color-blue)" }}><Icon name="clock" size={28} /></span>
             <b style={{ fontSize: "18px" }}>{t("vaqtini_bilib_tur")}</b>
             <span style={{ fontSize: "15px", color: "var(--color-muted)", lineHeight: 1.5 }}>
               {t("qaysi_chegirma_hozir_ishlayapti")}
             </span>
           </li>
           <li style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6" />
-            </svg>
+            <span style={{ display: "flex", color: "var(--color-blue)" }}><Icon name="receipt" size={28} /></span>
             <b style={{ fontSize: "18px" }}>{t("tejaganing_hisoblanadi")}</b>
             <span style={{ fontSize: "15px", color: "var(--color-muted)", lineHeight: 1.5 }}>
               {t("har_bir_xarid_chek")}
             </span>
           </li>
           <li style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2433D6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
-              <path d="M9 12l2 2 4-4" />
-            </svg>
+            <span style={{ display: "flex", color: "var(--color-blue)" }}><Icon name="shieldCheck" size={28} /></span>
             <b style={{ fontSize: "18px" }}>{t("faqat_talabalar_uchun")}</b>
             <span style={{ fontSize: "15px", color: "var(--color-muted)", lineHeight: 1.5 }}>
               {t("har_bir_foydalanuvchi_guvohnomasi")}

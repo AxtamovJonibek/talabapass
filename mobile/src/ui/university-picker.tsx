@@ -40,7 +40,7 @@ export function UniversityPicker({ visible, onClose, onPick }: { visible: boolea
         <View style={styles.header}>
           <Txt style={[font(900, 112), { fontSize: 26 }]}>{s.university}</Txt>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={copy.back} style={styles.close} hitSlop={6}>
-            <Icon name="x" size={24} strokeWidth={2.4} />
+            <Icon name="close" size={24} strokeWidth={2.4} />
           </Pressable>
         </View>
 

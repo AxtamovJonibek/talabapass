@@ -333,7 +333,7 @@ export function Sheet({
             <Txt accessibilityRole="header" style={[font(900, 112), styles.flex1, { fontSize: titleSize, lineHeight: titleSize + 4, letterSpacing: em(titleSize, -0.02) }]}>
               {title}
             </Txt>
-            {close ? <RoundButton icon="x" label={copy.feed.location.close} onPress={onClose} /> : null}
+            {close ? <RoundButton icon="close" label={copy.feed.location.close} onPress={onClose} /> : null}
           </View>
           {body}
         </View>

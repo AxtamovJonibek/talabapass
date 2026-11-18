@@ -304,7 +304,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
               <Image source={{ uri: imageUrl(img.url) }} style={styles.image} accessibilityIgnoresInvertColors />
               {!ended ? (
                 <Press onPress={() => removeServerImage(img.id)} accessibilityRole="button" accessibilityLabel={e.removeImage} style={styles.remove} hitSlop={6}>
-                  <Icon name="x" size={16} color={colors.white} strokeWidth={3} />
+                  <Icon name="close" size={16} color={colors.white} strokeWidth={3} />
                 </Press>
               ) : null}
             </View>
@@ -313,7 +313,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
             <View key={file.uri}>
               <Image source={{ uri: file.uri }} style={[styles.image, styles.imagePending]} accessibilityIgnoresInvertColors />
               <Press onPress={() => setPending((p) => p.filter((_, k) => k !== i))} accessibilityRole="button" accessibilityLabel={e.removeImage} style={styles.remove} hitSlop={6}>
-                <Icon name="x" size={16} color={colors.white} strokeWidth={3} />
+                <Icon name="close" size={16} color={colors.white} strokeWidth={3} />
               </Press>
             </View>
           ))}

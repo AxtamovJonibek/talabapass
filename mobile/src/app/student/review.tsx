@@ -74,7 +74,7 @@ export default function StudentReview() {
           <Step
             marker={
               <View style={[styles.marker, { backgroundColor: colors.danger }]}>
-                <Icon name="x" size={16} strokeWidth={3.4} color={colors.white} />
+                <Icon name="close" size={16} strokeWidth={3.4} color={colors.white} />
               </View>
             }
             line={colors.line}

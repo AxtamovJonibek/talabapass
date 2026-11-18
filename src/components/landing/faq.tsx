@@ -1,6 +1,7 @@
 "use client";
 
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
+import { Icon } from "@/components/ui/icon";
 import { Fragment, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -15,7 +16,7 @@ export function Faq() {
       q: t(`items.${id}.q`),
       a: t(`items.${id}.a`),
       open,
-      icon: open ? "M5 12h14" : "M12 5v14M5 12h14",
+      icon: open ? ("minus" as const) : ("plus" as const),
       btnBg: open ? "var(--color-ink)" : "var(--color-white)",
       btnFg: open ? "var(--color-white)" : "var(--color-ink)",
       toggle: () => setOpenIndex(open ? -1 : i),
@@ -38,9 +39,7 @@ export function Faq() {
               <button type="button" onClick={f.toggle} aria-expanded={f.open} style={{ width: "100%", minHeight: "72px", padding: "16px 0", border: "0", background: "transparent", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", textAlign: "left", fontFamily: "inherit", fontSize: "clamp(18px, 1.8cqw, 22px)", fontWeight: 800, color: "var(--color-ink)" }}>
                 <span>{f.q}</span>
                 <span style={{ width: "36px", height: "36px", borderRadius: "18px", background: f.btnBg, color: f.btnFg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-                    <path d={f.icon} />
-                  </svg>
+                  <Icon name={f.icon} size={16} />
                 </span>
               </button>
               {f.open ? (

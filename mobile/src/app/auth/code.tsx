@@ -81,7 +81,7 @@ export default function Code() {
       </TopBar>
 
       <View style={styles.hero}>
-        <IconTile icon="sms" />
+        <IconTile icon="message" />
         <Title text={l.codeTitle} size={42} style={styles.title} />
         <Lead text={email ? l.codeLeadEmail(target) : l.codeLead(target)} style={styles.lead} />
         {reset ? <Note style={styles.note}>{l.resetSent}</Note> : null}

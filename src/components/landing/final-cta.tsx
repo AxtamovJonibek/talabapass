@@ -1,5 +1,6 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import { useTranslations } from "next-intl";
+import { Icon } from "@/components/ui/icon";
 import { Link } from "@/i18n/navigation";
 
 export function FinalCta() {
@@ -15,15 +16,11 @@ export function FinalCta() {
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", minWidth: "min(300px, 100%)" }}>
             <Link className="tp-btn tp-stamp [--tp-shadow:var(--color-white)]" href="/talaba/royxat" style={{ height: "58px", padding: "0 22px", borderRadius: "16px", background: "var(--color-ink)", color: "var(--color-white)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
               {t("talaba_sifatida_boshlash")}
-              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
+              <Icon name="arrowRight" size={20} />
             </Link>
             <Link className="tp-btn tp-stamp" href="/biznes/royxat" style={{ height: "58px", padding: "0 22px", borderRadius: "16px", background: "var(--color-white)", color: "var(--color-ink)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", textDecoration: "none", fontWeight: 800, fontSize: "17px" }}>
               {t("biznesni_ulash")}
-              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
+              <Icon name="arrowRight" size={20} />
             </Link>
           </div>
         </div>

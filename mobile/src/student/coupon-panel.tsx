@@ -195,7 +195,7 @@ export function CouponPanel({ coupon: initial }: { coupon: CouponView }) {
 
       <Txt style={[styles.hint, offline ? { color: colors.greenOk } : null]}>{offline ? c.offline : c.hint}</Txt>
       <ErrorBox>{error}</ErrorBox>
-      <SecondaryButton icon="x" danger disabled={busy} onPress={cancel} style={styles.cancel}>
+      <SecondaryButton icon="close" danger disabled={busy} onPress={cancel} style={styles.cancel}>
         {c.cancel}
       </SecondaryButton>
     </View>

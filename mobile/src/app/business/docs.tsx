@@ -200,7 +200,7 @@ export default function BusinessDocs() {
                 <View key={i} style={[styles.photo, photo.uri ? null : styles.photoServer]}>
                   {photo.uri ? <Image source={{ uri: photo.uri }} style={styles.photoImage} /> : <Icon name="tick" size={26} strokeWidth={3} color={colors.greenOk} />}
                   <Pressable onPress={() => void removePhoto(i)} accessibilityRole="button" accessibilityLabel={b.removePhoto} style={styles.photoRemove} hitSlop={8}>
-                    <Icon name="x" size={14} strokeWidth={3} color={colors.white} />
+                    <Icon name="close" size={14} strokeWidth={3} color={colors.white} />
                   </Pressable>
                 </View>
               );

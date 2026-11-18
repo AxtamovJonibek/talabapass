@@ -161,7 +161,7 @@ export default function Scan() {
             <>
               <Card style={styles.errorCard}>
                 <View style={styles.errorIcon}>
-                  <Icon name="x" size={34} color={colors.white} strokeWidth={3.2} />
+                  <Icon name="close" size={34} color={colors.white} strokeWidth={3.2} />
                 </View>
                 <Txt style={[font(900, 112), styles.errorTitle]}>{sc.failed}</Txt>
                 <Txt style={[font(700), styles.errorText]}>{state.message}</Txt>
