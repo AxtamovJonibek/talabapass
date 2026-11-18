@@ -98,7 +98,7 @@ export function ProfilePage({ profile, discounts, cashiers }: { profile: OwnerPr
 }
 
 /** Kassirlar (B5 bloki alohida sahifada). */
-export function CashiersPage({ cashiers }: { cashiers: OwnerCashiers }) {
+export function CashiersPage({ cashiers, notice }: { cashiers: OwnerCashiers; notice?: ReactNode }) {
   return (
     <OwnerFrame
       tab="profile"
@@ -106,11 +106,13 @@ export function CashiersPage({ cashiers }: { cashiers: OwnerCashiers }) {
       phone={
         <div className="px-4 pt-14 pb-5">
           <BackLink href="/biznes/profil" variant="text" className="mb-1" />
+          {notice ? <div className="mb-3">{notice}</div> : null}
           <CashierList data={cashiers} />
         </div>
       }
       web={
-        <div className="max-w-[640px]">
+        <div className="flex max-w-[640px] flex-col gap-3">
+          {notice}
           <CashierList data={cashiers} />
         </div>
       }

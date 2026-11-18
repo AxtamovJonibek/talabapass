@@ -76,7 +76,7 @@ export function useDiscountEditor({ id, initial, images: savedImages, today, wor
   const [perStudent, setPerStudent] = useState<DiscountDraft["perStudentLimit"]>(initial?.perStudentLimit ?? "DAILY");
   const [period, setPeriod] = useState(formatDateRange(initial?.startsOn ?? today, initial?.endsOn ?? addDays(today, 30), today));
   const [errors, setErrors] = useState<Partial<Record<DiscountField, DiscountProblem>>>({});
-  const [failure, setFailure] = useState<"noBusiness" | "notFound" | "notEditable" | null>(null);
+  const [failure, setFailure] = useState<"noBusiness" | "notFound" | "notEditable" | "noPermission" | "activeLimit" | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   // Birinchi saqlashdan keyin id shu yerda: rasm yuklash xato bo'lsa, qayta bosish yangi chegirma ochmaydi

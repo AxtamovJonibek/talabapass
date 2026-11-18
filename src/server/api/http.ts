@@ -86,6 +86,8 @@ const STATUS: Record<ApiErrorCode, number> = {
   account_exists: 409,
   preorder_no_schedule: 400,
   preorder_no_price: 409,
+  permission_denied: 403,
+  active_limit: 409,
 };
 
 export class ApiError extends Error {

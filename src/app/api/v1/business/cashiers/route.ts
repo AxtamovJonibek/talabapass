@@ -23,6 +23,9 @@ export const POST = route(async (request) => {
   const phone = normalizePhone(raw);
   if (!phone) throw new ApiError("invalid_phone");
   const result = await invitePhone(user.id, phone);
-  if (!result.ok) throw new ApiError(result.error === "tooMany" ? "too_many_invites" : result.error === "alreadyCashier" ? "already_cashier" : "business_not_ready");
+  if (!result.ok)
+    throw new ApiError(
+      result.error === "tooMany" ? "too_many_invites" : result.error === "alreadyCashier" ? "already_cashier" : result.error === "noPermission" ? "permission_denied" : "business_not_ready",
+    );
   return ok({ invite: { id: result.inviteId, phone, expiresAt: result.expiresAt.toISOString() } }, 201);
 });

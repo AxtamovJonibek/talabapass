@@ -10,7 +10,20 @@ import { blockedCounts } from "@/server/admin/overview";
 import { pendingCounts } from "@/server/admin/review";
 import type { CurrentUser } from "@/server/auth/session";
 
-export type AdminSection = "overview" | "students" | "businesses" | "discounts" | "transactions" | "notifications" | "blocked" | "users" | "universities" | "profile";
+export type AdminSection =
+  | "overview"
+  | "students"
+  | "businesses"
+  | "discounts"
+  | "transactions"
+  | "notifications"
+  | "blocked"
+  | "users"
+  | "partners"
+  | "journal"
+  | "landing"
+  | "universities"
+  | "profile";
 
 const ITEMS = [
   { key: "overview", href: "/admin", icon: "grid" },
@@ -23,6 +36,10 @@ const ITEMS = [
   { key: "blocked", href: "/admin/bloklanganlar", icon: "ban" },
   // Dizaynda yo'q — admin boshqaruvi (mavjud primitivlardan)
   { key: "users", href: "/admin/foydalanuvchilar", icon: "users" },
+  // Super admin: biznes boshqaruvi (ruxsatlar, statistika, chegirmalar), faoliyat jurnali, landing
+  { key: "partners", href: "/admin/hamkorlar", icon: "store" },
+  { key: "journal", href: "/admin/jurnal", icon: "clock" },
+  { key: "landing", href: "/admin/landing", icon: "globe" },
   { key: "universities", href: "/admin/universitetlar", icon: "student" },
   { key: "profile", href: "/admin/profil", icon: "user" },
 ] as const;

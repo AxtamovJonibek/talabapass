@@ -2,6 +2,7 @@ import "server-only";
 import { LANDMARK_MAX, validateBusiness, validateContacts, type BusinessField, type ContactField } from "@/lib/business";
 import { audit } from "../audit";
 import { db } from "../db";
+import { permissionsOf } from "./permissions";
 import { districtFromAddress } from "./registration";
 
 /** Aloqa maydonlari (`phone`, `telegram`, `instagram`) va mo'ljal ixtiyoriy: berilmasa — o'zgarmaydi; bo'sh qator — o'chiradi. */
@@ -17,7 +18,7 @@ export type EditableInfo = {
 };
 export const EDIT_FIELDS = ["name", "address", "workingHours", "description"] as const satisfies readonly BusinessField[];
 
-export type EditResult = { ok: true; rereview: boolean } | { ok: false; fields: (BusinessField | ContactField | "landmark")[] } | { ok: false; error: "notEditable" };
+export type EditResult = { ok: true; rereview: boolean } | { ok: false; fields: (BusinessField | ContactField | "landmark")[] } | { ok: false; error: "notEditable" | "noPermission" };
 
 const clean = (v: string) => v.trim().replace(/\s+/g, " ");
 
@@ -52,6 +53,11 @@ export async function editBusinessInfo(ownerId: string, input: EditableInfo): Pr
     : [];
   const landmarkChanged = landmark !== undefined && landmark !== business.landmark ? ["landmark"] : [];
   if (changed.length === 0 && contactChanged.length === 0 && landmarkChanged.length === 0) return { ok: true, rereview: false };
+  // Admin cheklovi: ma'lumotlar (nom, manzil, ish vaqti, tavsif, mo'ljal) va aloqa — alohida ruxsatlar
+  const permissions = await permissionsOf(business.id);
+  if ((!permissions.canEditProfile && (changed.length > 0 || landmarkChanged.length > 0)) || (!permissions.canEditContacts && contactChanged.length > 0)) {
+    return { ok: false, error: "noPermission" };
+  }
 
   const districtId = info.address !== business.address ? await districtFromAddress(info.address) : business.districtId;
   await db.$transaction(async (tx) => {

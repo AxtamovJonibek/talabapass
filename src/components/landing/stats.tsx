@@ -3,10 +3,13 @@ import { useTranslations } from "next-intl";
 import { formatMln, formatSom } from "@/lib/format";
 import { statsVisible, type LandingStats } from "@/lib/landing";
 
-/** Raqamlar bazadan (`landingStats`); `STATS_MIN` dan kichik bo'lsa bo'lim umuman chiqmaydi. */
-export function Stats({ stats }: { stats: LandingStats }) {
+/**
+ * Raqamlar bazadan (`landingStatsSection`); avtomatik rejimda `STATS_MIN` dan kichik bo'lsa bo'lim chiqmaydi, admin qo'lda
+ * kiritgan raqamlar (`force`) — doim.
+ */
+export function Stats({ stats, force = false }: { stats: LandingStats; force?: boolean }) {
   const t = useTranslations("landing.stats");
-  if (!statsVisible(stats)) return null;
+  if (!force && !statsVisible(stats)) return null;
   return (
     <section aria-label={t("raqamlarda")} style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(56px, 8cqw, 110px) clamp(16px, 4cqw, 48px) 0" }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(240px, 100%), 1fr))", gap: "12px" }}>

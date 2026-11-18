@@ -7,7 +7,7 @@ import { discountDraftSchema as draftSchema, saveDiscount, setDiscountActive } f
 
 export type SaveDiscountActionResult =
   | { ok: true; id: string }
-  | { ok: false; error: "noBusiness" | "notFound" | "notEditable" }
+  | { ok: false; error: "noBusiness" | "notFound" | "notEditable" | "noPermission" | "activeLimit" }
   | { ok: false; errors: Partial<Record<DiscountField, DiscountProblem>> };
 
 /** B2 / WB2 — "Qoralama" yoki "E'lon qilish". Muvaffaqiyatda id qaytadi: klient rasmlarni yuklab, ro'yxatga o'tadi. */
@@ -22,7 +22,7 @@ export async function saveDiscountAction(discountId: string | null, raw: unknown
 }
 
 /** B5 — chegirma yonidagi switch: faolni to'xtatish / to'xtatilganni yoqish. */
-export async function setDiscountActiveAction(discountId: string, active: boolean): Promise<{ ok: boolean }> {
+export async function setDiscountActiveAction(discountId: string, active: boolean): Promise<{ ok: boolean; error?: "notEditable" | "activeLimit" }> {
   const user = await requireRole("BUSINESS_OWNER");
-  return { ok: await setDiscountActive(user.id, z.string().max(40).parse(discountId), active === true) };
+  return setDiscountActive(user.id, z.string().max(40).parse(discountId), active === true);
 }

@@ -8,7 +8,10 @@ import { localizedPath } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 import { formatContact } from "@/lib/format";
 import { BUSINESS_KINDS } from "@/lib/business";
+import { CreateUserForm, UserActions } from "@/components/admin/super/controls";
+import { AccountPanel, JournalList } from "@/components/admin/super/panels";
 import { businessFull, listUsers, lookups, PAGE_SIZE, userDetail, type UserRole } from "@/server/admin/directory";
+import { entityJournal, userAccount } from "@/server/admin/super";
 import { requireRole } from "@/server/auth/session";
 
 const ROLES = ["STUDENT", "BUSINESS_OWNER", "CASHIER"] as const satisfies readonly UserRole[];
@@ -36,12 +39,15 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
   const page = Math.max(1, Number.parseInt(first(query.sahifa), 10) || 1);
   const id = first(query.id).slice(0, 40);
 
-  const [t, kinds, list, detail, refs] = await Promise.all([
+  const [t, kinds, list, detail, refs, account, activity, sup] = await Promise.all([
     getTranslations("adminManage"),
     getTranslations("businessKind"),
     listUsers({ role, q, page }),
     id ? userDetail(id) : Promise.resolve(null),
     lookups(),
+    id ? userAccount(id) : Promise.resolve(null),
+    id ? entityJournal("User", id) : Promise.resolve([]),
+    getTranslations("adminSuper"),
   ]);
   const business = detail?.ownedBusinesses[0] ? await businessFull(detail.ownedBusinesses[0].id) : null;
   const pages = Math.max(1, Math.ceil(list.total / PAGE_SIZE));
@@ -78,6 +84,12 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
               {t("search")}
             </button>
           </form>
+          <details className="rounded-12 bg-paper px-3.5 py-2.5">
+            <summary className="cursor-pointer text-14 font-bold">{sup("create.title")}</summary>
+            <div className="pt-3">
+              <CreateUserForm />
+            </div>
+          </details>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[420px] border-collapse text-14">
               <thead>
@@ -134,6 +146,11 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
                 {detail.status === "BLOCKED" && detail.blockedReason ? <div className="mt-1 text-13 font-bold text-danger">{t("users.blockedReason", { reason: detail.blockedReason })}</div> : null}
                 {detail.universityRequests[0] ? <div className="mt-1 text-13 font-bold text-warn">{t("users.pendingRequest", { name: detail.universityRequests[0].name })}</div> : null}
               </div>
+              {account ? <AccountPanel userId={detail.id} account={account} /> : null}
+              <section className="flex flex-col gap-2" aria-label={sup("actions.title")}>
+                <h3 className="m-0 text-15 font-extrabold">{sup("actions.title")}</h3>
+                <UserActions key={detail.id} userId={detail.id} blocked={detail.status === "BLOCKED"} role={detail.role} listHref={href({ rol: role, q })} />
+              </section>
               <UserEditForm
                 key={detail.id}
                 userId={detail.id}
@@ -161,7 +178,12 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
               />
               {business ? (
                 <>
-                  <h3 className="m-0 mt-2 text-16 font-extrabold">{t("users.businessTitle")}</h3>
+                  <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="m-0 text-16 font-extrabold">{t("users.businessTitle")}</h3>
+                    <Link href={`/admin/hamkorlar?id=${business.id}`} className="tp-link text-13 font-bold text-ink">
+                      {sup("partners.title")} →
+                    </Link>
+                  </div>
                   <BusinessAdminForm
                     key={business.id}
                     kindLabels={kindLabels}
@@ -185,23 +207,8 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
                   />
                 </>
               ) : null}
-              <div>
-                <h3 className="m-0 mb-2 text-14 font-extrabold">{t("users.history")}</h3>
-                {detail.logs.length === 0 ? (
-                  <p className="m-0 text-13 text-muted">{t("users.noHistory")}</p>
-                ) : (
-                  <ul className="m-0 flex list-none flex-col gap-1 p-0">
-                    {detail.logs.map((l) => (
-                      <li key={l.id} className="flex flex-wrap gap-x-2 text-12 text-muted">
-                        <span className="font-mono">{day(l.createdAt)}</span>
-                        <b className="text-ink">{l.action}</b>
-                        <span>{[l.actor?.firstName, l.actor?.lastName].filter(Boolean).join(" ")}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <p className="mt-2 mb-0 text-12 text-muted">{t("auditNote")}</p>
-              </div>
+              <JournalList rows={activity} title={sup("journal.userTitle")} allHref={`/admin/jurnal?kim=&obyekt=User&id=${detail.id}`} />
+              <p className="m-0 text-12 text-muted">{t("auditNote")}</p>
             </>
           ) : (
             <p className="m-0 text-14 text-muted">{t("users.pickHint")}</p>

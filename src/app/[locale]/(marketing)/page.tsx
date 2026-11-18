@@ -18,7 +18,7 @@ import { AppLandingRedirect } from "@/components/pwa/native-app";
 import { JsonLd } from "@/components/seo/json-ld";
 import { resolveLocale } from "@/i18n/locale";
 import { organizationLd, pageMetadata, websiteLd } from "@/lib/seo";
-import { landingDeals, landingPartners, landingStats } from "@/server/landing";
+import { landingDeals, landingPartners, landingStatsSection } from "@/server/landing";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const locale = await resolveLocale(params);
@@ -40,7 +40,8 @@ async function PartnersSection() {
 
 async function StatsSection() {
   await connection();
-  return <Stats stats={await landingStats(new Date())} />;
+  const section = await landingStatsSection(new Date());
+  return section ? <Stats stats={section.stats} force={section.force} /> : null;
 }
 
 // W1 / W1m — bosh sahifa. `containerType` dizayndagi cqw o'lchamlari uchun shart.

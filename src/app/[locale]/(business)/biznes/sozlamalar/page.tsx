@@ -1,3 +1,4 @@
+import { PermissionNotice } from "@/components/business/permission-notice";
 import { Suspense } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PageSkeleton } from "@/components/state/page-skeleton";
@@ -26,6 +27,7 @@ async function Settings() {
     <BusinessShell active="settings" phoneTab="orders">
       <BackLink href="/biznes/buyurtmalar" variant="text" className="-mb-2 @min-[700px]:hidden" />
       {header}
+      <PermissionNotice ownerId={user.id} only={["canPreorder"]} />
       <PreorderSettingsForm data={data} />
     </BusinessShell>
   );

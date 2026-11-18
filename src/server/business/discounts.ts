@@ -5,6 +5,8 @@ import { toTashkent } from "@/lib/time";
 import type { BusinessKind, DiscountStatus } from "@/generated/prisma/client";
 import { audit } from "../audit";
 import { db } from "../db";
+import { activeDiscountCount, permissionsOf } from "./permissions";
+import { canActivateMore } from "@/lib/permissions";
 
 /** Muharrir formasi (sayt action'i va `/api/v1`): tur va chegaralar; mazmun qoidalari — `validateDiscount`. */
 const intNull = z.number().int().min(-1_000_000_000).max(1_000_000_000).nullable();
@@ -50,9 +52,14 @@ export async function ownerBusinessForDiscounts(ownerId: string) {
 }
 
 /** Tahrirlash formasi uchun: o'z biznesining chegirmasi (boshqa biznesniki — null). */
-export async function ownDiscount(ownerId: string, discountId: string) {
+export const ownDiscount = (ownerId: string, discountId: string) => discountForm({ id: discountId, business: { ownerId } });
+
+/** Admin uchun: istalgan chegirmaning formasi (egasidan qat'i nazar) */
+export const discountForAdmin = (discountId: string) => discountForm({ id: discountId });
+
+async function discountForm(where: { id: string; business?: { ownerId: string } }) {
   const discount = await db.discount.findFirst({
-    where: { id: discountId, business: { ownerId } },
+    where,
     select: {
       id: true,
       title: true,
@@ -95,7 +102,7 @@ export async function ownDiscount(ownerId: string, discountId: string) {
 export type SaveIntent = "draft" | "publish";
 export type SaveDiscountResult =
   | { ok: true; id: string; status: DiscountStatus }
-  | { ok: false; error: "noBusiness" | "notFound" | "notEditable" }
+  | { ok: false; error: "noBusiness" | "notFound" | "notEditable" | "noPermission" | "activeLimit" }
   | { ok: false; errors: Partial<Record<DiscountField, DiscountProblem>> };
 
 /** Faqat kerakli tur maydonlari saqlanadi (masalan, foizli chegirmada eski "yangi narx" qolmaydi). */
@@ -132,6 +139,8 @@ const fields = (d: DiscountDraft) => ({
  * Tasdiqlangan (faol yoki to'xtatilgan) chegirmada mazmun (nom, tur, narx/foiz, shartlar) o'zgarsa — yana
  * `PENDING_REVIEW` (talabalardan yashiriladi); faqat kun/soat/limit/muddat o'zgarsa — holati saqlanadi.
  * Avval berilgan kuponlar o'z shartlari bilan qoladi (Coupon.terms* snapshot).
+ * Admin ruxsatlari (`BusinessPermissions`): yangi chegirma faqat `canCreateDiscounts` bilan; `autoApproveDiscounts` —
+ * "E'lon qilish" darhol `ACTIVE` (mazmun o'zgarsa ham qayta tekshiruv yo'q); `maxActiveDiscounts` — faollar chegarasi.
  */
 export async function saveDiscount(ownerId: string, discountId: string | null, raw: DiscountDraft, intent: SaveIntent): Promise<SaveDiscountResult> {
   const business = await ownerBusinessForDiscounts(ownerId);
@@ -146,12 +155,20 @@ export async function saveDiscount(ownerId: string, discountId: string | null, r
   if (existing && errors.dates === "startInPast" && draft.startsOn === existing.draft.startsOn) delete errors.dates;
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
+  const permissions = await permissionsOf(business.id);
+  const review: DiscountStatus = permissions.autoApproveDiscounts ? "ACTIVE" : "PENDING_REVIEW";
+  // Faollar chegarasi: yangi holat ACTIVE bo'lsa va oldin faol bo'lmagan bo'lsa
+  const overLimit = async (status: DiscountStatus) =>
+    status === "ACTIVE" && existing?.status !== "ACTIVE" && !canActivateMore(permissions, await activeDiscountCount(business.id, existing?.id ?? null));
+
   if (!existing) {
+    if (!permissions.canCreateDiscounts) return { ok: false, error: "noPermission" };
     const category = await db.category.findUniqueOrThrow({ where: { slug: CATEGORY_BY_KIND[business.kind] }, select: { id: true } });
-    const status: DiscountStatus = intent === "publish" ? "PENDING_REVIEW" : "DRAFT";
+    const status: DiscountStatus = intent === "publish" ? review : "DRAFT";
+    if (await overLimit(status)) return { ok: false, error: "activeLimit" };
     const created = await db.$transaction(async (tx) => {
       const created = await tx.discount.create({ data: { ...fields(draft), businessId: business.id, categoryId: category.id, status }, select: { id: true } });
-      if (status === "PENDING_REVIEW") await audit({ actorId: ownerId, action: "discount.submit", entity: "Discount", entityId: created.id }, tx);
+      if (status !== "DRAFT") await audit({ actorId: ownerId, action: status === "ACTIVE" ? "discount.autoapprove" : "discount.submit", entity: "Discount", entityId: created.id }, tx);
       return created;
     });
     return { ok: true, id: created.id, status };
@@ -162,15 +179,16 @@ export async function saveDiscount(ownerId: string, discountId: string | null, r
     case "DRAFT":
     case "REJECTED":
     case "PENDING_REVIEW":
-      status = intent === "publish" ? "PENDING_REVIEW" : "DRAFT";
+      status = intent === "publish" ? review : "DRAFT";
       break;
     case "ACTIVE":
     case "PAUSED":
-      status = contentChanged(existing.draft, draft) ? "PENDING_REVIEW" : existing.status;
+      status = contentChanged(existing.draft, draft) && !permissions.autoApproveDiscounts ? "PENDING_REVIEW" : existing.status;
       break;
     default:
       return { ok: false, error: "notEditable" };
   }
+  if (await overLimit(status)) return { ok: false, error: "activeLimit" };
 
   await db.$transaction(async (tx) => {
     // Holat o'zgarmagan bo'lsagina yoziladi (admin shu payt tasdiqlagan bo'lsa — qayta urinish kerak)
@@ -182,17 +200,28 @@ export async function saveDiscount(ownerId: string, discountId: string | null, r
     if (status === "PENDING_REVIEW" && existing.status !== "PENDING_REVIEW") {
       await audit({ actorId: ownerId, action: "discount.submit", entity: "Discount", entityId: existing.id, meta: { from: existing.status } }, tx);
     }
+    if (status === "ACTIVE" && existing.status !== "ACTIVE") {
+      await audit({ actorId: ownerId, action: "discount.autoapprove", entity: "Discount", entityId: existing.id, meta: { from: existing.status } }, tx);
+    }
   });
   return { ok: true, id: existing.id, status };
 }
 
-/** Faol chegirmani to'xtatish yoki qayta yoqish (B5 switch). Tekshiruvsiz; boshqa holatlarda — yo'q. */
-export async function setDiscountActive(ownerId: string, discountId: string, active: boolean): Promise<boolean> {
+export type SetActiveResult = { ok: true } | { ok: false; error: "notEditable" | "activeLimit" };
+
+/**
+ * Faol chegirmani to'xtatish yoki qayta yoqish (B5 switch). Tekshiruvsiz; boshqa holatlarda — yo'q. Yoqishda admin
+ * bergan faollar chegarasi (`maxActiveDiscounts`) tekshiriladi.
+ */
+export async function setDiscountActive(ownerId: string, discountId: string, active: boolean): Promise<SetActiveResult> {
+  const discount = await db.discount.findFirst({ where: { id: discountId, business: { ownerId } }, select: { businessId: true } });
+  if (!discount) return { ok: false, error: "notEditable" };
+  if (active && !canActivateMore(await permissionsOf(discount.businessId), await activeDiscountCount(discount.businessId))) return { ok: false, error: "activeLimit" };
   const updated = await db.discount.updateMany({
     where: { id: discountId, business: { ownerId }, status: active ? "PAUSED" : "ACTIVE" },
     data: { status: active ? "ACTIVE" : "PAUSED" },
   });
-  return updated.count === 1;
+  return updated.count === 1 ? { ok: true } : { ok: false, error: "notEditable" };
 }
 
 const HINT_MIN_SALES = 20;

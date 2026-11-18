@@ -1,4 +1,5 @@
 import { PageSkeleton } from "@/components/state/page-skeleton";
+import { PermissionNotice } from "@/components/business/permission-notice";
 import { Suspense } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BusinessShell } from "@/components/business/business-shell";
@@ -28,6 +29,7 @@ async function Discounts() {
               </Link>
             </div>
             <div className="mx-4 mb-5 flex flex-col gap-2">
+              <PermissionNotice ownerId={user.id} only={["canCreateDiscounts", "maxActiveDiscounts"]} />
               <DiscountList discounts={discounts} />
             </div>
           </div>
@@ -43,6 +45,7 @@ async function Discounts() {
             </ButtonLink>
           </header>
           <div className="flex max-w-[760px] flex-col gap-2">
+            <PermissionNotice ownerId={user.id} only={["canCreateDiscounts", "maxActiveDiscounts"]} />
             <DiscountList discounts={discounts} />
           </div>
         </BusinessShell>

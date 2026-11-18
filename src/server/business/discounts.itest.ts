@@ -123,20 +123,61 @@ describe("chegirma yaratish va moderatsiya", () => {
     const r = (await saveDiscount(owner, null, DRAFT, "publish")) as { id: string };
     expect(await saveDiscount(other, r.id, DRAFT, "publish")).toEqual({ ok: false, error: "notFound" });
     expect(await ownDiscount(other, r.id)).toBeNull();
-    expect(await setDiscountActive(other, r.id, false)).toBe(false);
+    expect(await setDiscountActive(other, r.id, false)).toEqual({ ok: false, error: "notEditable" });
     await db.discount.update({ where: { id: r.id }, data: { status: "ENDED" } });
     expect(await saveDiscount(owner, r.id, DRAFT, "publish")).toEqual({ ok: false, error: "notEditable" });
   });
 
   it("switch: faqat faol ↔ to'xtatilgan; tekshiruvdagini yoqib bo'lmaydi", async () => {
     const r = (await saveDiscount(owner, null, DRAFT, "publish")) as { id: string };
-    expect(await setDiscountActive(owner, r.id, true)).toBe(false);
+    expect(await setDiscountActive(owner, r.id, true)).toEqual({ ok: false, error: "notEditable" });
     expect(await status(r.id)).toBe("PENDING_REVIEW");
     await db.discount.update({ where: { id: r.id }, data: { status: "ACTIVE" } });
-    expect(await setDiscountActive(owner, r.id, false)).toBe(true);
+    expect(await setDiscountActive(owner, r.id, false)).toEqual({ ok: true });
     expect(await status(r.id)).toBe("PAUSED");
-    expect(await setDiscountActive(owner, r.id, true)).toBe(true);
+    expect(await setDiscountActive(owner, r.id, true)).toEqual({ ok: true });
     expect(await status(r.id)).toBe("ACTIVE");
+  });
+});
+
+describe("admin ruxsatlari (BusinessPermissions)", () => {
+  const businessOf = async (ownerId: string) => (await db.business.findFirstOrThrow({ where: { ownerId } })).id;
+  const setPermissions = async (ownerId: string, data: Record<string, unknown>) => {
+    const businessId = await businessOf(ownerId);
+    await db.businessPermissions.upsert({ where: { businessId }, create: { businessId, ...data }, update: data });
+  };
+
+  it("chegirma yaratish o'chiq — yangisi yo'q, mavjudi tahrirlanadi", async () => {
+    const r = (await saveDiscount(owner, null, DRAFT, "publish")) as { id: string };
+    await setPermissions(owner, { canCreateDiscounts: false });
+    expect(await saveDiscount(owner, null, DRAFT, "publish")).toEqual({ ok: false, error: "noPermission" });
+    expect(await saveDiscount(owner, r.id, { ...DRAFT, title: "Yangi nom" }, "publish")).toMatchObject({ ok: true });
+  });
+
+  it("avtomatik tasdiq — yuborilgani darhol ACTIVE, mazmun o'zgarsa ham tekshiruvsiz", async () => {
+    await setPermissions(owner, { autoApproveDiscounts: true });
+    const r = (await saveDiscount(owner, null, DRAFT, "publish")) as { id: string };
+    expect(await status(r.id)).toBe("ACTIVE");
+    await saveDiscount(owner, r.id, { ...DRAFT, percent: 45 }, "publish");
+    expect(await status(r.id)).toBe("ACTIVE");
+    expect(await db.auditLog.count({ where: { action: "discount.autoapprove", entityId: r.id } })).toBeGreaterThan(0);
+  });
+
+  it("faollar chegarasi: yoqish va avtomatik tasdiq chegaradan oshmaydi", async () => {
+    await setPermissions(owner, { autoApproveDiscounts: true, maxActiveDiscounts: 1 });
+    const a = (await saveDiscount(owner, null, DRAFT, "publish")) as { id: string };
+    expect(await status(a.id)).toBe("ACTIVE");
+    expect(await saveDiscount(owner, null, DRAFT, "publish")).toEqual({ ok: false, error: "activeLimit" });
+    const b = (await saveDiscount(owner, null, DRAFT, "draft")) as { id: string };
+    await db.discount.update({ where: { id: b.id }, data: { status: "PAUSED" } });
+    expect(await setDiscountActive(owner, b.id, true)).toEqual({ ok: false, error: "activeLimit" });
+    expect(await setDiscountActive(owner, a.id, false)).toEqual({ ok: true });
+    expect(await setDiscountActive(owner, b.id, true)).toEqual({ ok: true });
+  });
+
+  it("boshqa biznes ruxsati bunga ta'sir qilmaydi", async () => {
+    await setPermissions(other, { canCreateDiscounts: false });
+    expect(await saveDiscount(owner, null, DRAFT, "publish")).toMatchObject({ ok: true });
   });
 });
 

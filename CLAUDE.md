@@ -665,3 +665,14 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   Testlar: `social-token.test.ts`, `social.itest.ts`.
 - `api/` ichida `src/server/auth/session.ts` import qilinmaydi (vitest'da `next-intl/navigation` yuklanmaydi).
 - Testlar: `src/server/api/rules.test.ts`, `auth.itest.ts`, `register.itest.ts`, `student.itest.ts`.
+
+## Super admin (D bosqichi)
+- Sahifalar: `/admin/foydalanuvchilar` (hisob: kirish usullari, parol vaqtlari — parolning o'zi hech qachon, oxirgi kirishlar, sessiyalar; yaratish/o'chirish/bloklash/
+  sessiyalarni yopish/parolni tiklash talabi/rol), `/admin/hamkorlar` (biznes: ruxsatlar, statistika + Excel, sotuvlar, logotip/fotolar, ma'lumotlar, chegirmalar —
+  tahrir qayta tekshiruvsiz, to'xtatish, o'chirish; tarixi borini `ENDED`), `/admin/jurnal` (`AuditLog`, filtr URL'da), `/admin/landing`. Server: `src/server/admin/super.ts`,
+  `landing-admin.ts`, action'lar `actions/admin-super.ts`; fayl yuklash `POST /api/admin/yuklash` (`getUnlockedAdmin`).
+- Biznes ruxsatlari `BusinessPermissions` (qator yo'q — standart, `src/lib/permissions.ts`): yangi chegirma, avtomatik tasdiq, oldindan band qilish, kassir qo'shish,
+  faol chegirmalar chegarasi, profil va aloqa tahriri. Tekshiruv faqat serverda (`permissionsOf`): sayt action'lari va `/api/v1` bir xil (`permission_denied` 403,
+  `active_limit` 409); panelda `PermissionNotice`. Har o'zgarish auditda oldin → keyin (`journalDetails` parol/kod/token kalitlarini ko'rsatmaydi).
+- Landing: `LandingSettings` (raqamlar AUTO/MANUAL/HIDDEN, chegirmalar AUTO/MANUAL/MIXED, ≤ 12 tanlov), `LandingPartner` (tartib, yashirish, logotip, qo'lda brend).
+- Testlar: `permissions.test.ts`, `journal.test.ts`, `admin/super.itest.ts`, `discounts.itest.ts`, `e2e/admin-super.spec.ts` (ruxsat → panel testi `fixme`).

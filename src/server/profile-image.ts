@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { audit } from "./audit";
+import { permissionsOf } from "./business/permissions";
 import { db } from "./db";
 import { storage } from "./storage";
 import { checkUpload } from "./storage/file-rules";
@@ -69,7 +70,8 @@ const ownedBusiness = (ownerId: string) =>
 
 export async function setBusinessLogo(ownerId: string, bytes: Uint8Array): Promise<ImageResult> {
   const business = await ownedBusiness(ownerId);
-  if (!business) return { ok: false, problem: "not_allowed" };
+  // Admin "ma'lumotlarni tahrirlash" ni o'chirgan bo'lsa logotip ham o'zgarmaydi
+  if (!business || !(await permissionsOf(business.id)).canEditProfile) return { ok: false, problem: "not_allowed" };
   const result = await clean(ownerId, "business.logo", bytes);
   if (!result.ok) return result;
   const key = `business/${business.id}/logo-${randomUUID()}.${result.file.ext}`;
@@ -89,7 +91,7 @@ export async function setBusinessLogo(ownerId: string, bytes: Uint8Array): Promi
 
 export async function removeBusinessLogo(ownerId: string): Promise<boolean> {
   const business = await ownedBusiness(ownerId);
-  if (!business?.logoKey) return false;
+  if (!business?.logoKey || !(await permissionsOf(business.id)).canEditProfile) return false;
   await db.$transaction(async (tx) => {
     await tx.business.update({ where: { id: business.id }, data: { logoKey: null } });
     await audit({ actorId: ownerId, action: "business.logo.remove", entity: "Business", entityId: business.id }, tx);

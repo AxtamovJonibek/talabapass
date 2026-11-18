@@ -18,6 +18,9 @@ export const PUT = route(async (request) => {
   await limit("write", user.id);
   const body = await readJson(request, preorderSettingsInput);
   const result = await savePreorderSettings(user.id, body);
-  if (!result.ok) throw new ApiError(result.error === "noSchedule" ? "preorder_no_schedule" : result.error === "noBusiness" ? "business_not_ready" : "invalid_request");
+  if (!result.ok)
+    throw new ApiError(
+      result.error === "noSchedule" ? "preorder_no_schedule" : result.error === "noBusiness" ? "business_not_ready" : result.error === "noPermission" ? "permission_denied" : "invalid_request",
+    );
   return ok({ ok: true });
 });

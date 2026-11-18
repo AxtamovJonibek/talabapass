@@ -3,7 +3,7 @@
 import { requireRole } from "../auth/session";
 import { editBusinessInfo } from "../business/profile-edit";
 
-export type BusinessEditState = { status: "idle" } | { status: "saved"; rereview: boolean } | { status: "error"; fields: string[] } | { status: "notEditable" };
+export type BusinessEditState = { status: "idle" } | { status: "saved"; rereview: boolean } | { status: "error"; fields: string[] } | { status: "notEditable" } | { status: "noPermission" };
 
 const text = (formData: FormData, key: string) => {
   const v = formData.get(key);
@@ -24,5 +24,5 @@ export async function editBusinessAction(_prev: BusinessEditState, formData: For
     instagram: text(formData, "instagram"),
   });
   if (result.ok) return { status: "saved", rereview: result.rereview };
-  return "fields" in result ? { status: "error", fields: result.fields } : { status: "notEditable" };
+  return "fields" in result ? { status: "error", fields: result.fields } : { status: result.error };
 }

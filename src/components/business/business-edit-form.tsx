@@ -62,9 +62,9 @@ export function BusinessEditForm({ initial, logoUrl, idPrefix }: { initial: Init
           {state.rereview ? e("savedRereview") : e("saved")}
         </p>
       ) : null}
-      {state.status === "notEditable" ? (
+      {state.status === "notEditable" || state.status === "noPermission" ? (
         <p role="alert" className="m-0 text-13 font-bold text-danger">
-          {e("notEditable")}
+          {state.status === "noPermission" ? e("errors.noPermission") : e("notEditable")}
         </p>
       ) : null}
     </form>

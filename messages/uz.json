@@ -330,7 +330,8 @@
       "invalid": "Qiymatlarni tekshiring.",
       "noSchedule": "Kamida bitta kunni belgilang.",
       "noBusiness": "Biznes topilmadi.",
-      "range": "“gacha” vaqti “dan” dan keyin bo'lsin."
+      "range": "“gacha” vaqti “dan” dan keyin bo'lsin.",
+      "noPermission": "Oldindan band qilish admin tomonidan o'chirilgan."
     },
     "offHoursWindow": "Olib ketish oynasi chegirma soatlari ({hours}) ichida emas — talabaga tugma o'chiq ko'rinadi.",
     "kindShort": {
@@ -1462,7 +1463,9 @@
       "terms": "Shartlar 200 belgidan oshmasin.",
       "noBusiness": "Chegirma qo'shish uchun biznes arizasi yuborilgan bo'lishi kerak.",
       "notFound": "Chegirma topilmadi.",
-      "notEditable": "Bu chegirmani o'zgartirib bo'lmaydi."
+      "notEditable": "Bu chegirmani o'zgartirib bo'lmaydi.",
+      "noPermission": "Yangi chegirma qo'shish admin tomonidan o'chirilgan.",
+      "activeLimit": "Faol chegirmalar chegarasiga yetdingiz — avval boshqasini to'xtating."
     },
     "images": "Rasmlar",
     "imagesHint": "{count}/4",
@@ -1625,7 +1628,8 @@
     "inactive": "Faol emas",
     "edit": "Tahrirlash",
     "empty": "Hali chegirma yo'q. Birinchisini yarating — tekshiruvdan so'ng talabalarga ko'rinadi.",
-    "toggleFailed": "Holatni o'zgartirib bo'lmadi. Sahifani yangilang."
+    "toggleFailed": "Holatni o'zgartirib bo'lmadi. Sahifani yangilang.",
+    "activeLimit": "Faol chegirmalar chegarasiga yetdingiz — avval boshqasini to'xtating."
   },
   "cashiers": {
     "title": "Kassirlar",
@@ -1669,7 +1673,8 @@
         "password": "Parol kamida 8 ta belgi bo'lsin: harf va raqam birga.",
         "confirm": "Parollar bir xil emas."
       }
-    }
+    },
+    "noPermission": "Kassir qo'shish admin tomonidan o'chirilgan."
   },
   "businessProfile": {
     "edit": "Tahrirlash",
@@ -1693,7 +1698,8 @@
       "landmark": "Mo'ljal 140 belgidan oshmasin.",
       "phone": "Telefonni +998 bilan, 9 raqam qilib kiriting.",
       "telegram": "Telegram nomi 5–32 belgi: harf, raqam, pastki chiziq.",
-      "instagram": "Instagram nomi harf, raqam, nuqta yoki pastki chiziqdan iborat."
+      "instagram": "Instagram nomi harf, raqam, nuqta yoki pastki chiziqdan iborat.",
+      "noPermission": "Bu ma'lumotlarni o'zgartirish admin tomonidan o'chirilgan."
     },
     "approved": "Tasdiqlangan hamkor",
     "pending": "Tekshiruvda",
@@ -1925,7 +1931,10 @@
       "blocked": "Bloklanganlar",
       "users": "Foydalanuvchilar",
       "universities": "Universitetlar",
-      "profile": "Profil va adminlar"
+      "profile": "Profil va adminlar",
+      "partners": "Hamkorlar boshqaruvi",
+      "journal": "Faoliyat jurnali",
+      "landing": "Landing"
     },
     "review": {
       "studentsTitle": "Talabalar tekshiruvi",
@@ -2988,6 +2997,8 @@
       "password_setup_required": "Davom etish uchun parol o'rnating.",
       "wrong_current_password": "Joriy parol noto'g'ri.",
       "preorder_no_schedule": "Kamida bitta kunni belgilang.",
+      "permission_denied": "Bu amal biznesingiz uchun admin tomonidan o'chirilgan.",
+      "active_limit": "Faol chegirmalar chegarasiga yetdingiz — avval boshqasini to'xtating.",
       "preorder_no_price": "Narxi aniq bo'lmagan chegirmani band qilib bo'lmaydi.",
       "account_exists": "Bu raqamda hisob bor. Parolingiz bilan kiring yoki parolni tiklang."
     }
@@ -3053,5 +3064,293 @@
     "summaryEmpty": "Ish kuni tanlanmagan",
     "outside": "Diqqat: {days} — chegirma vaqti ish vaqtingizdan tashqarida ({hours}). Talaba yopiq paytda kelib qolmasin: vaqtni ish vaqti ichiga oling.",
     "noHours": "ish vaqti yo'q"
+  },
+  "permissions": {
+    "title": "Admin cheklovlari",
+    "canCreateDiscounts": "Yangi chegirma qo'shish o'chirilgan.",
+    "canPreorder": "Oldindan band qilish o'chirilgan — talabalar band qilish tugmasini ko'rmaydi.",
+    "canAddCashiers": "Kassir qo'shish o'chirilgan.",
+    "canEditProfile": "Biznes ma'lumotlarini (nom, manzil, ish vaqti, tavsif, logotip) o'zgartirish o'chirilgan.",
+    "canEditContacts": "Talabalar uchun aloqani (telefon, Telegram, Instagram) o'zgartirish o'chirilgan.",
+    "maxActiveDiscounts": "Bir vaqtda {max} tagacha faol chegirma.",
+    "contact": "Savol bo'lsa — yordamga yozing."
+  },
+  "adminSuper": {
+    "confirm": "Tasdiqlash",
+    "cancel": "Bekor",
+    "done": "Bajarildi",
+    "save": "Saqlash",
+    "saved": "Saqlandi",
+    "account": {
+      "title": "Kirish va xavfsizlik",
+      "methods": "Kirish usullari",
+      "method": {
+        "password": "Parol",
+        "phone": "Telefon (SMS)",
+        "google": "Google",
+        "apple": "Apple"
+      },
+      "noMethods": "Kirish usuli yo'q",
+      "password": "Parol",
+      "passwordSet": "o'rnatilgan: {date}",
+      "passwordChanged": "oxirgi o'zgarish: {date}",
+      "passwordNone": "Parol o'rnatilmagan — kira olmaydi, “Parolni unutdim” bilan o'rnatadi",
+      "resetPending": "Keyingi kirishda yangi parol so'raladi",
+      "locked": "Xato parollar sabab {date} gacha qulflangan",
+      "lastLogin": "Oxirgi kirish",
+      "never": "hali yo'q",
+      "email": "Email",
+      "logins": "Oxirgi kirishlar",
+      "noLogins": "Kirishlar yozilmagan",
+      "loginOk": "kirdi",
+      "loginFail": "xato",
+      "via": {
+        "web": "sayt",
+        "app": "ilova",
+        "api": "ilova"
+      },
+      "sessions": "Faol sessiyalar",
+      "noSessions": "Faol sessiya yo'q",
+      "sessionKind": {
+        "WEB": "Sayt",
+        "API": "Ilova"
+      },
+      "sessionSince": "kirgan: {date}",
+      "sessionLast": "oxirgi faollik: {date}",
+      "closeSession": "Yopish",
+      "passwordNote": "Parolning o'zi hech qachon ko'rsatilmaydi va saqlanmaydi (bazada faqat xesh)."
+    },
+    "actions": {
+      "title": "Amallar",
+      "closeAll": "Barcha sessiyalarni yopish",
+      "closeAllConfirm": "Shu odam barcha qurilmalardan chiqariladi. Davom etilsinmi?",
+      "resetPassword": "Parolni tiklash",
+      "resetPasswordConfirm": "Barcha qurilmalardan chiqariladi va keyingi kirishda yangi parol o'rnatadi. Davom etilsinmi?",
+      "block": "Bloklash",
+      "blockReason": "Bloklash sababi",
+      "unblock": "Blokdan chiqarish",
+      "role": "Rol",
+      "changeRole": "Rolni almashtirish",
+      "changeRoleConfirm": "Rol almashtiriladi va barcha sessiyalar yopiladi. Davom etilsinmi?",
+      "delete": "Hisobni o'chirish",
+      "deleteConfirm": "Shaxsiy ma'lumot tozalanadi, raqam bo'shaydi; kupon va sotuv tarixi qoladi. Buni qaytarib bo'lmaydi. O'chirilsinmi?",
+      "deleted": "Hisob o'chirildi"
+    },
+    "create": {
+      "title": "Yangi foydalanuvchi",
+      "hint": "Parol o'rnatilmaydi: odam “Parolni unutdim” (SMS yoki email kodi) bilan o'zi o'rnatadi. Talaba OTM va guvohnomani o'zi kiritadi.",
+      "role": "Rol",
+      "firstName": "Ism",
+      "lastName": "Familiya",
+      "phone": "Telefon",
+      "email": "Email",
+      "submit": "Yaratish",
+      "created": "Yaratildi",
+      "open": "Ochish →"
+    },
+    "errors": {
+      "invalid": "Qiymatlarni tekshiring.",
+      "notFound": "Topilmadi.",
+      "protected": "Admin hisobi bu yerda o'zgarmaydi.",
+      "phoneInUse": "Bu raqam tizimda allaqachon bor.",
+      "emailInUse": "Bu email tizimda allaqachon bor.",
+      "hasRoleData": "Bu hisobda rolga bog'liq ma'lumot bor (talaba profili, biznes yoki kassir a'zoligi) — rolni almashtirib bo'lmaydi.",
+      "openOrders": "Yakunlanmagan buyurtmalari bor — avval ular yopilsin.",
+      "badFile": "Faqat JPG yoki PNG rasm, 10 MB gacha.",
+      "hasHistory": "Chegirmaning kupon yoki sotuv tarixi bor — o'chirilmadi, “Tugagan” qilindi (talabaga ko'rinmaydi).",
+      "reason": "Sababni yozing (kamida 3 belgi).",
+      "errors": "Chegirma maydonlarini tekshiring.",
+      "contact": "Telefon yoki emaildan kamida bittasini kiriting.",
+      "failed": "Bajarib bo'lmadi. Sahifani yangilang."
+    },
+    "journal": {
+      "title": "Faoliyat jurnali",
+      "sub": "Har bir amal: kim, qachon, nima — o'zgarishlar oldin → keyin",
+      "group": "Bo'lim",
+      "groups": {
+        "user": "Foydalanuvchi",
+        "student": "Talaba",
+        "business": "Biznes",
+        "discount": "Chegirma",
+        "cashier": "Kassir",
+        "preorder": "Oldindan band qilish",
+        "order": "Buyurtma",
+        "admin": "Admin",
+        "landing": "Landing",
+        "transactions": "Tranzaksiyalar",
+        "file": "Fayllar",
+        "university": "Universitet",
+        "notification": "Bildirishnoma"
+      },
+      "actor": "Kim (ism, raqam yoki email)",
+      "entity": "Obyekt turi",
+      "entityId": "Obyekt ID",
+      "from": "Sanadan",
+      "to": "Sanagacha",
+      "q": "Amal yoki ID",
+      "filter": "Ko'rsatish",
+      "reset": "Tozalash",
+      "columns": {
+        "time": "Vaqt",
+        "actor": "Kim",
+        "action": "Amal",
+        "object": "Obyekt",
+        "details": "Tafsilot"
+      },
+      "system": "Tizim",
+      "empty": "Bu filtr bo'yicha yozuv yo'q.",
+      "userTitle": "Faoliyat",
+      "businessTitle": "Biznes faoliyati",
+      "all": "Hammasi jurnalda →",
+      "total": "{count} ta yozuv"
+    },
+    "partners": {
+      "title": "Hamkorlar boshqaruvi",
+      "sub": "Barcha bizneslar: ma'lumotlar, ruxsatlar, statistika, sotuvlar va chegirmalar",
+      "searchPlaceholder": "Nom, STIR yoki manzil",
+      "status": {
+        "ALL": "Hammasi",
+        "APPROVED": "Tasdiqlangan",
+        "WARNED": "Ogohlantirilgan",
+        "PENDING": "Tekshiruvda",
+        "REJECTED": "Rad etilgan",
+        "BLOCKED": "Bloklangan"
+      },
+      "pickHint": "Chap ro'yxatdan biznesni tanlang.",
+      "owner": "Egasi",
+      "openOwner": "Egasining hisobi →",
+      "info": "Ma'lumotlar",
+      "media": "Logotip va fotolar",
+      "logo": "Logotip",
+      "photos": "Joy fotolari (3 tagacha)",
+      "upload": "Yuklash",
+      "remove": "O'chirish",
+      "noLogo": "Logotip yo'q",
+      "noPhotos": "Foto yo'q",
+      "block": "Biznesni bloklash",
+      "unblock": "Blokdan chiqarish",
+      "blockConfirm": "Biznes bloklanadi: chegirmalar yashiriladi, egasi va kassirlar chiqariladi. Davom etilsinmi?",
+      "permissions": {
+        "title": "Ruxsatlar",
+        "canCreateDiscounts": "Yangi chegirma qo'sha oladi",
+        "autoApproveDiscounts": "Chegirmalar moderatsiyasiz (darhol faol)",
+        "canPreorder": "Oldindan band qilish",
+        "canAddCashiers": "Kassir qo'sha oladi",
+        "maxActiveDiscounts": "Faol chegirmalar chegarasi",
+        "maxHint": "Bo'sh — cheklanmagan",
+        "canEditProfile": "Ma'lumot va logotipni o'zgartira oladi",
+        "canEditContacts": "Talabalar uchun aloqani o'zgartira oladi",
+        "note": "O'chirilgan ruxsat biznes panelida ogohlantirish bilan ko'rsatiladi; sayt va ilova API'si ham rad etadi."
+      },
+      "stats": {
+        "title": "Statistika",
+        "sold": "Sotuvlar",
+        "revenue": "Tushum, so'm",
+        "given": "Berilgan chegirma, so'm",
+        "coupons": "Olingan kuponlar",
+        "fresh": "Yangi mijozlar",
+        "returning": "Qayta kelganlar",
+        "excel": "Excel hisobot"
+      },
+      "sales": {
+        "title": "Sotuvlar",
+        "empty": "Bu davrda sotuv yo'q.",
+        "summary": "{count} ta sotuv · {sum} so'm"
+      },
+      "discounts": {
+        "title": "Chegirmalar",
+        "empty": "Chegirma yo'q.",
+        "edit": "Tahrirlash",
+        "close": "Yopish",
+        "pause": "To'xtatish",
+        "resume": "Yoqish",
+        "delete": "O'chirish",
+        "deleteConfirm": "Chegirma o'chirilsinmi? Tarixi bo'lsa — o'chirilmaydi, “Tugagan” qilinadi.",
+        "editHint": "Admin tahriri qayta tekshiruvsiz saqlanadi; holat o'zgarmaydi.",
+        "fields": {
+          "title": "Nomi",
+          "type": "Turi",
+          "originalPrice": "Asl narx",
+          "percent": "Foiz",
+          "newPrice": "Yangi narx",
+          "weekdays": "Kunlar",
+          "from": "Dan (SS:DD)",
+          "to": "Gacha (SS:DD)",
+          "dailyLimit": "Kunlik son",
+          "perStudentLimit": "Bir talabaga",
+          "startsOn": "Boshlanishi",
+          "endsOn": "Tugashi",
+          "terms": "Shartlar"
+        },
+        "limits": {
+          "DAILY": "Kuniga 1",
+          "WEEKLY": "Haftasiga 1",
+          "UNLIMITED": "Cheklanmagan"
+        }
+      }
+    },
+    "landing": {
+      "title": "Landing boshqaruvi",
+      "sub": "Bosh sahifadagi raqamlar, “Hozir Toshkentda ochiq” va hamkorlar",
+      "open": "Saytda ko'rish →",
+      "stats": {
+        "title": "Raqamlarda",
+        "modes": {
+          "AUTO": "Avtomatik (bazadan)",
+          "MANUAL": "Qo'lda",
+          "HIDDEN": "Yashirin"
+        },
+        "autoHint": "Avtomatik rejimda raqamlar kichik bo'lsa bo'lim o'zi yashiriladi.",
+        "manualHint": "Bo'sh maydon — bazadagi raqam. Qo'lda rejimda bo'lim doim ko'rinadi.",
+        "students": "Tasdiqlangan talabalar",
+        "businesses": "Hamkor bizneslar",
+        "discounts": "Faol chegirmalar",
+        "saved": "Tejalgan summa, so'm"
+      },
+      "deals": {
+        "title": "Hozir Toshkentda ochiq",
+        "modes": {
+          "AUTO": "Avtomatik",
+          "MANUAL": "Faqat tanlanganlar",
+          "MIXED": "Avval tanlanganlar, keyin avtomatik"
+        },
+        "picked": "Tanlangan chegirmalar (tartib bilan, 12 tagacha)",
+        "nonePicked": "Hali tanlanmagan.",
+        "add": "Qo'shish",
+        "pick": "Chegirma tanlang",
+        "up": "Yuqoriga",
+        "down": "Pastga",
+        "remove": "Olib tashlash",
+        "hint": "Faqat talabaga ko'rinadigan (faol, biznesi tasdiqlangan, muddati o'tmagan) chegirmalar chiqadi."
+      },
+      "partners": {
+        "title": "Hamkorlar",
+        "hint": "Tartib — kichik raqam oldin. Yashirilgani bosh sahifada chiqmaydi. Logotip bo'lmasa — biznes logotipi, u ham bo'lmasa nomi yozuv bilan.",
+        "name": "Nomi",
+        "sort": "Tartib",
+        "hidden": "Yashirin",
+        "logo": "Logotip",
+        "ownLogo": "biznes logotipi",
+        "textLogo": "yozuv",
+        "custom": "qo'lda",
+        "addCustom": "Qo'lda hamkor qo'shish",
+        "customName": "Brend nomi",
+        "delete": "O'chirish"
+      }
+    },
+    "roles": {
+      "STUDENT": "Talaba",
+      "BUSINESS_OWNER": "Biznes egasi",
+      "CASHIER": "Kassir",
+      "ADMIN": "Admin"
+    },
+    "discountStatus": {
+      "ACTIVE": "Faol",
+      "PAUSED": "To'xtatilgan",
+      "PENDING_REVIEW": "Tekshiruvda",
+      "DRAFT": "Qoralama",
+      "REJECTED": "Rad etilgan",
+      "ENDED": "Tugagan"
+    }
   }
 }

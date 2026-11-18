@@ -10,6 +10,16 @@ export const saveDiscountInput = z.object({ draft: discountDraftSchema, intent: 
 export function savedOrThrow(result: SaveDiscountResult): { id: string; status: string } {
   if (result.ok) return { id: result.id, status: result.status };
   if ("errors" in result) throw new ApiError("invalid_request", { fields: Object.keys(result.errors), problems: result.errors });
-  throw new ApiError(result.error === "notFound" ? "not_found" : result.error === "noBusiness" ? "business_not_ready" : "not_editable");
+  throw new ApiError(
+    result.error === "notFound"
+      ? "not_found"
+      : result.error === "noBusiness"
+        ? "business_not_ready"
+        : result.error === "noPermission"
+          ? "permission_denied"
+          : result.error === "activeLimit"
+            ? "active_limit"
+            : "not_editable",
+  );
 }
 

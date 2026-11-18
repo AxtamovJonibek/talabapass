@@ -24,35 +24,35 @@ enum UserStatus {
 }
 
 model User {
-  id                  String     @id @default(cuid())
+  id                    String     @id @default(cuid())
   /// E.164: +998XXXXXXXXX. null — faqat Google/Apple bilan ochilgan hisob (ilova, `AuthIdentity`)
-  phone               String?    @unique
+  phone                 String?    @unique
   /// Google/Apple tasdiqlagan email (faqat `email_verified`). Bir xil email — bitta hisob: yangi identifikator shu hisobga bog'lanadi
-  email               String?    @unique
-  role                Role
-  firstName           String?
-  lastName            String?
-  locale              String     @default("uz")
-  status              UserStatus @default(ACTIVE)
-  blockedReason       String?
+  email                 String?    @unique
+  role                  Role
+  firstName             String?
+  lastName              String?
+  locale                String     @default("uz")
+  status                UserStatus @default(ACTIVE)
+  blockedReason         String?
   /// Telegram orqali kirganlar uchun bot suhbati (xabarnomalar shu yerga ham). Telegram kirishi ulanganda to'ldiriladi.
-  telegramChatId      String?
+  telegramChatId        String?
   /// Ilova paroli (scrypt, `src/server/auth/password.ts`). null — hali o'rnatilmagan: eski hisob SMS koddan keyin o'rnatadi.
   /// Sayt kirishi (SMS) parolni so'ramaydi.
-  passwordHash        String?
+  passwordHash          String?
   /// Ketma-ket noto'g'ri parollar (to'g'ri parol yoki bloklashda 0 ga qaytadi)
-  passwordFails       Int        @default(0)
-  passwordLockedUntil DateTime?
+  passwordFails         Int        @default(0)
+  passwordLockedUntil   DateTime?
   /// Parol birinchi marta o'rnatilgan vaqt
-  passwordSetAt       DateTime?
+  passwordSetAt         DateTime?
   /// Parol oxirgi marta o'zgargan vaqt (o'rnatish, almashtirish, tiklash)
-  passwordChangedAt   DateTime?
+  passwordChangedAt     DateTime?
   /// Admin "parolni tiklash" bosgan: keyingi kirishda yangi parol majburiy (eski parol bilan kirish mumkin, lekin ichkariga o'tmaydi)
-  passwordResetRequired Boolean  @default(false)
+  passwordResetRequired Boolean    @default(false)
   /// Oxirgi muvaffaqiyatli kirish (har qanday usul)
-  lastLoginAt         DateTime?
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
+  lastLoginAt           DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
 
   sessions           Session[]
   student            StudentProfile?
@@ -373,8 +373,8 @@ model Business {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  owner        User              @relation("BusinessOwner", fields: [ownerId], references: [id])
-  district     District?         @relation(fields: [districtId], references: [id])
+  owner        User                 @relation("BusinessOwner", fields: [ownerId], references: [id])
+  district     District?            @relation(fields: [districtId], references: [id])
   docs         BusinessDoc[]
   members      BusinessMember[]
   invites      CashierInvite[]
@@ -382,6 +382,8 @@ model Business {
   redemptions  Redemption[]
   scanAttempts ScanAttempt[]
   preorder     PreorderSettings?
+  permissions  BusinessPermissions?
+  landing      LandingPartner?
   orders       Order[]
 
   @@index([status, submittedAt])
@@ -1003,4 +1005,73 @@ model PaymentLog {
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   @@index([paymentId, createdAt])
+}
+
+// ───────────── Super admin: biznes ruxsatlari va landing boshqaruvi ─────────────
+
+/// Biznesga admin bergan ruxsatlar. Qator yo'q — hammasi standart (ruxsat bor, cheklovsiz). Panel va API ikkalasi
+/// `src/server/business/permissions.ts` orqali tekshiradi.
+model BusinessPermissions {
+  businessId           String   @id
+  canCreateDiscounts   Boolean  @default(true)
+  /// Yuborilgan chegirma moderatsiyasiz darhol `ACTIVE` (mazmun o'zgarsa ham qayta tekshiruv yo'q)
+  autoApproveDiscounts Boolean  @default(false)
+  canPreorder          Boolean  @default(true)
+  canAddCashiers       Boolean  @default(true)
+  /// Bir vaqtda faol chegirmalar soni; null — cheklanmagan
+  maxActiveDiscounts   Int?
+  /// Nom, manzil, ish vaqti, tavsif, mo'ljal va logotip
+  canEditProfile       Boolean  @default(true)
+  /// Talabalar uchun aloqa: telefon, Telegram, Instagram
+  canEditContacts      Boolean  @default(true)
+  updatedAt            DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+enum LandingStatsMode {
+  /// Bazadan (`landingStats`), `STATS_MIN` dan kichik bo'lsa bo'lim yashiriladi
+  AUTO
+  /// Admin kiritgan raqamlar (doim ko'rsatiladi)
+  MANUAL
+  /// Bo'lim yashirin
+  HIDDEN
+}
+
+enum LandingDealsMode {
+  /// Avtomatik: avval ochiqlari
+  AUTO
+  /// Faqat admin tanlaganlari (talabaga ko'rinadiganlari, tanlangan tartibda)
+  MANUAL
+  /// Avval tanlanganlar, qolgan joy avtomatik
+  MIXED
+}
+
+/// Landing sozlamalari — bitta qator (`id = "landing"`).
+model LandingSettings {
+  id              String           @id @default("landing")
+  statsMode       LandingStatsMode @default(AUTO)
+  statsStudents   Int?
+  statsBusinesses Int?
+  statsDiscounts  Int?
+  statsSaved      Int?
+  dealsMode       LandingDealsMode @default(AUTO)
+  /// MANUAL/MIXED: chegirma id'lari, ko'rsatish tartibida
+  dealIds         String[]         @default([])
+  updatedAt       DateTime         @updatedAt
+}
+
+/// "Hamkorlarimiz" bo'limidagi qator: tasdiqlangan biznes (`businessId`) yoki qo'lda qo'shilgan nom. Logotip — private
+/// omborda (`landing/<uuid>.<ext>`), `/api/landing/hamkor/<id>` orqali hammaga (faqat ko'rinadiganlari).
+model LandingPartner {
+  id         String   @id @default(cuid())
+  businessId String?  @unique
+  name       String
+  logoKey    String?
+  sort       Int      @default(0)
+  hidden     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }

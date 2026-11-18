@@ -15,7 +15,7 @@ export function DiscountList({ discounts }: { discounts: OwnerDiscount[] }) {
   const t = useTranslations("discountList");
   const weekday = useTranslations("weekday");
   const [, startTransition] = useTransition();
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<"toggleFailed" | "activeLimit" | null>(null);
   const [items, setOptimistic] = useOptimistic(
     discounts,
     (list, change: { id: string; active: boolean }) =>
@@ -40,7 +40,7 @@ export function DiscountList({ discounts }: { discounts: OwnerDiscount[] }) {
     startTransition(async () => {
       setOptimistic({ id, active });
       const result = await setDiscountActiveAction(id, active);
-      setFailed(!result.ok);
+      setFailed(result.ok ? null : result.error === "activeLimit" ? "activeLimit" : "toggleFailed");
     });
   }
 
@@ -48,7 +48,7 @@ export function DiscountList({ discounts }: { discounts: OwnerDiscount[] }) {
     <>
       {failed ? (
         <p role="alert" className="m-0 text-13 font-semibold text-danger">
-          {t("toggleFailed")}
+          {t(failed)}
         </p>
       ) : null}
       <ul className="m-0 list-none rounded-16 bg-white p-0">

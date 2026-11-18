@@ -49,7 +49,7 @@ export async function editBusinessAction(_prev: ManageState, formData: FormData)
   const data = raw(formData);
   const businessId = typeof data.businessId === "string" ? data.businessId : "";
   if (!businessId) return { status: "error", fields: [], error: "notFound" };
-  return done(await editBusiness(admin.id, businessId, data), ["/admin/foydalanuvchilar", "/admin/bizneslar"]);
+  return done(await editBusiness(admin.id, businessId, data), ["/admin/foydalanuvchilar", "/admin/bizneslar", "/admin/hamkorlar"]);
 }
 
 const universityRaw = (formData: FormData): Record<string, unknown> => {

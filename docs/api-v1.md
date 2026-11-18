@@ -279,7 +279,7 @@ o'z sotuvlari va cheklari; boshqa biznes endpoint'lari 403 `forbidden`. Biznes h
 | `POST /business/preorder/pause` | `{ paused }` | `{ ok, paused }` — "Bugun qabul qilmayman" (audit `preorder.pause\|resume`) |
 | `POST /business/preorder/preview` | `{ settings, paused, discountId, draft }` | saqlanmagan qoidalar bilan talabaga ko'rinishi: `{ kind, offHours, days, windows, quantity, amounts, prepay, rules }` |
 | `PUT /business/discounts/<id>/booking` | `DiscountBooking` | `{ ok }` · narxsiz — `preorder_no_price` (audit `discount.booking`) |
-| `GET /business/profile` | — | `{ profile: { id, name, address, landmark, workingHours, description, status, publicPhone, telegram, instagram, kind, typeLabel, district, logoUrl, salesToday, revenueToday, activeDiscounts, preorderEnabled } }` |
+| `GET /business/profile` | — | `{ profile: { id, name, address, landmark, workingHours, description, status, publicPhone, telegram, instagram, kind, typeLabel, district, logoUrl, salesToday, revenueToday, activeDiscounts, preorderEnabled, permissions } }` — `permissions`: admin ruxsatlari (`canCreateDiscounts`, `autoApproveDiscounts`, `canPreorder`, `canAddCashiers`, `maxActiveDiscounts`, `canEditProfile`, `canEditContacts`); taqiqlangan amal — `permission_denied` (403), faollar chegarasi — `active_limit` (409) |
 | `PATCH /business/profile` | `{ name, address, workingHours, description, landmark?, phone?, telegram?, instagram? }` | `{ ok, rereview }` · `invalid_request` + `fields` |
 | `POST /business/logo` · `DELETE /business/logo` | multipart `file` | `{ ok }` |
 

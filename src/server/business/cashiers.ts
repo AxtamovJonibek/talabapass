@@ -3,6 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { toTashkent, fromTashkent } from "@/lib/time";
 import { audit } from "../audit";
 import { db } from "../db";
+import { permissionsOf } from "./permissions";
 
 /** Taklif havolasi 48 soat amal qiladi va bir marta ishlatiladi. */
 export const INVITE_TTL_MS = 48 * 60 * 60 * 1000;
@@ -30,12 +31,13 @@ async function ownerLiveBusiness(ownerId: string) {
   return db.business.findFirst({ where: { ownerId, ...LIVE_BUSINESS }, select: { id: true, name: true } });
 }
 
-export type CreateInviteResult = { ok: true; token: string; expiresAt: Date } | { ok: false; error: "notApproved" | "tooMany" };
+export type CreateInviteResult = { ok: true; token: string; expiresAt: Date } | { ok: false; error: "notApproved" | "tooMany" | "noPermission" };
 
 /** Yangi taklif: tasodifiy token (bazada faqat xeshi). Faqat tasdiqlangan biznes kassir qo'sha oladi. */
 export async function createInvite(ownerId: string, now = new Date()): Promise<CreateInviteResult> {
   const business = await ownerLiveBusiness(ownerId);
   if (!business) return { ok: false, error: "notApproved" };
+  if (!(await permissionsOf(business.id)).canAddCashiers) return { ok: false, error: "noPermission" };
   const open = await db.cashierInvite.count({ where: { businessId: business.id, acceptedAt: null, expiresAt: { gt: now } } });
   if (open >= OPEN_INVITES_MAX) return { ok: false, error: "tooMany" };
 
@@ -119,7 +121,7 @@ async function claimInvite(inviteId: string, phone: string, name: { firstName: s
 
 // ───────── telefon raqami bilan taklif (ilova) ─────────
 
-export type PhoneInviteResult = { ok: true; inviteId: string; expiresAt: Date } | { ok: false; error: "notApproved" | "tooMany" | "alreadyCashier" };
+export type PhoneInviteResult = { ok: true; inviteId: string; expiresAt: Date } | { ok: false; error: "notApproved" | "tooMany" | "alreadyCashier" | "noPermission" };
 
 /**
  * Ilovada egasi kassirni raqami bilan qo'shadi: shu raqamga bog'langan taklif (havolasiz, 48 soat). Kassir ilovaga shu
@@ -130,6 +132,7 @@ export type PhoneInviteResult = { ok: true; inviteId: string; expiresAt: Date } 
 export async function invitePhone(ownerId: string, phone: string, now = new Date()): Promise<PhoneInviteResult> {
   const business = await ownerLiveBusiness(ownerId);
   if (!business) return { ok: false, error: "notApproved" };
+  if (!(await permissionsOf(business.id)).canAddCashiers) return { ok: false, error: "noPermission" };
   const member = await db.businessMember.count({ where: { businessId: business.id, role: "CASHIER", active: true, user: { phone } } });
   if (member > 0) return { ok: false, error: "alreadyCashier" };
 

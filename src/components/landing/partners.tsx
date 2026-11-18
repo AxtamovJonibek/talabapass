@@ -1,6 +1,7 @@
 // Manba: design/screens/W1.html — qiymatlar dizayndan aynan ko'chirilgan.
 import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
+import type { LandingPartnerView } from "@/server/landing";
 
 const CELL: CSSProperties = { minHeight: "110px", padding: "0 12px", boxSizing: "border-box", borderRight: "1.5px solid var(--color-ink)", borderBottom: "1.5px solid var(--color-ink)", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", textAlign: "center" };
 const CHIP: CSSProperties = { height: "34px", padding: "0 12px", borderRadius: "17px", background: "var(--color-white)", display: "flex", alignItems: "center", fontSize: "14px", fontWeight: 700 };
@@ -20,8 +21,11 @@ const LOOKS: { style: CSSProperties; text?: (name: string) => string; dot?: bool
   { style: { fontWeight: 900, fontSize: "22px", fontStyle: "italic" } },
 ];
 
-/** Hamkorlar — bazadagi tasdiqlangan bizneslar; oliygohlar — tasdiqlangan talabasi borlari (`landingPartners`). */
-export function Partners({ businesses, universities }: { businesses: string[]; universities: string[] }) {
+/**
+ * Hamkorlar — tasdiqlangan bizneslar va admin qo'shganlari (`landingPartners`, tartib va yashirish — `/admin/landing`);
+ * logotip bo'lsa rasm, bo'lmasa nom dizayndagi yozuv uslublaridan biri bilan. Oliygohlar — tasdiqlangan talabasi borlari.
+ */
+export function Partners({ businesses, universities }: { businesses: LandingPartnerView[]; universities: string[] }) {
   const t = useTranslations("landing.partners");
   if (businesses.length === 0) return null;
   return (
@@ -33,10 +37,18 @@ export function Partners({ businesses, universities }: { businesses: string[]; u
         {t("choyxonadan_sport_zalgacha_talabalarni")}
       </p>
       <div style={{ marginTop: "30px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", borderTop: "1.5px solid var(--color-ink)", borderLeft: "1.5px solid var(--color-ink)" }}>
-        {businesses.map((name, i) => {
+        {businesses.map(({ key, name, logoUrl }, i) => {
           const look = LOOKS[i % LOOKS.length]!;
+          if (logoUrl) {
+            return (
+              <div key={key} style={CELL}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili, o'lchami har xil */}
+                <img src={logoUrl} alt={name} loading="lazy" style={{ maxWidth: "80%", maxHeight: "64px", objectFit: "contain" }} />
+              </div>
+            );
+          }
           return (
-            <div key={name} style={{ ...CELL, ...look.style }}>
+            <div key={key} style={{ ...CELL, ...look.style }}>
               {look.ring ? <span style={{ width: "22px", height: "22px", flexShrink: 0, borderRadius: "11px", border: "5px solid var(--color-ink)", boxSizing: "border-box" }} /> : null}
               <span>
                 {look.text ? look.text(name) : name}

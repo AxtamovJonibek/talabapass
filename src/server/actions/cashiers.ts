@@ -15,7 +15,7 @@ import { createSession, forgetVerifiedPhone, requireRole } from "../auth/session
 import { acceptInvite, createInvite, removeCashier, revokeInvite, type AcceptError } from "../business/cashiers";
 import type { AuthError } from "./auth";
 
-export type InviteActionResult = { ok: true; path: string; expiresAt: string } | { ok: false; error: "notApproved" | "tooMany" };
+export type InviteActionResult = { ok: true; path: string; expiresAt: string } | { ok: false; error: "notApproved" | "tooMany" | "noPermission" };
 
 /** B5 "+ Taklif qilish": bir martalik, 48 soatlik havola (token faqat shu javobda ko'rinadi). */
 export async function createInviteAction(): Promise<InviteActionResult> {

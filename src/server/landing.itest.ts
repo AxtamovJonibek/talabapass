@@ -29,7 +29,7 @@ describe("landing: hamkorlar", () => {
     }
     await db.user.update({ where: { phone: PHONES[1] }, data: { status: "DELETED", phone: "deleted:landing-itest" } });
 
-    const { businesses } = await landingPartners();
+    const businesses = (await landingPartners()).businesses.map((b) => b.name);
     expect(businesses).toContain(NAMES[0]);
     expect(businesses).not.toContain(NAMES[1]);
     expect((await landingStats(new Date())).businesses).toBe(before + 1);

@@ -24,6 +24,7 @@ import type { PreorderSettings } from "@/generated/prisma/client";
 import { audit } from "../audit";
 import { db } from "../db";
 import { ownerBusinessForDiscounts } from "../business/discounts";
+import { PREORDER_ALLOWED, permissionsOf } from "../business/permissions";
 import { visibleDiscountWhere } from "../student/feed";
 
 /**
@@ -124,7 +125,7 @@ export async function ownerPreorder(ownerId: string, now = new Date()): Promise<
   };
 }
 
-export type SaveSettingsResult = { ok: true } | { ok: false; error: "noBusiness" | "invalid" | "noSchedule" };
+export type SaveSettingsResult = { ok: true } | { ok: false; error: "noBusiness" | "invalid" | "noSchedule" | "noPermission" };
 
 export async function savePreorderSettings(ownerId: string, raw: unknown): Promise<SaveSettingsResult> {
   const business = await ownerBusinessForDiscounts(ownerId);
@@ -133,6 +134,7 @@ export async function savePreorderSettings(ownerId: string, raw: unknown): Promi
   if (!parsed.success) return { ok: false, error: "invalid" };
   const input = parsed.data;
   if (input.enabled && input.schedule.length === 0) return { ok: false, error: "noSchedule" };
+  if (input.enabled && !(await permissionsOf(business.id)).canPreorder) return { ok: false, error: "noPermission" };
   const data = { ...input, schedule: input.schedule.sort((a, b) => a.day - b.day) };
   await db.$transaction(async (tx) => {
     await tx.preorderSettings.upsert({ where: { businessId: business.id }, create: { businessId: business.id, ...data }, update: data });
@@ -212,7 +214,11 @@ const BOOKABLE_SELECT = {
 
 /** Chegirma band qilinadimi: biznes sozlamasi yoqilgan, chegirmada rejim tanlangan, talabaga ko'rinadi, narxi aniq. */
 export async function bookableDiscount(discountId: string, now = new Date()) {
-  const discount = await db.discount.findFirst({ where: { AND: [{ id: discountId, bookingMode: { not: "NONE" } }, visibleDiscountWhere(now)] }, select: BOOKABLE_SELECT });
+  // Admin `canPreorder` ni o'chirgan biznesda band qilish yo'q (tugma ham chiqmaydi)
+  const discount = await db.discount.findFirst({
+    where: { AND: [{ id: discountId, bookingMode: { not: "NONE" }, business: PREORDER_ALLOWED }, visibleDiscountWhere(now)] },
+    select: BOOKABLE_SELECT,
+  });
   const settings = discount?.business.preorder;
   const unit = discount ? unitPrice(discount) : null;
   if (!discount || !settings?.enabled || !unit || discount.bookingMode === "NONE") return null;
