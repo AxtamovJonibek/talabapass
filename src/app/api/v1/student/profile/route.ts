@@ -28,6 +28,8 @@ export const GET = route(async (request) => {
         cardNumber: s.cardNumber,
         cardExpiresAt: s.cardExpiresAt?.toISOString().slice(0, 10) ?? null,
         avatarUrl: studentAvatarUrl(user.id, s.avatarKey),
+        /** "Yangi chegirmalar haqida xabar" (saytdagi T8 kaliti) */
+        notify: s.notifyDeals,
       },
     }),
   );

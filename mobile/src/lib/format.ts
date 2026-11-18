@@ -112,3 +112,17 @@ export function formatWhen(iso: string, now = new Date()): string {
 
 /** Ism-familiyadan bosh harflar */
 export const initials = (first?: string | null, last?: string | null) => `${(first ?? "").charAt(0)}${(last ?? "").charAt(0)}`.toUpperCase();
+
+const DAY_MS_WEB = 86_400_000;
+
+/** Saytdagi `useDealText().webStatus`: "23:00 gacha", "Bugun 16:00", "Ertaga 08:00", "Dushanba 09:00", "25.11 dan" */
+export function webStatus(deal: { live: boolean; closesAt: string | null; opensAt: string | null }, now: Date): string {
+  const w = copy.deal.web;
+  if (deal.live && deal.closesAt) return w.until(clock(deal.closesAt));
+  if (!deal.opensAt) return "";
+  const target = toTashkent(new Date(deal.opensAt));
+  const days = Math.round((target.date.getTime() - toTashkent(now).date.getTime()) / DAY_MS_WEB);
+  if (days >= 7) return w.fromDate(`${String(target.date.getUTCDate()).padStart(2, "0")}.${String(target.date.getUTCMonth() + 1).padStart(2, "0")}`);
+  const label = days <= 0 ? w.today : days === 1 ? w.tomorrow : copy.weekdays[target.weekday - 1]!;
+  return `${label} ${clock(deal.opensAt)}`;
+}

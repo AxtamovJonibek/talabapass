@@ -223,7 +223,23 @@ export type ReceiptData = {
 /** T7 — tarix (`GET /student/history?oy=`) */
 export type StudentHistory = { month: string; months: string[]; saved: number; count: number; receipts: ReceiptData[]; totalSaved: number; totalCount: number; places: number };
 
+export type OrderStatus = "PENDING_PAYMENT" | "PAID" | "CONFIRMED" | "READY" | "COMPLETED" | "REJECTED" | "CANCELLED" | "NO_SHOW" | "EXPIRED";
+export type StudentOrderRow = { id: string; status: OrderStatus; title: string; businessName: string; kind: string; slotStart: string; slotEnd: string; quantity: number; totalFinal: number };
+export type StudentOrderView = StudentOrderRow & {
+  code: string;
+  secret: string | null;
+  address: string;
+  workingHours: string;
+  prepayAmount: number;
+  rejectReason: string | null;
+  cancel: { refund: number; keep: number } | null;
+  events: { to: OrderStatus; at: string; reason: string | null }[];
+};
+
 export const appApi = {
+  orders: () => api<{ orders: StudentOrderRow[] }>("/student/orders"),
+  order: (id: string) => api<{ order: StudentOrderView }>(`/student/orders/${encodeURIComponent(id)}`),
+  cancelOrder: (id: string) => api<{ ok: true }>(`/student/orders/${encodeURIComponent(id)}/cancel`, { method: "POST" }),
   history: (month?: string) => api<StudentHistory>(`/student/history${month ? `?oy=${month}` : ""}`),
   deals: (origin: Origin) => api<{ deals: FeedDeal[]; categories: Category[]; now: string }>(`/deals${query(originParams(origin))}`),
   nearby: (origin: Origin, radiusKm: number) => api<{ origin: Point; deals: FeedDeal[] }>(`/deals/nearby${query({ ...originParams(origin), radiusKm: String(radiusKm), limit: "100" })}`),
@@ -248,6 +264,7 @@ export const studentApi = {
   status: () => api<StudentStatusView>("/student/status"),
   uploadCard: async (file: LocalFile) => api<{ verificationId: string; status: "PENDING" }>("/student/card", { method: "POST", form: await fileForm(file) }),
   profile: () => api<{ profile: StudentProfile }>("/student/profile"),
+  setNotify: (on: boolean) => api<{ notify: boolean }>("/student/notify", { method: "POST", body: { on } }),
   saveProfile: (body: StudentProfileEdit) => api<{ ok: true; user: Me }>("/student/profile", { method: "PATCH", body }),
   uploadAvatar: async (file: LocalFile) => api<{ ok: true }>("/student/avatar", { method: "POST", form: await fileForm(file) }),
   removeAvatar: () => api<{ ok: true }>("/student/avatar", { method: "DELETE" }),
@@ -266,6 +283,7 @@ export type StudentProfile = {
   cardExpiresAt: string | null;
   /** Imzoli havola (1–2 soat) yoki null — bosh harflar */
   avatarUrl: string | null;
+  notify: boolean;
 };
 
 /** Saytdagi `profileSchema` (`src/lib/profile.ts`): bo'sh fakultet/tuman — o'chiriladi */

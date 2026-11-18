@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { SvgXml } from "react-native-svg";
 import { colors, em, font } from "@/theme";
+import { WORDMARK, WORDMARK_HEIGHTS, WORDMARK_RATIO, WORDMARK_WHITE } from "./wordmark";
 import { Icon, isIconName, type IconName } from "@/ui/icons";
 import { Press, Txt } from "@/ui/kit";
 
@@ -295,3 +297,95 @@ const s = StyleSheet.create({
   floatWrap: { position: "absolute", left: 0, right: 0, alignItems: "center", zIndex: 20 },
   float: { height: 48, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 999, backgroundColor: colors.ink, paddingHorizontal: 20 },
 });
+
+// ───────── tugma (ui/button.tsx) ─────────
+
+const BTN_SIZE = {
+  /** cta: h-[58px] rounded-16 px-5 text-17 */
+  cta: { height: 58, borderRadius: 16, paddingHorizontal: 20, fontSize: 17 },
+  /** lg: h-14 rounded-14 px-5 text-16 */
+  lg: { height: 56, borderRadius: 14, paddingHorizontal: 20, fontSize: 16 },
+  /** md: h-12 rounded-12 px-4 text-15 */
+  md: { height: 48, borderRadius: 12, paddingHorizontal: 16, fontSize: 15 },
+  /** sm: h-11 rounded-12 px-4 text-14 */
+  sm: { height: 44, borderRadius: 12, paddingHorizontal: 16, fontSize: 14 },
+} as const;
+
+const BTN_LOOK = {
+  blue: { bg: colors.blue, fg: colors.white, border: null, weight: 700 },
+  orange: { bg: colors.orange, fg: colors.ink, border: null, weight: 800 },
+  ink: { bg: colors.ink, fg: colors.white, border: null, weight: 700 },
+  outline: { bg: colors.white, fg: colors.ink, border: colors.ink, weight: 700 },
+  "outline-soft": { bg: colors.white, fg: colors.ink, border: colors.line, weight: 700 },
+  "danger-outline": { bg: colors.white, fg: colors.danger, border: "#F2C4B4", weight: 700 },
+  ghost: { bg: "transparent", fg: colors.ink, border: null, weight: 600 },
+  idle: { bg: colors.track, fg: colors.muted, border: null, weight: 700 },
+} as const;
+
+/** Saytdagi `Button` (`buttonClass`): o'lcham va ko'rinish; `strong` — 800, `block` — to'liq kenglik, ikonka chapda */
+export function Button({
+  children,
+  onPress,
+  variant = "blue",
+  size = "lg",
+  strong = false,
+  block = false,
+  icon,
+  disabled = false,
+  busy = false,
+  style,
+}: {
+  children: string;
+  onPress: () => void;
+  variant?: keyof typeof BTN_LOOK;
+  size?: keyof typeof BTN_SIZE;
+  strong?: boolean;
+  block?: boolean;
+  icon?: IconName;
+  disabled?: boolean;
+  busy?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const z = BTN_SIZE[size];
+  const look = BTN_LOOK[variant];
+  return (
+    <Press
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled, busy }}
+      scale={0.97}
+      style={[
+        { height: z.height, borderRadius: z.borderRadius, paddingHorizontal: z.paddingHorizontal, backgroundColor: look.bg, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+        look.border ? { borderWidth: 1.5, borderColor: look.border } : null,
+        block ? { alignSelf: "stretch" } : { alignSelf: "flex-start" },
+        disabled && variant !== "idle" ? { opacity: 0.5 } : null,
+        style,
+      ]}
+    >
+      {icon ? <Icon name={icon} size={22} color={look.fg} /> : null}
+      <Txt style={[font(strong ? 800 : (look.weight as 600 | 700 | 800)), { fontSize: z.fontSize, color: look.fg }]}>{children}</Txt>
+    </Press>
+  );
+}
+
+/** Saytdagi `weekdaysLabel` (lib/discount.ts): Du–Ju, Sh–Ya, "Du, Ch"; 7 kun — "Har kuni" */
+export function weekdaysLabel(weekdays: number[], names: (day: number) => string, everyDay: string): string {
+  const days = [...new Set(weekdays)].filter((d) => d >= 1 && d <= 7).sort((a, b) => a - b);
+  if (days.length === 7) return everyDay;
+  const parts: string[] = [];
+  for (let i = 0; i < days.length; ) {
+    let j = i;
+    while (j + 1 < days.length && days[j + 1] === days[j]! + 1) j++;
+    if (j - i >= 1 && (j - i >= 2 || (days[i] === 6 && days[j] === 7))) parts.push(`${names(days[i]!)}–${names(days[j]!)}`);
+    else for (let k = i; k <= j; k++) parts.push(names(days[k]!));
+    i = j + 1;
+  }
+  return parts.join(", ");
+}
+
+/** Saytdagi `Logo` (ui/logo.tsx): wordmark rasmi; `white` — ko'k/qora fonda */
+export function Wordmark({ size = 20, white = false }: { size?: keyof typeof WORDMARK_HEIGHTS; white?: boolean }) {
+  const h = WORDMARK_HEIGHTS[size];
+  return <SvgXml xml={white ? WORDMARK_WHITE : WORDMARK} width={Math.round(h * WORDMARK_RATIO)} height={h} accessibilityLabel="Talaba Pass" />;
+}
