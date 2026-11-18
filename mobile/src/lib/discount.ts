@@ -103,3 +103,40 @@ export function emptyDraft(now = new Date()): DiscountDraft {
   const end = new Date(Date.parse(`${today}T00:00:00Z`) + 30 * 86_400_000).toISOString().slice(0, 10);
   return { title: "", type: "PERCENT", originalPrice: null, percent: 20, newPrice: null, weekdays: [1, 2, 3, 4, 5], fromMinute: 720, toMinute: 900, dailyLimit: 30, perStudentLimit: "DAILY", startsOn: today, endsOn: end, terms: "" };
 }
+
+const iso = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+/** Saytdagi `parseDateRange`: "13.10 – 31.10" (yil ixtiyoriy) → ISO sanalar; yil tanlovi bugungi sanaga qarab. */
+export function parseDateRange(value: string, today: string): { startsOn: string; endsOn: string } | null {
+  const m = /^\s*(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?\s*[–—-]\s*(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?\s*$/.exec(value);
+  if (!m) return null;
+  const [ty, tm, td] = today.split("-").map(Number) as [number, number, number];
+  let startYear = m[3] ? Number(m[3]) : ty;
+  if (!m[3]) {
+    const monthsBack = tm - Number(m[2]) + (td > Number(m[1]) ? 0.5 : 0);
+    if (monthsBack > 6) startYear += 1;
+  }
+  const startsOn = iso(startYear, Number(m[2]), Number(m[1]));
+  let endYear = m[6] ? Number(m[6]) : startYear;
+  if (!m[6] && iso(endYear, Number(m[5]), Number(m[4])) < startsOn) endYear += 1;
+  return { startsOn, endsOn: iso(endYear, Number(m[5]), Number(m[4])) };
+}
+
+/** Saytdagi `formatDateRange`: "2026-10-13", "2026-10-31" → "13.10 – 31.10" (yil boshqa bo'lsa — yil bilan). */
+export function formatDateRange(startsOn: string, endsOn: string, today: string): string {
+  const short = (d: string, withYear: boolean) => `${d.slice(8, 10)}.${d.slice(5, 7)}${withYear ? `.${d.slice(0, 4)}` : ""}`;
+  const withYear = startsOn.slice(0, 4) !== today.slice(0, 4) || endsOn.slice(0, 4) !== startsOn.slice(0, 4);
+  return `${short(startsOn, withYear)} – ${short(endsOn, withYear)}`;
+}
+
+/** Saytdagi `discountTerms`: yorliq, asl narx, chegirma summasi va to'lanadigan narx (1+1 — bitta narx). */
+export function discountTerms(d: { type: DiscountType; originalPrice: number | null; percent: number | null; newPrice: number | null }) {
+  if (d.type === "PERCENT" && d.percent !== null) {
+    const finalPrice = d.originalPrice !== null ? priceAfterPercent(d.originalPrice, d.percent) : null;
+    return { badge: discountBadge(d), originalPrice: d.originalPrice, discountAmount: finalPrice !== null && d.originalPrice !== null ? d.originalPrice - finalPrice : null, finalPrice };
+  }
+  if (d.type === "FIXED_PRICE" && d.originalPrice !== null && d.newPrice !== null) {
+    return { badge: discountBadge(d), originalPrice: d.originalPrice, discountAmount: d.originalPrice - d.newPrice, finalPrice: d.newPrice };
+  }
+  return { badge: discountBadge({ ...d, type: "BOGO" }), originalPrice: d.originalPrice !== null ? d.originalPrice * 2 : null, discountAmount: d.originalPrice, finalPrice: d.originalPrice };
+}

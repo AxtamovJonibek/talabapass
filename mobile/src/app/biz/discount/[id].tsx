@@ -1,76 +1,46 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Image, StyleSheet, TextInput, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiError, errorText } from "@/api/client";
-import { bizApi, type DiscountDraft, type DiscountForm, type DiscountStatus, type DiscountType, type StudentLimit } from "@/api/business";
+import { bizApi, type DiscountDraft, type DiscountForm, type DiscountStatus, type DiscountType } from "@/api/business";
 import type { LocalFile } from "@/api/endpoints";
-import { StatusBadge } from "@/business/ui";
 import { copy } from "@/copy";
-import { dateField, emptyDraft, parseAmount, parseDate, parseTime, priceAfterPercent, todayIso, validateDiscount, type DiscountField } from "@/lib/discount";
-import { formatMinute, formatSom } from "@/lib/format";
+import { discountTerms, emptyDraft, formatDateRange, parseAmount, parseDateRange, PERCENT_MAX, PERCENT_MIN, todayIso, validateDiscount, type DiscountField } from "@/lib/discount";
+import { formatSom, MINUS } from "@/lib/format";
+import { daysText, formatSchedule, hoursFor, outsideHours, parseSchedule, type Range, type WeekSchedule } from "@/lib/hours";
 import { pickImage } from "@/lib/pick";
 import { useLoad } from "@/lib/use-load";
-import { colors, font } from "@/theme";
-import { Card, Failed, imageUrl, Loading, RoundButton, SecondaryButton } from "@/ui/app";
-import { Icon } from "@/ui/icons";
-import { Choice, ErrorBox, Field, Label, Note, PrimaryButton, Press, Screen, Title, TopBar, Txt } from "@/ui/kit";
-import { DayChips, hoursLabels, TimeRangePicker, UZ_HOURS_LABELS } from "@/ui/time-pickers";
-import { daysText, formatSchedule, hoursFor, outsideHours, parseSchedule, type WeekSchedule } from "@/lib/hours";
+import { DayChips, TimeRangePicker } from "@/site/time";
+import { Button, Choice, mono, SiteField, SiteInput } from "@/site/ui";
 import { useApp } from "@/state";
+import { colors, em, font } from "@/theme";
+import { Failed, imageUrl, Loading } from "@/ui/app";
+import { Icon, isIconName } from "@/ui/icons";
+import { KEYBOARD_GAP, Press, Txt } from "@/ui/kit";
+import { hoursLabels, UZ_HOURS_LABELS } from "@/ui/time-pickers";
 
-type Form = {
-  title: string;
-  type: DiscountType;
-  originalPrice: string;
-  percent: string;
-  newPrice: string;
-  weekdays: number[];
-  from: string;
-  to: string;
-  dailyLimit: string;
-  perStudentLimit: StudentLimit;
-  startsOn: string;
-  endsOn: string;
-  terms: string;
+const KINDS: DiscountType[] = ["PERCENT", "FIXED_PRICE", "BOGO"];
+const PERCENT_STEP = 5;
+const PRICE_STEP = 1000;
+const IMAGES_MAX = 4;
+const groupDigits = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+const addDays = (isoDate: string, days: number) => {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 };
-
-const num = (n: number | null) => (n === null ? "" : formatSom(n));
-const toForm = (d: DiscountDraft): Form => ({
-  title: d.title,
-  type: d.type,
-  originalPrice: num(d.originalPrice),
-  percent: d.percent === null ? "" : String(d.percent),
-  newPrice: num(d.newPrice),
-  weekdays: d.weekdays,
-  from: d.fromMinute === null ? "" : formatMinute(d.fromMinute),
-  to: d.toMinute === null ? "" : formatMinute(d.toMinute),
-  dailyLimit: d.dailyLimit === null ? "" : String(d.dailyLimit),
-  perStudentLimit: d.perStudentLimit,
-  startsOn: dateField(d.startsOn),
-  endsOn: dateField(d.endsOn),
-  terms: d.terms,
-});
-const toDraft = (f: Form): DiscountDraft => ({
-  title: f.title,
-  type: f.type,
-  originalPrice: parseAmount(f.originalPrice),
-  percent: f.type === "PERCENT" ? parseAmount(f.percent) : null,
-  newPrice: f.type === "FIXED_PRICE" ? parseAmount(f.newPrice) : null,
-  weekdays: f.weekdays,
-  fromMinute: parseTime(f.from),
-  toMinute: parseTime(f.to),
-  dailyLimit: parseAmount(f.dailyLimit),
-  perStudentLimit: f.perStudentLimit,
-  startsOn: parseDate(f.startsOn),
-  endsOn: parseDate(f.endsOn),
-  terms: f.terms,
-});
+type Category = { icon: string; tileColor: string; inkColor: string };
+const NO_CATEGORY: Category = { icon: "all", tileColor: colors.surface, inkColor: colors.ink };
+/** Muharrirdagi rasm: saqlangani (`id`) yoki saqlangandan keyin yuklanadigan yangi fayl */
+type EditorImage = { key: string; url: string; id?: string; file?: LocalFile };
 
 /**
- * Chegirma muharriri (saytdagi B2 / WB2): nom, tur (foiz / yangi narx / 1+1), narx, kunlar, soat, kunlik son, bir
- * talabaga limit, muddat, shartlar, rasmlar (4 tagacha). Tekshiruv saytdagi `validateDiscount` bilan; "Qoralama" yoki
- * "E'lon qilish" (admin tekshiruvi). Faol chegirmada mazmun yoki rasm o'zgarsa — qayta tekshiruv. Yangi rasmlar
- * saqlangandan keyin yuklanadi (saytdagidek). `id = "new"` — yangi chegirma.
+ * B2 — chegirma yaratish / tahrirlash, saytdagi telefon muharriri (`EditorMobile`, `useDiscountEditor`): sarlavha va
+ * "Qoralama", holat yozuvi, mahsulot (kategoriya plitkasi bilan), rasmlar (4 tagacha), tur, asl narx va qora qiymat qutisi
+ * (+/−), kunlar, soat (tayyor oraliqlar / g'ildirak), kunlik son ("60 ta"), muddat ("13.10 – 31.10"), talabaga ko'rinishi;
+ * pastda "E'lon qilish" / "Saqlash". Tekshiruv saytdagi `validateDiscount`; rasmlar saqlangandan keyin yuklanadi.
  */
 export default function DiscountEditor() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -78,293 +48,381 @@ export default function DiscountEditor() {
   const remote = useLoad(useCallback(() => bizApi.discount(id), [id]), !isNew);
   if (isNew) return <EditorForm key="new" id={null} initial={null} />;
   if (remote.data) return <EditorForm key={id} id={id} initial={remote.data} />;
-  return <Screen scroll={false}>{remote.error ? <Failed error={remote.error} onRetry={() => void remote.reload()} /> : <Loading />}</Screen>;
+  return <View style={[styles.root, styles.center]}>{remote.error ? <Failed error={remote.error} onRetry={() => void remote.reload()} /> : <Loading />}</View>;
+}
+
+function CategoryTile({ category, size, plus = false, image, children }: { category: Category; size: number; plus?: boolean; image?: string; children?: ReactNode }) {
+  const radius = size >= 96 ? 14 : size >= 64 ? 12 : 10;
+  return (
+    <View style={{ width: size, height: size, borderRadius: radius, backgroundColor: category.tileColor, alignItems: "center", justifyContent: "center" }}>
+      {image ? (
+        <Image source={{ uri: image }} style={[StyleSheet.absoluteFill, { borderRadius: radius }]} accessibilityIgnoresInvertColors />
+      ) : size > 52 ? (
+        <Icon name={isIconName(category.icon) ? category.icon : "all"} size={Math.round(size / 1.9)} color={category.inkColor} strokeWidth={1.4} />
+      ) : null}
+      {plus ? (
+        <View style={styles.plus}>
+          <Icon name="plus" size={12} color={colors.white} strokeWidth={2.6} />
+        </View>
+      ) : null}
+      {children}
+    </View>
+  );
 }
 
 function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm | null }) {
-  const isNew = id === null;
   const e = copy.biz.editor;
+  const insets = useSafeAreaInsets();
   const { me } = useApp();
+  const today = todayIso();
+  const d0: DiscountDraft = initial?.draft ?? emptyDraft();
   const [schedule, setSchedule] = useState<WeekSchedule>([]);
   useEffect(() => {
-    // Ish vaqti matni biznes profilidan (bazada o'zbekcha)
+    // Ish vaqti biznes profilidan (bazada o'zbekcha matn): "Ish vaqti bo'yicha" va ogohlantirish uchun
     void bizApi
       .profile()
       .then((p) => setSchedule(parseSchedule(p.profile.workingHours, UZ_HOURS_LABELS) ?? []))
       .catch(() => undefined);
-  }, [me?.business?.id]);
-  const [form, setForm] = useState<Form>(() => toForm(initial?.draft ?? emptyDraft()));
+  }, []);
+
+  const [title, setTitle] = useState(d0.title);
+  const [type, setType] = useState<DiscountType>(d0.type);
+  const [original, setOriginal] = useState(d0.originalPrice != null ? groupDigits(d0.originalPrice) : "");
+  const [percentText, setPercentText] = useState(String(d0.percent ?? 30));
+  const [newPrice, setNewPrice] = useState<number | null>(d0.newPrice ?? null);
+  const [weekdays, setWeekdays] = useState(d0.weekdays);
+  const [range, setRange] = useState<Range>({ from: d0.fromMinute ?? 720, to: d0.toMinute ?? 900 });
+  const [limit, setLimit] = useState(d0.dailyLimit != null ? e.dailyLimitValue(d0.dailyLimit) : "");
+  const [period, setPeriod] = useState(formatDateRange(initial ? d0.startsOn : today, initial ? d0.endsOn : addDays(today, 30), today));
   const [status, setStatus] = useState<DiscountStatus | null>(initial?.status ?? null);
-  const rejectReason = initial?.rejectReason ?? null;
-  const [images, setImages] = useState<{ id: string; url: string }[]>(initial?.images ?? []);
-  const [pending, setPending] = useState<LocalFile[]>([]);
+  const [images, setImages] = useState<EditorImage[]>((initial?.images ?? []).map((i) => ({ key: i.id, url: imageUrl(i.url), id: i.id })));
+  const [removed, setRemoved] = useState<string[]>([]);
   const [errors, setErrors] = useState<Partial<Record<DiscountField, string>>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"draft" | "publish" | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [savedId, setSavedId] = useState(id);
 
-  const set = (patch: Partial<Form>) => {
-    setForm({ ...form, ...patch });
-    setError(null);
-  };
   const ended = status === "ENDED";
-  const draftNow = toDraft(form);
-  const total = images.length + pending.length;
-  const bad = (f: DiscountField) => Boolean(errors[f]);
-  const fieldError = (f: DiscountField) => (errors[f] ? <Note error>{e.errors[errors[f]!] ?? ""}</Note> : null);
+  const live = status === "ACTIVE" || status === "PAUSED";
+  const category = initial?.category ?? NO_CATEGORY;
+  const percent = /^\d{1,3}$/.test(percentText) ? Number(percentText) : null;
+  const originalPrice = parseAmount(original);
+  // Yangi narx tanlanmagan bo'lsa — asl narxning 70% i (1000 ga yaxlitlab), saytdagidek
+  const price = newPrice ?? (originalPrice ? Math.max(PRICE_STEP, Math.floor((originalPrice * 0.7) / PRICE_STEP) * PRICE_STEP) : null);
+  const dates = parseDateRange(period, today);
+  const draft: DiscountDraft = {
+    title,
+    type,
+    originalPrice,
+    percent: type === "PERCENT" ? percent : null,
+    newPrice: type === "FIXED_PRICE" ? price : null,
+    weekdays,
+    fromMinute: range.from,
+    toMinute: range.to === 0 ? 1440 : range.to,
+    dailyLimit: parseAmount(limit),
+    perStudentLimit: d0.perStudentLimit,
+    startsOn: dates?.startsOn ?? "",
+    endsOn: dates?.endsOn ?? "",
+    terms: d0.terms,
+  };
+  const terms = discountTerms(type === "PERCENT" ? { ...draft, percent: draft.percent ?? 0 } : draft);
+  const errorOf = (f: DiscountField) => (errors[f] ? (e.errors[errors[f]!] ?? "") : null);
+  const outside = outsideHours(weekdays, range, schedule);
+  const outsideText = outside.length ? copy.time.outside(daysText(outside, hoursLabels()), schedule.length ? formatSchedule(schedule, hoursLabels()) : copy.time.noHours) : null;
+  const valueText = type === "PERCENT" ? `${MINUS}${percentText || 0}%` : type === "FIXED_PRICE" ? (price !== null ? groupDigits(price) : "—") : "1+1";
+  const previewPrice = type === "BOGO" ? e.bogoFree : terms.finalPrice !== null ? `${formatSom(terms.finalPrice)} ${copy.currency}` : "—";
+  const previewInstead = type !== "BOGO" && originalPrice ? e.insteadOf(groupDigits(originalPrice)) : null;
+  const statusText = status ? (status === "REJECTED" && initial?.rejectReason ? `${e.status.REJECTED} ${initial.rejectReason}` : e.status[status]) : null;
+  const businessPending = me?.business?.status === "PENDING";
 
-  const calc = (() => {
-    const o = draftNow.originalPrice;
-    if (form.type === "BOGO") return e.calcBogo;
-    if (form.type === "PERCENT" && o && draftNow.percent) {
-      const paid = priceAfterPercent(o, Math.min(100, draftNow.percent));
-      return e.calcPercent(`${formatSom(paid)} ${copy.currency}`, `${formatSom(o - paid)} ${copy.currency}`);
+  const step = (direction: 1 | -1) => {
+    if (type === "PERCENT") setPercentText(String(Math.min(PERCENT_MAX, Math.max(PERCENT_MIN, (percent ?? 0) + direction * PERCENT_STEP))));
+    if (type === "FIXED_PRICE" && price !== null) {
+      const ceiling = originalPrice ? originalPrice - PRICE_STEP : price;
+      setNewPrice(Math.min(Math.max(PRICE_STEP, ceiling), Math.max(PRICE_STEP, price + direction * PRICE_STEP)));
     }
-    if (form.type === "FIXED_PRICE" && o && draftNow.newPrice && draftNow.newPrice < o) return e.calcFixed(`${formatSom(o - draftNow.newPrice)} ${copy.currency}`);
-    return null;
-  })();
-  // Biznes ish vaqti: "Ish vaqti bo'yicha" tanlovi va ish vaqtidan chiqsa ogohlantirish (saqlashga to'sqinlik qilmaydi)
-  const range = { from: draftNow.fromMinute ?? 720, to: draftNow.toMinute ?? 900 };
-  const workHours = hoursFor(form.weekdays, schedule);
-  const outside = outsideHours(form.weekdays, range, schedule);
+  };
 
   const addImage = async () => {
+    setImageError(null);
     try {
       const file = await pickImage(`chegirma-${Date.now()}.jpg`);
-      if (file) setPending((p) => [...p, file]);
+      if (file) setImages((list) => [...list, { key: file.uri, url: file.uri, file }]);
     } catch (err) {
-      setError(errorText(err));
+      setImageError(errorText(err));
     }
   };
+  const removeImage = (key: string) => {
+    const image = images.find((i) => i.key === key);
+    if (image?.id) setRemoved((list) => [...list, image.id!]);
+    setImages((list) => list.filter((i) => i.key !== key));
+  };
 
-  const removeServerImage = (imageId: string) =>
-    Alert.alert(e.removeImage, status === "ACTIVE" || status === "PAUSED" ? e.status.ACTIVE : undefined, [
-      { text: copy.deleteAccount.confirmNo, style: "cancel" },
-      {
-        text: e.removeImage,
-        style: "destructive",
-        onPress: () =>
-          void bizApi
-            .removeDiscountImage(imageId)
-            .then(() => {
-              setImages((list) => list.filter((i) => i.id !== imageId));
-              if (status === "ACTIVE" || status === "PAUSED") setStatus("PENDING_REVIEW");
-            })
-            .catch((err: unknown) => setError(errorText(err))),
-      },
-    ]);
+  /** Saqlangandan keyin: o'chirilganlar, keyin yangi fayllar ketma-ket; xato bo'lsa — to'xtaydi (saytdagidek) */
+  const syncImages = async (discountId: string) => {
+    for (const imageId of removed) await bizApi.removeDiscountImage(imageId).catch(() => undefined);
+    setRemoved([]);
+    for (const image of images.filter((i) => i.file)) {
+      try {
+        const uploaded = await bizApi.uploadDiscountImage(discountId, image.file!);
+        setImages((list) => list.map((i) => (i.key === image.key ? { ...i, id: uploaded.id, file: undefined } : i)));
+      } catch (err) {
+        setImageError(errorText(err));
+        return false;
+      }
+    }
+    return true;
+  };
 
   const save = async (intent: "draft" | "publish") => {
     if (busy || ended) return;
-    const draft = toDraft(form);
-    const found = validateDiscount(draft, todayIso());
-    // Tahrirlashda allaqachon boshlangan chegirmaning boshlanish sanasi o'tmishda bo'lishi tabiiy (server ham shunday)
-    if (!isNew && found.dates === "startInPast") delete found.dates;
+    const found = validateDiscount(draft, today);
+    // Boshlangan chegirmani tahrirlashda boshlanish sanasi o'tmishda qolishi mumkin (server ham shunday)
+    if (initial && found.dates === "startInPast" && draft.startsOn === d0.startsOn) delete found.dates;
     setErrors(found);
-    if (Object.keys(found).length > 0) return setError(e.errors[Object.values(found)[0]!] ?? null);
-    setBusy(intent);
-    setError(null);
+    setFailure(null);
+    if (Object.keys(found).length > 0) return;
+    setBusy(true);
     try {
-      const saved = await bizApi.saveDiscount(id, draft, intent);
-      let failed = 0;
-      for (const file of pending) {
-        try {
-          await bizApi.uploadDiscountImage(saved.id, file);
-        } catch {
-          failed++;
-        }
-      }
-      setPending([]);
-      const done = e.saved[saved.status] ?? e.saved.ACTIVE!;
-      Alert.alert(failed > 0 ? `${done} ${e.imageFailed(failed)}` : done);
-      if (failed > 0 && isNew) router.replace(`/biz/discount/${saved.id}`);
-      else router.back();
+      const saved = await bizApi.saveDiscount(savedId, draft, intent);
+      setSavedId(saved.id);
+      setStatus(saved.status);
+      if (await syncImages(saved.id)) router.navigate("/panel/discounts");
     } catch (err) {
-      if (err instanceof ApiError && err.details.problems && typeof err.details.problems === "object") {
-        const problems = err.details.problems as Partial<Record<DiscountField, string>>;
-        setErrors(problems);
-        setError(e.errors[Object.values(problems)[0] ?? ""] ?? errorText(err));
-      } else setError(errorText(err));
+      if (err instanceof ApiError && err.details.problems && typeof err.details.problems === "object") setErrors(err.details.problems as Partial<Record<DiscountField, string>>);
+      else setFailure(errorText(err));
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
-  const approved = status === "ACTIVE" || status === "PAUSED";
-
   return (
-    <Screen>
-      <TopBar>
-        <RoundButton icon="arrowLeft" label={copy.back} onPress={() => router.back()} />
-        {status ? <StatusBadge status={status} /> : null}
-      </TopBar>
-      <Title text={isNew ? e.newTitle : e.editTitle} size={36} style={styles.title} />
-      {status ? (
-        <Card style={styles.statusCard}>
-          <Txt style={styles.statusText}>{status === "REJECTED" && rejectReason ? `${e.status.REJECTED} ${rejectReason}` : e.status[status]}</Txt>
-        </Card>
-      ) : null}
-
-      <View style={styles.block}>
-        <Label>{e.product}</Label>
-        <Field value={form.title} onChangeText={(title) => set({ title })} placeholder={e.productPlaceholder} invalid={bad("title")} text={17} editable={!ended} returnKeyType="next" />
-        {fieldError("title")}
+    <View style={styles.root}>
+      <View style={[styles.head, { paddingTop: insets.top + 54 }]}>
+        <Press onPress={() => router.navigate("/panel/discounts")} accessibilityRole="link" accessibilityLabel={copy.back} scale={0.94} style={styles.backBtn}>
+          <Icon name="chevronLeft" size={20} />
+        </Press>
+        <Txt accessibilityRole="header" style={[font(800, 110), styles.title]}>
+          {id ? e.editTitle : e.newTitle}
+        </Txt>
+        {live || ended ? null : (
+          <Press onPress={() => void save("draft")} disabled={busy} accessibilityRole="button" scale={0.97} style={styles.draft}>
+            <Txt style={[font(600), { fontSize: 14, color: colors.muted }]}>{e.draft}</Txt>
+          </Press>
+        )}
       </View>
 
-      <View style={styles.block}>
-        <Label>{e.type}</Label>
-        <View style={styles.row}>
-          {(["PERCENT", "FIXED_PRICE", "BOGO"] as const).map((t) => (
-            <Choice key={t} shape="wide" selected={form.type === t} onPress={() => !ended && set({ type: t })}>
-              {e.types[t] ?? t}
-            </Choice>
-          ))}
-        </View>
-      </View>
+      <KeyboardAwareScrollView contentContainerStyle={styles.body} bottomOffset={KEYBOARD_GAP} keyboardShouldPersistTaps="handled">
+        {statusText ? <Txt style={[styles.note, { backgroundColor: colors.surface, color: colors.muted }]}>{statusText}</Txt> : null}
+        {businessPending ? <Txt style={[styles.note, { backgroundColor: colors.warnBg, color: colors.warn }]}>{e.pendingBusiness}</Txt> : null}
+        {failure ? (
+          <Txt accessibilityRole="alert" style={[font(600), { fontSize: 13, color: colors.danger }]}>
+            {failure}
+          </Txt>
+        ) : null}
 
-      <View style={styles.block}>
-        <Label>{form.type === "BOGO" ? e.originalPriceBogo : e.originalPrice}</Label>
-        <Field value={form.originalPrice} onChangeText={(v) => set({ originalPrice: v })} keyboardType="number-pad" placeholder="38 000" invalid={bad("originalPrice")} text={17} editable={!ended} returnKeyType="next" />
-        {fieldError("originalPrice")}
-      </View>
-
-      {form.type === "PERCENT" ? (
-        <View style={styles.block}>
-          <Label>{e.percent}</Label>
-          <Field value={form.percent} onChangeText={(v) => set({ percent: v })} keyboardType="number-pad" placeholder="30" invalid={bad("percent")} text={17} editable={!ended} returnKeyType="next" />
-          {fieldError("percent")}
-        </View>
-      ) : null}
-      {form.type === "FIXED_PRICE" ? (
-        <View style={styles.block}>
-          <Label>{e.newPrice}</Label>
-          <Field value={form.newPrice} onChangeText={(v) => set({ newPrice: v })} keyboardType="number-pad" placeholder="26 600" invalid={bad("newPrice")} text={17} editable={!ended} returnKeyType="next" />
-          {fieldError("newPrice")}
-        </View>
-      ) : null}
-      {calc ? <Txt style={[font(700), styles.calc]}>{calc}</Txt> : null}
-
-      <View style={styles.block}>
-        <Label>{e.days}</Label>
-        <DayChips value={form.weekdays} onChange={(weekdays) => set({ weekdays })} disabled={ended} />
-        {fieldError("weekdays")}
-      </View>
-
-      <View style={styles.block}>
-        <Label>{e.time}</Label>
-        <TimeRangePicker
-          value={{ from: draftNow.fromMinute ?? 720, to: draftNow.toMinute ?? 900 }}
-          onChange={(r) => set({ from: formatMinute(r.from), to: formatMinute(r.to) })}
-          workHours={workHours}
-          disabled={ended}
-        />
-        {fieldError("time")}
-        {outside.length ? <Note style={styles.warn}>{copy.time.outside(daysText(outside, hoursLabels()), schedule.length ? formatSchedule(schedule, hoursLabels()) : copy.time.noHours)}</Note> : null}
-      </View>
-
-      <View style={styles.block}>
-        <Label>{e.dailyLimit}</Label>
-        <Field value={form.dailyLimit} onChangeText={(v) => set({ dailyLimit: v })} keyboardType="number-pad" placeholder="30" invalid={bad("dailyLimit")} text={17} editable={!ended} returnKeyType="next" />
-        {fieldError("dailyLimit")}
-      </View>
-
-      <View style={styles.block}>
-        <Label>{e.perStudent}</Label>
-        <View style={styles.wrap}>
-          {(["DAILY", "WEEKLY", "UNLIMITED"] as const).map((l) => (
-            <Choice key={l} shape="pill" selected={form.perStudentLimit === l} onPress={() => !ended && set({ perStudentLimit: l })}>
-              {e.perStudentOptions[l] ?? l}
-            </Choice>
-          ))}
-        </View>
-      </View>
-
-      <View style={[styles.block, styles.row]}>
-        <View style={styles.half}>
-          <Label>{e.starts}</Label>
-          <Field value={form.startsOn} onChangeText={(v) => set({ startsOn: v })} placeholder={e.datePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("dates")} text={17} editable={!ended} returnKeyType="next" />
-        </View>
-        <View style={styles.half}>
-          <Label>{e.ends}</Label>
-          <Field value={form.endsOn} onChangeText={(v) => set({ endsOn: v })} placeholder={e.datePlaceholder} keyboardType="numbers-and-punctuation" invalid={bad("dates")} text={17} editable={!ended} returnKeyType="next" />
-        </View>
-      </View>
-      {fieldError("dates")}
-
-      <View style={styles.block}>
-        <Label>{e.terms}</Label>
-        <Field value={form.terms} onChangeText={(terms) => set({ terms })} placeholder={e.termsPlaceholder} invalid={bad("terms")} text={17} editable={!ended} maxLength={220} returnKeyType="done" />
-        {fieldError("terms")}
-      </View>
-
-      <View style={styles.block}>
-        <Label>{e.images(total)}</Label>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.images}>
-          {images.map((img) => (
-            <View key={img.id}>
-              <Image source={{ uri: imageUrl(img.url) }} style={styles.image} accessibilityIgnoresInvertColors />
-              {!ended ? (
-                <Press onPress={() => removeServerImage(img.id)} accessibilityRole="button" accessibilityLabel={e.removeImage} style={styles.remove} hitSlop={6}>
-                  <Icon name="close" size={16} color={colors.white} strokeWidth={3} />
-                </Press>
-              ) : null}
+        <View style={{ gap: 6 }}>
+          <View style={styles.product}>
+            <CategoryTile category={category} size={64} plus image={images[0]?.url} />
+            <View style={[styles.flex1, { gap: 4 }]}>
+              <Txt style={{ fontSize: 12, color: colors.muted }}>{e.product}</Txt>
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                editable={!ended}
+                placeholder={e.productPlaceholder}
+                placeholderTextColor={colors.placeholder}
+                accessibilityLabel={e.product}
+                style={[font(700), styles.bare, { fontSize: 16 }]}
+              />
             </View>
-          ))}
-          {pending.map((file, i) => (
-            <View key={file.uri}>
-              <Image source={{ uri: file.uri }} style={[styles.image, styles.imagePending]} accessibilityIgnoresInvertColors />
-              <Press onPress={() => setPending((p) => p.filter((_, k) => k !== i))} accessibilityRole="button" accessibilityLabel={e.removeImage} style={styles.remove} hitSlop={6}>
-                <Icon name="close" size={16} color={colors.white} strokeWidth={3} />
+          </View>
+          {errorOf("title") ? <Txt style={styles.error}>{errorOf("title")}</Txt> : null}
+        </View>
+
+        <View style={{ gap: 6 }}>
+          <View style={[styles.row, { alignItems: "baseline", justifyContent: "space-between" }]}>
+            <Txt style={[font(600), { fontSize: 13 }]}>{e.imagesLabel}</Txt>
+            <Txt style={[mono(), { fontSize: 11, color: colors.muted }]}>{e.imagesCount(images.length)}</Txt>
+          </View>
+          <View style={[styles.row, { flexWrap: "wrap", gap: 8 }]}>
+            {images.map((image) => (
+              <View key={image.key} style={styles.thumb}>
+                <Image source={{ uri: image.url }} style={[StyleSheet.absoluteFill, { borderRadius: 12 }]} accessibilityIgnoresInvertColors />
+                {!ended ? (
+                  <Press onPress={() => removeImage(image.key)} accessibilityRole="button" accessibilityLabel={e.removeImage} hitSlop={8} scale={0.9} style={styles.thumbX}>
+                    <Icon name="close" size={12} color={colors.white} strokeWidth={2.6} />
+                  </Press>
+                ) : null}
+              </View>
+            ))}
+            {images.length < IMAGES_MAX && !ended ? (
+              <Press onPress={() => void addImage()} accessibilityRole="button" accessibilityLabel={e.addImage} scale={0.96} style={[styles.thumb, styles.addThumb]}>
+                <Icon name="plus" size={20} strokeWidth={2.4} />
               </Press>
-            </View>
-          ))}
-          {total < 4 && !ended ? (
-            <Press onPress={() => void addImage()} accessibilityRole="button" accessibilityLabel={e.addImage} style={[styles.image, styles.addImage]}>
-              <Icon name="plus" size={28} color={colors.muted} strokeWidth={2.4} />
-            </Press>
-          ) : null}
-        </ScrollView>
-        {pending.length > 0 ? <Note>{e.imagesAfterSave}</Note> : null}
-      </View>
+            ) : null}
+          </View>
+          {imageError ? <Txt style={styles.error}>{imageError}</Txt> : null}
+        </View>
 
-      <ErrorBox>{error}</ErrorBox>
+        <View style={{ gap: 8 }}>
+          <Txt style={[font(600), { fontSize: 13 }]}>{e.type}</Txt>
+          <Choice label={e.type} value={type} onChange={(t) => !ended && setType(t)} options={KINDS.map((k) => ({ value: k, label: e.types[k] ?? k }))} />
+        </View>
+
+        <View style={{ gap: 6 }}>
+          <View style={[styles.row, { gap: 10 }]}>
+            <View style={styles.priceBox}>
+              <Txt style={{ fontSize: 12, color: colors.muted }}>{e.originalPrice}</Txt>
+              <TextInput
+                value={original}
+                onChangeText={setOriginal}
+                editable={!ended}
+                keyboardType="number-pad"
+                accessibilityLabel={e.originalPrice}
+                style={[mono(600), styles.bare, { fontSize: 18 }]}
+              />
+            </View>
+            <View style={styles.valueBox}>
+              <View style={{ gap: 2, flexShrink: 1 }}>
+                <Txt style={{ fontSize: 12, color: colors.fog2 }}>{e.valueLabel[type]}</Txt>
+                {type === "PERCENT" ? (
+                  <View style={[styles.row, { alignItems: "baseline" }]}>
+                    <Txt style={[font(900, 62), styles.value]}>{MINUS}</Txt>
+                    <TextInput
+                      testID="discount-value"
+                      value={percentText}
+                      onChangeText={(v) => setPercentText(v.replace(/\D/g, "").slice(0, 3))}
+                      editable={!ended}
+                      keyboardType="number-pad"
+                      accessibilityLabel={e.percentLabel}
+                      // Kenglik raqamlar soniga qarab (saytda `width: Nch`); lineHeight'siz — web input matnni kesmasin
+                      style={[font(900, 62), styles.bare, styles.percentInput, { width: Math.max(1, percentText.length) * 15 + 2 }]}
+                    />
+                    <Txt style={[font(900, 62), styles.value]}>%</Txt>
+                  </View>
+                ) : (
+                  <Txt testID="discount-value" style={[font(900, 62), styles.value]}>
+                    {valueText}
+                  </Txt>
+                )}
+              </View>
+              {type === "BOGO" ? null : (
+                <View style={{ gap: 4 }}>
+                  <Press onPress={() => step(1)} accessibilityRole="button" accessibilityLabel={e.increase} scale={0.92} style={styles.stepBtn}>
+                    <Txt style={[font(700), { fontSize: 16, color: colors.white }]}>+</Txt>
+                  </Press>
+                  <Press onPress={() => step(-1)} accessibilityRole="button" accessibilityLabel={e.decrease} scale={0.92} style={styles.stepBtn}>
+                    <Txt style={[font(700), { fontSize: 16, color: colors.white }]}>{MINUS}</Txt>
+                  </Press>
+                </View>
+              )}
+            </View>
+          </View>
+          {errorOf("originalPrice") ? <Txt style={styles.error}>{errorOf("originalPrice")}</Txt> : null}
+          {errorOf("percent") ?? errorOf("newPrice") ? <Txt style={styles.error}>{errorOf("percent") ?? errorOf("newPrice")}</Txt> : null}
+        </View>
+
+        <View style={{ gap: 8 }}>
+          <View style={[styles.row, { justifyContent: "space-between" }]}>
+            <Txt style={[font(600), { fontSize: 13 }]}>{e.days}</Txt>
+            <Txt style={{ fontSize: 13, color: colors.muted }}>{e.daysCount(weekdays.length)}</Txt>
+          </View>
+          <DayChips value={weekdays} onChange={(days) => !ended && setWeekdays(days)} error={errorOf("weekdays")} />
+        </View>
+
+        <View style={{ gap: 8 }}>
+          <Txt style={[font(600), { fontSize: 13 }]}>{e.time}</Txt>
+          <TimeRangePicker value={range} onChange={(r) => !ended && setRange(r)} workHours={hoursFor(weekdays, schedule)} invalid={Boolean(errorOf("time"))} error={errorOf("time")} />
+          {outsideText ? <Txt style={[font(600), styles.note, { backgroundColor: colors.warnBg, color: colors.warn, fontSize: 12, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }]}>{outsideText}</Txt> : null}
+        </View>
+
+        <View style={[styles.row, { gap: 10 }]}>
+          <SiteField label={e.dailyLimit} error={errorOf("dailyLimit")} style={styles.flex1}>
+            <SiteInput
+              mono
+              compact
+              keyboardType="number-pad"
+              value={limit}
+              editable={!ended}
+              onChangeText={setLimit}
+              onBlur={() => {
+                const n = Number(limit.replace(/\D/g, ""));
+                if (n > 0) setLimit(e.dailyLimitValue(n));
+              }}
+              invalid={Boolean(errorOf("dailyLimit"))}
+              style={{ paddingHorizontal: 12 }}
+            />
+          </SiteField>
+          <SiteField label={e.period} error={errorOf("dates")} style={styles.flex1}>
+            <SiteInput
+              mono
+              compact
+              keyboardType="numbers-and-punctuation"
+              value={period}
+              editable={!ended}
+              onChangeText={setPeriod}
+              placeholder={e.periodPlaceholder}
+              invalid={Boolean(errorOf("dates"))}
+              style={{ paddingHorizontal: 12 }}
+            />
+          </SiteField>
+        </View>
+
+        <View style={styles.preview}>
+          <Txt style={[font(700), { fontSize: 12, letterSpacing: em(12, 0.05), color: colors.muted }]}>{e.previewMobile}</Txt>
+          <View style={styles.previewCard}>
+            <CategoryTile category={category} size={52} image={images[0]?.url}>
+              <View style={styles.previewBadge}>
+                <Txt style={[font(900, 70), { fontSize: 13 }]}>{terms.badge}</Txt>
+              </View>
+            </CategoryTile>
+            <View style={[styles.flex1, { gap: 2 }]}>
+              <Txt style={{ fontSize: 11, color: colors.muted }}>{me?.business?.name ?? ""}</Txt>
+              <Txt style={[font(700), { fontSize: 14 }]}>{title || e.productPlaceholder}</Txt>
+              <Txt style={[font(800), { fontSize: 13 }]}>{`${previewPrice}${previewInstead ? `  ·  ${previewInstead}` : ""}`}</Txt>
+            </View>
+          </View>
+        </View>
+      </KeyboardAwareScrollView>
 
       {!ended ? (
-        <View style={styles.actions}>
-          {approved ? (
-            <PrimaryButton tone="orange" onPress={() => void save("publish")} loading={busy === "publish"}>
-              {e.save}
-            </PrimaryButton>
-          ) : (
-            <>
-              <PrimaryButton tone="orange" onPress={() => void save("publish")} loading={busy === "publish"}>
-                {e.publish}
-              </PrimaryButton>
-              <SecondaryButton onPress={() => void save("draft")} disabled={busy !== null}>
-                {e.draft}
-              </SecondaryButton>
-            </>
-          )}
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 30 }]}>
+          <Button variant="orange" block busy={busy} disabled={busy} onPress={() => void save("publish")}>
+            {busy ? e.saving : live ? e.save : e.publish}
+          </Button>
         </View>
       ) : null}
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { marginTop: 18 },
-  statusCard: { marginTop: 14, padding: 14 },
-  statusText: { fontSize: 14, lineHeight: 20, color: colors.ink5 },
-  block: { marginTop: 18 },
-  row: { flexDirection: "row", gap: 10 },
-  warn: { marginTop: 10, color: colors.rust },
-  half: { flex: 1 },
-  wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  days: { flexDirection: "row", gap: 6 },
-  calc: { fontSize: 14, color: colors.greenOk, marginTop: 10 },
-  images: { gap: 10, paddingVertical: 2 },
-  image: { width: 92, height: 92, borderRadius: 18 },
-  imagePending: { opacity: 0.7 },
-  addImage: { borderWidth: 2, borderStyle: "dashed", borderColor: colors.line, alignItems: "center", justifyContent: "center", backgroundColor: colors.white },
-  remove: { position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: 13, backgroundColor: "rgba(17,17,17,0.7)", alignItems: "center", justifyContent: "center" },
-  actions: { marginTop: 24, gap: 10 },
+  flex1: { flex: 1, minWidth: 0 },
+  row: { flexDirection: "row" },
+  root: { flex: 1, backgroundColor: colors.paper },
+  center: { alignItems: "center", justifyContent: "center" },
+  head: { flexDirection: "row", alignItems: "center", gap: 10, borderBottomWidth: 1, borderBottomColor: colors.lineSoft, paddingHorizontal: 16, paddingBottom: 12 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
+  title: { flex: 1, fontSize: 20, letterSpacing: em(20, -0.02) },
+  draft: { height: 40, paddingHorizontal: 12, justifyContent: "center" },
+  body: { padding: 16, gap: 14 },
+  note: { borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 13, lineHeight: 19 },
+  error: { ...font(600), fontSize: 12, color: colors.danger },
+  bare: { padding: 0, color: colors.ink, minWidth: 0 },
+  product: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, backgroundColor: colors.white, padding: 10 },
+  plus: { position: "absolute", right: -4, bottom: -4, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
+  thumb: { width: 64, height: 64, borderRadius: 12, backgroundColor: colors.surface },
+  thumbX: { position: "absolute", top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
+  addThumb: { borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.lineStrong, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
+  priceBox: { flex: 1, gap: 4, borderRadius: 14, backgroundColor: colors.white, paddingHorizontal: 14, paddingVertical: 12 },
+  valueBox: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 14, backgroundColor: colors.ink, paddingVertical: 10, paddingLeft: 14, paddingRight: 8 },
+  value: { fontSize: 30, lineHeight: 30, color: colors.orange },
+  percentInput: { fontSize: 30, height: 32, color: colors.orange, textAlign: "center" },
+  stepBtn: { width: 32, height: 26, borderRadius: 7, backgroundColor: colors.ink4, alignItems: "center", justifyContent: "center" },
+  preview: { gap: 8, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.lineStrong, padding: 12 },
+  previewCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, backgroundColor: colors.white, padding: 10 },
+  previewBadge: { position: "absolute", top: -6, left: -4, borderRadius: 5, backgroundColor: colors.orange, paddingHorizontal: 5, paddingVertical: 3, transform: [{ rotate: "-6deg" }] },
+  footer: { borderTopWidth: 1, borderTopColor: colors.lineSoft, backgroundColor: colors.paper, paddingHorizontal: 16, paddingTop: 12 },
 });

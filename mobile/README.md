@@ -5,7 +5,7 @@ Sayt bilan umumiy kod yo'q: `mobile/` o'z `package.json`, `tsconfig`, ESLint'i b
 uni chetlab o'tadi, faqat `mobile/` o'zgargan push saytni deploy qilmaydi. Capacitor qobig'i (`../android`) hozircha qoladi.
 
 - appId / bundle: `uz.talabapass.app`, nomi **TalabaPass**, sxema `talabapass://`.
-- Dizayn: `../design/app-flow/*.dc.html` (390×844) — ranglar va o'lchamlar `src/theme.ts` va `src/ui/kit.tsx` da.
+- Dizayn: kirgandan keyin — saytning telefon ko'rinishi (`src/site/*`); kirishgacha — `../design/app-flow/*.dc.html` (390×844, `src/ui/kit.tsx`).
 
 ## Ishga tushirish
 
@@ -240,18 +240,21 @@ Apple bilan kirish:
 
 ## Dizayndan chetlanishlar
 
-- Biznes ilovasi ekranlari (panel, skaner, muharrir, buyurtmalar, kassirlar, chek) app-flow'da chizilmagan — mazmun saytdagi
-  B2–B6 dan, ko'rinish talaba ilovasi primitivlari uslubida, to'q sariq urg'u (saytdagi biznes mavzusi), skaner — qora fon.
-  Saytdagidan farqi: issiqlik xaritasi o'rniga xulosa (eng gavjum vaqt, eng bo'sh kun), Excel hisobot va oldindan buyurtma
-  sozlamalari — saytda, kassir taklifi havola o'rniga telefon raqami bilan.
-
-
-- Lenta (Lenta.dc.html), saralash (LentaFiltr.dc.html), chegirma (Chegirma.dc.html, yopiq — ChegirmaYopiq.dc.html) va "Qanday borasiz?"
-  (Yonalish.dc.html) — dizayndan. Chetlanishlar: kartada kategoriya nomi rasmsiz plitada (dizayndagi kabi), saralangan ro'yxatda
-  (kategoriyalar yuklanmagan) — biznes turi; chegirma sahifasi kichik ekranda bitta ekranga sig'ishi uchun rasm 220px gacha pasayadi;
-  yo'nalish oynasida mo'ljal (bo'lsa) manzil ostida — dizaynda chizilmagan qator; narxsiz chegirmada narx yorlig'ida matn ("Ikkinchisi bepul").
-- Qolgan talaba ekranlari (xarita, kupon, saralangan, bildirishnomalar, profil, ma'lumotlarni tahrirlash) app-flow'da chizilmagan — mazmun
-  saytdagi T5–T8 dan, ko'rinish app-flow primitivlari uslubida. Saytdagidan farqi: metro yo'q; kupon tarixi ro'yxati — saytda.
+- **Kirgandan keyingi ekranlar = saytning telefon (390px) ko'rinishi.** Talaba: lenta (T4), chegirma (T5), kuponlar va QR (T6),
+  tarix va chek (T7), profil (T8), shaxsiy ma'lumotlar, guvohnoma, buyurtmalar, yordam, bildirishnomalar. Biznes: statistika (B6),
+  chegirmalar va muharrir (B2), skaner va sotuv (B3/B4), buyurtmalar, sozlamalar (oldindan band qilish), kassirlar, profil (B5),
+  tahrir, sotuvlar. Qiymatlar saytdagi komponentlardan (`src/components/**`) `src/site/*` primitivlariga ko'chirilgan (sayt tokenlari
+  `theme.ts`, Archivo kengliklari `font(weight, width)`); tekshiruv — `node scripts/app-compare.mjs [--only=…] [--scroll=N] [--probe=sel]`
+  (sayt ↔ ilova yonma-yon, `.compare/app/*.png`). Profil/biznes ichki sahifalari tab ichida (pastki menyu ko'rinadi, menyuda belgisi
+  yo'q, faol band — `TabBar activeAs`).
+- Ilovaga xos chetlanishlar (saytda imkoni yo'q yoki do'kon talabi): soat tanlovi "Boshqa vaqt" — g'ildirak (saytda ro'yxat); rasm
+  tanlash — tizim kesish oynasi (saytda kesish oynasi); kassir taklifi — telefon raqami bilan (saytda bir martalik havola, havola bloki
+  uslubida); B4 chekida "Chop etish" o'rniga PDF; biznes profilida pastda til, bildirishnomalar, huquqiy havolalar, hisobni o'chirish
+  va versiya; kupon/skaner kamerasi — expo-camera; ovozli signal — qurilmada saqlanadi.
+- Ilova ichidan ochiladigan, saytda yo'q ekranlar (til, karusel, kirish usuli, kirish/ro'yxat, parol, ro'yxat formalari, tekshiruv) —
+  `design/app-flow` dan (`src/ui/kit.tsx`, `src/ui/app.tsx`). Lenta/LentaFiltr/Chegirma/ChegirmaYopiq/Yonalish dizaynlari olib
+  tashlangan — o'rniga saytdagi ekranlar.
+- Metro (web, Windows) fayl o'zgarishini ko'rmasligi mumkin — solishtirishdan oldin `npx expo start --web --clear` bilan qayta ishga tushiring.
 - **Android "orqaga":** tablarda `backBehavior="firstRoute"` (istalgan tab → Chegirmalar / biznesda birinchi tab, undan — ilova fonga;
   kassirda birinchi tab — Skaner). Kirish va ro'yxat tugashi `resetTo` (stek tozalanadi). Filtr/kategoriya/qidiruv — holatda (tarixda emas).
   Oyna ochiq bo'lsa — avval oyna yopiladi (Modal `onRequestClose`). Chegirma/kupon/chek — stek ekranlari: orqaga — ochilgan joyiga,

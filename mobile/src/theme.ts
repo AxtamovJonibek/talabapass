@@ -23,6 +23,8 @@ export const colors = {
   fog2: "#BDBAB2",
   fog3: "#A9A69E",
   ink4: "#2F2F2C",
+  /** kupon ekranidagi bekor qilish tugmasi chegarasi */
+  ink7: "#45453F",
   /** skaner foni va kamera maydoni */
   ink0: "#0E0E0D",
   ink1: "#1B1B19",

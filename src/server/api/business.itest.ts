@@ -17,6 +17,11 @@ import { GET as salesRoute } from "@/app/api/v1/business/sales/route";
 import { POST as confirmRoute } from "@/app/api/v1/business/scan/confirm/route";
 import { GET as scanSummaryRoute, POST as scanRoute } from "@/app/api/v1/business/scan/route";
 import { GET as statsRoute } from "@/app/api/v1/business/stats/route";
+import { GET as preorderRoute, PUT as savePreorderRoute } from "@/app/api/v1/business/preorder/route";
+import { POST as pauseRoute } from "@/app/api/v1/business/preorder/pause/route";
+import { POST as previewRoute } from "@/app/api/v1/business/preorder/preview/route";
+import { PUT as bookingRoute } from "@/app/api/v1/business/discounts/[id]/booking/route";
+import { DEFAULT_DISCOUNT_BOOKING, DEFAULT_SETTINGS } from "@/lib/preorder";
 import { POST as cashierRegisterRoute } from "@/app/api/v1/cashier/register/route";
 import { GET as dealRoute } from "@/app/api/v1/deals/[id]/route";
 import { GET as fileRoute } from "@/app/api/v1/files/[kind]/[id]/route";
@@ -87,6 +92,7 @@ async function cleanup() {
   await db.scanAttempt.deleteMany({ where: { businessId: { in: businessIds } } });
   await db.coupon.deleteMany({ where: { studentId: { in: userIds } } });
   await db.discountImage.deleteMany({ where: { discount: { businessId: { in: businessIds } } } });
+  await db.preorderSettings.deleteMany({ where: { businessId: { in: businessIds } } });
   await db.business.deleteMany({ where: { id: { in: businessIds } } });
   await db.auditLog.deleteMany({ where: { actorId: { in: userIds } } });
   // Sotuv xabarlari (createdById — kassir/egasi)
@@ -437,6 +443,47 @@ describe("API biznes: buyurtmalar va push", () => {
     await notifyRedeemed(ids.receipt!);
     const inbox = await db.userNotification.findMany({ where: { userId: ids.student! }, select: { notification: { select: { title: true, body: true } } } });
     expect(inbox.some((n) => n.notification.title.includes("Biz test kafe") && n.notification.body.includes("30 000"))).toBe(true);
+  });
+});
+
+describe("API biznes: oldindan band qilish sozlamalari", () => {
+  it("sozlamalar: o'qish, saqlash (jadvalsiz yoqilmaydi), bugun to'xtatish; faqat egasi", async () => {
+    const res = await call(preorderRoute, "/api/v1/business/preorder", { auth: t.owner });
+    expect(res.status).toBe(200);
+    expect(res.json.settings).toMatchObject({ enabled: false });
+    expect(res.json.discounts.some((d: Json) => d.id === ids.discount)).toBe(true);
+    expect((await call(preorderRoute, "/api/v1/business/preorder", { auth: t.cashier })).json.error.code).toBe("forbidden");
+
+    const noSchedule = await call(savePreorderRoute, "/api/v1/business/preorder", { method: "PUT", body: { ...DEFAULT_SETTINGS, enabled: true, schedule: [] }, auth: t.owner });
+    expect(noSchedule.json.error.code).toBe("preorder_no_schedule");
+    const saved = await call(savePreorderRoute, "/api/v1/business/preorder", { method: "PUT", body: { ...DEFAULT_SETTINGS, enabled: true, autoConfirm: false }, auth: t.owner });
+    expect(saved.json).toEqual({ ok: true });
+    expect(await db.preorderSettings.findUnique({ where: { businessId: ids.business! }, select: { enabled: true, autoConfirm: true } })).toEqual({ enabled: true, autoConfirm: false });
+
+    expect((await call(pauseRoute, "/api/v1/business/preorder/pause", { method: "POST", body: { paused: true }, auth: t.owner })).json).toEqual({ ok: true, paused: true });
+    expect((await call(preorderRoute, "/api/v1/business/preorder", { auth: t.owner })).json.pausedToday).toBe(true);
+    await call(pauseRoute, "/api/v1/business/preorder/pause", { method: "POST", body: { paused: false }, auth: t.owner });
+    expect(await db.auditLog.count({ where: { entityId: ids.business!, action: { in: ["preorder.settings", "preorder.pause", "preorder.resume"] } } })).toBeGreaterThanOrEqual(3);
+    // Keyingi testlar (profil) uchun — o'chiq holatga qaytariladi
+    await call(savePreorderRoute, "/api/v1/business/preorder", { method: "PUT", body: DEFAULT_SETTINGS, auth: t.owner });
+  });
+
+  it("chegirma rejimi va jonli preview: saqlanmagan qoidalar bilan hisob; begona chegirma — 404", async () => {
+    const draft = { ...DEFAULT_DISCOUNT_BOOKING, bookingMode: "PREPAID_PICKUP", validDays: 5, stock: 7, perStudentMax: 3, expireKeepPercent: 50 };
+    const preview = await call(previewRoute, "/api/v1/business/preorder/preview", { method: "POST", body: { settings: DEFAULT_SETTINGS, paused: false, discountId: ids.discount, draft }, auth: t.owner });
+    expect(preview.status).toBe(200);
+    expect(preview.json).toMatchObject({ kind: "PREPAID_PICKUP", quantity: 3, prepay: "FULL", rules: { keepPercent: 50, freeCancelMinutes: 0 } });
+    expect(preview.json.amounts.prepayAmount).toBe(preview.json.amounts.totalFinal);
+
+    const save = await call(bookingRoute, `/api/v1/business/discounts/${ids.discount}/booking`, { method: "PUT", body: draft, auth: t.owner, params: { id: ids.discount } });
+    expect(save.json).toEqual({ ok: true });
+    expect(await db.discount.findUnique({ where: { id: ids.discount! }, select: { bookingMode: true, stock: true } })).toEqual({ bookingMode: "PREPAID_PICKUP", stock: 7 });
+    expect(await db.auditLog.count({ where: { entityId: ids.discount!, action: "discount.booking" } })).toBe(1);
+
+    const other = await db.discount.findFirstOrThrow({ where: { business: { ownerId: { not: ids.owner! } } }, select: { id: true } });
+    expect((await call(bookingRoute, `/api/v1/business/discounts/${other.id}/booking`, { method: "PUT", body: draft, auth: t.owner, params: { id: other.id } })).json.error.code).toBe("not_found");
+    expect((await call(previewRoute, "/api/v1/business/preorder/preview", { method: "POST", body: { settings: DEFAULT_SETTINGS, paused: false, discountId: other.id, draft }, auth: t.owner })).json.error.code).toBe("not_found");
+    await db.discount.update({ where: { id: ids.discount! }, data: { bookingMode: "NONE" } });
   });
 });
 

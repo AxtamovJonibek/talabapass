@@ -251,6 +251,8 @@ export function FloatButton({ icon, label, onPress, bottom }: { icon?: IconName;
 }
 
 const s = StyleSheet.create({
+  choice: { flexDirection: "row", gap: 4, borderRadius: 12, backgroundColor: colors.track, padding: 4 },
+  choiceItem: { flex: 1, height: 40, borderRadius: 9, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
   input: { borderRadius: 12, borderWidth: 1.5, backgroundColor: colors.white, paddingHorizontal: 14, fontSize: 15, color: colors.ink },
   square: { height: 44, borderRadius: 10, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
   pill: { height: 28, maxWidth: "100%", flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, paddingHorizontal: 10, alignSelf: "flex-start" },
@@ -321,6 +323,7 @@ const BTN_LOOK = {
   "outline-soft": { bg: colors.white, fg: colors.ink, border: colors.line, weight: 700 },
   "danger-outline": { bg: colors.white, fg: colors.danger, border: "#F2C4B4", weight: 700 },
   ghost: { bg: "transparent", fg: colors.ink, border: null, weight: 600 },
+  "danger-ghost": { bg: "transparent", fg: colors.danger, border: null, weight: 700 },
   idle: { bg: colors.track, fg: colors.muted, border: null, weight: 700 },
 } as const;
 
@@ -454,5 +457,27 @@ export function BackText({ label, onPress, style }: { label: string; onPress: ()
       <Icon name="arrowLeft" size={18} strokeWidth={2.2} />
       <Txt style={[font(700), { fontSize: 14 }]}>{label}</Txt>
     </Press>
+  );
+}
+
+/** `Segmented size="choice"`: teng ustunli tanlov (40px bo'laklar, kulrang yo'lak, oq faol) — forma qiymati */
+export function Choice<T extends string | number>({ options, value, onChange, label }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void; label: string }) {
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={s.choice}>
+      {options.map((o) => (
+        <Press
+          key={String(o.value)}
+          onPress={() => onChange(o.value)}
+          accessibilityRole="radio"
+          accessibilityState={{ checked: o.value === value }}
+          scale={0.97}
+          style={[s.choiceItem, o.value === value ? { backgroundColor: colors.white } : null]}
+        >
+          <Txt numberOfLines={1} style={[font(700), { fontSize: 14 }]}>
+            {o.label}
+          </Txt>
+        </Press>
+      ))}
+    </View>
   );
 }

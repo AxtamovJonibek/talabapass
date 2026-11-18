@@ -213,7 +213,8 @@ const styles = StyleSheet.create({
   title: { marginTop: 2, fontSize: 50, lineHeight: 44, letterSpacing: em(50, -0.05) },
   bellWrap: { paddingBottom: 4 },
   // Saytda sarlavha qatorlari line-height 0.88 bilan siqiladi — RN qator qutisi 11px balandroq, shuni qoplaydi
-  searchWrap: { marginTop: 3 },
+  // saytda mt-3.5
+  searchWrap: { marginTop: 14 },
   cats: { marginTop: 16, paddingVertical: 4 },
   controlsBox: { marginTop: 8, flexGrow: 0 },
   controls: { height: 48, alignItems: "center", gap: 12, paddingHorizontal: 16 },

@@ -36,6 +36,11 @@ export default function StudentTabs() {
       {/* Saytda alohida bo'lim yo'q: xarita — lentadagi "Xarita", saralanganlar — profildan */}
       <Tabs.Screen name="nearby" options={{ title: copy.tabs.nearby, href: null }} />
       <Tabs.Screen name="saved" options={{ title: copy.tabs.saved, href: null }} />
+      {/* Profil ichki sahifalari — saytdagidek pastki menyu ostida ("Profil" faol); menyuda belgisi yo'q, manzil bilan ochiladi */}
+      <Tabs.Screen name="profile-edit" options={{ title: copy.profileEdit.personalTitle }} />
+      <Tabs.Screen name="profile-card" options={{ title: copy.idCard.title }} />
+      <Tabs.Screen name="orders" options={{ title: copy.orders.title }} />
+      <Tabs.Screen name="help" options={{ title: copy.help.title }} />
     </Tabs>
   );
 }

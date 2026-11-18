@@ -144,8 +144,8 @@ export default function Profile() {
 
       <View style={styles.menu}>
         <Row label={p.orders} onPress={() => router.push("/orders")} />
-        <Row label={p.personal} onPress={() => router.push("/profile/edit")} />
-        <Row label={p.card} sub={expires ? p.nextCheck(expires.getUTCFullYear(), copy.months[expires.getUTCMonth()]!) : null} onPress={() => router.push("/profile/card")} />
+        <Row label={p.personal} onPress={() => router.push("/profile-edit")} />
+        <Row label={p.card} sub={expires ? p.nextCheck(expires.getUTCFullYear(), copy.months[expires.getUTCMonth()]!) : null} onPress={() => router.push("/profile-card")} />
         <Row
           label={p.notify}
           right={

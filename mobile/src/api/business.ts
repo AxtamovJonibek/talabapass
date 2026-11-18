@@ -154,7 +154,15 @@ export type OwnerDiscount = {
   image: string | null;
 };
 
-export type DiscountForm = { id: string; status: DiscountStatus; rejectReason: string | null; draft: DiscountDraft; images: { id: string; url: string }[] };
+export type DiscountForm = {
+  id: string;
+  status: DiscountStatus;
+  rejectReason: string | null;
+  draft: DiscountDraft;
+  images: { id: string; url: string }[];
+  /** Biznes kategoriyasi: plitka rangi va belgisi (saytdagi `CategoryTile`) */
+  category?: { icon: string; tileColor: string; inkColor: string };
+};
 
 export type Cashiers = {
   canInvite: boolean;
@@ -217,6 +225,55 @@ export type BusinessProfile = {
   preorderEnabled: boolean;
 };
 
+/** Sozlamalar → Oldindan band qilish (`src/lib/preorder` dagi `PreorderSettingsInput`, `DiscountBooking`) */
+export type DaySchedule = { day: number; from: number; to: number };
+export type PrepayType = "FULL" | "PARTIAL" | "NONE";
+export type PreorderSettings = {
+  enabled: boolean;
+  schedule: DaySchedule[];
+  leadMinutes: number;
+  daysAhead: 0 | 1;
+  prepay: PrepayType;
+  prepayPercent: number;
+  freeCancelMinutes: number;
+  keepPercent: number;
+  autoConfirm: boolean;
+};
+export type DiscountBooking = {
+  bookingMode: "NONE" | BookingKind;
+  serviceMinutes: number;
+  staffCount: number;
+  validDays: number;
+  stock: number;
+  perStudentMax: number;
+  expireKeepPercent: number;
+  windowFrom: number;
+  windowTo: number;
+  windowCapacity: number;
+};
+export type PreorderDiscount = {
+  id: string;
+  title: string;
+  status: DiscountStatus;
+  price: { original: number; final: number } | null;
+  schedule: { weekdays: number[]; fromMinute: number; toMinute: number };
+  booking: DiscountBooking;
+};
+export type OwnerPreorder = { businessId: string; settings: PreorderSettings; pausedToday: boolean; discounts: PreorderDiscount[] };
+export type BookingPreview = {
+  kind: BookingKind | null;
+  offHours: boolean;
+  title?: string;
+  days?: { date: string; slots: { start: string; late: boolean }[] }[];
+  windows?: { date: string; start: string; late: boolean }[];
+  quantity?: number | null;
+  amounts?: { totalFinal: number; prepayAmount: number };
+  prepay?: PrepayType;
+  rules?: { freeCancelMinutes: number; keepPercent: number; autoConfirm: boolean; validUntil: string | null };
+};
+/** Saytdagi `src/lib/preorder` chegaralari */
+export const BOOKING_LIMITS = { serviceMin: 5, serviceMax: 480, staffMax: 20, validDaysMax: 60, perStudentMax: 20 } as const;
+
 export type ProfileEdit = { name: string; address: string; workingHours: string; description: string; landmark: string; phone: string; telegram: string; instagram: string };
 
 const enc = encodeURIComponent;
@@ -252,6 +309,12 @@ export const bizApi = {
   removeCashier: (memberId: string) => api<{ ok: true }>(`/business/cashiers/${enc(memberId)}`, { method: "DELETE" }),
   revokeInvite: (inviteId: string) => api<{ ok: true }>(`/business/invites/${enc(inviteId)}`, { method: "DELETE" }),
   profile: () => api<{ profile: BusinessProfile }>("/business/profile"),
+  preorder: () => api<OwnerPreorder>("/business/preorder"),
+  savePreorder: (settings: PreorderSettings) => api<{ ok: true }>("/business/preorder", { method: "PUT", body: settings }),
+  pausePreorder: (paused: boolean) => api<{ ok: true; paused: boolean }>("/business/preorder/pause", { method: "POST", body: { paused } }),
+  previewBooking: (body: { settings: PreorderSettings; paused: boolean; discountId: string; draft: DiscountBooking }) =>
+    api<BookingPreview>("/business/preorder/preview", { method: "POST", body }),
+  saveBooking: (discountId: string, booking: DiscountBooking) => api<{ ok: true }>(`/business/discounts/${enc(discountId)}/booking`, { method: "PUT", body: booking }),
   editProfile: (body: ProfileEdit) => api<{ ok: true; rereview: boolean }>("/business/profile", { method: "PATCH", body }),
   uploadLogo: async (file: LocalFile) => api<{ ok: true }>("/business/logo", { method: "POST", form: await fileForm(file) }),
   removeLogo: () => api<{ ok: true }>("/business/logo", { method: "DELETE" }),

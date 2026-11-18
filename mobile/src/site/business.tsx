@@ -62,7 +62,7 @@ export function ProfileHeader({ p, top, onLogo }: { p: BusinessProfile; top: num
             <Txt style={[font(700), { fontSize: 12, color: live ? colors.mint : colors.orange }]}>{t.statuses[p.status] ?? t.statuses.PENDING}</Txt>
           </View>
         </View>
-        <Press onPress={() => router.push("/biz/edit")} accessibilityRole="link" accessibilityLabel={t.editShort} scale={0.94} style={s.edit}>
+        <Press onPress={() => router.push("/panel/edit")} accessibilityRole="link" accessibilityLabel={t.editShort} scale={0.94} style={s.edit}>
           <Icon name="edit" size={18} color={colors.paper} />
         </Press>
       </View>

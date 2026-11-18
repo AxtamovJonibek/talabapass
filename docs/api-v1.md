@@ -274,6 +274,11 @@ o'z sotuvlari va cheklari; boshqa biznes endpoint'lari 403 `forbidden`. Biznes h
 | `DELETE /business/invites/<id>` | — | `{ ok }` |
 | `GET /business/orders` | `filter=new\|preparing\|ready\|done` | `{ enabled, orders, counts, newIds, report, now }` |
 | `POST /business/orders/<id>` | `{ action: "accept" }` \| `{ action: "reject", reason }` \| `{ action: "ready" }` | `{ ok }` · `order_conflict` (holat o'zgargan) |
+| `GET /business/preorder` | — | Sozlamalar → oldindan band qilish: `{ businessId, settings, pausedToday, discounts: [{ id, title, status, price, schedule, booking }] }` |
+| `PUT /business/preorder` | `settings` (`PreorderSettingsInput`) | `{ ok }` · jadvalsiz yoqilsa `preorder_no_schedule` (audit `preorder.settings`) |
+| `POST /business/preorder/pause` | `{ paused }` | `{ ok, paused }` — "Bugun qabul qilmayman" (audit `preorder.pause\|resume`) |
+| `POST /business/preorder/preview` | `{ settings, paused, discountId, draft }` | saqlanmagan qoidalar bilan talabaga ko'rinishi: `{ kind, offHours, days, windows, quantity, amounts, prepay, rules }` |
+| `PUT /business/discounts/<id>/booking` | `DiscountBooking` | `{ ok }` · narxsiz — `preorder_no_price` (audit `discount.booking`) |
 | `GET /business/profile` | — | `{ profile: { id, name, address, landmark, workingHours, description, status, publicPhone, telegram, instagram, kind, typeLabel, district, logoUrl, salesToday, revenueToday, activeDiscounts, preorderEnabled } }` |
 | `PATCH /business/profile` | `{ name, address, workingHours, description, landmark?, phone?, telegram?, instagram? }` | `{ ok, rereview }` · `invalid_request` + `fields` |
 | `POST /business/logo` · `DELETE /business/logo` | multipart `file` | `{ ok }` |

@@ -431,6 +431,9 @@ saqlanadi. Tekshiruv har so'rovda (`requireActiveStudent`) va kupon olishda — 
 - Bosilish: `Button`/`ButtonLink` `active:scale-[0.97]`, `FeedCard` 0.985, `CategoryPill` 0.96, pastki nav ikonkasi. Tailwind v4 da `translate`/`scale` —
   alohida xususiyat: `transition-[transform]` ularni qamramaydi, `transition-[translate,scale,…]` yozing.
 - `Button variant="idle"` — hozir bosib bo'lmaydigan asosiy harakat (`track` fon, `muted` matn; `opacity-50` emas — kontrast).
+- Ikonkalar: Phosphor (bold) — sayt `@phosphor-icons/react` (`ui/icons.ts`, `ui/icon.tsx`), ilova `phosphor-react-native` (`mobile/src/ui/icons.tsx`),
+  nomlar bir xil, o'lcham shkalasi 16/20/24 (`iconSize`). Qo'lda chizilgan SVG ikonka qo'shilmaydi; brend belgilari faqat rasmiy fayllar
+  (`public/brands`, `mobile/assets/brands`). Xarita — `docs/ikonkalar.md`.
 - Toast: `ui/toast.tsx` — `toast(text, "ok"|"info")`, `<Toaster/>` talaba layout'ida. Ulashish, saqlash, bildirishnoma kaliti, kupon bekor qilish.
 - Kupon: bekor qilish `confirm` so'raydi; QR ekranida Screen Wake Lock (`useWakeLock`); sotilganda tebranish va `/tarix?chek=<id>&yangi=1` —
   "Sotuv tasdiqlandi" bloki (`data-testid="redeemed"`) va chek animatsiyasi. Yopiq chegirmada telefon CTA ostida ochilish vaqti.
@@ -531,7 +534,13 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
 - Alohida loyiha: `mobile/` (o'z package.json, tsconfig, ESLint; `npm install` shu papkada). Ildiz `tsconfig` `exclude`, ESLint `globalIgnores`
   va `deploy.yml` `paths-ignore` uni chetlab o'tadi — sayt build/deploy'iga ta'sir qilmaydi. Capacitor qobig'i hozircha qoladi.
 - Faqat `/api/v1` bilan ishlaydi (docs/api-v1.md); API yetishmasa — ilovada aylanib o'tilmaydi, ro'yxat qilinadi. Batafsil: `mobile/README.md`.
-- Dizayn design/app-flow dan (`mobile/src/theme.ts`, `src/ui/kit.tsx`); Archivo — statik nusxalar (`mobile/assets/fonts`), ichida Golos Text kirill
+- **Kirgandan keyingi ekranlar = saytning telefon (390px) ko'rinishi** (talaba T4–T8, buyurtmalar, bildirishnomalar; biznes B2–B6, skaner,
+  buyurtmalar, sozlamalar, kassirlar, tahrir, sotuvlar): primitivlar `mobile/src/site/*` (sayt komponentlaridan ko'chirilgan qiymatlar),
+  tokenlar `theme.ts` (sayt `@theme` bilan bir xil). Saytda ekran o'zgarsa ilovada ham. Tekshiruv: `node scripts/app-compare.mjs`
+  (`--only`, `--scroll`, `--probe`; dev server + `expo start --web`; Metro o'zgarishni ko'rmasa `--clear` bilan qayta ishga tushiring).
+  Ichki sahifalar tab ichida (pastki menyu; `TabBar activeAs`). Sozlamalar preview'i serverda (`POST /business/preorder/preview`, `src/lib/preorder`).
+  Kirishgacha (til, karusel, kirish, ro'yxat, parol, tekshiruv) — design/app-flow.
+- Dizayn (kirishgacha) design/app-flow dan (`mobile/src/theme.ts`, `src/ui/kit.tsx`); Archivo — statik nusxalar (`mobile/assets/fonts`), ichida Golos Text kirill
   glifllari (`mobile/scripts/fonts-cyrillic.py`). Matnlar 3 tilda: `mobile/src/i18n/{uz,ru,en}.ts` (uz — messages/uz.json `app` nusxasi; saytda
   o'zgarsa u yerda ham, uchala tilda — `Copy` tipi tekshiradi), `copy` — joriy til (`src/copy.ts`). Til birinchi ochilishda (Til ekrani) va Profilda
   tanlanadi, serverga `Accept-Language`.
@@ -545,7 +554,7 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   AsyncStorage'da (internetsiz ko'rinadi). Xarita — react-native-maps (Android build uchun Google Maps kaliti kerak), push — Expo push tokeni.
   `/api/v1` ga ilova uchun qo'shilganlar: `GET /districts`, `POST /notifications/read { ids }`, `CouponView.discountId`.
 - Render paytida `router.canGoBack()` chaqirmang (navigation.isFocused() ogohlantirishi) — `useCanGoBack()` hook.
-- Ilova 2-bosqich: Lenta/LentaFiltr/Chegirma/ChegirmaYopiq/Yonalish (`design/app-flow/app-flow/*.dc.html`) dizayndan; rasmiy belgilar
+- Ilova 2-bosqich (lenta, chegirma, yo'nalish) endi saytdagi T4/T5 va "Qanday borasiz?" bilan bir xil (app-flow'dagi Lenta/Chegirma/Yonalish olib tashlangan); rasmiy belgilar
   `mobile/assets/brands/` (manbalari `SOURCE.md`, o'zgartirilmaydi). Klaviatura — `react-native-keyboard-controller` (`Screen` =
   `KeyboardAwareScrollView`, `Sheet` ichida `KeyboardAvoidingView`, `returnKeyType="next"` → keyingi maydon). Tablarda
   `backBehavior="firstRoute"`. Profil tahriri: `GET/PATCH /api/v1/student/profile`, `POST/DELETE /api/v1/student/avatar` (sayt qoidalari

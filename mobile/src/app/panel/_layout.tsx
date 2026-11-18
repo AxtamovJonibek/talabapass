@@ -48,6 +48,8 @@ export default function BusinessTabs() {
         {/* Menyuda yo'q (TabBar belgisi yo'q tabni ko'rsatmaydi); `href: null` emas — manzil bilan ochilishi uchun */}
         <Tabs.Screen name="sales" options={{ title: copy.biz.tabs.sales, ...hidden }} />
         <Tabs.Screen name="cashiers" options={{ title: copy.biz.cashiers.title, ...hidden }} />
+        <Tabs.Screen name="settings" options={{ title: copy.biz.settings.title, ...hidden }} />
+        <Tabs.Screen name="edit" options={{ title: copy.biz.edit.title, ...hidden }} />
       </Tabs>
     </OrdersWatch>
   );

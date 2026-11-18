@@ -84,6 +84,8 @@ const STATUS: Record<ApiErrorCode, number> = {
   password_setup_required: 403,
   wrong_current_password: 401,
   account_exists: 409,
+  preorder_no_schedule: 400,
+  preorder_no_price: 409,
 };
 
 export class ApiError extends Error {

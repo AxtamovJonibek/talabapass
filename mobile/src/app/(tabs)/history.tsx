@@ -1,4 +1,4 @@
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Linking, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,7 +25,14 @@ export default function History() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [month, setMonth] = useState<string | undefined>(undefined);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // `?chek=<id>` — kupon sotilgach shu chek ochiladi (saytdagi `/tarix?chek=`)
+  const params = useLocalSearchParams<{ chek?: string }>();
+  const [selectedId, setSelectedId] = useState<string | null>(params.chek ?? null);
+  const [shownParam, setShownParam] = useState(params.chek);
+  if (params.chek !== shownParam) {
+    setShownParam(params.chek);
+    if (params.chek) setSelectedId(params.chek);
+  }
   const [picking, setPicking] = useState(false);
   const data = useLoad(useCallback(() => appApi.history(month), [month]), true, `history.${month ?? "now"}`);
   const { refresh } = data;

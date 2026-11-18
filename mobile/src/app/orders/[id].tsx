@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
@@ -37,6 +37,7 @@ export default function OrderScreen() {
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   const { refresh } = data;
+  const toList = () => (router.canGoBack() ? router.back() : router.navigate("/orders"));
 
   useEffect(() => {
     const tick = setInterval(() => setNow(Date.now()), 1000);
@@ -49,7 +50,7 @@ export default function OrderScreen() {
 
   const order = data.data?.order;
   if (!order) {
-    return <SubScreen title={o.title}>{data.error ? <Failed error={data.error} onRetry={() => void data.reload()} /> : <Loading />}</SubScreen>;
+    return <SubScreen title={o.title} onBack={toList}>{data.error ? <Failed error={data.error} onRetry={() => void data.reload()} /> : <Loading />}</SubScreen>;
   }
 
   const secret = order.secret ? fromBase64Url(order.secret) : null;
@@ -77,7 +78,7 @@ export default function OrderScreen() {
   };
 
   return (
-    <SubScreen title={order.title} back={o.title}>
+    <SubScreen title={order.title} back={o.title} onBack={toList}>
       <View style={styles.card}>
         <View style={styles.head}>
           <Txt style={{ fontSize: 13, color: colors.muted }}>{order.businessName}</Txt>

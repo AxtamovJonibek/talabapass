@@ -1,104 +1,106 @@
 import { router } from "expo-router";
-import { useCallback, useEffect } from "react";
-import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useRef } from "react";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { appApi, type InboxItem } from "@/api/endpoints";
 import { copy } from "@/copy";
-import { formatWhen } from "@/lib/format";
+import { formatMinute, toTashkent } from "@/lib/format";
 import { syncBadge } from "@/lib/push";
 import { useLoad } from "@/lib/use-load";
+import { mono } from "@/site/ui";
 import { useApp } from "@/state";
 import { colors, em, font } from "@/theme";
-import { Empty, Failed, Loading, RoundButton } from "@/ui/app";
-import { Press, TextAction, Title, Txt } from "@/ui/kit";
+import { Failed, Loading } from "@/ui/app";
+import { Press, Txt } from "@/ui/kit";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+/** "14.11 14:58" (Toshkent) */
+const when = (iso: string) => {
+  const local = toTashkent(new Date(iso));
+  return `${pad(local.date.getUTCDate())}.${pad(local.date.getUTCMonth() + 1)} ${formatMinute(local.minute)}`;
+};
 
 /**
- * Bildirishnomalar (`GET /notifications`): yangilari belgili. Bosilgan xabar o'qilgan bo'ladi (`{ ids }`) va havolasi
- * ochiladi (chegirma → tafsilot, kategoriya → lenta shu kategoriya bilan); "Hammasini o'qildi" — barchasi.
- * Biznes egasida ham shu ekran (havolalar talaba lentasiga — unga ochilmaydi, faqat o'qilgan bo'ladi).
+ * Bildirishnomalar — saytdagi `/bildirishnomalar` (`Inbox`): "← Orqaga", sarlavha, ro'yxat (yangilari qora chegara va
+ * to'q sariq nuqta bilan). Saytdagidek ochilganda hammasi o'qilgan bo'ladi (belgilar shu ochilishda qoladi). Bosilgan
+ * xabar havolasi ochiladi (chegirma → tafsilot, kategoriya → lenta). Push — ilovada Expo orqali (saytdagi yoqish bloki yo'q).
  */
 export default function Notifications() {
   const n = copy.notifications;
   const insets = useSafeAreaInsets();
   const student = useApp().me?.role === "STUDENT";
   const inbox = useLoad(useCallback(() => appApi.notifications(), []), true, "notifications");
-  const { setData } = inbox;
+  const marked = useRef(false);
   const unread = inbox.data?.unread ?? 0;
-  const loaded = inbox.data !== null;
 
-  // Ikonka raqami — ekrandagi o'qilmaganlar bilan bir xil
   useEffect(() => {
-    if (loaded) void syncBadge(unread);
-  }, [loaded, unread]);
-
-  const markLocal = (ids: string[] | null) =>
-    setData((d) => {
-      if (!d) return d;
-      const items = d.items.map((i) => (ids === null || ids.includes(i.id) ? { ...i, unread: false } : i));
-      return { items, unread: items.filter((i) => i.unread).length };
-    });
+    if (!inbox.data || marked.current) return;
+    marked.current = true;
+    if (unread > 0) void appApi.markRead().catch(() => undefined);
+    void syncBadge(0);
+  }, [inbox.data, unread]);
 
   const open = (item: InboxItem) => {
-    if (item.unread) {
-      markLocal([item.id]);
-      void appApi.markRead([item.id]).catch(() => undefined);
-    }
     if (!student) return;
     if (item.link.type === "DISCOUNT" && item.link.id) router.push(`/deal/${item.link.id}`);
     else if (item.link.type === "CATEGORY" && item.link.id) router.navigate(`/deals?category=${encodeURIComponent(item.link.id)}`);
   };
-
-  const markAll = () => {
-    markLocal(null);
-    void appApi.markRead().catch(() => undefined);
-  };
+  const back = () => (router.canGoBack() ? router.back() : router.replace(student ? "/deals" : "/panel/profile"));
+  const items = inbox.data?.items ?? [];
 
   return (
-    <View style={[styles.fill, { paddingTop: insets.top + 12 }]}>
-      <View style={styles.top}>
-        <RoundButton icon="arrowLeft" label={copy.back} onPress={() => (router.canGoBack() ? router.back() : router.replace(student ? "/deals" : "/panel/profile"))} />
-        <Title text={n.title} size={30} style={styles.title} />
-      </View>
-      {unread > 0 ? (
-        <View style={styles.markAll}>
-          <TextAction onPress={markAll}>{n.markAll}</TextAction>
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 28, paddingBottom: insets.bottom + 48 }]}
+      refreshControl={<RefreshControl refreshing={inbox.refreshing} onRefresh={() => void inbox.reload()} tintColor={colors.blue} colors={[colors.blue]} />}
+    >
+      <Press onPress={back} accessibilityRole="link" scale={0.98} style={{ alignSelf: "flex-start" }}>
+        <Txt style={[font(700), { fontSize: 14, lineHeight: 20 }]}>{`← ${copy.back}`}</Txt>
+      </Press>
+      <Txt accessibilityRole="header" style={[font(900, 112), styles.title]}>
+        {n.title}
+      </Txt>
+      {inbox.loading && !inbox.data ? (
+        <Loading />
+      ) : inbox.error && !inbox.data ? (
+        <Failed error={inbox.error} onRetry={() => void inbox.reload()} />
+      ) : items.length === 0 ? (
+        <Txt style={styles.empty}>{n.empty}</Txt>
+      ) : (
+        <View style={{ gap: 8 }}>
+          {items.map((item) => (
+            <Press
+              key={item.id}
+              onPress={() => open(item)}
+              accessibilityRole="link"
+              accessibilityLabel={`${item.unread ? `${n.unread}. ` : ""}${item.title}. ${item.body}`}
+              scale={0.99}
+              style={[styles.item, { borderColor: item.unread ? colors.ink : colors.line }]}
+            >
+              <View style={styles.head}>
+                <Txt style={[font(800), { fontSize: 15, flexShrink: 1 }]}>
+                  {item.unread ? <Txt style={styles.dot}>{"● "}</Txt> : null}
+                  {item.title}
+                </Txt>
+                <Txt style={[mono(), { fontSize: 12, color: colors.muted }]}>{when(item.at)}</Txt>
+              </View>
+              <Txt style={styles.body}>{item.body}</Txt>
+            </Press>
+          ))}
         </View>
-      ) : null}
-      <FlatList<InboxItem>
-        data={inbox.data?.items ?? []}
-        keyExtractor={(i) => i.id}
-        renderItem={({ item }) => (
-          <Press onPress={() => open(item)} accessibilityRole="button" accessibilityLabel={`${item.unread ? `${n.unread}. ` : ""}${item.title}. ${item.body}`} scale={0.985} style={styles.item}>
-            <View style={styles.itemHead}>
-              {item.unread ? <View style={styles.dot} /> : null}
-              <Txt style={[font(item.unread ? 800 : 700), styles.itemTitle]}>{item.title}</Txt>
-              {item.unread ? <Txt style={[font(800), styles.badge]}>{n.unread.toUpperCase()}</Txt> : null}
-            </View>
-            <Txt style={styles.body}>{item.body}</Txt>
-            <Txt style={styles.when}>{formatWhen(item.at)}</Txt>
-          </Press>
-        )}
-        ListEmptyComponent={
-          inbox.loading ? <Loading /> : inbox.error ? <Failed error={inbox.error} onRetry={() => void inbox.reload()} /> : <Empty icon="bell" title={n.empty} />
-        }
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
-        refreshControl={<RefreshControl refreshing={inbox.refreshing} onRefresh={() => void inbox.reload()} tintColor={colors.blue} colors={[colors.blue]} />}
-      />
-    </View>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  top: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24 },
-  title: { flex: 1 },
-  markAll: { paddingHorizontal: 24, alignItems: "flex-end" },
-  content: { paddingHorizontal: 24, paddingTop: 8 },
-  item: { backgroundColor: colors.white, borderRadius: 20, padding: 16, marginBottom: 10 },
-  itemHead: { flexDirection: "row", alignItems: "center", gap: 8 },
-  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.orange },
-  itemTitle: { flex: 1, fontSize: 16 },
-  badge: { fontSize: 11, letterSpacing: em(11, 0.08), color: colors.blue },
-  body: { fontSize: 15, lineHeight: 21, color: colors.ink5, marginTop: 6 },
-  when: { fontSize: 12, color: colors.muted2, marginTop: 8 },
+  root: { flex: 1, backgroundColor: colors.paper },
+  content: { paddingHorizontal: 16, gap: 14 },
+  title: { fontSize: 36, lineHeight: 36, letterSpacing: em(36, -0.035) },
+  empty: { borderRadius: 16, backgroundColor: colors.white, padding: 20, fontSize: 14, color: colors.muted },
+  item: { borderRadius: 16, borderWidth: 1.5, backgroundColor: colors.white, padding: 16 },
+  head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 12 },
+  dot: { fontSize: 11, color: colors.orange },
+  // saytda leading-[1.4]
+  body: { marginTop: 4, fontSize: 14, lineHeight: 19.6, color: colors.muted },
 });

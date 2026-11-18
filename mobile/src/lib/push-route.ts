@@ -24,7 +24,7 @@ export function pushRoute(url: string | null, me: Me): Href | null {
     const deal = /^\/chegirmalar\/([a-z0-9_]{10,40})$/.exec(path);
     if (deal) return `/deal/${deal[1]}`;
     if (path === "/chegirmalar") return q.get("kategoriya") ? `/deals?category=${encodeURIComponent(q.get("kategoriya")!)}` : null;
-    if (path === "/tarix" && q.get("chek")) return `/receipt/${encodeURIComponent(q.get("chek")!)}`;
+    if (path === "/tarix" && q.get("chek")) return `/history?chek=${encodeURIComponent(q.get("chek")!)}`;
     return "/notifications";
   }
   if (owner && path === "/biznes/buyurtmalar") return "/panel/orders";

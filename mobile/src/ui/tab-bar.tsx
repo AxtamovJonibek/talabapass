@@ -7,13 +7,18 @@ import { Icon, type IconName } from "./icons";
 import { Txt } from "./kit";
 
 /** Talaba (saytdagi `StudentBottomNav`): Asosiy, Kuponlar, Tarix, Profil */
-export const STUDENT_TABS = { icons: { deals: "home", coupon: "ticket", history: "clock", profile: "user" } as Record<string, IconName>, tone: "light" as const };
+export const STUDENT_TABS = {
+  icons: { deals: "home", coupon: "ticket", history: "clock", profile: "user" } as Record<string, IconName>,
+  tone: "light" as const,
+  // Profil ichki sahifalari ochiq bo'lsa — "Profil" faol (saytdagidek)
+  activeAs: { "profile-edit": "profile", "profile-card": "profile", orders: "profile", help: "profile" } as Record<string, string>,
+};
 /** Biznes egasi (saytdagi `OwnerBottomNav`): qora, faoli to'q sariq */
 export const BIZ_TABS = {
   icons: { scan: "scan", orders: "receipt", discounts: "ticket", stats: "chart", profile: "store" } as Record<string, IconName>,
   tone: "dark" as const,
-  // Menyuda yo'q sahifalar: "Sotuvlar" — "Statistika", "Kassirlar" — "Profil" faol (saytdagidek)
-  activeAs: { sales: "stats", cashiers: "profile" } as Record<string, string>,
+  // Menyuda yo'q sahifalar: "Sotuvlar" — "Statistika", "Kassirlar" va "Tahrirlash" — "Profil", "Sozlamalar" — "Buyurtmalar" faol (saytdagidek)
+  activeAs: { sales: "stats", cashiers: "profile", settings: "orders", edit: "profile" } as Record<string, string>,
 };
 
 /**

@@ -2987,6 +2987,8 @@
       "invalid_identifier": "Telefon raqam (9 ta raqam) yoki to'g'ri email kiriting.",
       "password_setup_required": "Davom etish uchun parol o'rnating.",
       "wrong_current_password": "Joriy parol noto'g'ri.",
+      "preorder_no_schedule": "Kamida bitta kunni belgilang.",
+      "preorder_no_price": "Narxi aniq bo'lmagan chegirmani band qilib bo'lmaydi.",
       "account_exists": "Bu raqamda hisob bor. Parolingiz bilan kiring yoki parolni tiklang."
     }
   },

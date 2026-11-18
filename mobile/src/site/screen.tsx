@@ -12,7 +12,7 @@ import { mono } from "./ui";
 
 /**
  * Saytdagi telefon "ichki sahifa" qobig'i (`PhoneSubScreen` / `OrdersFrame`): 58px tepada, "← Orqaga" (44px), 30px sarlavha
- * (900 / 112%), 20px yon padding.
+ * (900 / 112%), 20px yon padding. Orqaga — standart profilga (ichki sahifalar profil tabida).
  */
 export function SubScreen({
   title,
@@ -36,7 +36,7 @@ export function SubScreen({
       contentContainerStyle={[s.content, { paddingTop: insets.top + 58, paddingBottom: insets.bottom + 24 }]}
       refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={colors.blue} /> : undefined}
     >
-      <Press onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace("/profile")))} accessibilityRole="link" scale={0.98} style={s.back}>
+      <Press onPress={onBack ?? (() => router.navigate("/profile"))} accessibilityRole="link" scale={0.98} style={s.back}>
         <Icon name="chevronLeft" size={16} />
         <Txt style={[font(700), { fontSize: 14 }]}>{back ?? copy.back}</Txt>
       </Press>

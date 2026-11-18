@@ -67,7 +67,7 @@ export default function Orders() {
         <Txt accessibilityRole="header" style={[font(900, 110), styles.title]}>
           {o.title}
         </Txt>
-        <Button variant="outline-soft" size="sm" onPress={() => router.push("/biz/settings")}>
+        <Button variant="outline-soft" size="sm" onPress={() => router.push("/panel/settings")}>
           {o.settingsShort}
         </Button>
       </View>
