@@ -1,36 +1,50 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { appApi, type FeedDeal } from "@/api/endpoints";
 import { copy } from "@/copy";
-import { filterDeals, sortDeals, type FeedSort } from "@/lib/feed";
-import { useLocation } from "@/lib/location";
+import { filterDeals, isLowStock, sortDeals, type FeedSort } from "@/lib/feed";
+import { dealNote, formatKm, formatMinute, formatSom, statusPill, toTashkent } from "@/lib/format";
+import { TASHKENT, useLocation } from "@/lib/location";
 import { useLoad } from "@/lib/use-load";
+import { BellButton, CategoryPill, CategoryRow, DealTag, DropdownChip, FeedCard, FloatButton, mono, StatusPill, TogglePill, ViewSwitch, SearchUnderline } from "@/site/ui";
 import { LocationSheet } from "@/student/location-sheet";
 import { SortSheet } from "@/student/sort-sheet";
-import { colors, font } from "@/theme";
-import { DealCard, Failed, Loading, RoundButton, TabScreen, Toggle } from "@/ui/app";
+import { colors, em, font } from "@/theme";
+import { DealsMap } from "@/ui/deals-map";
+import { Failed, imageUrl, Loading } from "@/ui/app";
 import { Icon } from "@/ui/icons";
-import { Press, Title, Txt } from "@/ui/kit";
+import { Press, Txt } from "@/ui/kit";
 import { StaleNote } from "@/ui/offline";
 
-/** Lenta va sahifa har daqiqa yangilanadi (saytdagidek: holat va qoldiq o'zgaradi) */
+/** Lenta har daqiqa yangilanadi (saytdagidek: holat va qoldiq o'zgaradi) */
 const REFRESH_MS = 60_000;
 
+/** Kartadagi belgilar (saytdagi `useDealMarks`): holat pilyulkasi, oz qolganda zaxira yorlig'i, pastda qoldiq */
+function marksOf(deal: FeedDeal, now: Date) {
+  const low = isLowStock(deal, now);
+  return {
+    pill: statusPill(deal, now),
+    stock: low ? copy.deal.hot(deal.left, deal.total) : null,
+    status: low ? copy.deal.leftLow(deal.left, deal.total) : copy.deal.left(deal.left, deal.total),
+    tone: low ? ("hot" as const) : ("later" as const),
+  };
+}
+
 /**
- * Chegirmalar (design/app-flow/Lenta.dc.html): joy va qo'ng'iroq, "Bugun arzon.", qidiruv (ichida saralash tugmasi),
- * matnli kategoriya chiplari bitta gorizontal qatorda, "N ta chegirma · Hozir ochiq · Eng yaqin ▾" bitta qatorda;
- * saralash — pastdan oyna (LentaFiltr.dc.html). Filtr va saralash qurilmada (`src/lib/feed.ts`, saytdagi bilan bir xil),
- * holatda turadi — tarixga yozilmaydi (Android "orqaga" ularni bekor qilmaydi, tabdan chiqaradi).
+ * T4 — chegirmalar lentasi, saytning telefon ko'rinishi bilan bir xil (`student/feed/feed-phone.tsx`, "Lenta B · Jurnal"):
+ * sana va joy, "Bugun arzon.", tagchiziqli qidiruv, kategoriya chiplari, boshqaruv qatori (soni, "Hozir ochiq", saralash,
+ * "Ro'yxat | Xarita"), kartalar, pastda suzuvchi "Xarita". Filtr va saralash `src/lib/feed.ts` (sayt bilan bir xil).
  */
 export default function Deals() {
   const f = copy.feed;
+  const insets = useSafeAreaInsets();
   const { origin, label, ready } = useLocation();
   const feed = useLoad(useCallback(() => appApi.deals(origin), [origin]), ready, "deals");
   const inbox = useLoad(useCallback(() => appApi.notifications(), []));
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("all");
-  // Bildirishnomadan kategoriya bilan kelganda (`/deals?category=kofe`) — o'sha kategoriya tanlanadi
   const { category: linked } = useLocalSearchParams<{ category?: string }>();
   const [seenLink, setSeenLink] = useState<string | undefined>(undefined);
   if (linked !== seenLink) {
@@ -39,6 +53,7 @@ export default function Deals() {
   }
   const [liveOnly, setLiveOnly] = useState(false);
   const [sort, setSort] = useState<FeedSort>("near");
+  const [view, setView] = useState<"list" | "map">("list");
   const [sheet, setSheet] = useState<"sort" | "place" | null>(null);
   const [now, setNow] = useState(() => new Date());
 
@@ -62,119 +77,113 @@ export default function Deals() {
     [feed.data, q, category, names],
   );
   const list = useMemo(() => listFor(liveOnly, sort), [listFor, liveOnly, sort]);
-
-  const filtered = q.trim() !== "" || category !== "all" || liveOnly;
-  const reset = () => {
-    setQ("");
-    setCategory("all");
-    setLiveOnly(false);
-  };
-
-  const header = (
-    <View>
-      <View style={styles.top}>
-        <Pressable onPress={() => setSheet("place")} accessibilityRole="button" accessibilityLabel={`${f.location.label}: ${label}`} style={styles.place} hitSlop={6}>
-          <Icon name="pin" size={18} strokeWidth={2.4} color={colors.blue} />
-          <Txt numberOfLines={1} style={[font(800), styles.placeText]}>
-            {label}
-          </Txt>
-          <Icon name="chevronDown" size={16} strokeWidth={2.6} color={colors.muted} />
-        </Pressable>
-        <RoundButton icon="bell" label={f.notifications} dot={(inbox.data?.unread ?? 0) > 0} onPress={() => router.push("/notifications")} />
-      </View>
-
-      <Title text={`${f.titleTop} <hl>${f.titleBottom}</hl>`} size={34} tight="feed" style={styles.title} />
-
-      <View style={styles.search}>
-        <Icon name="search" size={20} strokeWidth={2.4} color={colors.muted2} />
-        <TextInput
-          value={q}
-          onChangeText={setQ}
-          placeholder={f.search}
-          placeholderTextColor={colors.muted2}
-          selectionColor={colors.blue}
-          accessibilityLabel={f.search}
-          returnKeyType="search"
-          autoCorrect={false}
-          maxFontSizeMultiplier={1.25}
-          style={[font(600), styles.searchInput]}
-        />
-        {q ? (
-          <Pressable onPress={() => setQ("")} accessibilityRole="button" accessibilityLabel={f.clearSearch} style={styles.clear} hitSlop={4}>
-            <Icon name="close" size={18} strokeWidth={2.4} color={colors.muted} />
-          </Pressable>
-        ) : null}
-        <Press onPress={() => setSheet("sort")} accessibilityRole="button" accessibilityLabel={f.sortOpen} scale={0.94} style={styles.sortButton}>
-          <Icon name="sliders" size={20} strokeWidth={2.4} />
-        </Press>
-      </View>
-
-      {categories.length ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled" accessibilityRole="tablist">
-          {[{ slug: "all", name: f.categoryAll }, ...categories].map((c) => {
-            const on = category === c.slug;
-            return (
-              <Press
-                key={c.slug}
-                onPress={() => setCategory(c.slug)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: on }}
-                scale={0.96}
-                style={[styles.chip, on ? styles.chipOn : null]}
-              >
-                <Txt style={[font(800), styles.chipText, on ? styles.chipTextOn : null]}>{c.name}</Txt>
-              </Press>
-            );
-          })}
-        </ScrollView>
-      ) : null}
-
-      <View style={styles.filters}>
-        <Txt style={[font(700), styles.count]}>{feed.data ? f.count(list.length) : ""}</Txt>
-        <Pressable onPress={() => setLiveOnly((v) => !v)} accessibilityRole="switch" accessibilityState={{ checked: liveOnly }} style={styles.live} hitSlop={4}>
-          <Toggle on={liveOnly} />
-          <Txt style={[font(800), styles.filterText]}>{f.liveNow}</Txt>
-        </Pressable>
-        <Pressable onPress={() => setSheet("sort")} accessibilityRole="button" accessibilityLabel={`${f.sortLabel}: ${f.sort[sort]}`} style={styles.sortLink} hitSlop={4}>
-          <Txt style={[font(800), styles.filterText, { color: colors.blue }]}>{f.sort[sort]}</Txt>
-          <Icon name="chevronDown" size={14} strokeWidth={2.8} color={colors.blue} />
-        </Pressable>
-      </View>
-      <StaleNote at={feed.staleAt} style={styles.stale} />
-    </View>
-  );
-
-  const empty = feed.loading ? (
-    <Loading />
-  ) : feed.error ? (
-    <Failed error={feed.error} onRetry={() => void feed.reload()} />
-  ) : (
-    <View style={styles.empty}>
-      <Txt style={[font(800), styles.emptyText]}>{filtered ? f.emptyFilter : f.empty}</Txt>
-      {filtered ? (
-        <Press onPress={reset} accessibilityRole="button" style={styles.emptyButton}>
-          <Txt style={[font(800), { fontSize: 15 }]}>{f.resetFilters}</Txt>
-        </Press>
-      ) : null}
-    </View>
-  );
+  const t = toTashkent(now);
+  const allTile = { icon: "all", tileColor: colors.surface, inkColor: colors.ink };
 
   return (
-    <TabScreen>
-      <FlatList<FeedDeal>
-        data={list}
-        keyExtractor={(d) => d.id}
-        renderItem={({ item }) => <DealCard deal={item} now={now} categoryName={names.get(item.category)} onPress={() => router.push(`/deal/${item.id}`)} />}
-        ItemSeparatorComponent={Separator}
-        ListHeaderComponent={header}
-        ListHeaderComponentStyle={styles.header}
-        ListEmptyComponent={empty}
-        contentContainerStyle={styles.content}
+    <View style={styles.root}>
+      <ScrollView
+        contentContainerStyle={{ paddingTop: Math.max(insets.top, 0) + 50, paddingBottom: 96 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={feed.refreshing} onRefresh={() => void feed.reload()} tintColor={colors.blue} colors={[colors.blue]} />}
-      />
+      >
+        <View style={styles.header}>
+          <View style={styles.dateRow}>
+            <Txt style={[mono(), styles.date]}>
+              {`${copy.weekdays[t.weekday - 1]} · ${t.date.getUTCDate()} ${copy.months[t.date.getUTCMonth()]} · ${formatMinute(t.minute)}`.toUpperCase()}
+            </Txt>
+            <Press onPress={() => setSheet("place")} accessibilityRole="button" accessibilityLabel={`${f.location.label}: ${label}`} scale={0.97} style={styles.place}>
+              <Txt style={[mono(), styles.placeText]}>{label.toUpperCase()}</Txt>
+              <Icon name="chevronDown" size={12} />
+            </Press>
+          </View>
+          <View style={styles.titleRow}>
+            <Txt accessibilityRole="header" style={[font(900, 125), styles.title]}>
+              {f.titleTop}
+              {"\n"}
+              {f.titleBottom}
+              <Txt style={[font(900, 125), styles.title, { color: colors.orange }]}>.</Txt>
+            </Txt>
+            <View style={styles.bellWrap}>
+              <BellButton unread={(inbox.data?.unread ?? 0) > 0} onPress={() => router.push("/notifications")} label={f.notifications} />
+            </View>
+          </View>
+          <View style={styles.searchWrap}>
+            <SearchUnderline value={q} onChange={setQ} placeholder={f.search} label={f.search} />
+          </View>
+        </View>
+
+        <View style={styles.cats}>
+          <CategoryRow>
+            {[{ slug: "all", name: f.categoryAll, ...allTile }, ...categories].map((c) => (
+              <CategoryPill key={c.slug} selected={category === c.slug} label={c.name} icon={c.icon} tileColor={c.tileColor} inkColor={c.inkColor} onPress={() => setCategory(c.slug)} />
+            ))}
+          </CategoryRow>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.controls} style={styles.controlsBox}>
+          <Txt style={[font(800), styles.count]}>{feed.data ? f.count(list.length) : ""}</Txt>
+          <TogglePill pressed={liveOnly} onChange={setLiveOnly} label={f.liveNow} />
+          <DropdownChip label={f.sortLabel} value={f.sort[sort]} onPress={() => setSheet("sort")} />
+          <ViewSwitch
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "list", label: f.viewList },
+              { value: "map", label: f.viewMap },
+            ]}
+          />
+        </ScrollView>
+        <StaleNote at={feed.staleAt} style={styles.stale} />
+
+        {feed.loading ? (
+          <Loading />
+        ) : feed.error ? (
+          <Failed error={feed.error} onRetry={() => void feed.reload()} />
+        ) : view === "map" ? (
+          <View style={styles.map}>
+            <DealsMap center={origin && "lat" in origin ? origin : (list.find((d) => d.point)?.point ?? TASHKENT)} radiusKm={0} deals={list} showsUser={false} onOpen={(id) => router.push(`/deal/${id}`)} />
+          </View>
+        ) : (
+          <View style={styles.list}>
+            {list.map((deal) => {
+              const m = marksOf(deal, now);
+              return (
+                <FeedCard
+                  key={deal.id}
+                  badge={deal.badge}
+                  store={deal.store}
+                  where={[deal.district, deal.distanceKm !== null ? formatKm(deal.distanceKm) : null].filter(Boolean).join(" · ")}
+                  title={deal.title}
+                  price={deal.price ? { now: formatSom(deal.price.now), old: deal.price.old ? formatSom(deal.price.old) : undefined, currency: copy.currency } : undefined}
+                  note={deal.price ? undefined : dealNote(deal)}
+                  saves={deal.price?.old ? copy.deal.saves(formatSom(deal.price.old - deal.price.now)) : null}
+                  marks={
+                    <View style={styles.marks}>
+                      <StatusPill tone={m.pill.tone} onImage>
+                        {m.pill.text}
+                      </StatusPill>
+                      {m.stock ? <DealTag hot>{m.stock}</DealTag> : null}
+                    </View>
+                  }
+                  status={m.status}
+                  statusTone={m.tone}
+                  image={deal.images[0] ? imageUrl(deal.images[0]) : undefined}
+                  pendingLabel={copy.deal.pending}
+                  tileColor={deal.tile}
+                  inkColor={deal.ink}
+                  onPress={() => router.push(`/deal/${deal.id}`)}
+                />
+              );
+            })}
+            {list.length === 0 ? <Txt style={styles.empty}>{q || category !== "all" || liveOnly ? f.emptyFilter : f.empty}</Txt> : null}
+          </View>
+        )}
+      </ScrollView>
+
+      <FloatButton icon={view === "map" ? undefined : "map"} label={view === "map" ? f.viewList : f.viewMap} onPress={() => setView(view === "map" ? "list" : "map")} bottom={16} />
 
       <SortSheet
         visible={sheet === "sort"}
@@ -189,49 +198,29 @@ export default function Deals() {
         }}
       />
       <LocationSheet visible={sheet === "place"} onClose={() => setSheet(null)} />
-    </TabScreen>
+    </View>
   );
 }
 
-const Separator = () => <View style={styles.gap} />;
-
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 24, paddingBottom: 32 },
-  header: { marginHorizontal: -24, marginBottom: 10 },
-  top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 24 },
-  place: { flexDirection: "row", alignItems: "center", gap: 6, height: 44, marginLeft: -2, flexShrink: 1 },
-  placeText: { fontSize: 15, flexShrink: 1 },
-  title: { marginTop: 6, marginHorizontal: 24 },
-  search: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    height: 52,
-    marginTop: 14,
-    marginHorizontal: 24,
-    paddingLeft: 14,
-    paddingRight: 6,
-    borderWidth: 2,
-    borderColor: colors.ink,
-    borderRadius: 16,
-    backgroundColor: colors.white,
-  },
-  searchInput: { flex: 1, minWidth: 0, padding: 0, fontSize: 16, color: colors.ink },
-  clear: { width: 32, height: 40, alignItems: "center", justifyContent: "center" },
-  sortButton: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
-  chips: { gap: 8, paddingHorizontal: 24, paddingTop: 12 },
-  chip: { height: 38, paddingHorizontal: 15, borderRadius: 19, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.white, justifyContent: "center" },
-  chipOn: { borderColor: colors.ink, backgroundColor: colors.ink },
-  chipText: { fontSize: 14, color: colors.ink },
-  chipTextOn: { color: colors.white },
-  filters: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24, paddingTop: 14, paddingBottom: 2 },
-  count: { flex: 1, fontSize: 13, color: colors.muted2 },
-  live: { flexDirection: "row", alignItems: "center", gap: 8, height: 36 },
-  filterText: { fontSize: 13 },
-  sortLink: { flexDirection: "row", alignItems: "center", gap: 4, height: 36 },
-  stale: { marginLeft: 24, marginTop: 4 },
-  gap: { height: 26 },
-  empty: { backgroundColor: colors.white, borderRadius: 22, paddingVertical: 28, paddingHorizontal: 20, alignItems: "center" },
-  emptyText: { fontSize: 17, textAlign: "center" },
-  emptyButton: { marginTop: 12, height: 44, paddingHorizontal: 18, borderRadius: 14, borderWidth: 2, borderColor: colors.ink, backgroundColor: colors.white, justifyContent: "center" },
+  root: { flex: 1, backgroundColor: colors.paper },
+  header: { paddingHorizontal: 16 },
+  dateRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  date: { fontSize: 11, letterSpacing: em(11, 0.1), color: colors.muted },
+  place: { height: 44, flexDirection: "row", alignItems: "center", gap: 5 },
+  placeText: { fontSize: 11, letterSpacing: em(11, 0.1), color: colors.ink, textDecorationLine: "underline" },
+  titleRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 },
+  title: { marginTop: 2, fontSize: 50, lineHeight: 44, letterSpacing: em(50, -0.05) },
+  bellWrap: { paddingBottom: 4 },
+  // Saytda sarlavha qatorlari line-height 0.88 bilan siqiladi — RN qator qutisi 11px balandroq, shuni qoplaydi
+  searchWrap: { marginTop: 3 },
+  cats: { marginTop: 16, paddingVertical: 4 },
+  controlsBox: { marginTop: 8, flexGrow: 0 },
+  controls: { height: 48, alignItems: "center", gap: 12, paddingHorizontal: 16 },
+  count: { fontSize: 15 },
+  stale: { marginLeft: 16 },
+  list: { gap: 18, paddingHorizontal: 16, paddingTop: 12 },
+  marks: { position: "absolute", top: 12, left: 12, zIndex: 2, gap: 6, maxWidth: "70%" },
+  map: { marginHorizontal: 16, marginTop: 4, height: 420, borderRadius: 16, overflow: "hidden" },
+  empty: { paddingHorizontal: 20, paddingVertical: 40, textAlign: "center", fontSize: 14, color: colors.muted },
 });

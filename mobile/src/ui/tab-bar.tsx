@@ -6,36 +6,27 @@ import { colors, font } from "@/theme";
 import { Icon, type IconName } from "./icons";
 import { Txt } from "./kit";
 
-const ICONS: Record<string, IconName> = { deals: "tag", nearby: "map", coupon: "ticket", saved: "bookmark", profile: "user" };
-
-/** Biznes ilovasi: faoli to'q sariq (saytdagi biznes mavzusi), yorliq ostida qora */
-export const BIZ_TABS = { icons: { stats: "chart", discounts: "tag", scan: "scan", sales: "receipt", profile: "user" } as Record<string, IconName>, accent: colors.orange, tint: colors.peach };
+/** Talaba (saytdagi `StudentBottomNav`): Asosiy, Kuponlar, Tarix, Profil */
+export const STUDENT_TABS = { icons: { deals: "home", coupon: "ticket", history: "clock", profile: "user" } as Record<string, IconName>, tone: "light" as const };
+/** Biznes egasi (saytdagi `OwnerBottomNav`): qora, faoli to'q sariq */
+export const BIZ_TABS = { icons: { scan: "scan", orders: "receipt", discounts: "ticket", stats: "chart", profile: "store" } as Record<string, IconName>, tone: "dark" as const };
 
 /**
- * Pastki menyu (saytdagi talaba pastki navigatsiyasi, 84px): belgi + yozuv, faoli ko'k. "Kupon" ustida faol kupon
- * bo'lsa to'q sariq nuqta (qurilmadagi nusxadan — internetsiz ham). Biznes ilovasida — `BIZ_TABS` (belgilar va rang);
- * `href: null` berilgan (rolga yopiq) tab ko'rsatilmaydi.
+ * Pastki menyu — saytdagi `ui/bottom-nav.tsx` bilan bir xil: 66px + pastki xavfsiz hudud (kamida 18), yuqorida 1px chiziq;
+ * ikonka 22 (→ 20, shkala) va 11px yozuv; faoli — qalin (talabada qora, "Asosiy" to'ldirilgan; biznesda to'q sariq).
+ * "Kuponlar" ustida faol kuponlar soni (qurilmadagi nusxadan — internetsiz ham). `href: null` (rolga yopiq) tab ko'rinmaydi.
  */
-export function TabBar({
-  state,
-  descriptors,
-  emitter,
-  navigateToTab,
-  insets,
-  icons = ICONS,
-  accent = colors.blue,
-  tint = colors.blueTint,
-}: BottomTabBarProps & { icons?: Record<string, IconName>; accent?: string; tint?: string }) {
-  const [hasCoupon, setHasCoupon] = useState(false);
+export function TabBar({ state, descriptors, emitter, navigateToTab, insets, icons = STUDENT_TABS.icons, tone = "light" }: BottomTabBarProps & { icons?: Record<string, IconName>; tone?: "light" | "dark" }) {
+  const [coupons, setCoupons] = useState(0);
   useEffect(() => {
-    void cachedCoupons().then((list) => setHasCoupon(list.length > 0));
-    return onCouponsChange((list) => setHasCoupon(list.length > 0));
+    void cachedCoupons().then((list) => setCoupons(list.length));
+    return onCouponsChange((list) => setCoupons(list.length));
   }, []);
+  const dark = tone === "dark";
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]} accessibilityRole="tablist">
+    <View style={[styles.bar, dark ? styles.barDark : null, { paddingBottom: Math.max(insets.bottom, 18) }]} accessibilityRole="tablist">
       {state.routes.map((route, index) => {
-        // `href: null` (expo-router uni `hidden: true` ga aylantiradi) — rolga yopiq tab
         if ((descriptors[route.key]?.options as { hidden?: boolean } | undefined)?.hidden) return null;
         const focused = index === state.index;
         const title = descriptors[route.key]?.options.title ?? route.name;
@@ -43,7 +34,8 @@ export function TabBar({
           const event = emitter.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
           if (!focused && !event.defaultPrevented) navigateToTab(route.key);
         };
-        const color = focused ? accent : colors.muted2;
+        const icon = icons[route.name] ?? "all";
+        const color = dark ? (focused ? colors.orange : colors.fog3) : focused ? colors.ink : colors.muted;
         return (
           <Pressable
             key={route.key}
@@ -53,13 +45,15 @@ export function TabBar({
             accessibilityLabel={title}
             style={({ pressed }) => [styles.item, pressed ? styles.pressed : null]}
           >
-            <View style={[styles.iconWrap, focused ? { backgroundColor: tint } : null]}>
-              <Icon name={icons[route.name] ?? "all"} size={24} strokeWidth={focused ? 2.6 : 2.2} color={color} />
-              {route.name === "coupon" && hasCoupon ? <View style={styles.dot} /> : null}
-            </View>
-            <Txt numberOfLines={1} style={[font(focused ? 800 : 600), { fontSize: 11, color: focused ? colors.ink : colors.muted2 }]}>
+            <Icon name={icon} size={22} color={color} fill={focused && !dark && icon === "home" ? color : "none"} />
+            <Txt numberOfLines={1} style={[font(focused ? 700 : 600), { fontSize: 11, color }]}>
               {title}
             </Txt>
+            {route.name === "coupon" && coupons > 0 ? (
+              <View style={styles.badge}>
+                <Txt style={[font(800), styles.badgeText]}>{coupons}</Txt>
+              </View>
+            ) : null}
           </Pressable>
         );
       })}
@@ -68,9 +62,10 @@ export function TabBar({
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", backgroundColor: colors.white, borderTopWidth: 1.5, borderTopColor: colors.lineSoft, paddingTop: 8, paddingHorizontal: 6 },
-  item: { flex: 1, alignItems: "center", gap: 3, minHeight: 56, justifyContent: "center" },
+  bar: { flexDirection: "row", backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.lineSoft },
+  barDark: { backgroundColor: colors.ink, borderTopColor: colors.ink3 },
+  item: { flex: 1, height: 66, alignItems: "center", justifyContent: "center", gap: 4 },
   pressed: { transform: [{ scale: 0.94 }] },
-  iconWrap: { width: 52, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-  dot: { position: "absolute", top: 2, right: 10, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.orange, borderWidth: 2, borderColor: colors.white },
+  badge: { position: "absolute", top: 8, left: "52%", height: 16, minWidth: 16, borderRadius: 8, backgroundColor: colors.orange, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
+  badgeText: { fontSize: 10, color: colors.ink },
 });

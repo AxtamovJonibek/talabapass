@@ -201,7 +201,30 @@ export const authApi = {
 };
 
 /** Tasdiqlangan talaba: lenta, tafsilot, saralanganlar, kupon, bildirishnomalar, push (docs/api-v1.md). */
+/** Chek (saytdagi `ReceiptData`) */
+export type ReceiptData = {
+  id: string;
+  no: string;
+  business: { name: string; address: string; tin: string | null };
+  time: string;
+  createdAt: string;
+  student: string;
+  cashier: string;
+  item: string;
+  badge: string;
+  originalPrice: number;
+  discountAmount: number;
+  paidAmount: number;
+  paymentType: string;
+  category: { icon: string; tile: string; ink: string };
+  pdfUrl: string;
+};
+
+/** T7 — tarix (`GET /student/history?oy=`) */
+export type StudentHistory = { month: string; months: string[]; saved: number; count: number; receipts: ReceiptData[]; totalSaved: number; totalCount: number; places: number };
+
 export const appApi = {
+  history: (month?: string) => api<StudentHistory>(`/student/history${month ? `?oy=${month}` : ""}`),
   deals: (origin: Origin) => api<{ deals: FeedDeal[]; categories: Category[]; now: string }>(`/deals${query(originParams(origin))}`),
   nearby: (origin: Origin, radiusKm: number) => api<{ origin: Point; deals: FeedDeal[] }>(`/deals/nearby${query({ ...originParams(origin), radiusKm: String(radiusKm), limit: "100" })}`),
   deal: (id: string, origin: Origin) => api<DealDetail>(`/deals/${encodeURIComponent(id)}${query(originParams(origin))}`),

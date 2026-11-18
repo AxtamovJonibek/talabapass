@@ -337,14 +337,14 @@ export const ru: Copy = {
   months: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
   currency: "сум",
 
-  tabs: { deals: "Скидки", nearby: "Рядом", coupon: "Купон", saved: "Избранное", profile: "Профиль" },
+  tabs: { deals: "Главная", nearby: "Рядом", coupon: "Купоны", history: "История", saved: "Избранное", profile: "Профиль" },
 
   notApproved: "Студенческий статус не активен.",
 
   feed: {
     titleTop: "Сегодня",
-    titleBottom: "дешевле.",
-    search: "Книги, печать, кофе…",
+    titleBottom: "дешевле",
+    search: "Что ищете?",
     clearSearch: "Очистить поиск",
     notifications: "Уведомления",
     categoryAll: "Все",
@@ -379,6 +379,9 @@ export const ru: Copy = {
       openSettings: "Открыть настройки",
       close: "Закрыть",
     },
+    viewList: "Список",
+    viewMap: "Карта",
+    viewLabel: "Вид",
   },
 
   deal: {
@@ -496,6 +499,35 @@ export const ru: Copy = {
     } as Record<string, string>,
   },
 
+  /** История (T7) */
+  history: {
+    title: "История",
+    month: "Месяц",
+    saved: "Вы сэкономили",
+    purchases: "Покупки",
+    empty: "В этом месяце покупок нет.",
+    earlier: "РАНЕЕ",
+    todayCaps: "СЕГОДНЯ",
+    yesterdayCaps: "ВЧЕРА",
+    dayLong: (day: number, month: string) => `${day} ${month}`,
+    dayShort: (day: number, month: string) => `${day} ${month}`,
+    today: "сегодня",
+    pdf: "Скачать PDF",
+    redeemedTitle: "Продажа подтверждена",
+    redeemedSaved: (amount: string) => `Вы сэкономили ${amount} сум`,
+    monthsShort: ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"],
+    receipt: {
+      confirmed: "Продажа подтверждена",
+      number: (no: string) => `ЧЕК № ${no}`,
+      business: "Бизнес",
+      product: "Товар",
+      time: "Время",
+      cashier: "Кассир",
+      originalPrice: "Цена",
+      discount: (badge: string) => `Скидка ${badge}`,
+      paid: "Оплачено",
+    },
+  },
   saved: {
     title: "Избранное",
     lead: "Нажмите значок сохранения на странице скидки — она появится здесь.",
@@ -616,7 +648,7 @@ export const ru: Copy = {
   },
 
   biz: {
-    tabs: { stats: "Статистика", discounts: "Скидки", scan: "Сканер", sales: "Продажи", profile: "Профиль" },
+    tabs: { stats: "Статистика", discounts: "Скидки", scan: "Сканер", orders: "Заказы", sales: "Продажи", profile: "Профиль" },
     periods: [
       { value: 1, label: "Сегодня" },
       { value: 7, label: "7 дней" },

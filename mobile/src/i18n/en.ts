@@ -337,14 +337,14 @@ export const en: Copy = {
   months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
   currency: "UZS",
 
-  tabs: { deals: "Discounts", nearby: "Nearby", coupon: "Coupon", saved: "Saved", profile: "Profile" },
+  tabs: { deals: "Home", nearby: "Nearby", coupon: "Coupons", history: "History", saved: "Saved", profile: "Profile" },
 
   notApproved: "Your student status isn't active.",
 
   feed: {
     titleTop: "Cheaper",
-    titleBottom: "today.",
-    search: "Books, printing, coffee…",
+    titleBottom: "today",
+    search: "What are you looking for?",
     clearSearch: "Clear search",
     notifications: "Notifications",
     categoryAll: "All",
@@ -379,6 +379,9 @@ export const en: Copy = {
       openSettings: "Open settings",
       close: "Close",
     },
+    viewList: "List",
+    viewMap: "Map",
+    viewLabel: "View",
   },
 
   deal: {
@@ -496,6 +499,35 @@ export const en: Copy = {
     } as Record<string, string>,
   },
 
+  /** History (T7) */
+  history: {
+    title: "History",
+    month: "Month",
+    saved: "You saved",
+    purchases: "Purchases",
+    empty: "No purchases this month.",
+    earlier: "EARLIER",
+    todayCaps: "TODAY",
+    yesterdayCaps: "YESTERDAY",
+    dayLong: (day: number, month: string) => `${month} ${day}`,
+    dayShort: (day: number, month: string) => `${month} ${day}`,
+    today: "today",
+    pdf: "Download PDF",
+    redeemedTitle: "Sale confirmed",
+    redeemedSaved: (amount: string) => `You saved ${amount} UZS`,
+    monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    receipt: {
+      confirmed: "Sale confirmed",
+      number: (no: string) => `RECEIPT № ${no}`,
+      business: "Business",
+      product: "Item",
+      time: "Time",
+      cashier: "Cashier",
+      originalPrice: "Price",
+      discount: (badge: string) => `Discount ${badge}`,
+      paid: "Paid",
+    },
+  },
   saved: {
     title: "Saved",
     lead: "Tap the save icon on a discount page and it will show up here.",
@@ -616,7 +648,7 @@ export const en: Copy = {
   },
 
   biz: {
-    tabs: { stats: "Stats", discounts: "Discounts", scan: "Scanner", sales: "Sales", profile: "Profile" },
+    tabs: { stats: "Stats", discounts: "Discounts", scan: "Scanner", orders: "Orders", sales: "Sales", profile: "Profile" },
     periods: [
       { value: 1, label: "Today" },
       { value: 7, label: "7 days" },

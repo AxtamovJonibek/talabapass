@@ -8,8 +8,8 @@ import { colors } from "@/theme";
 import { BIZ_TABS, TabBar } from "@/ui/tab-bar";
 
 /**
- * Biznes ilovasi (kirgandan keyin), rolga qarab menyu: egasi — Statistika, Chegirmalar, Skaner, Sotuvlar, Profil;
- * kassir — Skaner, Sotuvlar, Profil (qolganlari `href: null` — server ham 403 beradi). Egasi faqat tasdiqlangan biznes bilan
+ * Biznes ilovasi (kirgandan keyin) — saytdagi kabi: egasi — qora pastki menyu (Skaner, Buyurtmalar, Chegirmalar,
+ * Statistika, Profil; Sotuvlar — statistikadan); kassir — menyusiz skaner (server ham boshqasiga 403 beradi). Egasi faqat tasdiqlangan biznes bilan
  * (aks holda `routeFor` — ariza yoki tekshiruv ekrani). Push: ruxsat va token (bosilgan xabar — `PushHandler`, ildizda).
  * Android "orqaga" (`backBehavior="firstRoute"`): istalgan tabdan → birinchi tab (egasi — Statistika, kassir — Skaner;
  * shuning uchun kassirda Skaner ro'yxatda birinchi), undan — ilova fonga.
@@ -36,16 +36,16 @@ export default function BusinessTabs() {
       {/* Boshlang'ich tab manzildan: egasi — /panel/stats, kassir — /panel/scan (`routeFor`) */}
       <Tabs
         backBehavior="firstRoute"
-        tabBar={(props) => <TabBar {...props} {...BIZ_TABS} />}
+        tabBar={(props) => (owner ? <TabBar {...props} {...BIZ_TABS} /> : null)}
         screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.paper } }}
       >
-        {owner ? <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats }} /> : null}
-        {owner ? <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts }} /> : null}
+        {/* Saytdagi tartib: Skaner, Buyurtmalar, Chegirmalar, Statistika, Profil; kassirda menyu yo'q (skanerda "Hisobdan chiqish") */}
         <Tabs.Screen name="scan" options={{ title: copy.biz.tabs.scan }} />
-        <Tabs.Screen name="sales" options={{ title: copy.biz.tabs.sales }} />
-        <Tabs.Screen name="profile" options={{ title: copy.biz.tabs.profile }} />
-        {owner ? null : <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats, ...hidden }} />}
-        {owner ? null : <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts, ...hidden }} />}
+        <Tabs.Screen name="orders" options={{ title: copy.biz.tabs.orders, ...hidden }} />
+        <Tabs.Screen name="discounts" options={{ title: copy.biz.tabs.discounts, ...hidden }} />
+        <Tabs.Screen name="stats" options={{ title: copy.biz.tabs.stats, ...hidden }} />
+        <Tabs.Screen name="profile" options={{ title: copy.biz.tabs.profile, ...hidden }} />
+        <Tabs.Screen name="sales" options={{ title: copy.biz.tabs.sales, href: null }} />
       </Tabs>
     </OrdersWatch>
   );

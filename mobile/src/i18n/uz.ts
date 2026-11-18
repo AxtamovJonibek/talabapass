@@ -342,15 +342,15 @@ export const uz = {
   months: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"],
   currency: "so'm",
 
-  tabs: { deals: "Chegirmalar", nearby: "Yaqin", coupon: "Kupon", saved: "Saralangan", profile: "Profil" },
+  tabs: { deals: "Asosiy", nearby: "Yaqin", coupon: "Kuponlar", history: "Tarix", saved: "Saralangan", profile: "Profil" },
 
   /** Talaba holati — tasdiqlanmagan bo'lsa ilova bo'limlari yopiq */
   notApproved: "Talabalik tasdig'i faol emas.",
 
   feed: {
     titleTop: "Bugun",
-    titleBottom: "arzon.",
-    search: "Kitob, chop etish, kofe…",
+    titleBottom: "arzon",
+    search: "Nima qidiryapsiz?",
     clearSearch: "Qidiruvni tozalash",
     notifications: "Bildirishnomalar",
     categoryAll: "Hammasi",
@@ -385,6 +385,9 @@ export const uz = {
       openSettings: "Sozlamalarni ochish",
       close: "Yopish",
     },
+    viewList: "Ro'yxat",
+    viewMap: "Xarita",
+    viewLabel: "Ko'rinish",
   },
 
   deal: {
@@ -502,6 +505,35 @@ export const uz = {
     } as Record<string, string>,
   },
 
+  /** Tarix (T7) — saytdagi `history` va `receipt` matnlari */
+  history: {
+    title: "Tarix",
+    month: "Oy",
+    saved: "Tejadingiz",
+    purchases: "Xaridlar",
+    empty: "Bu oyda xarid yo'q.",
+    earlier: "OLDINROQ",
+    todayCaps: "BUGUN",
+    yesterdayCaps: "KECHA",
+    dayLong: (day: number, month: string) => `${day}-${month}`,
+    dayShort: (day: number, month: string) => `${day}-${month}`,
+    today: "bugun",
+    pdf: "PDF yuklab olish",
+    redeemedTitle: "Sotuv tasdiqlandi",
+    redeemedSaved: (amount: string) => `${amount} so'm tejadingiz`,
+    monthsShort: ["yan", "fev", "mar", "apr", "may", "iyun", "iyul", "avg", "sen", "okt", "noy", "dek"],
+    receipt: {
+      confirmed: "Sotuv tasdiqlandi",
+      number: (no: string) => `CHEK № ${no}`,
+      business: "Biznes",
+      product: "Mahsulot",
+      time: "Vaqt",
+      cashier: "Kassir",
+      originalPrice: "Asl narx",
+      discount: (badge: string) => `Chegirma ${badge}`,
+      paid: "To'landi",
+    },
+  },
   saved: {
     title: "Saralangan",
     lead: "Chegirma sahifasida saqlash belgisini bosing — shu yerda turadi.",
@@ -622,7 +654,7 @@ export const uz = {
 
   /** Biznes ilovasi (egasi va kassir): saytdagi businessStats, discountEditor, discountList, scanner, cashiers, businessOrders, businessProfile */
   biz: {
-    tabs: { stats: "Statistika", discounts: "Chegirmalar", scan: "Skaner", sales: "Sotuvlar", profile: "Profil" },
+    tabs: { stats: "Statistika", discounts: "Chegirmalar", scan: "Skaner", orders: "Buyurtmalar", sales: "Sotuvlar", profile: "Profil" },
     periods: [
       { value: 1, label: "Bugun" },
       { value: 7, label: "7 kun" },

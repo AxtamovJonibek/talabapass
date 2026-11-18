@@ -99,16 +99,19 @@ async function shot(context, url, inApp = false) {
       const { origin, pathname, search } = new URL(url);
       await page.goto(origin + "/", { waitUntil: "networkidle", timeout: 60_000 });
       await page.waitForURL((u) => u.pathname !== "/", { timeout: 30_000 });
-      await page.evaluate((to) => {
-        history.pushState({}, "", to);
-        dispatchEvent(new PopStateEvent("popstate"));
-      }, pathname + search);
+      await page.waitForTimeout(1500);
+      if (new URL(page.url()).pathname + new URL(page.url()).search !== pathname + search) {
+        await page.evaluate((to) => {
+          history.pushState({}, "", to);
+          dispatchEvent(new PopStateEvent("popstate"));
+        }, pathname + search);
+      }
       await page.waitForLoadState("networkidle", { timeout: 30_000 });
     } else await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
   } catch {
     // ochiq so'rovlar (polling) — baribir rasmga olamiz
   }
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(4000);
   const buf = await page.screenshot({ animations: "disabled" });
   await page.close();
   return PNG.sync.read(buf);

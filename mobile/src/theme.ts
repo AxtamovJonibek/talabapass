@@ -5,21 +5,38 @@ import type { TextStyle } from "react-native";
  * o'lchamlar px → dp (1:1). Yangi rang/radius qo'shishdan oldin dizaynga qarang.
  */
 export const colors = {
-  paper: "#F3F1EE",
-  ink: "#111111",
+  // ───── saytdagi tokenlar (src/app/globals.css @theme) — ilova = saytning telefon ko'rinishi ─────
+  surface: "#EEECE6",
+  surface2: "#E4E2DB",
+  placeholder: "#8A877F",
+  blue2: "#3646E4",
+  infoBg: "#E6E8FB",
+  greenSite: "#0F5F37",
+  greenLive: "#1E9E5A",
+  greenBg: "#E3F4EA",
+  warn: "#9A3A0E",
+  warnBg: "#FFF0E6",
+  ink2: "#232321",
+  ink3: "#2A2A27",
+  fog3: "#A9A69E",
+  dash: "#DAD7CE",
+  lineStrong: "#B9B6AD",
+  // ───── ilovaning avvalgi (app-flow) qiymatlari ─────
+  paper: "#F3F2EE",
+  ink: "#141414",
   white: "#FFFFFF",
-  blue: "#2432D6",
-  orange: "#FF5A1F",
+  blue: "#2433D6",
+  orange: "#FF5B1F",
   /** havola va ikkinchi darajali matn ("O'tkazib yuborish", ko'z belgisi) */
-  muted: "#55524D",
+  muted: "#5F5D57",
   /** izohlar, eyebrow, karta osti matni */
-  muted2: "#6B6760",
+  muted2: "#6E6B64",
   /** lead paragraflar */
   ink5: "#3A3834",
   /** nofaol chegara, qadam chizig'i, uzuq doira */
-  line: "#D6D2CB",
+  line: "#D6D3CA",
   /** telefon maydonidagi ajratgich */
-  lineSoft: "#E3DFD8",
+  lineSoft: "#E2E0D8",
   /** karusel nofaol nuqtasi */
   dot: "#CFCBC4",
   blueTint: "#DDE1FA",
@@ -28,7 +45,7 @@ export const colors = {
   greenTint: "#DFF7E7",
   peach: "#FFE3D6",
   /** o'chiq maydon / bo'sh holat doirasi */
-  track: "#E9E6E0",
+  track: "#E6E4DD",
   /** kamera ramkasi */
   frame: "#26241F",
   /** Xato (dizaynda chizilmagan holat — sayt tokeni danger) */
@@ -61,12 +78,24 @@ export const fontFiles = {
   "Archivo-800-112": require("../assets/fonts/Archivo-800-112.ttf"),
   "Archivo-900-112": require("../assets/fonts/Archivo-900-112.ttf"),
   "Archivo-900-62": require("../assets/fonts/Archivo-900-62.ttf"),
+  // Sayt bilan bir xil kengliklar (font-stretch): sarlavha 110/125, karta nomi 108, narx 75, raqamlar 65–90
+  "Archivo-800-108": require("../assets/fonts/Archivo-800-108.ttf"),
+  "Archivo-800-110": require("../assets/fonts/Archivo-800-110.ttf"),
+  "Archivo-900-65": require("../assets/fonts/Archivo-900-65.ttf"),
+  "Archivo-900-70": require("../assets/fonts/Archivo-900-70.ttf"),
+  "Archivo-900-75": require("../assets/fonts/Archivo-900-75.ttf"),
+  "Archivo-900-85": require("../assets/fonts/Archivo-900-85.ttf"),
+  "Archivo-900-90": require("../assets/fonts/Archivo-900-90.ttf"),
+  "Archivo-900-110": require("../assets/fonts/Archivo-900-110.ttf"),
+  "Archivo-900-125": require("../assets/fonts/Archivo-900-125.ttf"),
 } as const;
 
 type Weight = 400 | 500 | 600 | 700 | 800 | 900;
 
 /** `font(900, 112)` → shu nusxaning oilasi. Mavjud bo'lmagan juftlik — oddiy kenglik. */
-export function font(weight: Weight, width: 100 | 112 | 62 = 100): TextStyle {
+export type Width = 62 | 65 | 70 | 75 | 85 | 90 | 100 | 108 | 110 | 112 | 125;
+
+export function font(weight: Weight, width: Width = 100): TextStyle {
   const wide = `Archivo-${weight}-${width}`;
   const family = width !== 100 && wide in fontFiles ? wide : `Archivo-${weight}`;
   return { fontFamily: family };
