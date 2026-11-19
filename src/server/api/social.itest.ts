@@ -133,7 +133,7 @@ describe("API: Google/Apple bilan kirish", () => {
     const first = await send(apple, req("/api/v1/auth/apple", { idToken: idToken("a3"), intent: "business", firstName: "Bekzod", lastName: "Karimov" }));
     expect(first.json).toMatchObject({ next: "register", role: "business", profile: { firstName: "Bekzod", lastName: "Karimov", email: null } });
     // Talaba ticketi biznesga o'tmaydi
-    const info = { name: "Itest Kofe", kind: "CAFE", address: "Toshkent, Chilonzor 9", workingHours: "09:00 – 22:00", tin: TIN, contactName: "Bekzod Karimov" };
+    const info = { name: "Itest Kofe", address: "Toshkent, Chilonzor 9", tin: TIN, phone: "+998901112233", telegram: "@itest_kofe" };
     const created = await send(businessRegister, req("/api/v1/business/register", { registrationTicket: await withPassword(first.json.registrationTicket), ...info }));
     expect(created.status).toBe(201);
     expect(created.json.user).toMatchObject({ role: "BUSINESS_OWNER", phone: null, email: null, business: { name: "Itest Kofe", submitted: false } });

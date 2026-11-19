@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { Animated, Easing, Linking, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Linking, ScrollView, StyleSheet, View, type TextInputInstance, useWindowDimensions } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_URL, ApiError, errorText } from "@/api/client";
@@ -280,6 +280,7 @@ function ScanLine() {
 function ScanErrorBox({ text }: { text: string }) {
   return (
     <View accessibilityRole="alert" style={styles.errorBox}>
+      <Txt style={[font(800), { fontSize: 15, color: colors.danger, textAlign: "center" }]}>{copy.biz.scan.failed}</Txt>
       <Txt style={[font(600), { fontSize: 14, color: colors.danger, textAlign: "center" }]}>{text}</Txt>
     </View>
   );
@@ -290,17 +291,22 @@ function ManualEntry({ pending, error, onSubmit, onClose }: { pending: boolean; 
   const sc = copy.biz.scan;
   const [code, setCode] = useState("");
   const [totp, setTotp] = useState("");
+  const totpRef = useRef<TextInputInstance>(null);
+  // Yuborilgach 6 raqamli kod tozalanadi, klaviatura ochiq qolib kursor shu maydonda turadi (xatoda qayta kiritiladi)
   const send = () => {
-    if (code.trim() && totp.trim()) onSubmit(code.trim(), totp.replace(/\s/g, ""));
+    if (!code.trim() || !totp.trim()) return;
+    onSubmit(code.trim(), totp.replace(/\s/g, ""));
+    setTotp("");
+    totpRef.current?.focus();
   };
   return (
     <View style={styles.manual}>
       <Txt style={[font(700), { fontSize: 18 }]}>{sc.manualTitle}</Txt>
       <SiteField label={sc.couponCode}>
-        <SiteInput mono value={code} onChangeText={setCode} placeholder="TP-7K3Q-92XD / TB-…" autoCapitalize="characters" autoCorrect={false} autoFocus returnKeyType="next" />
+        <SiteInput mono value={code} onChangeText={setCode} placeholder="TP-7K3Q-92XD / TB-…" autoCapitalize="characters" autoCorrect={false} autoFocus returnKeyType="next" blurOnSubmit={false} onSubmitEditing={() => totpRef.current?.focus()} />
       </SiteField>
       <SiteField label={sc.totpCode}>
-        <SiteInput mono value={totp} onChangeText={setTotp} keyboardType="number-pad" placeholder="000 000" autoComplete="one-time-code" returnKeyType="done" onSubmitEditing={send} />
+        <SiteInput mono inputRef={totpRef} value={totp} onChangeText={(v) => setTotp(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" placeholder="000000" maxLength={6} autoComplete="one-time-code" returnKeyType="done" blurOnSubmit={false} onSubmitEditing={send} />
       </SiteField>
       {error ? <ScanErrorBox text={error} /> : null}
       <View style={styles.pair}>

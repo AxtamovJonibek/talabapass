@@ -270,6 +270,7 @@ o'z sotuvlari va cheklari; boshqa biznes endpoint'lari 403 `forbidden`. Biznes h
 | `PATCH /business/discounts/<id>` | `{ draft, intent }` | `{ id, status }` — faol chegirmada mazmun o'zgarsa qayta `PENDING_REVIEW` |
 | `POST /business/discounts/<id>/active` | `{ active }` | `{ ok, status }` (faqat `ACTIVE` ↔ `PAUSED`, aks holda `not_editable`) |
 | `POST /business/discounts/<id>/images` | multipart `file` (rasm) | 201 `{ id, url }` · 4 tagacha (`too_many_files`) |
+| `DELETE /business/discounts/<id>` | — | `{ ok, result: "deleted" \| "ended" }` — tarixi yo'q chegirma o'chadi, tarixi borini tugatadi |
 | `DELETE /business/discount-images/<id>` | — | `{ ok }` |
 | `GET /business/cashiers` | — | `{ canInvite, cashiers: [{ memberId, firstName, lastName, phone, scansToday, shift: "on"\|"ended"\|"none" }], invites: [{ id, expiresAt, phone }] }` |
 | `POST /business/cashiers` | `{ phone }` | 201 `{ invite: { id, phone, expiresAt } }` · `invalid_phone`, `already_cashier`, `too_many_invites` (10) |

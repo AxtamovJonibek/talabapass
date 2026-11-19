@@ -302,6 +302,7 @@ export const bizApi = {
     discountId
       ? api<{ id: string; status: DiscountStatus }>(`/business/discounts/${enc(discountId)}`, { method: "PATCH", body: { draft, intent } })
       : api<{ id: string; status: DiscountStatus }>("/business/discounts", { method: "POST", body: { draft, intent } }),
+  deleteDiscount: (discountId: string) => api<{ ok: true; result: "deleted" | "ended" }>(`/business/discounts/${enc(discountId)}`, { method: "DELETE" }),
   setDiscountActive: (discountId: string, active: boolean) =>
     api<{ ok: true; status: DiscountStatus }>(`/business/discounts/${enc(discountId)}/active`, { method: "POST", body: { active } }),
   uploadDiscountImage: async (discountId: string, file: LocalFile) =>

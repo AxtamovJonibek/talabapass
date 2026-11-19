@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle } from "react-native";
+import { useState, type ReactNode, type Ref } from "react";
+import { Image, Pressable, ScrollView, StyleSheet, TextInput, View, type StyleProp, type TextInputInstance, type TextInputProps, type TextStyle, type ViewStyle } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { colors, em, font } from "@/theme";
 import { WORDMARK, WORDMARK_HEIGHTS, WORDMARK_RATIO, WORDMARK_WHITE } from "./wordmark";
@@ -410,11 +410,26 @@ export function SiteField({ label, error, children, style }: { label: string; er
   );
 }
 
-/** `Input`: 52px (compact — 48), rounded-12, 1.5px chegara (fokusda qora), 15px; `mono` — raqamlar jadval kengligida */
-export function SiteInput({ invalid = false, compact = false, mono: isMono = false, style, onFocus, onBlur, ...props }: TextInputProps & { invalid?: boolean; compact?: boolean; mono?: boolean }) {
-  const [focused, setFocused] = useState(false);
+/** Bo'sh holat: bitta qisqa matn va bitta tugma (`flat` — kartaning ichida, fonsiz) */
+export function EmptyBlock({ text, action, onAction, flat = false }: { text: string; action?: string; onAction?: () => void; flat?: boolean }) {
   return (
+    <View style={[{ alignItems: "flex-start", gap: 12, paddingVertical: 16 }, flat ? null : { borderRadius: 16, backgroundColor: colors.white, paddingHorizontal: 14 }]}>
+      <Txt style={{ fontSize: 14, lineHeight: 20, color: colors.muted }}>{text}</Txt>
+      {action && onAction ? (
+        <Button variant="orange" size="sm" onPress={onAction}>
+          {action}
+        </Button>
+      ) : null}
+    </View>
+  );
+}
+
+/** `Input`: 52px (compact — 48), rounded-12, 1.5px chegara (fokusda qora), 15px; `mono` — raqamlar jadval kengligida; `suffix` — qiymat yonidagi birlik ("ta", "so'm"), qiymatga kirmaydi */
+export function SiteInput({ invalid = false, compact = false, mono: isMono = false, suffix, inputRef, style, onFocus, onBlur, ...props }: TextInputProps & { invalid?: boolean; compact?: boolean; mono?: boolean; suffix?: string; inputRef?: Ref<TextInputInstance> }) {
+  const [focused, setFocused] = useState(false);
+  const input = (
     <TextInput
+      ref={inputRef}
       placeholderTextColor={colors.placeholder}
       {...props}
       onFocus={(e) => {
@@ -430,8 +445,18 @@ export function SiteInput({ invalid = false, compact = false, mono: isMono = fal
         s.input,
         { height: compact ? 48 : 52, borderColor: invalid ? colors.danger : focused ? colors.ink : colors.line },
         style,
+        suffix ? { paddingRight: 40 } : null,
       ]}
     />
+  );
+  if (!suffix) return input;
+  return (
+    <View>
+      {input}
+      <Txt pointerEvents="none" style={{ position: "absolute", right: 14, top: 0, bottom: 0, textAlignVertical: "center", lineHeight: compact ? 48 : 52, fontSize: 14, color: colors.muted }}>
+        {suffix}
+      </Txt>
+    </View>
   );
 }
 

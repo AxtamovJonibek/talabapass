@@ -10,7 +10,7 @@ import { colors, em, font } from "@/theme";
 import { imageUrl } from "@/ui/app";
 import { Icon } from "@/ui/icons";
 import { Press, Txt } from "@/ui/kit";
-import { mono, weekdaysLabel } from "./ui";
+import { EmptyBlock, mono, weekdaysLabel } from "./ui";
 
 /*
  * B5 bloklari — saytdagi `profile-header.tsx`, `discount-list.tsx`, `cashier-list.tsx` ning telefon ko'rinishi.
@@ -102,7 +102,7 @@ export function DiscountList({ discounts, onChange }: { discounts: OwnerDiscount
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
-  if (discounts.length === 0) return <Txt style={s.empty}>{t.emptyLong}</Txt>;
+  if (discounts.length === 0) return <EmptyBlock text={t.emptyLong} action={t.create} onAction={() => router.push("/biz/discount/new")} />;
 
   const toggle = async (id: string, active: boolean) => {
     if (busy) return;
@@ -197,7 +197,7 @@ export function CashierList({ data, onChanged, onInvite, extra }: { data: Cashie
       ) : null}
       {extra}
       {data.cashiers.length === 0 ? (
-        <Txt style={s.empty}>{t.empty}</Txt>
+        <EmptyBlock text={t.empty} action={data.canInvite ? t.inviteLong : undefined} onAction={onInvite ?? (() => router.push("/panel/cashiers?invite=1"))} />
       ) : (
         <View style={s.list}>
           {data.cashiers.map((c, i) => {
@@ -265,7 +265,6 @@ const s = StyleSheet.create({
   headStats: { flexDirection: "row", marginTop: 18, borderTopWidth: 1, borderTopColor: colors.ink4, paddingTop: 14 },
   blockHead: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" },
   blockAction: { height: 44, justifyContent: "center" },
-  empty: { borderRadius: 16, backgroundColor: colors.white, paddingHorizontal: 14, paddingVertical: 16, fontSize: 14, lineHeight: 20, color: colors.muted },
   muted13: { fontSize: 13, color: colors.muted },
   list: { borderRadius: 16, backgroundColor: colors.white },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, paddingVertical: 12 },

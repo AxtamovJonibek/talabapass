@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Image, StyleSheet, TextInput, View } from "react-native";
+import { Alert, Image, StyleSheet, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiError, errorText } from "@/api/client";
@@ -9,7 +9,7 @@ import type { LocalFile } from "@/api/endpoints";
 import { copy } from "@/copy";
 import { discountTerms, emptyDraft, formatDateRange, parseAmount, parseDateRange, PERCENT_MAX, PERCENT_MIN, todayIso, validateDiscount, type DiscountField } from "@/lib/discount";
 import { formatSom, MINUS } from "@/lib/format";
-import { daysText, formatSchedule, hoursFor, outsideHours, parseSchedule, type Range, type WeekSchedule } from "@/lib/hours";
+import { daysText, formatSchedule, hoursFor, outsideHours, parseSchedule, scheduleOf, type Range, type WeekSchedule } from "@/lib/hours";
 import { pickImage } from "@/lib/pick";
 import { useLoad } from "@/lib/use-load";
 import { DayChips, TimeRangePicker } from "@/site/time";
@@ -43,11 +43,14 @@ type EditorImage = { key: string; url: string; id?: string; file?: LocalFile };
  * pastda "E'lon qilish" / "Saqlash". Tekshiruv saytdagi `validateDiscount`; rasmlar saqlangandan keyin yuklanadi.
  */
 export default function DiscountEditor() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, copyOf } = useLocalSearchParams<{ id: string; copyOf?: string }>();
   const isNew = id === "new";
-  const remote = useLoad(useCallback(() => bizApi.discount(id), [id]), !isNew);
-  if (isNew) return <EditorForm key="new" id={null} initial={null} />;
-  if (remote.data) return <EditorForm key={id} id={id} initial={remote.data} />;
+  const source = isNew ? copyOf : id;
+  const remote = useLoad(useCallback(() => bizApi.discount(source ?? ""), [source]), Boolean(source));
+  if (isNew && !copyOf) return <EditorForm key="new" id={null} initial={null} seed={null} />;
+  // Nusxa: eski chegirmaning maydonlari bilan yangi qoralama (rasmlar, holat va sanalar ko'chmaydi)
+  if (isNew && remote.data) return <EditorForm key={`copy-${copyOf}`} id={null} initial={null} seed={remote.data} />;
+  if (remote.data && !isNew) return <EditorForm key={id} id={id} initial={remote.data} seed={null} />;
   return <View style={[styles.root, styles.center]}>{remote.error ? <Failed error={remote.error} onRetry={() => void remote.reload()} /> : <Loading />}</View>;
 }
 
@@ -70,12 +73,13 @@ function CategoryTile({ category, size, plus = false, image, children }: { categ
   );
 }
 
-function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm | null }) {
+function EditorForm({ id, initial, seed }: { id: string | null; initial: DiscountForm | null; seed: DiscountForm | null }) {
   const e = copy.biz.editor;
+  const dc = copy.biz.discounts;
   const insets = useSafeAreaInsets();
   const { me } = useApp();
   const today = todayIso();
-  const d0: DiscountDraft = initial?.draft ?? emptyDraft();
+  const d0: DiscountDraft = initial?.draft ?? seed?.draft ?? emptyDraft();
   const [schedule, setSchedule] = useState<WeekSchedule>([]);
   useEffect(() => {
     // Ish vaqti biznes profilidan (bazada o'zbekcha matn): "Ish vaqti bo'yicha" va ogohlantirish uchun
@@ -92,7 +96,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
   const [newPrice, setNewPrice] = useState<number | null>(d0.newPrice ?? null);
   const [weekdays, setWeekdays] = useState(d0.weekdays);
   const [range, setRange] = useState<Range>({ from: d0.fromMinute ?? 720, to: d0.toMinute ?? 900 });
-  const [limit, setLimit] = useState(d0.dailyLimit != null ? e.dailyLimitValue(d0.dailyLimit) : "");
+  const [limit, setLimit] = useState(d0.dailyLimit != null ? String(d0.dailyLimit) : "");
   const [period, setPeriod] = useState(formatDateRange(initial ? d0.startsOn : today, initial ? d0.endsOn : addDays(today, 30), today));
   const [status, setStatus] = useState<DiscountStatus | null>(initial?.status ?? null);
   const [images, setImages] = useState<EditorImage[]>((initial?.images ?? []).map((i) => ({ key: i.id, url: imageUrl(i.url), id: i.id })));
@@ -105,7 +109,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
 
   const ended = status === "ENDED";
   const live = status === "ACTIVE" || status === "PAUSED";
-  const category = initial?.category ?? NO_CATEGORY;
+  const category = initial?.category ?? seed?.category ?? NO_CATEGORY;
   const percent = /^\d{1,3}$/.test(percentText) ? Number(percentText) : null;
   const originalPrice = parseAmount(original);
   // Yangi narx tanlanmagan bo'lsa — asl narxning 70% i (1000 ga yaxlitlab), saytdagidek
@@ -129,6 +133,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
   const terms = discountTerms(type === "PERCENT" ? { ...draft, percent: draft.percent ?? 0 } : draft);
   const errorOf = (f: DiscountField) => (errors[f] ? (e.errors[errors[f]!] ?? "") : null);
   const outside = outsideHours(weekdays, range, schedule);
+  const timeSummary = weekdays.length ? formatSchedule(scheduleOf(weekdays, range), hoursLabels()) : "";
   const outsideText = outside.length ? copy.time.outside(daysText(outside, hoursLabels()), schedule.length ? formatSchedule(schedule, hoursLabels()) : copy.time.noHours) : null;
   const valueText = type === "PERCENT" ? `${MINUS}${percentText || 0}%` : type === "FIXED_PRICE" ? (price !== null ? groupDigits(price) : "—") : "1+1";
   const previewPrice = type === "BOGO" ? e.bogoFree : terms.finalPrice !== null ? `${formatSom(terms.finalPrice)} ${copy.currency}` : "—";
@@ -174,6 +179,27 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
     }
     return true;
   };
+
+  const confirmRemove = () =>
+    Alert.alert(dc.confirmRemove, undefined, [
+      { text: copy.deleteAccount.confirmNo, style: "cancel" },
+      {
+        text: dc.remove,
+        style: "destructive",
+        onPress: () => {
+          if (busy || !id) return;
+          setBusy(true);
+          bizApi
+            .deleteDiscount(id)
+            .then((r) => {
+              if (r.result === "ended") Alert.alert(dc.removeEnded);
+              router.navigate("/panel/discounts");
+            })
+            .catch(() => setFailure(dc.removeFailed))
+            .finally(() => setBusy(false));
+        },
+      },
+    ]);
 
   const save = async (intent: "draft" | "publish") => {
     if (busy || ended) return;
@@ -277,7 +303,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
               <Txt style={{ fontSize: 12, color: colors.muted }}>{e.originalPrice}</Txt>
               <TextInput
                 value={original}
-                onChangeText={setOriginal}
+                onChangeText={(v) => setOriginal(v ? groupDigits(Number(v.replace(/\D/g, "").slice(0, 9))) : "")}
                 editable={!ended}
                 keyboardType="number-pad"
                 accessibilityLabel={e.originalPrice}
@@ -335,6 +361,7 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
         <View style={{ gap: 8 }}>
           <Txt style={[font(600), { fontSize: 13 }]}>{e.time}</Txt>
           <TimeRangePicker value={range} onChange={(r) => !ended && setRange(r)} workHours={hoursFor(weekdays, schedule)} invalid={Boolean(errorOf("time"))} error={errorOf("time")} />
+          {timeSummary ? <Txt style={[mono(600), { fontSize: 13 }]}>{timeSummary}</Txt> : null}
           {outsideText ? <Txt style={[font(600), styles.note, { backgroundColor: colors.warnBg, color: colors.warn, fontSize: 12, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }]}>{outsideText}</Txt> : null}
         </View>
 
@@ -346,11 +373,8 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
               keyboardType="number-pad"
               value={limit}
               editable={!ended}
-              onChangeText={setLimit}
-              onBlur={() => {
-                const n = Number(limit.replace(/\D/g, ""));
-                if (n > 0) setLimit(e.dailyLimitValue(n));
-              }}
+              onChangeText={(v) => setLimit(v.replace(/\D/g, "").slice(0, 5))}
+              suffix={e.dailyLimitUnit}
               invalid={Boolean(errorOf("dailyLimit"))}
               style={{ paddingHorizontal: 12 }}
             />
@@ -385,6 +409,18 @@ function EditorForm({ id, initial }: { id: string | null; initial: DiscountForm 
             </View>
           </View>
         </View>
+        {id ? (
+          <View style={styles.row}>
+            <Press onPress={() => router.push({ pathname: "/biz/discount/[id]", params: { id: "new", copyOf: id } })} accessibilityRole="button" scale={0.97} style={styles.secondary}>
+              <Icon name="copy" size={18} />
+              <Txt style={[font(700), { fontSize: 14 }]}>{dc.copyOf}</Txt>
+            </Press>
+            <Press onPress={confirmRemove} disabled={busy} accessibilityRole="button" scale={0.97} style={styles.secondary}>
+              <Icon name="trash" size={18} color={colors.danger} />
+              <Txt style={[font(700), { fontSize: 14, color: colors.danger }]}>{dc.remove}</Txt>
+            </Press>
+          </View>
+        ) : null}
       </KeyboardAwareScrollView>
 
       {!ended ? (
@@ -424,5 +460,6 @@ const styles = StyleSheet.create({
   preview: { gap: 8, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.lineStrong, padding: 12 },
   previewCard: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, backgroundColor: colors.white, padding: 10 },
   previewBadge: { position: "absolute", top: -6, left: -4, borderRadius: 5, backgroundColor: colors.orange, paddingHorizontal: 5, paddingVertical: 3, transform: [{ rotate: "-6deg" }] },
+  secondary: { flex: 1, height: 48, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 14, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.white, marginRight: 8 },
   footer: { borderTopWidth: 1, borderTopColor: colors.lineSoft, backgroundColor: colors.paper, paddingHorizontal: 16, paddingTop: 12 },
 });

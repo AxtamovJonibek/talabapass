@@ -7,7 +7,7 @@ import { discountBadge } from "@/lib/discount";
 import { clock, formatMinute, formatMln, formatSom, MINUS, toTashkent } from "@/lib/format";
 import { colors, font } from "@/theme";
 import { Press, Rich, Txt } from "@/ui/kit";
-import { mono } from "./ui";
+import { EmptyBlock, mono } from "./ui";
 
 /*
  * B6 statistika bloklari — saytdagi `components/business/stats/blocks.tsx` ning telefon (390px) ko'rinishi:
@@ -277,14 +277,6 @@ export function Universities({ stats }: { stats: Stats }) {
 }
 
 const STATE_COLOR: Record<string, string> = { ACTIVE: colors.greenSite, ENDED: colors.muted2, PENDING_REVIEW: colors.warn, PAUSED: colors.muted2, REJECTED: colors.danger };
-// Jadval ustunlari — saytdagi `table` (min-w 760) 390px da o'lchangan kengliklari: nom, holat, 6 ta son.
-// Holat yozuvi uzun bo'lsa ("To'xtatilgan") ustun kengayadi, farqi nom ustunidan olinadi.
-const OFFER_COLS = [292, 54, 64, 40, 61, 95, 72, 83] as const;
-const offerCols = (states: string[]) => {
-  const state = Math.max(OFFER_COLS[1], ...states.map((x) => Math.ceil(x.length * 7.4) + 16));
-  return [OFFER_COLS[0] - (state - OFFER_COLS[1]), state, ...OFFER_COLS.slice(2)];
-};
-
 function Cell({ w, right = false, children, style }: { w: number; right?: boolean; children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[{ width: w, paddingHorizontal: 8, justifyContent: "center", alignItems: right ? "flex-end" : "flex-start" }, style]}>{children}</View>;
 }
@@ -293,82 +285,49 @@ function offerState(o: StatsOffer): string {
   return o.ended || o.status === "DRAFT" || o.status === "ENDED" ? "ENDED" : o.status;
 }
 
-/** "Chegirmalar samaradorligi" jadvali */
+/** "Chegirmalar bo'yicha": har chegirma nechta sotilgani (telefonda ro'yxat, keng jadval emas) */
 export function OffersTable({ stats }: { stats: Stats }) {
   const t = copy.biz.stats;
-  const c = t.col;
   const total = stats.offerTotals;
-  const cols = offerCols(stats.offers.map((o) => t.state[offerState(o)] ?? ""));
-  const head = [c.discount, c.status, c.views, c.qr, c.sold, c.conversion, c.revenue, c.given];
-  const num = (o: { views: number; qr: number; sold: number; revenue: number; discount: number }) => [
-    formatSom(o.views),
-    formatSom(o.qr),
-    formatSom(o.sold),
-    `${pct(o.sold, o.qr)}%`,
-    formatSom(o.revenue),
-    formatSom(o.discount),
-  ];
   return (
     <Card>
       <View style={s.headWrap}>
         <CardTitle>{t.offers}</CardTitle>
-        <Press onPress={() => router.push("/biz/discount/new")} accessibilityRole="link" scale={0.98}>
-          <Txt style={[font(700), { fontSize: 14, color: colors.rust }]}>{t.offersAdd}</Txt>
-        </Press>
       </View>
       {stats.offers.length === 0 ? (
-        <Txt style={[s.note, { marginTop: 12 }]}>{t.offersEmpty}</Txt>
+        <View style={{ marginTop: 12 }}>
+          <EmptyBlock text={t.offersEmpty} action={t.offersAdd} onAction={() => router.push("/biz/discount/new")} flat />
+        </View>
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12 }}>
-          <View>
-            <View style={[s.row, s.th]}>
-              {head.map((h, i) => (
-                <Cell key={h + i} w={cols[i]!} right={i > 1} style={s.thCell}>
-                  <Txt style={[font(600), { fontSize: 12, color: colors.muted }]}>{h}</Txt>
-                </Cell>
-              ))}
-            </View>
-            {stats.offers.map((o) => {
-              const badge = discountBadge(o);
-              const state = offerState(o);
-              return (
-                <View key={o.id} style={[s.row, s.td]}>
-                  <Cell w={cols[0]!} style={s.tdCell}>
-                    <View style={[s.row, { alignItems: "center" }]}>
-                      {badge ? (
-                        <View style={s.offerBadge}>
-                          <Txt style={[font(900, 70), { fontSize: 14, textAlign: "center" }]}>{badge}</Txt>
-                        </View>
-                      ) : null}
-                      <Txt numberOfLines={2} style={[font(700), { fontSize: 14, flexShrink: 1 }]}>
-                        {o.title}
-                      </Txt>
-                    </View>
-                  </Cell>
-                  <Cell w={cols[1]!} style={s.tdCell}>
-                    <Txt style={[font(700), { fontSize: 13, color: STATE_COLOR[state] }]}>{t.state[state]}</Txt>
-                  </Cell>
-                  {num(o).map((v, i) => (
-                    <Cell key={i} w={cols[i + 2]!} right style={s.tdCell}>
-                      <Txt style={[mono(i === 2 ? 600 : 400), { fontSize: 14, color: i === 5 ? colors.rust : colors.ink }]}>{v}</Txt>
-                    </Cell>
-                  ))}
+        <View style={{ marginTop: 8 }}>
+          {stats.offers.map((o) => {
+            const badge = discountBadge(o);
+            const state = offerState(o);
+            return (
+              <View key={o.id} style={[s.row, s.td, { alignItems: "center", gap: 10, paddingVertical: 12 }]}>
+                {badge ? (
+                  <View style={s.offerBadge}>
+                    <Txt style={[font(900, 70), { fontSize: 14, textAlign: "center" }]}>{badge}</Txt>
+                  </View>
+                ) : null}
+                <View style={s.flex1}>
+                  <Txt numberOfLines={2} style={[font(700), { fontSize: 14 }]}>
+                    {o.title}
+                  </Txt>
+                  <Txt style={s.tiny}>
+                    <Txt style={[font(700), { fontSize: 11, color: STATE_COLOR[state] }]}>{t.state[state]}</Txt>
+                    {` · ${t.offerLine(formatSom(o.views), formatSom(o.qr), formatSom(o.revenue))}`}
+                  </Txt>
                 </View>
-              );
-            })}
-            <View style={s.row}>
-              <Cell w={cols[0]!} style={s.tdCell}>
-                <Txt style={[font(600), { fontSize: 14 }]}>{c.total}</Txt>
-              </Cell>
-              <Cell w={cols[1]!}>{null}</Cell>
-              {num(total).map((v, i) => (
-                <Cell key={i} w={cols[i + 2]!} right style={s.tdCell}>
-                  <Txt style={[mono(600), { fontSize: 14, color: i === 5 ? colors.rust : colors.ink }]}>{v}</Txt>
-                </Cell>
-              ))}
-            </View>
+                <Txt style={[font(800), { fontSize: 18 }]}>{t.soldCount(formatSom(o.sold))}</Txt>
+              </View>
+            );
+          })}
+          <View style={[s.row, { justifyContent: "space-between", paddingTop: 12 }]}>
+            <Txt style={[font(700), { fontSize: 14 }]}>{t.col.total}</Txt>
+            <Txt style={[font(800), { fontSize: 14 }]}>{`${t.soldCount(formatSom(total.sold))} · ${formatSom(total.revenue)} ${copy.currency}`}</Txt>
           </View>
-        </ScrollView>
+        </View>
       )}
     </Card>
   );

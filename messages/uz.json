@@ -2920,7 +2920,7 @@
       "sold_out": "Bugungi kuponlar tugadi.",
       "coupon_limit": "Bu chegirmadan limitingiz tugagan.",
       "open_orders": "Faol buyurtmalaringiz bor. Avval ularni yakunlang yoki bekor qiling.",
-      "business_not_ready": "Biznes hali tasdiqlanmagan — bu bo'lim tasdiqlangandan keyin ochiladi.",
+      "business_not_ready": "Biznes hali tasdiqlanmagan.",
       "scan_invalid": "QR yoki kod noto'g'ri.",
       "scan_expired": "Kupon yoki QR muddati o'tgan. Talaba ekranidagi yangi QR'ni skanerlang.",
       "scan_replayed": "Bu kupon allaqachon ishlatilgan.",

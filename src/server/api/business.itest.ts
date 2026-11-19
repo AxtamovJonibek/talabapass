@@ -6,7 +6,7 @@ import { GET as cashiersRoute, POST as inviteRoute } from "@/app/api/v1/business
 import { DELETE as removeCashierRoute } from "@/app/api/v1/business/cashiers/[id]/route";
 import { DELETE as removeImageRoute } from "@/app/api/v1/business/discount-images/[id]/route";
 import { GET as discountsRoute, POST as createDiscountRoute } from "@/app/api/v1/business/discounts/route";
-import { GET as discountRoute, PATCH as patchDiscountRoute } from "@/app/api/v1/business/discounts/[id]/route";
+import { DELETE as deleteDiscountRoute, GET as discountRoute, PATCH as patchDiscountRoute } from "@/app/api/v1/business/discounts/[id]/route";
 import { POST as activeRoute } from "@/app/api/v1/business/discounts/[id]/active/route";
 import { POST as imageRoute } from "@/app/api/v1/business/discounts/[id]/images/route";
 import { DELETE as revokeInviteRoute } from "@/app/api/v1/business/invites/[id]/route";
@@ -340,6 +340,12 @@ describe("API biznes: chegirmalar", () => {
 
     // Qoralamani to'xtatib bo'lmaydi — faqat faol/to'xtatilgan
     expect((await call(activeRoute, `/api/v1/business/discounts/${id}/active`, { method: "POST", body: { active: false }, auth: t.owner, params: { id } })).json.error.code).toBe("not_editable");
+
+    // O'chirish: begona egasi — 404; tarixsiz qoralama butunlay o'chadi
+    expect((await call(deleteDiscountRoute, `/api/v1/business/discounts/${id}`, { method: "DELETE", auth: t.otherOwner, params: { id } })).status).toBe(404);
+    const removed = await call(deleteDiscountRoute, `/api/v1/business/discounts/${id}`, { method: "DELETE", auth: t.owner, params: { id } });
+    expect(removed.json).toEqual({ ok: true, result: "deleted" });
+    expect((await call(discountRoute, `/api/v1/business/discounts/${id}`, { auth: t.owner, params: { id } })).status).toBe(404);
   });
 
   it("faol chegirmani to'xtatish va yoqish; ro'yxatda bugungi sotuv", async () => {
