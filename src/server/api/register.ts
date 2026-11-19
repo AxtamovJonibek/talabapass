@@ -39,12 +39,13 @@ async function freshTicket(ticket: string, role: NewRole) {
       : ((await db.authIdentity.findUnique({ where: { provider_subject: { provider: account.provider, subject: account.subject } }, select: { id: true } })) ??
         (account.email ? await db.user.findUnique({ where: { email: account.email }, select: { id: true } }) : null));
   if (taken) throw new ApiError("step_expired");
-  return opened;
+  // Google/Apple hisobi ham parolli bo'ladi: parol ma'lumotlardan oldin o'rnatiladi, o'tkazib yuborib bo'lmaydi
+  if (!opened.passwordHash) throw new ApiError("password_required");
+  return { account, passwordHash: opened.passwordHash };
 }
 
-async function finish(userId: string, passwordHash: string | null, device: Device): Promise<SignedIn> {
-  // Google/Apple hisobi parolsiz (ilovaga shu provayder bilan kiradi)
-  if (passwordHash) await db.user.update({ where: { id: userId }, data: { passwordHash, passwordFails: 0, passwordLockedUntil: null } });
+async function finish(userId: string, passwordHash: string, device: Device): Promise<SignedIn> {
+  await db.user.update({ where: { id: userId }, data: { passwordHash, passwordFails: 0, passwordLockedUntil: null } });
   const tokens = await openApiSession(userId, device);
   return { tokens, user: meView(await loadApiUser(userId)) };
 }

@@ -69,7 +69,7 @@ function openStep(token: string): { phone: string; step: Step; fp: string } {
 }
 
 /** Ro'yxat tokeni ichidagi hisob: telefon + parol xeshi yoki Google/Apple identifikatori (parolsiz). */
-export type RegisterTicket = { account: string; passwordHash: string } | { account: SocialAccount; passwordHash: null };
+export type RegisterTicket = { account: string; passwordHash: string } | { account: SocialAccount; passwordHash: string | null };
 
 export function openRegisterTicket(token: string, role: NewRole): RegisterTicket {
   const data = unseal("register", token, authSecret());
@@ -82,7 +82,7 @@ export function openRegisterTicket(token: string, role: NewRole): RegisterTicket
     typeof social.subject === "string" &&
     (social.email === null || typeof social.email === "string")
   ) {
-    return { account: { provider: social.provider, subject: social.subject, email: social.email }, passwordHash: null };
+    return { account: { provider: social.provider, subject: social.subject, email: social.email }, passwordHash: typeof data.hash === "string" ? data.hash : null };
   }
   throw new ApiError("step_expired");
 }
@@ -159,15 +159,51 @@ async function signedIn(userId: string, device: Device): Promise<SignedIn> {
   return { tokens, user: meView(await loadApiUser(userId)) };
 }
 
+/** Google/Apple bilan kirgan, parolli hisobning qadam tokeni (`loginTicket`). */
+function openLoginTicket(token: string): { uid: string; fp: string } | null {
+  const data = unseal("step", token, authSecret());
+  if (!data || data.exp <= Date.now() || data.step !== "login" || typeof data.uid !== "string" || typeof data.fp !== "string") return null;
+  return { uid: data.uid, fp: data.fp };
+}
+
 export async function loginWithPassword(ticket: string, password: string, device: Device): Promise<SignedIn> {
-  const step = openStep(ticket);
-  if (step.step !== "login") throw new ApiError("step_expired");
-  const user = await stepUser(step);
+  const social = openLoginTicket(ticket);
+  let user;
+  if (social) {
+    user = await db.user.findUnique({ where: { id: social.uid }, select: { id: true, role: true, status: true, passwordHash: true, passwordLockedUntil: true } });
+    if (!user || user.role === "ADMIN" || passwordFingerprint(user.passwordHash) !== social.fp) throw new ApiError("step_expired");
+    await assertUsable(user);
+  } else {
+    const step = openStep(ticket);
+    if (step.step !== "login") throw new ApiError("step_expired");
+    user = await stepUser(step);
+  }
 
   const check = await attemptPassword(user, password);
   if (!check.ok) {
     if (check.reason === "wrong") throw new ApiError("wrong_password", { left: check.left });
     await audit({ actorId: user.id, action: "user.password.locked", entity: "User", entityId: user.id, meta: { via: "api" } });
+    throw new ApiError("password_locked", { retryInSeconds: check.retryInSeconds });
+  }
+  return signedIn(user.id, device);
+}
+
+/** Qadam tokeni telefonsiz hisob uchun (Google/Apple): foydalanuvchi identifikatori va parol xeshining izi. */
+function loginTicket(userId: string, passwordHash: string): string {
+  return seal("step", { uid: userId, step: "login", fp: passwordFingerprint(passwordHash) }, STEP_TTL_MS, authSecret());
+}
+
+/** Telefon (+998…) yoki email bilan, SMSsiz. Hisob yo'q / parol yo'q — baribir `wrong_password` (hisob bor-yo'qligi oshkor bo'lmaydi). */
+export async function signInWithPassword(identifier: string, password: string, device: Device): Promise<SignedIn> {
+  const id = identifier.trim();
+  const where = id.includes("@") ? { email: id.toLowerCase() } : { phone: phoneOrThrow(id) };
+  const user = await db.user.findUnique({ where, select: { id: true, role: true, status: true, passwordHash: true, passwordLockedUntil: true } });
+  if (!user || user.role === "ADMIN" || !user.passwordHash) throw new ApiError("wrong_password");
+  if (user.status !== "ACTIVE") throw new ApiError("account_blocked");
+  if (user.role === "CASHIER" && !(await cashierBusiness(user.id))) throw new ApiError("no_business");
+  const check = await attemptPassword(user, password);
+  if (!check.ok) {
+    if (check.reason === "wrong") throw new ApiError("wrong_password", { left: check.left });
     throw new ApiError("password_locked", { retryInSeconds: check.retryInSeconds });
   }
   return signedIn(user.id, device);
@@ -182,6 +218,14 @@ export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "reg
  * `login` qadami ("Parolni unutdim", SMS tasdig'i hali amal qilsa) — yangi parol, boshqa barcha sessiyalar yopiladi.
  */
 export async function setPassword(ticket: string, password: string, confirm: string, device: Device): Promise<SetPasswordResult> {
+  const pending = unseal("register", ticket, authSecret());
+  if (pending && pending.exp > Date.now() && pending.social && typeof pending.role === "string") {
+    // Google/Apple: parol ro'yxat ma'lumotlaridan OLDIN o'rnatiladi — xesh shu ro'yxat tokeniga yoziladi
+    if (!isValidPassword(password)) throw new ApiError("weak_password");
+    if (cleanPassword(password) !== cleanPassword(confirm)) throw new ApiError("password_mismatch");
+    const role = pending.role as NewRole;
+    return { next: "register", role, registrationTicket: seal("register", { role, social: pending.social, hash: hashPassword(password) }, REGISTER_TTL_MS, authSecret()) };
+  }
   const step = openStep(ticket);
   if (!isValidPassword(password)) throw new ApiError("weak_password");
   if (cleanPassword(password) !== cleanPassword(confirm)) throw new ApiError("password_mismatch");
@@ -212,6 +256,8 @@ export async function setPassword(ticket: string, password: string, confirm: str
 
 export type SocialResult =
   | ({ next: "signedIn" } & SignedIn)
+  /** Hisob bor va parolli: SMS so'ralmaydi, o'sha hisobning paroli kiritiladi (`/auth/login`, `ticket`) */
+  | { next: "password"; ticket: string; role: Intent; masked: string; initial: string | null }
   /** Yangi foydalanuvchi: SMS va parolsiz to'g'ri ro'yxatga; `profile` — formani oldindan to'ldirish uchun */
   | { next: "register"; role: Intent; registrationTicket: string; profile: { firstName: string | null; lastName: string | null; email: string | null } };
 
@@ -227,7 +273,7 @@ export async function verifySocial(provider: SocialProvider, idToken: string) {
   }
 }
 
-const SOCIAL_USER = { id: true, role: true, status: true } as const;
+const SOCIAL_USER = { id: true, role: true, status: true, email: true, firstName: true, passwordHash: true } as const;
 
 /** Telefon oqimidagi (`verifyCode`) tekshiruvlar: bloklangan/o'chirilgan, admin, biznessiz kassir. */
 async function assertUsable(user: { id: string; role: string; status: string }) {
@@ -275,6 +321,16 @@ export async function socialSignIn(
 
   if (user) {
     await assertUsable(user);
+    // Parolli hisob — parolni kiritadi (Google/Apple faqat shaxsni tanlaydi); parolsiz eski hisob — kiradi, parol keyin majburiy
+    if (user.passwordHash) {
+      return {
+        next: "password",
+        ticket: loginTicket(user.id, user.passwordHash),
+        role: user.role === "STUDENT" ? "student" : "business",
+        masked: user.email ?? profile.email ?? "",
+        initial: user.firstName?.trim().charAt(0).toUpperCase() || null,
+      };
+    }
     return { next: "signedIn", ...(await signedIn(user.id, device)) };
   }
 

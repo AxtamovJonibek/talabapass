@@ -32,7 +32,7 @@ async function startRoute(reloadMe: () => Promise<Me>, restoreMe: (me: Me) => vo
     }
   }
   // Telefon bilan kirish o'chirilgan bo'lsa (`AUTH_PHONE_ENABLED=false`) — Auth2 emas, kirish usuli tanlovi
-  if ((await getLastPhone()) && (await cachedAppConfig())?.auth?.phone !== false) return "/auth/returning";
+  if ((await getLastPhone()) && (await cachedAppConfig())?.auth?.phone !== false) return "/auth/signin";
   // Birinchi ochilish: til → karusel → kirish usuli (Google, Apple, telefon)
   if (!(await getStoredLang())) return "/lang";
   return (await wasOnboarded("student")) ? "/auth" : "/intro";

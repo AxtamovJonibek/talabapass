@@ -5,6 +5,7 @@ import { POST as code } from "@/app/api/v1/auth/code/route";
 import { POST as login } from "@/app/api/v1/auth/login/route";
 import { POST as logout } from "@/app/api/v1/auth/logout/route";
 import { POST as password } from "@/app/api/v1/auth/password/route";
+import { POST as signin } from "@/app/api/v1/auth/signin/route";
 import { POST as refresh } from "@/app/api/v1/auth/refresh/route";
 import { POST as verify } from "@/app/api/v1/auth/verify/route";
 import { DELETE as deleteMe, GET as me } from "@/app/api/v1/me/route";
@@ -160,6 +161,22 @@ describe("API auth: mavjud hisob", () => {
     expect(fifth.json.error.code).toBe("password_locked");
     const evenRight = await call(login, "/api/v1/auth/login", { ticket: v.json.ticket, password: PASSWORD });
     expect(evenRight.json.error).toMatchObject({ code: "password_locked", retryInSeconds: expect.any(Number) });
+  });
+
+  it("SMSsiz kirish: telefon + parol (9 raqam ham, +998 ham); noma'lum raqam va noto'g'ri parol — bir xil xato; qulf", async () => {
+    await db.user.create({ data: { phone: PW_PHONE, role: "STUDENT", firstName: "ApiTest", passwordHash: hashPassword(PASSWORD) } });
+    const ok = await call(signin, "/api/v1/auth/signin", { identifier: PW_PHONE, password: PASSWORD });
+    expect(ok.status).toBe(200);
+    expect(ok.json.user.phone).toBe(PW_PHONE);
+
+    const wrong = await call(signin, "/api/v1/auth/signin", { identifier: PW_PHONE, password: "notogri123" });
+    const unknown = await call(signin, "/api/v1/auth/signin", { identifier: "+998000000399", password: PASSWORD });
+    expect(wrong.json.error.code).toBe("wrong_password");
+    expect(unknown.json.error.code).toBe("wrong_password");
+    expect(unknown.status).toBe(wrong.status);
+
+    for (let i = 0; i < 4; i++) await call(signin, "/api/v1/auth/signin", { identifier: PW_PHONE, password: "notogri123" });
+    expect((await call(signin, "/api/v1/auth/signin", { identifier: PW_PHONE, password: PASSWORD })).json.error.code).toBe("password_locked");
   });
 
   it("parolni unutdim: SMS tasdig'i bilan yangi parol, eski sessiyalar yopiladi", async () => {

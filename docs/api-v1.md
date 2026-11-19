@@ -56,6 +56,12 @@ qolmaydi**: ro'yxat (telefon ham, Google/Apple ham) parol qadamisiz tugamaydi; e
 bosgan hisob ichkarida `password_setup_required` (403) oladi — avval `POST /me/password` (`GET /me` → `mustSetPassword: true`).
 Admin API orqali kirmaydi.
 
+### Ilova kirishi (joriy ilova oqimi)
+
+- `POST /auth/signin` `{ identifier, password, deviceName? }` — telefon (`+998…`) yoki email + parol, SMSsiz. Hisob yo'q / parol yo'q / parol xato — bir xil `wrong_password` (401); 5 xato — `password_locked`.
+- `POST /auth/google|apple`: yangi foydalanuvchi — `{ next: "register", registrationTicket }`; **parol ma'lumotlardan oldin**: `POST /auth/password` shu `registrationTicket` bilan → parolli yangi `registrationTicket`; parolsiz ticket bilan ro'yxat — `password_required`. Hisob bor va parolli — `{ next: "password", ticket, masked }` (SMS yo'q) → `POST /auth/login` `{ ticket, password }`; parolsiz eski hisob — darhol `signedIn`.
+- "Parolni unutdim" — telefon: `/auth/code` → `/auth/verify` → `/auth/password` (eski sessiyalar yopiladi). Email orqali kod hozircha yo'q.
+
 ### Kirish
 
 | Endpoint | Kirish | Chiqish |

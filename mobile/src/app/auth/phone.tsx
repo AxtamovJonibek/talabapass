@@ -5,7 +5,7 @@ import { useSendCode } from "@/auth/use-send-code";
 import { copy } from "@/copy";
 import { colors, font } from "@/theme";
 import { Consent } from "@/ui/legal";
-import { BackArrow, ErrorBox, Grow, Label, Lead, Logo, PhoneBox, PrimaryButton, Screen, Title, TopBar, Txt } from "@/ui/kit";
+import { BackArrow, ErrorBox, Grow, Label, Logo, PhoneBox, PrimaryButton, Screen, Title, TopBar, Txt } from "@/ui/kit";
 
 /** AuthTelefon (talaba) / AuthBiznes: telefon raqam → SMS kod. Ro'yxat ham, kirish ham shu yerdan; usul tanlovi — `/auth`. */
 export default function Phone() {
@@ -37,7 +37,6 @@ export default function Phone() {
           <Txt style={[font(900, 62), styles.badgeText]}>{l.badge}</Txt>
         </View>
         <Title text={l.title} size={46} />
-        <Lead text={intent === "business" ? l.businessLead : l.lead} style={styles.lead} />
       </View>
 
       <View style={styles.field}>
@@ -47,7 +46,7 @@ export default function Phone() {
       </View>
 
       <PrimaryButton onPress={() => void submit()} loading={busy} style={styles.cta}>
-        {busy ? l.sending : l.sendCode}
+        {copy.next}
       </PrimaryButton>
 
       <Grow />

@@ -4,38 +4,44 @@ import { StyleSheet, View } from "react-native";
 import { errorText } from "@/api/client";
 import { authApi } from "@/api/endpoints";
 import { copy } from "@/copy";
-import { isValidPassword, passwordRules, passwordStrength, samePassword } from "@/lib/password";
+import { isValidPassword, passwordChecks } from "@/lib/password";
 import { resetTo, routeFor, useApp } from "@/state";
-import { BackArrow, ErrorBox, Grow, IconTile, Label, Lead, PasswordBox, PrimaryButton, RoleChip, Screen, StepBars, StrengthBars, TickDot, TickRow, Title, TopBar } from "@/ui/kit";
+import { BackArrow, ErrorBox, Grow, Label, Logo, PasswordBox, PasswordRule, PrimaryButton, Screen, Title, TopBar } from "@/ui/kit";
+
+type Mode = "new" | "set" | "reset" | "social";
 
 /**
- * Parol / ParolBiznes: `new` — yangi raqam (keyin ro'yxat), `set` — parolsiz eski hisob, `reset` — "Parolni unutdim"
- * (Kirish ekranidagi SMS tasdig'i bilan; boshqa qurilmalardagi kirishlar yopiladi).
+ * Parol, ma'lumotlardan OLDIN:
+ * - `new` — yangi telefon raqam (SMS tasdig'idan keyin), `social` — Google/Apple yangi foydalanuvchisi (o'tkazib yuborib bo'lmaydi);
+ *   ikkalasidan keyin ma'lumotlar (ism, familiya, universitet, kurs);
+ * - `set` — parolsiz eski hisob, `reset` — "Parolni unutdim" (boshqa qurilmalardagi kirishlar yopiladi): parol saqlanib, kiriladi.
+ * Qoidalar yozilmaguncha kulrang, bajarilganda yashil; qizil — faqat "Davom etish" bosilgandan keyin.
  */
 export default function SetPassword() {
-  const { mode = "new" } = useLocalSearchParams<{ mode?: "new" | "set" | "reset" }>();
+  const { mode: rawMode = "new" } = useLocalSearchParams<{ mode?: Mode }>();
+  const mode: Mode = (["new", "set", "reset", "social"] as const).includes(rawMode) ? rawMode : "new";
   const { flow, setFlow, signIn } = useApp();
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const l = copy.login;
-  const role = flow.verify?.role ?? flow.intent;
-  const rules = passwordRules(password);
-  const score = passwordStrength(password);
-  const matches = confirm.length > 0 && samePassword(password, confirm);
+  const checks = passwordChecks(password);
+  const stateOf = (ok: boolean) => (ok ? "ok" : tried ? "bad" : "idle");
+  const registering = mode === "new" || mode === "social";
 
   const submit = async () => {
     if (busy) return;
-    if (!flow.verify) return setError(l.stepExpired);
-    if (!isValidPassword(password)) return setError(l.weakPassword);
-    if (!matches) return setError(l.mismatch);
+    const ticket = mode === "social" ? flow.registrationTicket : flow.verify?.ticket;
+    if (!ticket) return setError(l.stepExpired);
+    setTried(true);
+    if (!isValidPassword(password)) return;
     setBusy(true);
     setError(null);
     try {
-      const result = await authApi.setPassword(flow.verify.ticket, password, confirm);
+      const result = await authApi.setPassword(ticket, password, password);
       if (result.next === "register") {
-        setFlow({ registrationTicket: result.registrationTicket });
+        setFlow({ registrationTicket: result.registrationTicket, verify: null });
         resetTo(result.role === "cashier" ? "/cashier/register" : result.role === "business" ? "/business/info" : "/student/register");
       } else {
         resetTo(routeFor(await signIn(result)));
@@ -51,14 +57,11 @@ export default function SetPassword() {
     <Screen>
       <TopBar>
         <BackArrow label={copy.back} onPress={() => router.back()} />
-        <StepBars total={3} current={3} label={l.setSteps} />
-        <RoleChip tone={role === "student" ? "student" : "business"}>{copy.role[role]}</RoleChip>
+        <Logo />
       </TopBar>
 
       <View style={styles.hero}>
-        <IconTile icon="lock" />
-        <Title text={mode === "reset" ? l.resetTitle : l.setTitle} size={42} style={styles.title} />
-        <Lead text={mode === "reset" ? l.resetLead : l.setLead} size={16} style={styles.lead} />
+        <Title text={mode === "reset" ? l.resetTitle : l.setTitle} size={46} />
       </View>
 
       <View style={styles.block}>
@@ -71,49 +74,31 @@ export default function SetPassword() {
           }}
           autoFocus
           newPassword
-          returnKeyType="next"
+          invalid={tried && !isValidPassword(password)}
           toggle={{ show: l.showPassword, hide: l.hidePassword }}
+          onSubmit={() => void submit()}
           label={l.passwordLabel}
         />
-        <StrengthBars score={score} label={l.strength[score]} />
         <View style={styles.rules}>
-          <TickRow ok={rules.length}>{l.ruleLength}</TickRow>
-          <TickRow ok={rules.mix}>{l.ruleMix}</TickRow>
+          <PasswordRule state={stateOf(checks.length)}>{l.ruleLength}</PasswordRule>
+          <PasswordRule state={stateOf(checks.digit)}>{l.ruleDigit}</PasswordRule>
+          <PasswordRule state={stateOf(checks.letter)}>{l.ruleLetter}</PasswordRule>
         </View>
-      </View>
-
-      <View style={styles.repeat}>
-        <Label>{l.repeatLabel}</Label>
-        <PasswordBox
-          value={confirm}
-          onChange={(v) => {
-            setConfirm(v);
-            setError(null);
-          }}
-          newPassword
-          invalid={confirm.length >= password.length && confirm.length > 0 && !matches}
-          trailing={matches ? <TickDot size={26} /> : null}
-          onSubmit={() => void submit()}
-          label={l.repeatLabel}
-        />
         <ErrorBox>{error}</ErrorBox>
       </View>
 
       <Grow />
 
       <PrimaryButton onPress={() => void submit()} loading={busy} style={styles.cta}>
-        {busy ? l.saving : mode === "new" ? copy.next : l.save}
+        {registering ? copy.next : l.save}
       </PrimaryButton>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { marginTop: 32 },
-  title: { marginTop: 20 },
-  lead: { marginTop: 12 },
-  block: { marginTop: 24 },
+  hero: { marginTop: 36 },
+  block: { marginTop: 28 },
   rules: { gap: 8, marginTop: 14 },
-  repeat: { marginTop: 20 },
   cta: { marginTop: 24 },
 });

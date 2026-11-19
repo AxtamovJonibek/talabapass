@@ -2892,7 +2892,7 @@
       "no_business": "Siz hech qaysi biznesga kassir sifatida biriktirilmagansiz. Biznes egasidan yangi taklif havolasini so'rang.",
       "admin_not_supported": "Admin panelga faqat sayt orqali kiriladi.",
       "step_expired": "Tasdiqlash muddati tugadi. SMS kodni qaytadan oling.",
-      "wrong_password": "Parol noto'g'ri.",
+      "wrong_password": "Parol noto'g'ri",
       "password_locked": "Juda ko'p xato urinish. Parol vaqtincha qulflandi — keyinroq SMS kod bilan qayta kiring.",
       "weak_password": "Parol kamida 8 ta belgi bo'lsin: harf va raqam birga.",
       "password_mismatch": "Parollar bir xil emas.",

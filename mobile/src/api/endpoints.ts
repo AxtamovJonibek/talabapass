@@ -48,6 +48,8 @@ export type SocialProvider = "GOOGLE" | "APPLE";
 /** Google/Apple: hisob bor — kirish; yo'q — SMS va parolsiz ro'yxat (`profile` — formani oldindan to'ldirish uchun) */
 export type SocialResult =
   | ({ next: "signedIn" } & SignedIn)
+  /** Hisob bor va parolli: SMS yo'q, o'sha hisobning paroli kiritiladi (`authApi.login`, `ticket`) */
+  | { next: "password"; ticket: string; role: Intent; masked: string; initial: string | null }
   | { next: "register"; role: Intent; registrationTicket: string; profile: { firstName: string | null; lastName: string | null; email: string | null } };
 
 export type University = { id: string; name: string; shortName: string; region: string; kind: string };
@@ -180,6 +182,8 @@ export const deviceName = (Constants.deviceName ?? (Platform.OS === "ios" ? "iOS
 export const authApi = {
   requestCode: (phone: string) => api<{ phone: string; resendInSeconds: number }>("/auth/code", { method: "POST", body: { phone }, auth: false }),
   verify: (phone: string, code: string, intent: Intent) => api<VerifyResult>("/auth/verify", { method: "POST", body: { phone, code, intent }, auth: false }),
+  /** Telefon (9 raqam yoki +998…) yoki email + parol, SMSsiz */
+  signIn: (identifier: string, password: string) => api<SignedIn>("/auth/signin", { method: "POST", body: { identifier, password, deviceName }, auth: false }),
   login: (ticket: string, password: string) => api<SignedIn>("/auth/login", { method: "POST", body: { ticket, password, deviceName }, auth: false }),
   setPassword: (ticket: string, password: string, confirm: string) =>
     api<SetPasswordResult>("/auth/password", { method: "POST", body: { ticket, password, confirm, deviceName }, auth: false }),

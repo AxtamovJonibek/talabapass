@@ -13,6 +13,12 @@ export function passwordRules(value: string) {
   return { length: p.length >= PASSWORD_MIN && p.length <= PASSWORD_MAX, mix: /\p{L}/u.test(p) && /\p{Nd}/u.test(p) };
 }
 
+/** Qoidalar alohida: kamida 8 belgi, bitta harf, bitta raqam */
+export function passwordChecks(value: string) {
+  const p = clean(value);
+  return { length: p.length >= PASSWORD_MIN && p.length <= PASSWORD_MAX, letter: /\p{L}/u.test(p), digit: /\p{Nd}/u.test(p) };
+}
+
 export function isValidPassword(value: string): boolean {
   const r = passwordRules(value);
   return r.length && r.mix;

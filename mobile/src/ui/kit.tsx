@@ -571,11 +571,21 @@ export function StrengthBars({ score, label }: { score: 0 | 1 | 2 | 3 | 4; label
 }
 
 /** Doiradagi tasdiq belgisi (parol talablari, "tasdiqlangan", maslahatlar). */
-export function TickDot({ size = 20, tone = "green", stroke = 3.6 }: { size?: number; tone?: "green" | "peach" | "idle"; stroke?: number }) {
-  const bg = tone === "green" ? colors.green : tone === "peach" ? colors.peach : colors.track;
+export function TickDot({ size = 20, tone = "green", stroke = 3.6 }: { size?: number; tone?: "green" | "peach" | "idle" | "danger"; stroke?: number }) {
+  const bg = tone === "green" ? colors.green : tone === "peach" ? colors.peach : tone === "danger" ? colors.danger : colors.track;
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}>
-      {tone === "idle" ? null : <Icon name="tick" size={Math.round(size * 0.55)} strokeWidth={stroke} />}
+      {tone === "idle" ? null : <Icon name={tone === "danger" ? "close" : "tick"} size={Math.round(size * 0.55)} strokeWidth={stroke} color={tone === "danger" ? colors.white : undefined} />}
+    </View>
+  );
+}
+
+/** Parol qoidasi: yozilmaguncha kulrang, bajarilsa yashil belgi, "Davom etish"dan keyin bajarilmagani qizil */
+export function PasswordRule({ state, children }: { state: "idle" | "ok" | "bad"; children: string }) {
+  return (
+    <View style={styles.tickRow}>
+      <TickDot size={20} tone={state === "ok" ? "green" : state === "bad" ? "danger" : "idle"} />
+      <Txt style={[font(600), { fontSize: 14, color: state === "ok" ? colors.green : state === "bad" ? colors.danger : colors.muted2 }]}>{children}</Txt>
     </View>
   );
 }

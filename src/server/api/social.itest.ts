@@ -4,6 +4,9 @@ import { POST as appleCallback } from "@/app/api/v1/auth/apple/callback/route";
 import { POST as apple } from "@/app/api/v1/auth/apple/route";
 import { GET as appleStart } from "@/app/api/v1/auth/apple/start/route";
 import { POST as google } from "@/app/api/v1/auth/google/route";
+import { POST as login } from "@/app/api/v1/auth/login/route";
+import { POST as setPassword } from "@/app/api/v1/auth/password/route";
+import { POST as signin } from "@/app/api/v1/auth/signin/route";
 import { POST as businessRegister } from "@/app/api/v1/business/register/route";
 import { DELETE as deleteMe, GET as me } from "@/app/api/v1/me/route";
 import { POST as studentRegister } from "@/app/api/v1/student/register/route";
@@ -49,6 +52,14 @@ async function send(handler: (r: NextRequest, c: typeof ctx) => Promise<Response
   return { status: res.status, json: (await res.json()) as Json };
 }
 
+const PASSWORD = "Parol1234";
+/** Google/Apple: parol ma'lumotlardan oldin — ro'yxat tokeniga xesh yoziladi */
+async function withPassword(ticket: string) {
+  const res = await send(setPassword, req("/api/v1/auth/password", { ticket, password: PASSWORD, confirm: PASSWORD }));
+  expect(res.json.next).toBe("register");
+  return res.json.registrationTicket as string;
+}
+
 const idToken = (sub: string, email = "", verified = true) => `${P}${sub}|${email}|${verified ? "1" : "0"}`.padEnd(24, ".");
 
 async function cleanup() {
@@ -58,7 +69,7 @@ async function cleanup() {
   await db.auditLog.deleteMany({ where: { actorId: { in: ids } } });
   await db.business.deleteMany({ where: { OR: [{ ownerId: { in: ids } }, { tin: TIN }] } });
   await db.user.deleteMany({ where: { id: { in: ids } } });
-  await db.rateLimitHit.deleteMany({ where: { key: { in: [limitKey("verify", IP), limitKey("register", IP), ...ids.map((id) => limitKey("password", id))] } } });
+  await db.rateLimitHit.deleteMany({ where: { key: { in: [limitKey("verify", IP), limitKey("register", IP), limitKey("password", IP), limitKey("login", IP), ...ids.map((id) => limitKey("password", id))] } } });
 }
 
 async function university() {
@@ -78,16 +89,25 @@ describe("API: Google/Apple bilan kirish", () => {
     expect(first.json).toMatchObject({ next: "register", role: "student", profile: { firstName: "Gulnoza", lastName: "Testova", email: EMAIL } });
 
     const { id: universityId } = await university();
-    const body = { registrationTicket: first.json.registrationTicket, firstName: "Gulnoza", lastName: "Testova", universityId, course: "C1" };
+    const noPassword = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: first.json.registrationTicket, firstName: "Gulnoza", lastName: "Testova", universityId, course: "C1" }));
+    expect(noPassword.json.error.code).toBe("password_required");
+    const body = { registrationTicket: await withPassword(first.json.registrationTicket), firstName: "Gulnoza", lastName: "Testova", universityId, course: "C1" };
     const created = await send(studentRegister, req("/api/v1/student/register", body));
     expect(created.status).toBe(201);
-    expect(created.json.user).toMatchObject({ role: "STUDENT", phone: null, email: EMAIL, hasPassword: false, student: { status: "DRAFT" } });
+    expect(created.json.user).toMatchObject({ role: "STUDENT", phone: null, email: EMAIL, hasPassword: true, student: { status: "DRAFT" } });
 
     // Bir ticket — bitta hisob
     expect((await send(studentRegister, req("/api/v1/student/register", body))).json.error.code).toBe("step_expired");
 
-    const again = await send(google, req("/api/v1/auth/google", { idToken: idToken("g1", EMAIL), intent: "business" }));
-    expect(again.json).toMatchObject({ next: "signedIn", user: { id: created.json.user.id, role: "STUDENT" } });
+    // Qayta kirish: SMS yo'q, o'sha hisobning paroli so'raladi
+    const asked = await send(google, req("/api/v1/auth/google", { idToken: idToken("g1", EMAIL), intent: "business" }));
+    expect(asked.json).toMatchObject({ next: "password", role: "student", masked: EMAIL });
+    expect((await send(login, req("/api/v1/auth/login", { ticket: asked.json.ticket, password: "Notogri1" }))).json.error.code).toBe("wrong_password");
+    const again = await send(login, req("/api/v1/auth/login", { ticket: asked.json.ticket, password: PASSWORD }));
+    expect(again.json).toMatchObject({ user: { id: created.json.user.id, role: "STUDENT" } });
+    // Email + parol bilan ham kiradi; noto'g'ri parol yoki noma'lum email — bir xil xato
+    expect((await send(signin, req("/api/v1/auth/signin", { identifier: EMAIL.toUpperCase(), password: PASSWORD }))).json.user.id).toBe(created.json.user.id);
+    expect((await send(signin, req("/api/v1/auth/signin", { identifier: "yoq@example.uz", password: PASSWORD }))).json.error.code).toBe("wrong_password");
     const view = await send(me, req("/api/v1/me", undefined, { token: again.json.tokens.accessToken, method: "GET" }));
     expect(view.json.user).toMatchObject({ phone: null, email: EMAIL });
   });
@@ -95,7 +115,7 @@ describe("API: Google/Apple bilan kirish", () => {
   it("bir xil tasdiqlangan email — bitta hisob (Apple Google hisobiga bog'lanadi); tasdiqlanmagani bog'lanmaydi", async () => {
     const first = await send(google, req("/api/v1/auth/google", { idToken: idToken("g2", EMAIL) }));
     const { id: universityId } = await university();
-    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: first.json.registrationTicket, firstName: "Ali", lastName: "Valiyev", universityId, course: "C2" }));
+    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: await withPassword(first.json.registrationTicket), firstName: "Ali", lastName: "Valiyev", universityId, course: "C2" }));
     const userId = created.json.user.id as string;
 
     const unverified = await send(apple, req("/api/v1/auth/apple", { idToken: idToken("a-unverified", EMAIL, false) }));
@@ -103,7 +123,8 @@ describe("API: Google/Apple bilan kirish", () => {
     expect(unverified.json.profile.email).toBeNull();
 
     const linked = await send(apple, req("/api/v1/auth/apple", { idToken: idToken("a2", EMAIL), firstName: "Ali" }));
-    expect(linked.json).toMatchObject({ next: "signedIn", user: { id: userId } });
+    expect(linked.json).toMatchObject({ next: "password" });
+    expect((await send(login, req("/api/v1/auth/login", { ticket: linked.json.ticket, password: PASSWORD }))).json.user.id).toBe(userId);
     expect(await db.authIdentity.count({ where: { userId } })).toBe(2);
     expect(await db.auditLog.count({ where: { actorId: userId, action: "user.identity.link" } })).toBe(1);
   });
@@ -113,7 +134,7 @@ describe("API: Google/Apple bilan kirish", () => {
     expect(first.json).toMatchObject({ next: "register", role: "business", profile: { firstName: "Bekzod", lastName: "Karimov", email: null } });
     // Talaba ticketi biznesga o'tmaydi
     const info = { name: "Itest Kofe", kind: "CAFE", address: "Toshkent, Chilonzor 9", workingHours: "09:00 – 22:00", tin: TIN, contactName: "Bekzod Karimov" };
-    const created = await send(businessRegister, req("/api/v1/business/register", { registrationTicket: first.json.registrationTicket, ...info }));
+    const created = await send(businessRegister, req("/api/v1/business/register", { registrationTicket: await withPassword(first.json.registrationTicket), ...info }));
     expect(created.status).toBe(201);
     expect(created.json.user).toMatchObject({ role: "BUSINESS_OWNER", phone: null, email: null, business: { name: "Itest Kofe", submitted: false } });
     expect(await db.business.findFirst({ where: { tin: TIN }, select: { contactPhone: true } })).toEqual({ contactPhone: null });
@@ -125,7 +146,7 @@ describe("API: Google/Apple bilan kirish", () => {
 
     const first = await send(google, req("/api/v1/auth/google", { idToken: idToken("g4", EMAIL) }));
     const { id: universityId } = await university();
-    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: first.json.registrationTicket, firstName: "Ali", lastName: "Valiyev", universityId, course: "C2" }));
+    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: await withPassword(first.json.registrationTicket), firstName: "Ali", lastName: "Valiyev", universityId, course: "C2" }));
     await db.user.update({ where: { id: created.json.user.id }, data: { status: "BLOCKED" } });
     expect((await send(google, req("/api/v1/auth/google", { idToken: idToken("g4", EMAIL) }))).json.error.code).toBe("account_blocked");
   });
@@ -133,8 +154,10 @@ describe("API: Google/Apple bilan kirish", () => {
   it("parolsiz hisobni o'chirish — o'sha provayder tokeni bilan; keyin shu Google bilan yangi hisob ochiladi", async () => {
     const first = await send(google, req("/api/v1/auth/google", { idToken: idToken("g5", EMAIL) }));
     const { id: universityId } = await university();
-    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: first.json.registrationTicket, firstName: "Ali", lastName: "Valiyev", universityId, course: "C2" }));
+    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: await withPassword(first.json.registrationTicket), firstName: "Ali", lastName: "Valiyev", universityId, course: "C2" }));
     const token = created.json.tokens.accessToken as string;
+    // Eski (parolsiz) Google hisobi: o'chirish provayder tokeni bilan
+    await db.user.update({ where: { id: created.json.user.id }, data: { passwordHash: null } });
 
     expect((await send(deleteMe, req("/api/v1/me", {}, { token, method: "DELETE" }))).json.error.code).toBe("password_required");
     expect((await send(deleteMe, req("/api/v1/me", { provider: "GOOGLE", idToken: idToken("begona", EMAIL) }, { token, method: "DELETE" }))).json.error.code).toBe("social_mismatch");
@@ -176,8 +199,9 @@ describe("API: Google/Apple bilan kirish", () => {
     expect(first.json).toMatchObject({ next: "register", role: "student", profile: { firstName: "Olim", lastName: "Webov" } });
 
     const { id: universityId } = await university();
-    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: first.json.registrationTicket, firstName: "Olim", lastName: "Webov", universityId, course: "C1" }));
+    const created = await send(studentRegister, req("/api/v1/student/register", { registrationTicket: await withPassword(first.json.registrationTicket), firstName: "Olim", lastName: "Webov", universityId, course: "C1" }));
     const token = created.json.tokens.accessToken as string;
+    await db.user.update({ where: { id: created.json.user.id }, data: { passwordHash: null } });
     const again = await appleCallback(form({ state, id_token: idToken("a-web", "") }), ctx);
     const ticket2 = new URL(again.headers.get("location")!.replace(/^intent:/, "https:").replace(/#Intent.*$/, "")).searchParams.get("ticket")!;
     expect(await send(deleteMe, req("/api/v1/me", { provider: "APPLE", ticket: ticket2, verifier }, { token, method: "DELETE" }))).toMatchObject({ status: 200, json: { ok: true } });

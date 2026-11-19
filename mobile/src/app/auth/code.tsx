@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { errorText } from "@/api/client";
@@ -8,10 +8,12 @@ import { copy } from "@/copy";
 import { displayPhone, toE164 } from "@/lib/phone";
 import { useApp } from "@/state";
 import { colors, font } from "@/theme";
-import { BackArrow, CodeBoxes, ErrorBox, Grow, IconTile, Lead, Logo, PrimaryButton, Screen, TextAction, Title, TipCard, TopBar, Txt } from "@/ui/kit";
+import { BackArrow, CodeBoxes, ErrorBox, Grow, IconTile, Lead, Logo, PrimaryButton, Screen, TextAction, Title, TopBar, Txt } from "@/ui/kit";
 
 /** Kod / KodBiznes: 6 xonali SMS kod. 6-raqam kiritilishi bilan o'zi tekshiradi. */
 export default function Code() {
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const forgot = mode === "forgot";
   const { flow, setFlow } = useApp();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,7 +35,14 @@ export default function Code() {
     try {
       const result = await authApi.verify(toE164(flow.phone), value, flow.intent);
       setFlow({ verify: result });
-      if (result.next === "password") router.push("/auth/login");
+      if (forgot) {
+        // Parolni unutdim: kod to'g'ri — yangi parol; raqam ro'yxatda yo'q bo'lsa — ro'yxatdan o'tishga emas, kirishga qaytadi
+        if (result.next === "setPassword" && result.isNew) {
+          setError(copy.login.noAccountFound);
+          return;
+        }
+        router.replace("/auth/password?mode=reset");
+      } else if (result.next === "password") router.push("/auth/login");
       else router.push(`/auth/password?mode=${result.isNew ? "new" : "set"}`);
     } catch (e) {
       setError(errorText(e));
@@ -84,15 +93,8 @@ export default function Code() {
 
       <Grow />
 
-      <View style={styles.tip}>
-        <TipCard icon="shieldCheck">
-          {l.tipLead}
-          <Txt style={[font(800), { color: colors.blue }]}>{l.tipAction}</Txt>
-          {l.tipTail}
-        </TipCard>
-      </View>
-      <PrimaryButton icon="tick" onPress={() => void verify(code)} loading={busy} disabled={code.length !== 6}>
-        {busy ? l.checking : l.confirm}
+      <PrimaryButton onPress={() => void verify(code)} loading={busy} disabled={code.length !== 6}>
+        {copy.next}
       </PrimaryButton>
     </Screen>
   );
@@ -105,5 +107,4 @@ const styles = StyleSheet.create({
   code: { marginTop: 30 },
   row: { marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   timer: { fontSize: 15, color: colors.muted2 },
-  tip: { marginBottom: 16, marginTop: 24 },
 });

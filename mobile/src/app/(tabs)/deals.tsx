@@ -1,19 +1,19 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { appApi, type FeedDeal } from "@/api/endpoints";
 import { copy } from "@/copy";
 import { filterDeals, isLowStock, sortDeals, type FeedSort } from "@/lib/feed";
-import { dealNote, formatKm, formatMinute, formatSom, statusPill, toTashkent } from "@/lib/format";
+import { dealNote, formatKm, formatSom, statusPill } from "@/lib/format";
 import { TASHKENT, useLocation } from "@/lib/location";
 import { useLoad } from "@/lib/use-load";
-import { BellButton, CategoryPill, CategoryRow, DealTag, DropdownChip, FeedCard, FloatButton, mono, StatusPill, TogglePill, ViewSwitch, SearchUnderline } from "@/site/ui";
+import { BellButton, CategoryPill, CategoryRow, DealTag, FeedCard, FloatButton, StatusPill, SearchUnderline } from "@/site/ui";
 import { LocationSheet } from "@/student/location-sheet";
 import { SortSheet } from "@/student/sort-sheet";
 import { colors, em, font } from "@/theme";
 import { DealsMap } from "@/ui/deals-map";
-import { Failed, imageUrl, Loading } from "@/ui/app";
+import { Failed, imageUrl, Loading, Toggle } from "@/ui/app";
 import { Icon } from "@/ui/icons";
 import { Press, Txt } from "@/ui/kit";
 import { StaleNote } from "@/ui/offline";
@@ -70,12 +70,6 @@ export default function Deals() {
     }, [refreshFeed, refreshInbox]),
   );
 
-  // Sana qatoridagi vaqt jonli: daqiqa o'tishi bilan yangilanadi
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 10_000);
-    return () => clearInterval(id);
-  }, []);
-
   const categories = useMemo(() => feed.data?.categories ?? [], [feed.data]);
   const names = useMemo(() => new Map(categories.map((c) => [c.slug, c.name])), [categories]);
   const listFor = useCallback(
@@ -83,7 +77,6 @@ export default function Deals() {
     [feed.data, q, category, names],
   );
   const list = useMemo(() => listFor(liveOnly, sort), [listFor, liveOnly, sort]);
-  const t = toTashkent(now);
   const allTile = { icon: "all", tileColor: colors.surface, inkColor: colors.ink };
 
   return (
@@ -97,13 +90,14 @@ export default function Deals() {
       >
         <View style={styles.header}>
           <View style={styles.dateRow}>
-            <Txt style={[mono(), styles.date]}>
-              {`${copy.weekdays[t.weekday - 1]} · ${t.date.getUTCDate()} ${copy.months[t.date.getUTCMonth()]} · ${formatMinute(t.minute)}`.toUpperCase()}
-            </Txt>
             <Press onPress={() => setSheet("place")} accessibilityRole="button" accessibilityLabel={`${f.location.label}: ${label}`} scale={0.97} style={styles.place}>
-              <Txt style={[mono(), styles.placeText]}>{label.toUpperCase()}</Txt>
-              <Icon name="chevronDown" size={12} />
+              <Icon name="pin" size={20} strokeWidth={2.4} />
+              <Txt numberOfLines={1} style={[font(800), styles.placeText]}>
+                {label}
+              </Txt>
+              <Icon name="chevronDown" size={16} strokeWidth={2.6} color={colors.muted} />
             </Press>
+            <BellButton unread={(inbox.data?.unread ?? 0) > 0} onPress={() => router.push("/notifications")} label={f.notifications} />
           </View>
           <View style={styles.titleRow}>
             <Txt accessibilityRole="header" style={[font(900, 125), styles.title]}>
@@ -112,9 +106,6 @@ export default function Deals() {
               {f.titleBottom}
               <Txt style={[font(900, 125), styles.title, { color: colors.orange }]}>.</Txt>
             </Txt>
-            <View style={styles.bellWrap}>
-              <BellButton unread={(inbox.data?.unread ?? 0) > 0} onPress={() => router.push("/notifications")} label={f.notifications} />
-            </View>
           </View>
           <View style={styles.searchWrap}>
             <SearchUnderline value={q} onChange={setQ} placeholder={f.search} label={f.search} />
@@ -129,19 +120,17 @@ export default function Deals() {
           </CategoryRow>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.controls} style={styles.controlsBox}>
+        <View style={styles.controls}>
           <Txt style={[font(800), styles.count]}>{feed.data ? f.count(list.length) : ""}</Txt>
-          <TogglePill pressed={liveOnly} onChange={setLiveOnly} label={f.liveNow} />
-          <DropdownChip label={f.sortLabel} value={f.sort[sort]} onPress={() => setSheet("sort")} />
-          <ViewSwitch
-            value={view}
-            onChange={setView}
-            options={[
-              { value: "list", label: f.viewList },
-              { value: "map", label: f.viewMap },
-            ]}
-          />
-        </ScrollView>
+          <Press onPress={() => setLiveOnly(!liveOnly)} accessibilityRole="switch" accessibilityState={{ checked: liveOnly }} scale={0.97} style={styles.live}>
+            <Toggle on={liveOnly} />
+            <Txt style={[font(700), styles.controlText]}>{f.liveNow}</Txt>
+          </Press>
+          <Press onPress={() => setSheet("sort")} accessibilityRole="button" accessibilityLabel={`${f.sortLabel}: ${f.sort[sort]}`} scale={0.97} style={styles.sortLink}>
+            <Txt style={[font(700), styles.controlText, { color: colors.blue }]}>{f.sort[sort]}</Txt>
+            <Icon name="chevronDown" size={14} strokeWidth={2.8} color={colors.blue} />
+          </Press>
+        </View>
         <StaleNote at={feed.staleAt} style={styles.stale} />
 
         {feed.loading ? (
@@ -212,19 +201,19 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.paper },
   header: { paddingHorizontal: 16 },
   dateRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  date: { fontSize: 11, letterSpacing: em(11, 0.1), color: colors.muted },
-  place: { height: 44, flexDirection: "row", alignItems: "center", gap: 5 },
-  placeText: { fontSize: 11, letterSpacing: em(11, 0.1), color: colors.ink, textDecorationLine: "underline" },
+  place: { height: 44, flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 },
+  placeText: { fontSize: 16, flexShrink: 1 },
   titleRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 },
   title: { marginTop: 2, fontSize: 50, lineHeight: 44, letterSpacing: em(50, -0.05) },
-  bellWrap: { paddingBottom: 4 },
   // Saytda sarlavha qatorlari line-height 0.88 bilan siqiladi — RN qator qutisi 11px balandroq, shuni qoplaydi
   // saytda mt-3.5
   searchWrap: { marginTop: 14 },
   cats: { marginTop: 16, paddingVertical: 4 },
-  controlsBox: { marginTop: 8, flexGrow: 0 },
-  controls: { height: 48, alignItems: "center", gap: 12, paddingHorizontal: 16 },
-  count: { fontSize: 15 },
+  controls: { height: 48, marginTop: 8, flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16 },
+  count: { flex: 1, fontSize: 15 },
+  live: { flexDirection: "row", alignItems: "center", gap: 8, height: 44 },
+  sortLink: { flexDirection: "row", alignItems: "center", gap: 4, height: 44 },
+  controlText: { fontSize: 14 },
   stale: { marginLeft: 16 },
   list: { gap: 18, paddingHorizontal: 16, paddingTop: 12 },
   marks: { position: "absolute", top: 12, left: 12, zIndex: 2, gap: 6, maxWidth: "70%" },

@@ -7,7 +7,7 @@ import { copy } from "@/copy";
 import { resetTo, routeFor, useApp } from "@/state";
 import { colors, font } from "@/theme";
 import { Icon } from "@/ui/icons";
-import { BackArrow, ErrorBox, FooterLink, Grow, Label, Logo, PasswordBox, PrimaryButton, Screen, TextAction, Title, TopBar, Txt } from "@/ui/kit";
+import { BackArrow, ErrorBox, FooterLink, Grow, Label, Logo, PasswordBox, PrimaryButton, Screen, TextAction, TopBar, Txt } from "@/ui/kit";
 
 /** Kirish (12): hisob topildi — parol. "Parolni unutdim" — shu SMS tasdig'i bilan yangi parol. */
 export default function Login() {
@@ -27,7 +27,7 @@ export default function Login() {
       resetTo(routeFor(me));
     } catch (e) {
       const left = e instanceof ApiError && e.code === "wrong_password" ? e.details.left : undefined;
-      setError(typeof left === "number" ? l.wrongPassword(left) : errorText(e));
+      setError(typeof left === "number" ? l.wrongPasswordShort : errorText(e));
     } finally {
       setBusy(false);
     }
@@ -46,11 +46,9 @@ export default function Login() {
             {verify?.initial ? <Txt style={[font(900), { fontSize: 24 }]}>{verify.initial}</Txt> : <Icon name="user" size={28} strokeWidth={2.4} />}
           </View>
           <View style={styles.accountText}>
-            <Txt style={[font(600), { fontSize: 14, color: colors.muted }]}>{l.found}</Txt>
             <Txt style={[font(800), { fontSize: 20 }]}>{verify?.masked ?? ""}</Txt>
           </View>
         </View>
-        <Title text={l.passwordTitle} size={42} style={styles.title} />
       </View>
 
       <View style={styles.field}>
@@ -69,7 +67,7 @@ export default function Login() {
           label={l.passwordLabel}
         />
         <View style={styles.forgot}>
-          <TextAction underline weight={800} onPress={() => router.push("/auth/password?mode=reset")}>
+          <TextAction underline weight={800} onPress={() => router.push("/auth/forgot")}>
             {l.forgot}
           </TextAction>
         </View>
@@ -77,12 +75,12 @@ export default function Login() {
       </View>
 
       <PrimaryButton onPress={() => void submit()} loading={busy} disabled={!verify || !password} style={styles.cta}>
-        {busy ? l.signingIn : l.signIn}
+        {l.signInAction}
       </PrimaryButton>
 
       <Grow />
 
-      <FooterLink lead={l.otherNumber} onPress={() => resetTo("/auth/phone?intent=student")} />
+      <FooterLink lead={l.otherNumber} onPress={() => resetTo("/auth/signin")} />
     </Screen>
   );
 }

@@ -21,16 +21,14 @@ export const en: Copy = {
   language: "Language",
 
   langScreen: {
-    title: "Welcome!",
-    lead: "Choose the app language. You can change it later in settings.",
+    title: "Language",
+    lead: "Choose the app language.",
     cardTop: "Bookstore · next to campus",
     cardBottom: "Textbooks and notebooks",
   },
 
   auth: {
-    title: "Let's<br>start.",
-    lead: "Sign in with one tap. No account yet? We'll create one for you.",
-    businessLead: "Sign in to your business account with one tap. No account yet? You'll fill in an application.",
+    registerTitle: "Sign up.",
     google: "Continue with Google",
     apple: "Continue with Apple",
     or: "or",
@@ -128,12 +126,7 @@ export const en: Copy = {
   },
   login: {
     title: "Phone<br>number.",
-    lead: "Enter your phone number. We'll text you a code — signing up and signing in both start here.",
-    businessLead: "Enter the phone number for your business account. We'll text you a code.",
     badge: "−25%",
-    returningTitle: "Welcome<br>back!",
-    returningLead: "Confirm your phone number to sign in.",
-    returningNote: "You signed in with this number last time.",
     otherPhone: "Different number?",
     otherPhoneAction: "Change",
     phoneLabel: "Phone number",
@@ -178,7 +171,7 @@ export const en: Copy = {
     ruleLength: "At least 8 characters",
     ruleMix: "Letters and numbers",
     strength: ["", "Weak", "Fair", "Good", "Strong"],
-    save: "Save and sign in",
+    save: "Save",
     saving: "Saving…",
     weakPassword: "Use at least 8 characters with both letters and numbers.",
     mismatch: "Passwords don't match.",
@@ -209,6 +202,10 @@ export const en: Copy = {
     currentLabel: "Current password",
     changed: "Password changed.",
     rememberPassword: "Remembered your password?",
+    wrongPasswordShort: "Wrong password",
+    ruleDigit: "At least one number",
+    ruleLetter: "At least one letter",
+    noAccountFound: "This number is not registered.",
   },
 
   student: {

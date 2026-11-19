@@ -25,17 +25,15 @@ export const uz = {
 
   /** Til (birinchi ochilish) — design/app-flow/Til.dc.html */
   langScreen: {
-    title: "Xush kelibsiz!",
-    lead: "Ilova tilini tanlang. Keyin sozlamalarda o'zgartirish mumkin.",
+    title: "Til",
+    lead: "Ilova tilini tanlang.",
     cardTop: "Kitob do'koni · universitet yonida",
     cardBottom: "Darsliklar va daftarlar",
   },
 
   /** Kirish usuli — design/app-flow/Auth.dc.html */
   auth: {
-    title: "Boshla<br>ymiz.",
-    lead: "Bir bosishda kiring. Hisobingiz bo'lmasa, o'zi ochiladi.",
-    businessLead: "Biznes hisobiga bir bosishda kiring. Hisob bo'lmasa, ariza to'ldirasiz.",
+    registerTitle: "Ro'yxatdan<br>o'tish.",
     google: "Google bilan davom etish",
     apple: "Apple bilan davom etish",
     or: "yoki",
@@ -133,12 +131,7 @@ export const uz = {
   },
   login: {
     title: "Telefon<br>raqam.",
-    lead: "Telefon raqamingizni kiriting. SMS orqali kod yuboramiz, ro'yxatdan o'tish ham, kirish ham shu yerda.",
-    businessLead: "Biznes hisobi uchun telefon raqamingizni kiriting. SMS orqali kod yuboramiz.",
     badge: "−25%",
-    returningTitle: "Qayta<br>xush kelibsiz!",
-    returningLead: "Hisobga kirish uchun telefon raqamingizni tasdiqlang.",
-    returningNote: "Oxirgi marta shu raqam bilan kirgansiz.",
     otherPhone: "Boshqa raqam bilan?",
     otherPhoneAction: "Almashtirish",
     phoneLabel: "Telefon raqam",
@@ -183,7 +176,7 @@ export const uz = {
     ruleLength: "Kamida 8 ta belgi",
     ruleMix: "Harf va raqam birga",
     strength: ["", "Zaif", "O'rtacha", "Yaxshi", "Kuchli"],
-    save: "Saqlash va kirish",
+    save: "Saqlash",
     saving: "Saqlanmoqda…",
     weakPassword: "Parol kamida 8 ta belgi bo'lsin, harf va raqam birga.",
     mismatch: "Parollar bir xil emas.",
@@ -214,6 +207,10 @@ export const uz = {
     currentLabel: "Joriy parol",
     changed: "Parol o'zgartirildi.",
     rememberPassword: "Parol esingizga tushdimi?",
+    wrongPasswordShort: "Parol noto'g'ri",
+    ruleDigit: "Kamida bitta raqam",
+    ruleLetter: "Kamida bitta harf",
+    noAccountFound: "Bu raqam ro'yxatda yo'q.",
   },
 
   student: {

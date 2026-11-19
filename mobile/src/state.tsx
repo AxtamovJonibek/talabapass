@@ -112,7 +112,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     await clearOffline();
     setMe(null);
     setFlowState(initialFlow());
-    resetTo((await getLastPhone()) ? "/auth/returning" : "/auth");
+    resetTo((await getLastPhone()) ? "/auth/signin" : "/auth");
   }, []);
 
   // Ilova ichki manzildan ochilsa (push havolasi, web) ishga tushish ekrani (`index.tsx`) chetlab o'tiladi —
@@ -131,7 +131,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         if (!meRef.current) return;
         setMe(null);
         setFlowState(initialFlow());
-        void getLastPhone().then((last) => resetTo(last ? "/auth/returning" : "/auth"));
+        void getLastPhone().then((last) => resetTo(last ? "/auth/signin" : "/auth"));
       }),
     [],
   );
