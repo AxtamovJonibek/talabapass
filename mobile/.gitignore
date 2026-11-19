@@ -43,3 +43,8 @@ yarn-error.*
 # Muhit (namuna .env.example)
 .env
 .env.local
+
+# Google/Firebase service account kalitlari (sir)
+*-service-account*.json
+*serviceAccount*.json
+service-account*.json

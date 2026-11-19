@@ -33,6 +33,7 @@
     },
     "android": {
       "package": "uz.talabapass.app",
+      "googleServicesFile": "./google-services.json",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#2432D6",

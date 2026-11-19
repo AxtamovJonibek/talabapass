@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "853458934258",
+    "project_id": "talabapass",
+    "storage_bucket": "talabapass.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:853458934258:android:b762154d57115fcbee336b",
+        "android_client_info": {
+          "package_name": "uz.talabapass.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "853458934258-hhttnplr9bpidjo7t6mqh89rv28ac798.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJRS8Xn3hHkc_K7g9iy3JziUwSBv6_rNY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "853458934258-hhttnplr9bpidjo7t6mqh89rv28ac798.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "853458934258-u6d85ouqu2s078lh88g95ueme7tfm3jn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "uz.talabapass.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
