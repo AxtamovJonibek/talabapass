@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ok, readJson, route } from "@/server/api/http";
 import { limit } from "@/server/api/rate-limit";
+import { apiLocale } from "@/server/api/rules";
 import { authenticate } from "@/server/api/session";
 import { db } from "@/server/db";
 
@@ -14,10 +15,12 @@ export const POST = route(async (request) => {
   const { user, sessionId } = await authenticate(request);
   await limit("write", user.id);
   const { token, platform } = await readJson(request, device);
+  // Ilova tili (`Accept-Language`) — qaror xabarlari shu tilda ketadi
+  const locale = apiLocale(request.headers.get("accept-language"));
   await db.pushDevice.upsert({
     where: { token },
-    create: { token, platform, userId: user.id, sessionId },
-    update: { platform, userId: user.id, sessionId },
+    create: { token, platform, userId: user.id, sessionId, locale },
+    update: { platform, userId: user.id, sessionId, locale },
   });
   return ok({ ok: true });
 });

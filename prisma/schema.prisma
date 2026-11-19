@@ -781,6 +781,8 @@ model PushDevice {
   sessionId String?
   token     String       @unique
   platform  PushPlatform
+  /// Ilova tili (uz | ru | en) — xabar shu tilda yuboriladi; yo'q — uz
+  locale    String?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 

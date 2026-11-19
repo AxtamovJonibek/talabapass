@@ -42,8 +42,8 @@ const isGone = (error: unknown) => {
  * Berilgan foydalanuvchilarning barcha qurilmalariga bir xil yuklamani yuboradi: brauzer obunalari (Web Push) va ilova
  * qurilmalari (Expo push, `PushDevice`). Xato bitta qurilmada boshqasiga ta'sir qilmaydi. Qaytadi: yuborilganlar soni.
  */
-export async function sendPushToUsers(userIds: string[], payload: string): Promise<number> {
-  const expo = expoFromWebPayload(payload);
+export async function sendPushToUsers(userIds: string[], payload: string, options: { skipApp?: boolean } = {}): Promise<number> {
+  const expo = options.skipApp ? null : expoFromWebPayload(payload);
   const [web, app] = await Promise.all([sendWebPush(userIds, payload), expo ? sendExpoPush(userIds, expo) : 0]);
   return web + app;
 }

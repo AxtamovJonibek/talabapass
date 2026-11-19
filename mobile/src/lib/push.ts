@@ -28,10 +28,11 @@ function notifications(): Promise<NotificationsModule | null> {
     try {
       const N = await import("expo-notifications");
       N.setNotificationHandler({
-        handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: true }),
+        // Ochiq ilovada tepadan o'zimizning banner (`PushHandler`) tushadi — tizim banneri ikkilanmasin
+        handleNotification: async () => ({ shouldShowBanner: false, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: true }),
       });
       if (Platform.OS === "android") {
-        await N.setNotificationChannelAsync("default", { name: "Bildirishnomalar", importance: N.AndroidImportance.DEFAULT });
+        await N.setNotificationChannelAsync("default", { name: "Bildirishnomalar", importance: N.AndroidImportance.HIGH });
         await N.setNotificationChannelAsync("orders", {
           name: "Buyurtmalar",
           description: "Yangi buyurtma va uning holati",
@@ -85,6 +86,8 @@ export async function syncBadge(unread: number): Promise<void> {
   }
 }
 
+export type PushMessage = { title: string; body: string; url: string | null };
+
 const urlOf = (data: unknown) => {
   const url = (data as { url?: unknown } | undefined)?.url;
   return typeof url === "string" ? url : null;
@@ -106,6 +109,23 @@ export function onPushOpen(handler: (url: string | null) => void): () => void {
     }
     if (stopped) return;
     sub = N.addNotificationResponseReceivedListener((response) => handler(urlOf(response.notification.request.content.data)));
+  });
+  return () => {
+    stopped = true;
+    sub?.remove();
+  };
+}
+
+/** Ilova ochiq paytda kelgan push (banner ko'rsatish uchun). Qaytadi: obunani bekor qilish. */
+export function onPushReceived(handler: (message: PushMessage) => void): () => void {
+  let stopped = false;
+  let sub: { remove(): void } | null = null;
+  void notifications().then((N) => {
+    if (!N || stopped) return;
+    sub = N.addNotificationReceivedListener((n) => {
+      const c = n.request.content;
+      handler({ title: c.title ?? "", body: c.body ?? "", url: urlOf(c.data) });
+    });
   });
   return () => {
     stopped = true;

@@ -202,7 +202,7 @@ describe("tizim xabari (tasdiq / rad)", () => {
   it("talabaga ilova ichi xabar tushadi; sabab matnga kiradi va 150 belgiga qisqartiriladi", async () => {
     await notifyUser(students.a1, "studentRejected", { reason: "Rasm xira, o'qib bo'lmaydi" }, ADMIN);
     const [item] = await inboxItems(students.a1, "/chegirmalar");
-    expect(item).toMatchObject({ title: "Guvohnoma rad etildi", unread: true, href: "/chegirmalar" });
+    expect(item).toMatchObject({ title: "Hujjat rad etildi", unread: true, href: "/chegirmalar" });
     expect(item!.body).toContain("Rasm xira");
 
     await notifyUser(students.a2, "studentRejected", { reason: "x".repeat(500) }, ADMIN);

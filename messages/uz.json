@@ -2032,20 +2032,20 @@
     },
     "direct": {
       "studentApproved": {
-        "title": "Guvohnoma tasdiqlandi",
-        "body": "Endi talaba chegirmalaridan foydalanishingiz mumkin."
+        "title": "Talabaligingiz tasdiqlandi",
+        "body": ""
       },
       "studentRejected": {
-        "title": "Guvohnoma rad etildi",
-        "body": "Sabab: {reason}. Yangi rasm yuklab, qayta yuboring."
+        "title": "Hujjat rad etildi",
+        "body": "{reason}"
       },
       "businessApproved": {
         "title": "Biznesingiz tasdiqlandi",
-        "body": "Endi chegirma qo'shib, talabalarga ko'rinishingiz mumkin."
+        "body": ""
       },
       "businessRejected": {
         "title": "Ariza rad etildi",
-        "body": "Sabab: {reason}. Ma'lumotlarni tuzatib, qayta yuboring."
+        "body": "{reason}"
       },
       "couponRedeemed": {
         "title": "Xarid tasdiqlandi · {business}",

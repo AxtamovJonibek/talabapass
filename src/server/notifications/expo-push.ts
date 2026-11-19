@@ -61,9 +61,10 @@ function headers(): Record<string, string> {
 }
 
 /** Qaytadi: Expo qabul qilgan xabarlar soni. */
-export async function sendExpoPush(userIds: string[], message: ExpoMessage, send: Fetch = fetch): Promise<number> {
+/** `locale` berilsa — faqat shu tildagi qurilmalarga (tili yo'q qurilma — uz). */
+export async function sendExpoPush(userIds: string[], message: ExpoMessage, send: Fetch = fetch, locale?: string): Promise<number> {
   if (userIds.length === 0) return 0;
-  const devices = (await db.pushDevice.findMany({ where: { userId: { in: userIds } }, select: { id: true, token: true, userId: true } })).filter((d) => isExpoToken(d.token));
+  const devices = (await db.pushDevice.findMany({ where: { userId: { in: userIds }, ...(locale ? (locale === "uz" ? { OR: [{ locale: null }, { locale: "uz" }] } : { locale }) : {}) }, select: { id: true, token: true, userId: true } })).filter((d) => isExpoToken(d.token));
   if (devices.length === 0) return 0;
   const unread = await db.userNotification.groupBy({ by: ["userId"], where: { userId: { in: [...new Set(devices.map((d) => d.userId))] }, readAt: null }, _count: { _all: true } });
   const badge = new Map(unread.map((u) => [u.userId, u._count._all]));

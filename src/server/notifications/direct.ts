@@ -5,6 +5,7 @@ import { formatSom } from "@/lib/format";
 import { BODY_MAX, clip, notificationHref, pushPayload, TITLE_MAX } from "@/lib/notifications";
 import { db } from "../db";
 import { sendSms } from "../sms";
+import { sendExpoPush } from "./expo-push";
 import { sendPushToUsers } from "./push";
 
 /**
@@ -15,6 +16,22 @@ import { sendPushToUsers } from "./push";
 export type DirectEvent = "studentApproved" | "studentRejected" | "businessApproved" | "businessRejected";
 
 type Params = { reason?: string };
+
+/** Ilova qurilmasining tilidagi qisqa matnlar (ilova ichidagi xabar va veb-push — o'zbekcha, `messages/uz.json`). */
+const APP_TEXT: Record<"ru" | "en", Record<DirectEvent, { title: string; body: string }>> = {
+  ru: {
+    studentApproved: { title: "Студенчество подтверждено", body: "" },
+    studentRejected: { title: "Документ отклонён", body: "{reason}" },
+    businessApproved: { title: "Ваш бизнес подтверждён", body: "" },
+    businessRejected: { title: "Заявка отклонена", body: "{reason}" },
+  },
+  en: {
+    studentApproved: { title: "Student status confirmed", body: "" },
+    studentRejected: { title: "Document rejected", body: "{reason}" },
+    businessApproved: { title: "Your business is approved", body: "" },
+    businessRejected: { title: "Application rejected", body: "{reason}" },
+  },
+};
 
 const HOME: Record<DirectEvent, string> = {
   studentApproved: "/chegirmalar",
@@ -54,10 +71,16 @@ export async function notifyUser(userId: string, event: DirectEvent, params: Par
       select: { id: true, title: true, body: true },
     });
 
+    const url = notificationHref({ type: "HOME" }, HOME[event]);
+    const appPush = (["uz", "ru", "en"] as const).map((locale) => {
+      const text = locale === "uz" ? { title, body } : { title: APP_TEXT[locale][event].title, body: clip(APP_TEXT[locale][event].body.replace("{reason}", reason), BODY_MAX) };
+      return sendExpoPush([userId], { title: text.title, body: text.body, data: { url, id: notification.id } }, undefined, locale);
+    });
     await Promise.allSettled([
-      sendPushToUsers([userId], pushPayload(notification, notificationHref({ type: "HOME" }, HOME[event]))),
+      sendPushToUsers([userId], pushPayload(notification, url), { skipApp: true }),
+      ...appPush,
       // Raqamsiz (Google/Apple) hisobga SMS yo'q — ilova ichi va push yetadi
-      user.phone ? sendSms(user.phone, t("sms", { body })) : Promise.resolve(),
+      user.phone ? sendSms(user.phone, t("sms", { body: body ? `${title}: ${body}` : title })) : Promise.resolve(),
     ]).then((results) => {
       for (const r of results) if (r.status === "rejected") console.warn("[notifyUser]", event, (r.reason as Error).message);
     });
