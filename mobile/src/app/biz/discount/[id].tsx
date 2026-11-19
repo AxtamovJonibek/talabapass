@@ -7,11 +7,12 @@ import { ApiError, errorText } from "@/api/client";
 import { bizApi, type DiscountDraft, type DiscountForm, type DiscountStatus, type DiscountType } from "@/api/business";
 import type { LocalFile } from "@/api/endpoints";
 import { copy } from "@/copy";
-import { discountTerms, emptyDraft, formatDateRange, parseAmount, parseDateRange, PERCENT_MAX, PERCENT_MIN, todayIso, validateDiscount, type DiscountField } from "@/lib/discount";
+import { discountTerms, emptyDraft, parseAmount, PERCENT_MAX, PERCENT_MIN, todayIso, validateDiscount, type DiscountField } from "@/lib/discount";
 import { formatSom, MINUS } from "@/lib/format";
 import { daysText, formatSchedule, hoursFor, outsideHours, parseSchedule, scheduleOf, type Range, type WeekSchedule } from "@/lib/hours";
 import { pickImage } from "@/lib/pick";
 import { useLoad } from "@/lib/use-load";
+import { PeriodPicker, type Period } from "@/site/period";
 import { DayChips, TimeRangePicker } from "@/site/time";
 import { Button, Choice, mono, SiteField, SiteInput } from "@/site/ui";
 import { useApp } from "@/state";
@@ -26,11 +27,6 @@ const PERCENT_STEP = 5;
 const PRICE_STEP = 1000;
 const IMAGES_MAX = 4;
 const groupDigits = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-const addDays = (isoDate: string, days: number) => {
-  const d = new Date(`${isoDate}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-};
 type Category = { icon: string; tileColor: string; inkColor: string };
 const NO_CATEGORY: Category = { icon: "all", tileColor: colors.surface, inkColor: colors.ink };
 /** Muharrirdagi rasm: saqlangani (`id`) yoki saqlangandan keyin yuklanadigan yangi fayl */
@@ -39,7 +35,7 @@ type EditorImage = { key: string; url: string; id?: string; file?: LocalFile };
 /**
  * B2 — chegirma yaratish / tahrirlash, saytdagi telefon muharriri (`EditorMobile`, `useDiscountEditor`): sarlavha va
  * "Qoralama", holat yozuvi, mahsulot (kategoriya plitkasi bilan), rasmlar (4 tagacha), tur, asl narx va qora qiymat qutisi
- * (+/−), kunlar, soat (tayyor oraliqlar / g'ildirak), kunlik son ("60 ta"), muddat ("13.10 – 31.10"), talabaga ko'rinishi;
+ * (+/−), kunlar, soat (tayyor oraliqlar / g'ildirak), kunlik son ("60 ta"), muddat (tayyor tanlovlar / sana g'ildiraklari), talabaga ko'rinishi;
  * pastda "E'lon qilish" / "Saqlash". Tekshiruv saytdagi `validateDiscount`; rasmlar saqlangandan keyin yuklanadi.
  */
 export default function DiscountEditor() {
@@ -97,7 +93,7 @@ function EditorForm({ id, initial, seed }: { id: string | null; initial: Discoun
   const [weekdays, setWeekdays] = useState(d0.weekdays);
   const [range, setRange] = useState<Range>({ from: d0.fromMinute ?? 720, to: d0.toMinute ?? 900 });
   const [limit, setLimit] = useState(d0.dailyLimit != null ? String(d0.dailyLimit) : "");
-  const [period, setPeriod] = useState(formatDateRange(initial ? d0.startsOn : today, initial ? d0.endsOn : addDays(today, 30), today));
+  const [dates, setDates] = useState<Period>({ startsOn: d0.startsOn, endsOn: d0.endsOn });
   const [status, setStatus] = useState<DiscountStatus | null>(initial?.status ?? null);
   const [images, setImages] = useState<EditorImage[]>((initial?.images ?? []).map((i) => ({ key: i.id, url: imageUrl(i.url), id: i.id })));
   const [removed, setRemoved] = useState<string[]>([]);
@@ -114,7 +110,6 @@ function EditorForm({ id, initial, seed }: { id: string | null; initial: Discoun
   const originalPrice = parseAmount(original);
   // Yangi narx tanlanmagan bo'lsa — asl narxning 70% i (1000 ga yaxlitlab), saytdagidek
   const price = newPrice ?? (originalPrice ? Math.max(PRICE_STEP, Math.floor((originalPrice * 0.7) / PRICE_STEP) * PRICE_STEP) : null);
-  const dates = parseDateRange(period, today);
   const draft: DiscountDraft = {
     title,
     type,
@@ -126,8 +121,8 @@ function EditorForm({ id, initial, seed }: { id: string | null; initial: Discoun
     toMinute: range.to === 0 ? 1440 : range.to,
     dailyLimit: parseAmount(limit),
     perStudentLimit: d0.perStudentLimit,
-    startsOn: dates?.startsOn ?? "",
-    endsOn: dates?.endsOn ?? "",
+    startsOn: dates.startsOn,
+    endsOn: dates.endsOn,
     terms: d0.terms,
   };
   const terms = discountTerms(type === "PERCENT" ? { ...draft, percent: draft.percent ?? 0 } : draft);
@@ -379,19 +374,11 @@ function EditorForm({ id, initial, seed }: { id: string | null; initial: Discoun
               style={{ paddingHorizontal: 12 }}
             />
           </SiteField>
-          <SiteField label={e.period} error={errorOf("dates")} style={styles.flex1}>
-            <SiteInput
-              mono
-              compact
-              keyboardType="numbers-and-punctuation"
-              value={period}
-              editable={!ended}
-              onChangeText={setPeriod}
-              placeholder={e.periodPlaceholder}
-              invalid={Boolean(errorOf("dates"))}
-              style={{ paddingHorizontal: 12 }}
-            />
-          </SiteField>
+        </View>
+
+        <View style={{ gap: 8 }}>
+          <Txt style={[font(600), { fontSize: 13 }]}>{e.period}</Txt>
+          <PeriodPicker value={dates} today={today} onChange={setDates} disabled={ended} error={errorOf("dates")} />
         </View>
 
         <View style={styles.preview}>
