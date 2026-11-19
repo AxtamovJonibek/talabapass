@@ -103,6 +103,8 @@ export const businessFull = (id: string) =>
       typeLabel: true,
       address: true,
       landmark: true,
+      lat: true,
+      lng: true,
       workingHours: true,
       description: true,
       contactName: true,

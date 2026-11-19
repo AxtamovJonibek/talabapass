@@ -199,7 +199,7 @@ export function useSocialSignIn(intent: Intent) {
         verify: null,
         registrationTicket: result.registrationTicket,
         social: { firstName, lastName, email: result.profile.email },
-        business: { ...emptyDraft(), contactName: `${firstName} ${lastName}`.trim() },
+        business: emptyDraft(),
       });
       // Parol ma'lumotlardan oldin, o'tkazib yuborib bo'lmaydi
       router.push("/auth/password?mode=social");

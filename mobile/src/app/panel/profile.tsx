@@ -4,10 +4,10 @@ import { useCallback, useState } from "react";
 import { Alert, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { errorText } from "@/api/client";
-import { bizApi } from "@/api/business";
+import { bizApi, type BusinessProfile as ProfileData } from "@/api/business";
 import { copy, langName } from "@/copy";
 import { initials } from "@/lib/format";
-import { contactLine } from "@/lib/phone";
+import { contactLine, displayPhone, localDigits } from "@/lib/phone";
 import { pickImage } from "@/lib/pick";
 import { useLoad } from "@/lib/use-load";
 import { BlockHead, CashierList, DiscountList, ProfileHeader } from "@/site/business";
@@ -26,6 +26,30 @@ function Row({ label, onPress, danger = false, value }: { label: string; onPress
         {value ? <Txt style={[font(700), { fontSize: 15, color: colors.blue }]}>{` · ${value}`}</Txt> : null}
       </Txt>
     </Press>
+  );
+}
+
+/** Ariza ma'lumotlari (nom/manzil/STIR/aloqa/joylashuv/ish vaqti) — admin to'ldirgani ham shu yerda ko'rinadi */
+function Details({ b }: { b: ProfileData }) {
+  const d = copy.biz.profile.details;
+  const rows: [string, string | null][] = [
+    [d.address, b.address],
+    [d.tin, b.tin],
+    [d.phone, b.publicPhone ? displayPhone(localDigits(b.publicPhone)) : null],
+    [d.telegram, b.telegram ? `@${b.telegram}` : null],
+    [d.hours, b.workingHours || null],
+    [d.location, b.lat !== null && b.lng !== null ? `${b.lat.toFixed(5)}, ${b.lng.toFixed(5)}` : null],
+  ];
+  return (
+    <View style={styles.details}>
+      <BlockHead title={d.title} />
+      {rows.map(([label, value]) => (
+        <View key={label} style={styles.detailRow}>
+          <Txt style={{ fontSize: 13, color: colors.muted }}>{label}</Txt>
+          <Txt style={[font(700), styles.detailValue]}>{value ?? d.none}</Txt>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -141,6 +165,7 @@ export default function BusinessProfile() {
         <View style={[styles.headPlaceholder, { paddingTop: insets.top + 56 }]}>{profile.error ? <Failed error={profile.error} onRetry={() => void profile.reload()} /> : <Loading />}</View>
       )}
       <View style={styles.body}>
+        {b ? <Details b={b} /> : null}
         <BlockHead title={copy.biz.discounts.title} action={copy.biz.discounts.addShort} onAction={() => router.push("/biz/discount/new")} />
         {discounts.data ? (
           <DiscountList discounts={discounts.data.discounts} onChange={(next) => discounts.setData(() => ({ discounts: next }))} />
@@ -167,6 +192,9 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.paper },
   body: { paddingHorizontal: 16, paddingTop: 18 },
   cashiers: { paddingTop: 18 },
+  details: { paddingBottom: 18 },
+  detailRow: { flexDirection: "row", justifyContent: "space-between", gap: 16, paddingVertical: 6 },
+  detailValue: { flex: 1, fontSize: 14, textAlign: "right", color: colors.ink },
   row: { marginTop: 12, height: 50, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   extra: { marginTop: 12, borderTopWidth: 1, borderTopColor: colors.line },
   version: { fontSize: 12, color: colors.muted2, textAlign: "center", marginTop: 16 },

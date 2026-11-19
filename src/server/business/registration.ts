@@ -97,6 +97,8 @@ export function ownBusiness(ownerId: string) {
       tin: true,
       contactName: true,
       contactPhone: true,
+      publicPhone: true,
+      telegram: true,
       status: true,
       rejectReason: true,
       submittedAt: true,

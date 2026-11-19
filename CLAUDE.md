@@ -545,6 +545,10 @@ Production'ga chiqishdan oldin har biri bajarilgan yoki ongli ravishda qoldirilg
   `src/lib/profile.ts`, `profile-image.ts`). Apple Android'da — web oqimi (`src/server/api/apple-web.ts`: start → `form_post` callback →
   muhrlangan ticket + verifier), `APPLE_CLIENT_ID` = bundle ID va Services ID (vergul bilan), `app-config` `auth.appleWeb`.
   Splash — kvadrat `splash-icon.png` (Android 12+ doira niqobi), adaptive ikonka 66dp xavfsiz zonada (`scripts/brand-assets.mjs`).
+- Biznes ro'yxati (Expo): kirish usuli + parol → BITTA ekran `business/info` (nom, manzil, STIR, telefon, Telegram majburiy; rasm ixtiyoriy) → `business/review`
+  ("Arizangiz qabul qilindi", holat kutilmoqda; tasdiqlansa push/`me` yangilanishi bilan ekran o'zi almashadi). Server: `server/business/quick-application.ts`,
+  qoidalar `lib/business-application.ts`; kategoriya (standart `SHOP`), ish vaqti va koordinatani admin `/admin/bizneslar?id=` da to'ldiradi (`BusinessAdminForm`, lat/lng).
+  Saytdagi ro'yxat (`registration.ts`) o'zgarmagan.
 - Biznes ilovasi (`src/app/panel` tablar, `src/app/biz`): egasi (tasdiqlangan biznes) va kassir, rolga qarab menyu; API — `/api/v1/business/*`
   (`src/server/api/business.ts`: `requireApiOwner`, `requireApiScanner`; testlar `business.itest.ts`). Kassir ilovada telefon raqami bilan
   qo'shiladi (`CashierInvite.phone`, `/auth/verify` → `role: "cashier"` → `/cashier/register`). Fayllar (rasm, chek PDF) API'da imzoli

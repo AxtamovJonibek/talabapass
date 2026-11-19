@@ -31,9 +31,11 @@ describe("admin tahrir sxemalari", () => {
     };
     const value = businessEditSchema.parse(raw);
     expect(value).toMatchObject({ tin: "307482915", publicPhone: "+998901112233", telegram: "bodom_osh", instagram: null, legalName: null });
-    const bad = businessEditSchema.safeParse({ ...raw, tin: "123", telegram: "ab", publicPhone: "x" });
+    const bad = businessEditSchema.safeParse({ ...raw, tin: "123", telegram: "ab", publicPhone: "x", lat: "95", lng: "69,24" });
     expect(bad.success).toBe(false);
-    if (!bad.success) expect(failedFields(bad.error).sort()).toEqual(["publicPhone", "telegram", "tin"]);
+    if (!bad.success) expect(failedFields(bad.error).sort()).toEqual(["lat", "publicPhone", "telegram", "tin"]);
+    expect(businessEditSchema.parse({ ...raw, lat: "41,311081", lng: "69.240562" })).toMatchObject({ lat: 41.311081, lng: 69.240562 });
+    expect(value).toMatchObject({ lat: null, lng: null });
   });
 
   it("universitet: tur faqat davlat/nodavlat/xorijiy", () => {

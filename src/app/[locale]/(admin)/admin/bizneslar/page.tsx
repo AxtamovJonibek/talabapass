@@ -3,7 +3,10 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { BusinessReview } from "@/components/admin/business-review";
+import { BusinessAdminForm } from "@/components/admin/manage/forms";
+import { UploadButton } from "@/components/admin/super/controls";
 import { QueuePanel, ReviewHeader, type CheckRow, type QueueItem } from "@/components/admin/review-parts";
+import { BUSINESS_KINDS } from "@/lib/business";
 import { formatContact, formatPhone } from "@/lib/format";
 import { businessLogoUrl } from "@/lib/profile-image";
 import { businessDetail, businessQueue, reviewStats } from "@/server/admin/review";
@@ -20,7 +23,7 @@ const initialsOf = (name: string) =>
 // A2 (biznes) — bizneslar tekshiruvi
 async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/admin/bizneslar">) {
   const admin = await requireRole("ADMIN");
-  const [t, kinds] = await Promise.all([getTranslations("admin.review"), getTranslations("businessKind")]);
+  const [t, kinds, ts] = await Promise.all([getTranslations("admin.review"), getTranslations("businessKind"), getTranslations("adminSuper")]);
   const { id } = await searchParams;
   const now = new Date();
 
@@ -70,6 +73,8 @@ async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/
           check: t("checks.smsVerified"),
           tone: "ok",
         },
+        { key: "publicPhone", label: t("fields.applicantPhone"), value: detail.publicPhone ? formatPhone(detail.publicPhone) : "—", check: t("checks.none"), tone: "muted" },
+        { key: "telegram", label: t("fields.telegram"), value: detail.telegram ? `@${detail.telegram}` : "—", check: t("checks.none"), tone: "muted" },
         { key: "hours", label: t("fields.hours"), value: detail.workingHours, check: t("checks.none"), tone: "muted" },
         { key: "firstDiscount", label: t("fields.firstDiscount"), value: detail.discounts[0]?.title ?? "—", check: t("checks.none"), tone: "muted" },
       ]
@@ -102,6 +107,46 @@ async function BusinessReviewPageContent({ searchParams }: PageProps<"/[locale]/
           />
         ) : null}
       </div>
+      {detail ? (
+        <section className="mt-3 flex min-w-0 flex-col gap-3 rounded-16 bg-white p-5" aria-label={ts("partners.info")}>
+          <h3 className="m-0 text-16 font-extrabold">{ts("partners.info")}</h3>
+          <p className="m-0 text-13 text-muted">{t("editHint")}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex size-20 items-center justify-center overflow-hidden rounded-16 bg-surface text-12 text-muted">
+              {businessLogoUrl(detail.id, detail.logoKey) ? (
+                // eslint-disable-next-line @next/next/no-img-element -- himoyalangan API manzili
+                <img src={businessLogoUrl(detail.id, detail.logoKey)!} alt={ts("partners.logo")} className="size-full object-cover" />
+              ) : (
+                ts("partners.noLogo")
+              )}
+            </div>
+            <UploadButton query={`tur=logo&biznes=${detail.id}`} label={ts("partners.upload")} testId="logo-upload" />
+          </div>
+          <BusinessAdminForm
+            key={detail.id}
+            kindLabels={Object.fromEntries(BUSINESS_KINDS.map((k) => [k, kinds(k)]))}
+            business={{
+              id: detail.id,
+              name: detail.name,
+              legalName: detail.legalName ?? "",
+              tin: detail.tin ?? "",
+              kind: detail.kind,
+              typeLabel: detail.typeLabel ?? "",
+              address: detail.address,
+              landmark: detail.landmark ?? "",
+              lat: detail.lat?.toString() ?? "",
+              lng: detail.lng?.toString() ?? "",
+              workingHours: detail.workingHours,
+              description: detail.description ?? "",
+              contactName: detail.contactName ?? "",
+              contactPhone: detail.contactPhone ?? "",
+              publicPhone: detail.publicPhone ?? "",
+              telegram: detail.telegram ?? "",
+              instagram: detail.instagram ?? "",
+            }}
+          />
+        </section>
+      ) : null}
     </AdminShell>
   );
 }

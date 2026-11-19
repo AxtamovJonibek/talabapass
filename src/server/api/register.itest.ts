@@ -10,7 +10,6 @@ import { GET as application } from "@/app/api/v1/business/application/route";
 import { POST as documents } from "@/app/api/v1/business/documents/route";
 import { POST as businessRegister } from "@/app/api/v1/business/register/route";
 import { POST as submit } from "@/app/api/v1/business/submit/route";
-import { POST as validate } from "@/app/api/v1/business/validate/route";
 import { POST as card } from "@/app/api/v1/student/card/route";
 import { POST as studentRegister } from "@/app/api/v1/student/register/route";
 import { GET as status } from "@/app/api/v1/student/status/route";
@@ -126,42 +125,28 @@ describe("API: talaba ro'yxati", () => {
   });
 });
 
-describe("API: biznes ro'yxati (4 qadam)", () => {
-  it("info → tafsilot (hisob) → fayllar → yuborish", async () => {
-    const info = await send(validate, jsonReq("/api/v1/business/validate", { step: "info", name: "A", kind: "CAFE", address: "Toshkent, Chilonzor 1" }));
-    expect(info.json.fields).toEqual(["name"]);
-    const details = await send(validate, jsonReq("/api/v1/business/validate", { step: "details", workingHours: "09:00–22:00", tin: "123", contactName: "Ali Valiyev" }));
-    expect(details.json.fields).toEqual(["tin"]);
-
+describe("API: biznes ro'yxati (bitta ekran)", () => {
+  it("hisob → ixtiyoriy rasm → yuborish", async () => {
     const ticket = await registrationTicket(OWNER_PHONE, "business");
+    const bad = await send(businessRegister, jsonReq("/api/v1/business/register", { registrationTicket: ticket, name: "A", address: "Toshkent, Chilonzor 1", tin: "123", phone: "x", telegram: "" }));
+    expect(bad.json.error.code).toBe("invalid_request");
+    expect(bad.json.error.fields).toEqual(["name", "tin", "phone", "telegram"]);
+
     const created = await send(
       businessRegister,
-      jsonReq("/api/v1/business/register", {
-        registrationTicket: ticket,
-        name: "Test kafe",
-        kind: "CAFE",
-        address: "Toshkent, Chilonzor 1",
-        workingHours: "09:00–22:00",
-        tin: TIN,
-        contactName: "Ali Valiyev",
-      }),
+      jsonReq("/api/v1/business/register", { registrationTicket: ticket, name: "Test kafe", address: "Toshkent, Chilonzor 1", tin: TIN, phone: "+998901112233", telegram: "@test_kafe" }),
     );
     expect(created.status).toBe(201);
     expect(created.json.user).toMatchObject({ role: "BUSINESS_OWNER", business: { name: "Test kafe", status: "PENDING", submitted: false } });
     const token = created.json.tokens.accessToken as string;
 
-    const early = await send(submit, jsonReq("/api/v1/business/submit", { consent: true }, token));
-    expect(early.json.error.code).toBe("no_registration");
-
-    expect((await send(documents, fileReq("/api/v1/business/documents?kind=registration", token, PNG))).status).toBe(201);
-    expect((await send(documents, fileReq("/api/v1/business/documents?kind=photo", token, PNG))).status).toBe(201);
-    expect((await send(submit, jsonReq("/api/v1/business/submit", { consent: false }, token))).json.error.code).toBe("consent_required");
-    expect((await send(submit, jsonReq("/api/v1/business/submit", { consent: true }, token))).status).toBe(200);
+    expect((await send(documents, fileReq("/api/v1/business/documents?kind=logo", token, PNG))).status).toBe(201);
+    expect((await send(submit, jsonReq("/api/v1/business/submit", {}, token))).status).toBe(200);
 
     const app = await send(application, jsonReq("/api/v1/business/application", undefined, token, "GET"));
-    expect(app.json.application).toMatchObject({ status: "PENDING", editable: false, submittedAt: expect.any(String), documents: [{ kind: "REGISTRATION" }, { kind: "PHOTO" }] });
+    expect(app.json.application).toMatchObject({ status: "PENDING", editable: false, submittedAt: expect.any(String), phone: "+998901112233", telegram: "test_kafe", hasLogo: true });
     // Tekshiruvdagi arizaga fayl qo'shilmaydi
-    expect((await send(documents, fileReq("/api/v1/business/documents?kind=photo", token, PNG))).json.error.code).toBe("upload_not_allowed");
+    expect((await send(documents, fileReq("/api/v1/business/documents?kind=logo", token, PNG))).json.error.code).toBe("upload_not_allowed");
   });
 
   it("talaba tokeni bilan biznes endpoint'i — forbidden", async () => {

@@ -177,24 +177,21 @@ parolsiz) → `POST /student/register`
 Talaba holatlari: `DRAFT` (guvohnoma yuklash), `PENDING`, `APPROVED`, `REJECTED` (`rejectReason` bilan, qayta yuklaydi),
 `EXPIRED` (guvohnoma muddati o'tgan — yangisini yuklaydi), `BLOCKED`.
 
-## Biznes ro'yxati (4 qadam)
+## Biznes ro'yxati (bitta ekran)
 
-1. **Info** — `POST /business/validate` `{ step: "info", name, kind, address }` → `{ ok, fields: [] }` (saqlamaydi).
-2. **Tafsilot** — `POST /business/validate` `{ step: "details", workingHours, tin, description?, contactName }`, so'ng
-   `POST /business/register` `{ registrationTicket, name, kind, address, workingHours, description?, tin, contactName, deviceName? }`
+1. **Hisob** — `POST /business/register` `{ registrationTicket, name, address, tin, phone, telegram, deviceName? }`
    → 201 `SignedIn` (egasi hisobi va ariza ochiladi) · xato: `invalid_request` + `fields`, `tin_taken`, `step_expired`.
-3. **Fayllar** — `POST /business/documents?kind=registration|photo|logo` (Bearer, multipart `file`) → 201 `{ id, kind }`.
-   Guvohnoma bitta (yangisi almashtiradi, PDF ham), joy fotolari 1–3 ta (`too_many_files`), logotip/foto — faqat rasm.
-   O'chirish: `DELETE /business/documents/<id>`.
-4. **Yuborish** — `POST /business/submit` `{ consent: true }` → `{ ok, status: "PENDING" }` · xato: `no_registration`,
-   `no_photos`, `consent_required`, `not_editable`.
+2. **Rasm (ixtiyoriy)** — `POST /business/documents?kind=logo` (Bearer, multipart `file`) → 201 `{ id, kind }`; faqat rasm.
+3. **Yuborish** — `POST /business/submit` → `{ ok, status: "PENDING" }` · xato: `not_editable`.
+4. **Tuzatish** — `GET|PATCH /business/application` (yuborilmagan yoki rad etilgan; PATCH keyin yana `submit`).
 
-`kind`: `CAFE`, `SHOP`, `SERVICE`, `SPORT`, `BEAUTY`, `EDUCATION`, `ENTERTAINMENT`. STIR — 9 raqam (bo'sh joy bilan ham).
+Kategoriya, ish vaqti va joylashuvni tasdiqlashda admin to'ldiradi. STIR — 9 raqam (bo'sh joy bilan ham), telefon — `+998…`,
+Telegram — `@nom` yoki `t.me/nom`.
 
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
-| `GET /business/application` | Bearer (biznes egasi) | `{ application: { id, name, kind, address, workingHours, description, tin, contactName, status, submittedAt, rejectReason, editable, hasLogo, documents: [{ id, kind, fileName }] } }` |
-| `PATCH /business/application` | Bearer, 2-qadamdagi barcha maydonlar | `{ application }` · faqat yuborilmagan yoki rad etilgan arizada (`not_editable`) |
+| `GET /business/application` | Bearer (biznes egasi) | `{ application: { id, name, address, tin, phone, telegram, status, submittedAt, rejectReason, editable, hasLogo } }` |
+| `PATCH /business/application` | Bearer, `{ name, address, tin, phone, telegram }` | `{ application }` · faqat yuborilmagan yoki rad etilgan arizada (`not_editable`) |
 
 Holat: `PENDING` + `submittedAt: null` — to'ldirilmoqda; `PENDING` + sana — tekshiruvda; `APPROVED`/`WARNED` — faol;
 `REJECTED` — `rejectReason`, tuzatib qayta yuboriladi; `BLOCKED`.

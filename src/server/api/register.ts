@@ -1,9 +1,10 @@
 import "server-only";
 import { z } from "zod";
+import { validateQuickApplication } from "@/lib/business-application";
 import { cleanRequestedName, OTHER_UNIVERSITY } from "@/lib/universities";
 import { NAME } from "@/lib/profile";
 import { acceptPhoneInvite } from "../business/cashiers";
-import { cleanBusinessInfo, createBusinessOwner } from "../business/registration";
+import { createQuickBusiness } from "../business/quick-application";
 import { db } from "../db";
 import { createStudent, studentFormSchema } from "../student/registration";
 import { openRegisterTicket, type NewRole, type SignedIn } from "./auth-flow";
@@ -68,27 +69,25 @@ export async function registerStudent(input: z.infer<typeof studentRegisterSchem
   return finish(user.id, passwordHash, device);
 }
 
-export const businessInfoSchema = z.object({
+export const quickApplicationSchema = z.object({
   name: z.string().max(200),
-  kind: z.string().max(40),
   address: z.string().max(400),
-  workingHours: z.string().max(200),
-  description: z.string().max(400).default(""),
   tin: z.string().max(40),
-  contactName: z.string().max(200),
+  phone: z.string().max(40),
+  telegram: z.string().max(100),
 });
 
-export function cleanInfoOrThrow(info: z.infer<typeof businessInfoSchema>) {
-  const cleaned = cleanBusinessInfo(info);
+export function cleanQuickOrThrow(input: z.infer<typeof quickApplicationSchema>) {
+  const cleaned = validateQuickApplication(input);
   if (!cleaned.ok) throw new ApiError("invalid_request", { fields: cleaned.fields });
-  return cleaned.info;
+  return cleaned.value;
 }
 
-/** Biznes egasi hisobi va ariza (hali yuborilmagan: hujjatlar keyin yuklanadi, so'ng `submit`). */
-export async function registerBusiness(ticket: string, info: z.infer<typeof businessInfoSchema>, device: Device): Promise<SignedIn> {
-  const clean = cleanInfoOrThrow(info);
+/** Biznes egasi hisobi va ariza (hali yuborilmagan: rasm keyin yuklanadi, so'ng `submit`). */
+export async function registerBusiness(ticket: string, input: z.infer<typeof quickApplicationSchema>, device: Device): Promise<SignedIn> {
+  const clean = cleanQuickOrThrow(input);
   const { account, passwordHash } = await freshTicket(ticket, "business");
-  const created = await createBusinessOwner(account, clean);
+  const created = await createQuickBusiness(account, clean);
   if (!created.ok) throw new ApiError("tin_taken");
   return finish(created.userId, passwordHash, device);
 }

@@ -70,6 +70,19 @@ export const studentEditSchema = z.object({
   cardExpiresAt: date,
 });
 
+/** Koordinata: bo'sh — yo'q (null); aks holda `min…max` oralig'idagi son ("41.311081" yoki "41,311081"). */
+const coordinate = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .default("")
+    .transform((v, ctx) => {
+      if (v === "") return null;
+      const n = Number(v.replace(",", "."));
+      if (!Number.isFinite(n) || n < min || n > max) ctx.addIssue({ code: "custom", message: "coordinate" });
+      return n;
+    });
+
 export const businessEditSchema = z.object({
   name: z.string().trim().min(2).max(60),
   legalName: blank(120),
@@ -83,6 +96,8 @@ export const businessEditSchema = z.object({
   typeLabel: blank(40),
   address: z.string().trim().min(5).max(160),
   landmark: blank(140),
+  lat: coordinate(-90, 90),
+  lng: coordinate(-180, 180),
   workingHours: z.string().trim().min(3).max(WORKING_HOURS_MAX),
   description: blank(120),
   contactName: z.string().trim().min(2).max(60),

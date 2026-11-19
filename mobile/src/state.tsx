@@ -16,35 +16,18 @@ export type PickedFile = LocalFile & { uploaded?: boolean };
 
 export type BusinessDraft = {
   name: string;
-  kind: string;
   address: string;
-  workingHours: string;
   tin: string;
-  description: string;
-  contactName: string;
+  /** 9 raqam, +998 siz */
+  phone: string;
+  telegram: string;
+  /** Ixtiyoriy rasm (serverda bor yoki yangi tanlangani) */
   logo: PickedFile | null;
-  /** Serverda allaqachon bor guvohnoma (qayta kirishda) yoki yangi tanlangani */
-  registration: (PickedFile & { serverId?: string }) | null;
-  photos: (PickedFile & { serverId?: string })[];
-  consent: boolean;
   /** Serverdagi ariza bilan to'ldirilganmi (qayta kirishda) */
   loaded: boolean;
 };
 
-export const emptyDraft = (): BusinessDraft => ({
-  name: "",
-  kind: "CAFE",
-  address: "",
-  workingHours: "",
-  tin: "",
-  description: "",
-  contactName: "",
-  logo: null,
-  registration: null,
-  photos: [],
-  consent: false,
-  loaded: false,
-});
+export const emptyDraft = (): BusinessDraft => ({ name: "", address: "", tin: "", phone: "", telegram: "", logo: null, loaded: false });
 
 export type Flow = {
   intent: Intent;

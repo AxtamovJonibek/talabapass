@@ -60,18 +60,21 @@ export type StudentStatusView = {
   verification: { id: string; status: "PENDING" | "APPROVED" | "REJECTED"; fileName: string; rejectReason: string | null; createdAt: string; queuePosition: number | null } | null;
 };
 
-export type BusinessInfo = { name: string; kind: string; address: string; workingHours: string; description: string; tin: string; contactName: string };
+/** Biznes arizasi (bitta ekran): telefon `+998…`, Telegram `@nom` yoki `nom` */
+export type BusinessInfo = { name: string; address: string; tin: string; phone: string; telegram: string };
 
-export type Application = BusinessInfo & {
+export type Application = {
   id: string;
-  description: string | null;
-  contactName: string | null;
+  name: string;
+  address: string;
+  tin: string | null;
+  phone: string | null;
+  telegram: string | null;
   status: BusinessStatus;
   submittedAt: string | null;
   rejectReason: string | null;
   editable: boolean;
   hasLogo: boolean;
-  documents: { id: string; kind: "REGISTRATION" | "PHOTO"; fileName: string }[];
 };
 
 export type Point = { lat: number; lng: number };
@@ -286,16 +289,12 @@ export type StudentProfile = {
 export type StudentProfileEdit = { firstName: string; lastName: string; course: string; faculty: string; districtId: string };
 
 export const businessApi = {
-  validate: (step: "info" | "details", fields: Partial<BusinessInfo>) =>
-    api<{ ok: true; fields: string[] }>("/business/validate", { method: "POST", body: { step, ...fields }, auth: false }),
   register: (registrationTicket: string, info: BusinessInfo) =>
     api<SignedIn>("/business/register", { method: "POST", body: { registrationTicket, ...info, deviceName }, auth: false }),
   application: () => api<{ application: Application }>("/business/application"),
   update: (info: BusinessInfo) => api<{ application: Application }>("/business/application", { method: "PATCH", body: info }),
-  upload: async (kind: "registration" | "photo" | "logo", file: LocalFile) =>
-    api<{ id: string; kind: string }>(`/business/documents?kind=${kind}`, { method: "POST", form: await fileForm(file) }),
-  removeDocument: (id: string) => api<{ ok: true }>(`/business/documents/${id}`, { method: "DELETE" }),
-  submit: () => api<{ ok: true; status: "PENDING" }>("/business/submit", { method: "POST", body: { consent: true } }),
+  uploadLogo: async (file: LocalFile) => api<{ id: string; kind: string }>("/business/documents?kind=logo", { method: "POST", form: await fileForm(file) }),
+  submit: () => api<{ ok: true; status: "PENDING" }>("/business/submit", { method: "POST", body: {} }),
 };
 
 /**

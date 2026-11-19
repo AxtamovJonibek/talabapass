@@ -266,6 +266,8 @@ async function PartnersContent({ searchParams }: { searchParams: PageProps<"/[lo
                     typeLabel: full.typeLabel ?? "",
                     address: full.address,
                     landmark: full.landmark ?? "",
+                    lat: full.lat?.toString() ?? "",
+                    lng: full.lng?.toString() ?? "",
                     workingHours: full.workingHours,
                     description: full.description ?? "",
                     contactName: full.contactName ?? "",

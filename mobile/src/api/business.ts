@@ -212,6 +212,9 @@ export type BusinessProfile = {
   workingHours: string;
   description: string | null;
   status: "PENDING" | "APPROVED" | "WARNED" | "REJECTED" | "BLOCKED";
+  tin: string | null;
+  lat: number | null;
+  lng: number | null;
   publicPhone: string | null;
   telegram: string | null;
   instagram: string | null;

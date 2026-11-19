@@ -212,6 +212,8 @@ export type BusinessFields = {
   typeLabel: string;
   address: string;
   landmark: string;
+  lat: string;
+  lng: string;
   workingHours: string;
   description: string;
   contactName: string;
@@ -249,6 +251,8 @@ export function BusinessAdminForm({ business, kindLabels }: { business: Business
         {text("workingHours", { max: 60 })}
         {text("address", { max: 160 })}
         {text("landmark", { max: 140 })}
+        {text("lat", { mono: 14, max: 20 })}
+        {text("lng", { mono: 14, max: 20 })}
         {text("contactName", { max: 60 })}
         {text("contactPhone", { mono: 14, type: "tel" })}
         {text("publicPhone", { mono: 14, type: "tel" })}

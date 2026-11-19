@@ -196,6 +196,8 @@ async function UsersContent({ searchParams }: { searchParams: PageProps<"/[local
                       typeLabel: business.typeLabel ?? "",
                       address: business.address,
                       landmark: business.landmark ?? "",
+                      lat: business.lat?.toString() ?? "",
+                      lng: business.lng?.toString() ?? "",
                       workingHours: business.workingHours,
                       description: business.description ?? "",
                       contactName: business.contactName ?? "",
