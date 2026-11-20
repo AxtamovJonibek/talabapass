@@ -1989,7 +1989,8 @@
         "card_duplicate": "Bu guvohnoma raqami boshqa hisobda bor — tasdiqlab bo'lmaydi.",
         "expiry_invalid": "Amal muddatini kiriting.",
         "expiry_past": "Guvohnoma muddati o'tgan — tasdiqlab bo'lmaydi.",
-        "expiry_far": "Muddat 7 yildan uzoq — sanani tekshiring."
+        "expiry_far": "Muddat 7 yildan uzoq — sanani tekshiring.",
+        "incomplete": "Tasdiqlab bo'lmaydi — avval to'ldiring: {fields}."
       },
       "reasons": {
         "student": {
@@ -2014,7 +2015,10 @@
       "discountsTitle": "Chegirmalar tekshiruvi",
       "discountsSub": "Narx, foiz va shartlar talabani chalg'itmasligini tekshiring",
       "hintDiscounts": "Tasdiqlangan chegirma biznes ham tasdiqlangan bo'lsa darhol talabalarga ko'rinadi. Rad etish sababi biznesga ko'rinadi.",
-      "preview": "Talaba shunday ko'radi"
+      "preview": "Talaba shunday ko'radi",
+      "reopen": "Qayta ochish",
+      "confirmReopen": "Biznesni qayta ochasizmi?",
+      "reopened": "Biznes qayta ochildi."
     }
   },
   "notifications": {
@@ -2048,6 +2052,10 @@
       },
       "businessRejected": {
         "title": "Ariza rad etildi",
+        "body": "{reason}"
+      },
+      "businessBlocked": {
+        "title": "Biznes bloklandi",
         "body": "{reason}"
       },
       "couponRedeemed": {
@@ -3301,6 +3309,116 @@
       "DRAFT": "Qoralama",
       "REJECTED": "Rad etilgan",
       "ENDED": "Tugagan"
+    }
+  },
+  "adminBusiness": {
+    "listTitle": "Bizneslar",
+    "listSub": "Barcha arizalar va hamkorlar",
+    "search": "Nom, STIR yoki telefon",
+    "searchBtn": "Qidirish",
+    "filters": {
+      "all": "Hammasi",
+      "pending": "Kutilmoqda",
+      "approved": "Tasdiqlangan",
+      "rejected": "Rad etilgan",
+      "blocked": "Bloklangan"
+    },
+    "columns": {
+      "name": "Nomi",
+      "phone": "Telefon",
+      "status": "Holat",
+      "date": "Ariza sanasi"
+    },
+    "status": {
+      "PENDING": "Kutilmoqda",
+      "APPROVED": "Tasdiqlangan",
+      "WARNED": "Tasdiqlangan",
+      "REJECTED": "Rad etilgan",
+      "BLOCKED": "Bloklangan"
+    },
+    "empty": "Hech narsa topilmadi.",
+    "total": "Jami: {n}",
+    "page": "{page} / {pages}",
+    "prev": "Oldingi",
+    "next": "Keyingi",
+    "open": "Ochish",
+    "back": "← Ro'yxat",
+    "gaps": {
+      "kind": "kategoriya",
+      "workingHours": "ish vaqti",
+      "location": "joylashuv"
+    },
+    "hours": {
+      "days": "Kunlar",
+      "every": "Har kuni",
+      "workdays": "Ish kunlari",
+      "weekend": "Dam olish kunlari",
+      "from": "Ochilish",
+      "to": "Yopilish",
+      "short": [
+        "Du",
+        "Se",
+        "Ch",
+        "Pa",
+        "Ju",
+        "Sh",
+        "Ya"
+      ],
+      "empty": "Kun tanlanmagan"
+    },
+    "location": {
+      "hint": "Xaritadan nuqtani nusxalang: 41.311081, 69.240562",
+      "pick": "Kenglik va uzunlik",
+      "missing": "Joylashuv kiritilmagan"
+    },
+    "photos": {
+      "title": "Joy fotolari (3 tagacha)",
+      "upload": "Foto qo'shish"
+    },
+    "contact": {
+      "title": "Aloqa qaydlari",
+      "hint": "Ichki izoh — egasi ko'rmaydi.",
+      "contacted": "Bog'lanildi",
+      "date": "Sana",
+      "note": "Izoh",
+      "add": "Qo'shish",
+      "saved": "Qayd saqlandi.",
+      "empty": "Qayd yo'q.",
+      "noteOnly": "Izoh",
+      "errors": {
+        "empty": "Belgi qo'ying yoki izoh yozing.",
+        "invalid": "Sanani tekshiring.",
+        "notFound": "Biznes topilmadi."
+      }
+    },
+    "changes": {
+      "title": "O'zgarishlar jurnali",
+      "empty": "O'zgarish yo'q.",
+      "admin": "Admin",
+      "owner": "Ega",
+      "none": "bo'sh",
+      "arrow": "{old} → {new}",
+      "fields": {
+        "name": "Nom",
+        "address": "Manzil",
+        "workingHours": "Ish vaqti",
+        "description": "Tavsif",
+        "landmark": "Mo'ljal",
+        "publicPhone": "Telefon (talabaga)",
+        "telegram": "Telegram",
+        "instagram": "Instagram",
+        "legalName": "Yuridik nomi",
+        "tin": "STIR",
+        "kind": "Kategoriya",
+        "typeLabel": "Qisqa tur",
+        "lat": "Kenglik",
+        "lng": "Uzunlik",
+        "contactName": "Mas'ul shaxs",
+        "contactPhone": "Mas'ul telefoni",
+        "logoKey": "Logotip",
+        "photos": "Foto",
+        "status": "Holat"
+      }
     }
   }
 }

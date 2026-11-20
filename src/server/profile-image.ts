@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { audit } from "./audit";
+import { changeBusiness } from "./business/change";
 import { permissionsOf } from "./business/permissions";
 import { db } from "./db";
 import { storage } from "./storage";
@@ -78,7 +79,7 @@ export async function setBusinessLogo(ownerId: string, bytes: Uint8Array): Promi
   await storage().put(key, result.file.bytes);
   try {
     await db.$transaction(async (tx) => {
-      await tx.business.update({ where: { id: business.id }, data: { logoKey: key } });
+      await changeBusiness({ actor: { id: ownerId, role: "OWNER" }, businessId: business.id, changes: { logoKey: key } }, tx);
       await audit({ actorId: ownerId, action: "business.logo", entity: "Business", entityId: business.id }, tx);
     });
   } catch (error) {
@@ -93,7 +94,7 @@ export async function removeBusinessLogo(ownerId: string): Promise<boolean> {
   const business = await ownedBusiness(ownerId);
   if (!business?.logoKey || !(await permissionsOf(business.id)).canEditProfile) return false;
   await db.$transaction(async (tx) => {
-    await tx.business.update({ where: { id: business.id }, data: { logoKey: null } });
+    await changeBusiness({ actor: { id: ownerId, role: "OWNER" }, businessId: business.id, changes: { logoKey: null } }, tx);
     await audit({ actorId: ownerId, action: "business.logo.remove", entity: "Business", entityId: business.id }, tx);
   });
   await dropFile(business.logoKey);

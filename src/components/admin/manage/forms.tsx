@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { HoursField } from "@/components/admin/business/hours-field";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { BUSINESS_KINDS } from "@/lib/business";
@@ -248,7 +249,6 @@ export function BusinessAdminForm({ business, kindLabels }: { business: Business
           </Select>
         </Field>
         {text("typeLabel", { max: 40 })}
-        {text("workingHours", { max: 60 })}
         {text("address", { max: 160 })}
         {text("landmark", { max: 140 })}
         {text("lat", { mono: 14, max: 20 })}
@@ -259,6 +259,9 @@ export function BusinessAdminForm({ business, kindLabels }: { business: Business
         {text("telegram", { max: 80 })}
         {text("instagram", { max: 80 })}
       </Grid>
+      <Field label={f.t("business.workingHours")} htmlFor="b-workingHours" error={f.error("workingHours")}>
+        <HoursField value={business.workingHours} />
+      </Field>
       <Field label={f.t("business.description")} htmlFor="b-description" error={f.error("description")}>
         <Textarea id="b-description" name="description" rows={2} maxLength={120} defaultValue={business.description} invalid={f.bad("description")} />
       </Field>

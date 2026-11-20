@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { useRouter } from "@/i18n/navigation";
-import { approveBusinessAction, blockBusinessAction, rejectBusinessAction, type ReviewResult } from "@/server/actions/admin-review";
+import { approveBusinessAction, blockBusinessAction, rejectBusinessAction, reopenBusinessAction, type ReviewResult } from "@/server/actions/admin-review";
 import { BUSINESS_REJECT_REASONS, type BusinessRejectReason } from "@/server/admin/review-rules";
 import { CheckTable, DetailCard, type CheckRow } from "./review-parts";
 
@@ -30,19 +30,24 @@ const PHOTO_SLOTS = [1, 2, 3] as const;
 /** A2 (biznes) — joy fotolari, hujjatlar, STIR va aloqa ma'lumotlari; tasdiqlash / rad etish / bloklash. */
 export function BusinessReview(props: BusinessReviewData) {
   const t = useTranslations("admin.review");
+  const tb = useTranslations("adminBusiness");
   const router = useRouter();
   const [reason, setReason] = useState<BusinessRejectReason>(BUSINESS_REJECT_REASONS[0]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const decided = props.state !== "PENDING";
+  const reopenable = props.state === "REJECTED" || props.state === "BLOCKED";
 
-  function run(action: () => Promise<ReviewResult>) {
+  function run(action: () => Promise<ReviewResult>, stay = false) {
     setError(null);
     startTransition(async () => {
       const result = await action();
-      if (!result.ok) return setError(t("errors.not_pending"));
+      if (!result.ok) {
+        if (result.error === "incomplete") return setError(t("errors.incomplete", { fields: (result.missing ?? []).map((g) => tb(`gaps.${g}` as "gaps.kind")).join(", ") }));
+        return setError(t("errors.not_pending"));
+      }
+      if (stay) return router.refresh();
       router.push(props.nextHref);
-      router.refresh();
     });
   }
 
@@ -109,6 +114,19 @@ export function BusinessReview(props: BusinessReviewData) {
               </Button>
             </div>
           </div>
+          {reopenable ? (
+            <Button
+              variant="outline"
+              size="md"
+              disabled={pending}
+              aria-busy={pending}
+              onClick={() => {
+                if (window.confirm(t("confirmReopen"))) run(() => reopenBusinessAction({ businessId: props.businessId }), true);
+              }}
+            >
+              {t("reopen")}
+            </Button>
+          ) : null}
           <Button
             variant="danger-outline"
             size="md"

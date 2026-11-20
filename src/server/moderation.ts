@@ -1,4 +1,5 @@
 import "server-only";
+import { logBusinessChange } from "./business/change";
 import { db } from "./db";
 
 /**
@@ -22,6 +23,7 @@ export async function blockUser(userId: string, reason: string, actorId: string)
  */
 export async function blockBusiness(businessId: string, reason: string, actorId: string): Promise<void> {
   await db.$transaction(async (tx) => {
+    const prev = await tx.business.findUnique({ where: { id: businessId }, select: { status: true } });
     const business = await tx.business.update({
       where: { id: businessId },
       data: { status: "BLOCKED", rejectReason: reason, reviewedById: actorId, reviewedAt: new Date() },
@@ -29,6 +31,7 @@ export async function blockBusiness(businessId: string, reason: string, actorId:
     });
     const staff = [...new Set([business.ownerId, ...business.members.map((m) => m.userId)])];
     await tx.session.deleteMany({ where: { userId: { in: staff } } });
+    await logBusinessChange(tx, { businessId, actor: { id: actorId, role: "ADMIN" }, field: "status", oldValue: prev?.status, newValue: `BLOCKED: ${reason}` });
     await tx.auditLog.create({ data: { actorId, action: "business.block", entity: "Business", entityId: businessId, meta: { reason, staff: staff.length } } });
   });
 }
@@ -67,6 +70,7 @@ export async function unblockBusiness(businessId: string, actorId: string): Prom
       data: { status: approvedBefore ? "APPROVED" : "PENDING", rejectReason: null, reviewedById: actorId, reviewedAt: new Date() },
     });
     if (released.count === 0) return false;
+    await logBusinessChange(tx, { businessId, actor: { id: actorId, role: "ADMIN" }, field: "status", oldValue: "BLOCKED", newValue: approvedBefore ? "APPROVED" : "PENDING" });
     await tx.auditLog.create({ data: { actorId, action: "business.unblock", entity: "Business", entityId: businessId, meta: { restored: approvedBefore ? "APPROVED" : "PENDING" } } });
     return true;
   });

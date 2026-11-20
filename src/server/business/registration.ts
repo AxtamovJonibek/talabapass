@@ -47,8 +47,8 @@ export function cleanBusinessInfo(info: BusinessInfo): { ok: true; info: CleanIn
 }
 
 /** Manzilda tuman nomi bo'lsa ("…, Chilonzor") — o'sha tuman. Aniq bo'lmasa admin keyin belgilaydi. */
-export async function districtFromAddress(address: string): Promise<string | null> {
-  const districts = await db.district.findMany({ select: { id: true, name: true } });
+export async function districtFromAddress(address: string, client: Pick<typeof db, "district"> = db): Promise<string | null> {
+  const districts = await client.district.findMany({ select: { id: true, name: true } });
   const lower = address.toLocaleLowerCase("uz");
   const found = districts.filter((d) => lower.includes(d.name.toLocaleLowerCase("uz")));
   return found.length === 1 ? found[0].id : null;
@@ -61,17 +61,30 @@ const splitName = (full: string) => {
   return { firstName, lastName: rest.join(" ") || null };
 };
 
+/** Ariza maydonlari (sayt va ilova uchun umumiy): qolganlari — bo'sh/standart. */
+export type ApplicationData = {
+  name: string;
+  kind: BusinessKind;
+  address: string;
+  workingHours: string;
+  tin: string;
+  description?: string | null;
+  contactName?: string | null;
+  publicPhone?: string | null;
+  telegram?: string | null;
+};
+
 /**
- * Tasdiqlangan raqam uchun biznes egasi hisobi va arizasi (hali yuborilmagan: hujjatlar keyin yuklanadi).
- * STIR band bo'lsa — xato (bitta biznes faqat bir marta ro'yxatdan o'tadi).
+ * Ro'yxatdan o'tish (sayt va ilova): tasdiqlangan raqam/identifikator uchun egasi hisobi va biznes arizasi (hali yuborilmagan:
+ * hujjatlar keyin yuklanadi). STIR band bo'lsa — xato (bitta biznes faqat bir marta ro'yxatdan o'tadi).
  */
-export async function createBusinessOwner(account: NewAccount, info: CleanInfo): Promise<{ ok: true; userId: string } | { ok: false; error: "tinTaken" }> {
-  const districtId = await districtFromAddress(info.address);
+export async function createApplication(account: NewAccount, data: ApplicationData, ownerName?: { firstName?: string; lastName: string | null }): Promise<{ ok: true; userId: string } | { ok: false; error: "tinTaken" }> {
+  const districtId = await districtFromAddress(data.address);
   try {
     const user = await db.$transaction(async (tx) => {
-      const user = await tx.user.create({ data: { ...accountData(account), role: "BUSINESS_OWNER", ...splitName(info.contactName) }, select: { id: true } });
+      const user = await tx.user.create({ data: { ...accountData(account), role: "BUSINESS_OWNER", ...ownerName }, select: { id: true } });
       await tx.business.create({
-        data: { ...info, ownerId: user.id, districtId, contactPhone: accountPhone(account), members: { create: { userId: user.id, role: "OWNER" } } },
+        data: { ...data, ownerId: user.id, districtId, contactPhone: accountPhone(account), members: { create: { userId: user.id, role: "OWNER" } } },
       });
       return user;
     });
@@ -81,6 +94,8 @@ export async function createBusinessOwner(account: NewAccount, info: CleanInfo):
     throw error;
   }
 }
+
+export const createBusinessOwner = (account: NewAccount, info: CleanInfo) => createApplication(account, info, splitName(info.contactName));
 
 /** Egasining biznesi (bitta egasi — bitta biznes). */
 export function ownBusiness(ownerId: string) {
@@ -109,22 +124,24 @@ export function ownBusiness(ownerId: string) {
 }
 export type OwnBusiness = NonNullable<Awaited<ReturnType<typeof ownBusiness>>>;
 
-/** Yuborilmagan yoki rad etilgan arizaning ma'lumotlarini yangilash. */
-export async function updateBusinessInfo(ownerId: string, info: CleanInfo): Promise<{ ok: true } | { ok: false; error: "notEditable" | "tinTaken" }> {
+/** Yuborilmagan yoki rad etilgan arizaning ma'lumotlarini yangilash (sayt va ilova uchun umumiy). */
+export async function updateApplication(ownerId: string, data: Partial<ApplicationData>, ownerName?: { firstName?: string; lastName: string | null }): Promise<{ ok: true } | { ok: false; error: "notEditable" | "tinTaken" }> {
   const business = await ownBusiness(ownerId);
   if (!business || !EDITABLE(business)) return { ok: false, error: "notEditable" };
   try {
     await db.business.update({
       where: { id: business.id },
-      data: { ...info, districtId: await districtFromAddress(info.address) },
+      data: { ...data, ...(data.address !== undefined ? { districtId: await districtFromAddress(data.address) } : {}) },
     });
-    await db.user.update({ where: { id: ownerId }, data: splitName(info.contactName) });
+    if (ownerName) await db.user.update({ where: { id: ownerId }, data: ownerName });
     return { ok: true };
   } catch (error) {
     if (tinTaken(error)) return { ok: false, error: "tinTaken" };
     throw error;
   }
 }
+
+export const updateBusinessInfo = (ownerId: string, info: CleanInfo) => updateApplication(ownerId, info, splitName(info.contactName));
 
 export type DocUploadKind = "registration" | "photo" | "logo";
 export type DocProblem = UploadProblem | "not_allowed" | "daily_limit" | "too_many";

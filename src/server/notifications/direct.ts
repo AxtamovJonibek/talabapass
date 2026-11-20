@@ -13,7 +13,7 @@ import { sendPushToUsers } from "./push";
  * Qaror allaqachon saqlangan bo'ladi — bu yerdagi xato qarorni bekor qilmaydi (log'ga yoziladi, yutiladi).
  */
 
-export type DirectEvent = "studentApproved" | "studentRejected" | "businessApproved" | "businessRejected";
+export type DirectEvent = "studentApproved" | "studentRejected" | "businessApproved" | "businessRejected" | "businessBlocked";
 
 type Params = { reason?: string };
 
@@ -24,12 +24,14 @@ const APP_TEXT: Record<"ru" | "en", Record<DirectEvent, { title: string; body: s
     studentRejected: { title: "Документ отклонён", body: "{reason}" },
     businessApproved: { title: "Ваш бизнес подтверждён", body: "" },
     businessRejected: { title: "Заявка отклонена", body: "{reason}" },
+    businessBlocked: { title: "Бизнес заблокирован", body: "{reason}" },
   },
   en: {
     studentApproved: { title: "Student status confirmed", body: "" },
     studentRejected: { title: "Document rejected", body: "{reason}" },
     businessApproved: { title: "Your business is approved", body: "" },
     businessRejected: { title: "Application rejected", body: "{reason}" },
+    businessBlocked: { title: "Business blocked", body: "{reason}" },
   },
 };
 
@@ -38,6 +40,7 @@ const HOME: Record<DirectEvent, string> = {
   studentRejected: "/chegirmalar",
   businessApproved: "/biznes",
   businessRejected: "/biznes",
+  businessBlocked: "/biznes",
 };
 
 export async function notifyUser(userId: string, event: DirectEvent, params: Params = {}, actorId?: string | null): Promise<void> {

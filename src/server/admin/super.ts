@@ -8,6 +8,7 @@ import { isValidPassword, PASSWORD_MAX } from "@/lib/password";
 import { permissionsFrom, permissionsInput, type BusinessPermissionSet } from "@/lib/permissions";
 import { deleteOwnAccount } from "../account";
 import { audit } from "../audit";
+import { changeBusiness, logBusinessChange } from "../business/change";
 import { discountDraftSchema, discountForAdmin } from "../business/discounts";
 import { db } from "../db";
 import { isUniqueViolation } from "../db-errors";
@@ -259,7 +260,7 @@ export async function setLogoByAdmin(actorId: string, businessId: string, bytes:
   const key = `business/${businessId}/logo-${randomUUID()}.${clean.ext}`;
   await storage().put(key, clean.bytes);
   await db.$transaction(async (tx) => {
-    await tx.business.update({ where: { id: businessId }, data: { logoKey: key } });
+    await changeBusiness({ actor: { id: actorId, role: "ADMIN" }, businessId, changes: { logoKey: key } }, tx);
     await audit({ actorId, action: "business.logo.admin", entity: "Business", entityId: businessId }, tx);
   });
   if (business.logoKey) await storage().delete(business.logoKey).catch(() => undefined);
@@ -271,7 +272,7 @@ export async function removeLogoByAdmin(actorId: string, businessId: string): Pr
   if (!business) return { ok: false, error: "notFound" };
   if (!business.logoKey) return { ok: true };
   await db.$transaction(async (tx) => {
-    await tx.business.update({ where: { id: businessId }, data: { logoKey: null } });
+    await changeBusiness({ actor: { id: actorId, role: "ADMIN" }, businessId, changes: { logoKey: null } }, tx);
     await audit({ actorId, action: "business.logo.remove.admin", entity: "Business", entityId: businessId }, tx);
   });
   await storage().delete(business.logoKey).catch(() => undefined);
@@ -289,6 +290,7 @@ export async function addPhotoByAdmin(actorId: string, businessId: string, bytes
   await storage().put(key, clean.bytes);
   const doc = await db.$transaction(async (tx) => {
     const doc = await tx.businessDoc.create({ data: { businessId, kind: "PHOTO", fileKey: key, fileName: fileName.slice(0, 120) || `photo.${clean.ext}` }, select: { id: true } });
+    await logBusinessChange(tx, { businessId, actor: { id: actorId, role: "ADMIN" }, field: "photos", oldValue: null, newValue: "foto qo'shildi" });
     await audit({ actorId, action: "business.photo.add.admin", entity: "Business", entityId: businessId, meta: { docId: doc.id } }, tx);
     return doc;
   });
@@ -300,6 +302,7 @@ export async function removePhotoByAdmin(actorId: string, docId: string): Promis
   if (!doc) return { ok: false, error: "notFound" };
   await db.$transaction(async (tx) => {
     await tx.businessDoc.delete({ where: { id: doc.id } });
+    await logBusinessChange(tx, { businessId: doc.businessId, actor: { id: actorId, role: "ADMIN" }, field: "photos", oldValue: "foto", newValue: null });
     await audit({ actorId, action: "business.photo.remove.admin", entity: "Business", entityId: doc.businessId, meta: { docId } }, tx);
   });
   await storage().delete(doc.fileKey).catch(() => undefined);

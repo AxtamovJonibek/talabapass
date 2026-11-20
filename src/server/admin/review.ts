@@ -2,7 +2,9 @@ import "server-only";
 import { toTashkent, fromTashkent } from "@/lib/time";
 import { audit } from "../audit";
 import { db } from "../db";
-import { blockBusiness, blockUser } from "../moderation";
+import { approvalGaps, type ApprovalGap } from "@/lib/business-fields";
+import { logBusinessChange } from "../business/change";
+import { blockBusiness, blockUser, unblockBusiness } from "../moderation";
 import { notifyUser } from "../notifications/direct";
 import { checkCardExpiry, normalizeCardNumber, parseDateInput } from "./review-rules";
 
@@ -243,13 +245,21 @@ export async function blockStudent(input: { verificationId: string; reasonText: 
 /** Biznes egasi (xabar yuborish uchun) */
 const ownerOf = async (businessId: string) => (await db.business.findUnique({ where: { id: businessId }, select: { ownerId: true } }))?.ownerId ?? null;
 
-export async function approveBusiness(businessId: string, actorId: string): Promise<{ ok: true } | { ok: false; error: "not_pending" }> {
+export type BusinessDecision = { ok: true } | { ok: false; error: "not_pending" | "incomplete"; missing?: ApprovalGap[] };
+
+/** Tasdiqlashdan oldin kategoriya, ish vaqti va joylashuv to'liq bo'lishi shart — aks holda `incomplete` va yetishmayotganlari. */
+export async function approveBusiness(businessId: string, actorId: string): Promise<BusinessDecision> {
+  const business = await db.business.findUnique({ where: { id: businessId }, select: { kind: true, workingHours: true, lat: true, lng: true } });
+  if (!business) return { ok: false, error: "not_pending" };
+  const missing = approvalGaps(business);
+  if (missing.length > 0) return { ok: false, error: "incomplete", missing };
   const result = await db.$transaction(async (tx) => {
     const closed = await tx.business.updateMany({
       where: { id: businessId, ...BUSINESS_QUEUE },
       data: { status: "APPROVED", rejectReason: null, reviewedById: actorId, reviewedAt: new Date() },
     });
     if (closed.count === 0) return { ok: false as const, error: "not_pending" as const };
+    await logBusinessChange(tx, { businessId, actor: { id: actorId, role: "ADMIN" }, field: "status", oldValue: "PENDING", newValue: "APPROVED" });
     await audit({ actorId, action: "business.approve", entity: "Business", entityId: businessId }, tx);
     return { ok: true as const };
   });
@@ -260,13 +270,14 @@ export async function approveBusiness(businessId: string, actorId: string): Prom
   return result;
 }
 
-export async function rejectBusiness(input: { businessId: string; reasonText: string; reasonKey: string }, actorId: string) {
+export async function rejectBusiness(input: { businessId: string; reasonText: string; reasonKey: string }, actorId: string): Promise<BusinessDecision> {
   const result = await db.$transaction(async (tx) => {
     const closed = await tx.business.updateMany({
       where: { id: input.businessId, ...BUSINESS_QUEUE },
       data: { status: "REJECTED", rejectReason: input.reasonText, reviewedById: actorId, reviewedAt: new Date() },
     });
     if (closed.count === 0) return { ok: false as const, error: "not_pending" as const };
+    await logBusinessChange(tx, { businessId: input.businessId, actor: { id: actorId, role: "ADMIN" }, field: "status", oldValue: "PENDING", newValue: `REJECTED: ${input.reasonText}` });
     await audit({ actorId, action: "business.reject", entity: "Business", entityId: input.businessId, meta: { reason: input.reasonKey } }, tx);
     return { ok: true as const };
   });
@@ -277,11 +288,31 @@ export async function rejectBusiness(input: { businessId: string; reasonText: st
   return result;
 }
 
-export async function blockBusinessFromReview(input: { businessId: string; reasonKey: string }, actorId: string) {
-  const exists = await db.business.findUnique({ where: { id: input.businessId }, select: { id: true } });
-  if (!exists) return { ok: false as const, error: "not_pending" as const };
+/** Bloklash: avval egasiga xabar (bloklash sessiyalarni yopadi — push qurilmalari ham ketadi), keyin holat. */
+export async function blockBusinessFromReview(input: { businessId: string; reasonKey: string; reasonText?: string }, actorId: string): Promise<BusinessDecision> {
+  const exists = await db.business.findUnique({ where: { id: input.businessId }, select: { ownerId: true } });
+  if (!exists) return { ok: false, error: "not_pending" };
+  await notifyUser(exists.ownerId, "businessBlocked", { reason: input.reasonText ?? "" }, actorId);
   await blockBusiness(input.businessId, input.reasonKey, actorId);
-  return { ok: true as const };
+  return { ok: true };
+}
+
+/**
+ * Qayta ochish: bloklangan biznes blokdan chiqadi (`unblockBusiness`), rad etilgani qayta tekshiruv navbatiga tushadi
+ * (egasi arizani tuzatmagan bo'lsa ham admin qayta ko'ra oladi).
+ */
+export async function reopenBusiness(businessId: string, actorId: string): Promise<BusinessDecision> {
+  const business = await db.business.findUnique({ where: { id: businessId }, select: { status: true } });
+  if (!business) return { ok: false, error: "not_pending" };
+  if (business.status === "BLOCKED") return (await unblockBusiness(businessId, actorId)) ? { ok: true } : { ok: false, error: "not_pending" };
+  if (business.status !== "REJECTED") return { ok: false, error: "not_pending" };
+  return db.$transaction(async (tx) => {
+    const reopened = await tx.business.updateMany({ where: { id: businessId, status: "REJECTED" }, data: { status: "PENDING", submittedAt: new Date(), rejectReason: null } });
+    if (reopened.count === 0) return { ok: false as const, error: "not_pending" as const };
+    await logBusinessChange(tx, { businessId, actor: { id: actorId, role: "ADMIN" }, field: "status", oldValue: "REJECTED", newValue: "PENDING" });
+    await audit({ actorId, action: "business.reopen", entity: "Business", entityId: businessId }, tx);
+    return { ok: true as const };
+  });
 }
 
 // ───────── fayllarni ko'rish (faqat admin, har biri audit'ga) ─────────

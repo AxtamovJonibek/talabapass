@@ -14,7 +14,7 @@ import { normalizeName, shortNameFor } from "@/lib/universities";
 import { audit } from "../audit";
 import { db } from "../db";
 import { isUniqueViolation } from "../db-errors";
-import { districtFromAddress } from "../business/registration";
+import { changeBusiness } from "../business/change";
 
 /**
  * Admin boshqaruvi: o'z ismi, yangi admin, foydalanuvchi va biznes ma'lumotlarini tahrirlash, universitetlar ro'yxati.
@@ -105,24 +105,12 @@ class FieldError extends Error {
   }
 }
 
-/** Biznes ma'lumotlari (admin): holat o'zgarmaydi, qayta tekshiruv yo'q. Manzil o'zgarsa tuman qayta aniqlanadi. */
+/** Biznes ma'lumotlari (admin): holat o'zgarmaydi, qayta tekshiruv yo'q. Yozuv va jurnal — `changeBusiness` da. */
 export async function editBusiness(actorId: string, businessId: string, raw: Record<string, unknown>): Promise<ManageResult> {
   const parsed = businessEditSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, fields: failedFields(parsed.error) };
-  const business = await db.business.findUnique({ where: { id: businessId } });
-  if (!business) return { ok: false, error: "notFound" };
-  const { publicPhone, ...rest } = parsed.data;
-  const districtId = rest.address !== business.address ? await districtFromAddress(rest.address) : business.districtId;
-  try {
-    await db.$transaction(async (tx) => {
-      const changed = diffOf({ ...business, publicPhone: business.publicPhone }, { ...rest, publicPhone });
-      await tx.business.update({ where: { id: businessId }, data: { ...rest, publicPhone, districtId } });
-      await audit({ actorId, action: "business.edit.admin", entity: "Business", entityId: businessId, meta: { changed: changed as Prisma.InputJsonObject } }, tx);
-    });
-  } catch (error) {
-    if (isUniqueViolation(error, "tin")) return { ok: false, error: "tinInUse", fields: ["tin"] };
-    throw error;
-  }
+  const result = await changeBusiness({ actor: { id: actorId, role: "ADMIN" }, businessId, changes: parsed.data });
+  if (!result.ok) return { ok: false, error: result.error === "tinInUse" ? "tinInUse" : "notFound", fields: result.error === "tinInUse" ? ["tin"] : undefined };
   return { ok: true };
 }
 

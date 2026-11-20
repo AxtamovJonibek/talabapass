@@ -385,9 +385,44 @@ model Business {
   permissions  BusinessPermissions?
   landing      LandingPartner?
   orders       Order[]
+  changes      BusinessChange[]
+  contactNotes BusinessContactNote[]
 
   @@index([status, submittedAt])
   @@index([ownerId])
+}
+
+/// Biznes ma'lumotlari o'zgarishlari jurnali (admin kartasida): kim (admin yoki ega), qaysi maydon, oldin → keyin
+model BusinessChange {
+  id         String   @id @default(cuid())
+  businessId String
+  /// O'zgartirgan foydalanuvchi (admin yoki ega)
+  actorId    String?
+  /// ADMIN | OWNER
+  actorRole  String
+  field      String
+  oldValue   String?
+  newValue   String?
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
+}
+
+/// Admin aloqa qaydlari: "Bog'lanildi" belgisi, sana va ichki izoh (egasi ko'rmaydi)
+model BusinessContactNote {
+  id          String   @id @default(cuid())
+  businessId  String
+  adminId     String?
+  contacted   Boolean  @default(true)
+  contactedAt DateTime
+  note        String   @default("") @db.VarChar(1000)
+  createdAt   DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
 }
 
 model BusinessDoc {

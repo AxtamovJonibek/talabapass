@@ -1,21 +1,25 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { localizedPath } from "@/i18n/routing";
 import { z } from "zod";
 import {
   approveBusiness,
   approveStudent,
   blockBusinessFromReview,
+  reopenBusiness,
   blockStudent,
   rejectBusiness,
   rejectStudent,
   type ApproveStudentError,
 } from "../admin/review";
+import { addContactNote } from "../admin/business-card";
 import { approveDiscount, rejectDiscount } from "../admin/discount-review";
 import { BUSINESS_REJECT_REASONS, DISCOUNT_REJECT_REASONS, STUDENT_REJECT_REASONS } from "../admin/review-rules";
 import { requireRole } from "../auth/session";
 
-export type ReviewResult = { ok: true } | { ok: false; error: ApproveStudentError | "not_pending" | "invalid" };
+export type ReviewResult = { ok: true } | { ok: false; error: ApproveStudentError | "not_pending" | "invalid" | "incomplete"; missing?: string[] };
 
 const id = z.string().min(1).max(40);
 
@@ -63,7 +67,24 @@ export async function blockBusinessAction(raw: unknown): Promise<ReviewResult> {
   const admin = await requireRole("ADMIN");
   const input = z.object({ businessId: id, reason: z.enum(BUSINESS_REJECT_REASONS) }).safeParse(raw);
   if (!input.success) return { ok: false, error: "invalid" };
-  return blockBusinessFromReview({ businessId: input.data.businessId, reasonKey: input.data.reason }, admin.id);
+  const t = await getTranslations("admin.review.reasons.business");
+  return blockBusinessFromReview({ businessId: input.data.businessId, reasonKey: input.data.reason, reasonText: t(input.data.reason) }, admin.id);
+}
+
+/** Qayta ochish: bloklangan — blokdan chiqadi, rad etilgan — qayta tekshiruvga. */
+export async function reopenBusinessAction(raw: unknown): Promise<ReviewResult> {
+  const admin = await requireRole("ADMIN");
+  const input = z.object({ businessId: id }).safeParse(raw);
+  if (!input.success) return { ok: false, error: "invalid" };
+  return reopenBusiness(input.data.businessId, admin.id);
+}
+
+/** Aloqa qaydi: "Bog'lanildi" belgisi, sana, ichki izoh (egasi ko'rmaydi). */
+export async function addContactNoteAction(raw: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  const admin = await requireRole("ADMIN");
+  const result = await addContactNote(admin.id, raw);
+  if (result.ok) revalidatePath(localizedPath("/admin/bizneslar"));
+  return result;
 }
 
 /** Chegirmalar navbati: tasdiqlash — chegirma faol bo'ladi (biznes ham tasdiqlangan bo'lsa talabalarga ko'rinadi). */

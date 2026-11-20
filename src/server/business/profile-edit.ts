@@ -1,9 +1,7 @@
 import "server-only";
 import { LANDMARK_MAX, validateBusiness, validateContacts, type BusinessField, type ContactField } from "@/lib/business";
-import { audit } from "../audit";
 import { db } from "../db";
-import { permissionsOf } from "./permissions";
-import { districtFromAddress } from "./registration";
+import { changeBusiness } from "./change";
 
 /** Aloqa maydonlari (`phone`, `telegram`, `instagram`) va mo'ljal ixtiyoriy: berilmasa — o'zgarmaydi; bo'sh qator — o'chiradi. */
 export type EditableInfo = {
@@ -41,40 +39,26 @@ export async function editBusinessInfo(ownerId: string, input: EditableInfo): Pr
   const business = await db.business.findFirst({
     where: { ownerId, submittedAt: { not: null }, status: { in: ["APPROVED", "WARNED", "PENDING"] } },
     orderBy: { createdAt: "asc" },
+    select: { id: true },
   });
   if (!business) return { ok: false, error: "notEditable" };
 
-  const identityChanged = info.name !== business.name || info.address !== business.address;
-  const rereview = identityChanged && (business.status === "APPROVED" || business.status === "WARNED");
-  const changed = EDIT_FIELDS.filter((f) => (f === "description" ? info.description : info[f]) !== (f === "description" ? (business.description ?? "") : business[f]));
   const newContacts = contacts?.ok ? contacts.value : null;
-  const contactChanged = newContacts
-    ? (["phone", "telegram", "instagram"] as const).filter((f) => newContacts[f] !== (f === "phone" ? business.publicPhone : business[f]))
-    : [];
-  const landmarkChanged = landmark !== undefined && landmark !== business.landmark ? ["landmark"] : [];
-  if (changed.length === 0 && contactChanged.length === 0 && landmarkChanged.length === 0) return { ok: true, rereview: false };
-  // Admin cheklovi: ma'lumotlar (nom, manzil, ish vaqti, tavsif, mo'ljal) va aloqa — alohida ruxsatlar
-  const permissions = await permissionsOf(business.id);
-  if ((!permissions.canEditProfile && (changed.length > 0 || landmarkChanged.length > 0)) || (!permissions.canEditContacts && contactChanged.length > 0)) {
-    return { ok: false, error: "noPermission" };
-  }
-
-  const districtId = info.address !== business.address ? await districtFromAddress(info.address) : business.districtId;
-  await db.$transaction(async (tx) => {
-    await tx.business.update({
-      where: { id: business.id },
-      data: {
-        ...info,
-        description: info.description || null,
-        districtId,
-        ...(newContacts ? { publicPhone: newContacts.phone, telegram: newContacts.telegram, instagram: newContacts.instagram } : {}),
-        ...(landmark !== undefined ? { landmark } : {}),
-        ...(rereview ? { status: "PENDING" as const, rejectReason: null } : {}),
-      },
-    });
-    await audit({ actorId: ownerId, action: "business.edit", entity: "Business", entityId: business.id, meta: { changed: [...changed, ...contactChanged, ...landmarkChanged], rereview } }, tx);
+  // Yozuv, ruxsat tekshiruvi, qayta tekshiruv va jurnal — `changeBusiness` da (admin ham shu funksiyadan o'tadi)
+  const result = await changeBusiness({
+    actor: { id: ownerId, role: "OWNER" },
+    businessId: business.id,
+    changes: {
+      name: info.name,
+      address: info.address,
+      workingHours: info.workingHours,
+      description: info.description || null,
+      ...(newContacts ? { publicPhone: newContacts.phone, telegram: newContacts.telegram, instagram: newContacts.instagram } : {}),
+      ...(landmark !== undefined ? { landmark } : {}),
+    },
   });
-  return { ok: true, rereview };
+  if (!result.ok) return { ok: false, error: result.error === "notFound" ? "notEditable" : "noPermission" };
+  return { ok: true, rereview: result.rereview };
 }
 
 export const editableInfo = (ownerId: string) =>
