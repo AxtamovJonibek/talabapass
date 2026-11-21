@@ -120,3 +120,23 @@ test.describe("sayt ro'yxati va kirishi", () => {
     await expect(page.getByRole("button", { name: "Kirish", exact: true })).toBeVisible();
   });
 });
+
+test.describe("sayt kirishi sahifa skrolisiz", () => {
+  const sizes = [
+    { width: 1280, height: 720 },
+    { width: 390, height: 844 },
+  ];
+  for (const size of sizes) {
+    for (const lang of ["uz", "ru", "en"]) {
+      for (const path of ["/uz/kirish", "/uz/biznes/royxat"]) {
+        test(`${path} ${lang} ${size.width}x${size.height}: sahifa skrol bermaydi`, async ({ page }) => {
+          await page.setViewportSize(size);
+          await page.addInitScript((l) => localStorage.setItem("tp:til", l), lang);
+          await page.goto(path, { waitUntil: "networkidle" });
+          const overflow = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
+          expect(overflow).toBeLessThanOrEqual(0);
+        });
+      }
+    }
+  }
+});

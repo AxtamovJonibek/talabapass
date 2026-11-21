@@ -1251,6 +1251,16 @@
         "hint": "Odatda 1 ish kuni"
       }
     },
+    "submittedSteps": {
+      "1": {
+        "title": "Ma'lumot yuborildi",
+        "hint": "Ariza qabul qilindi"
+      },
+      "2": {
+        "title": "Tekshiruv",
+        "hint": "Odatda 1 ish kuni"
+      }
+    },
     "promises": {
       "1": "Chegirma faqat haqiqiy sotuvda beriladi",
       "2": "Kun, soat va sonni o'zingiz belgilaysiz",
@@ -1291,11 +1301,7 @@
     "pending": {
       "stamp": "TEKSHIRUVDA",
       "title": "Ariza qabul qilindi",
-      "lead": "Moderator STIR va hujjatlarni tekshiradi, kerak bo'lsa qo'ng'iroq qiladi. Odatda 1 ish kuni ichida.",
-      "badge": "−30%",
-      "ctaTitle": "Vaqtni yutib oling: birinchi chegirmani tayyorlang",
-      "ctaLead": "Tasdiqlangan zahoti talabalarga ko'rinadi.",
-      "cta": "Chegirma yaratish",
+      "lead": "Siz bilan bog'lanamiz. Tasdiqlangach xabar olasiz.",
       "cabinet": "Kabinetga o'tish"
     },
     "errors": {

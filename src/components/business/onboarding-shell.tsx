@@ -7,6 +7,8 @@ import { cn } from "@/lib/cn";
 type Props = {
   /** 1 — biznes haqida, 2 — hujjatlar, 3 — tekshiruv */
   step: 1 | 2 | 3;
+  /** "submitted" — ariza yuborilgach: ikki qadam (ma'lumot yuborildi, tekshiruv) */
+  steps?: "submitted";
   /** Kirmagan foydalanuvchiga "Hisobim bor — kirish" */
   showLogin?: boolean;
   children: ReactNode;
@@ -15,10 +17,11 @@ type Props = {
 };
 
 const STEPS = [1, 2, 3] as const;
+const SUBMITTED_STEPS = [1, 2] as const;
 const PROMISES = [1, 2, 3] as const;
 
 /** WB1 — biznes ro'yxatining veb qobig'i: chapda qora panel (qadamlar, va'dalar), o'ngda forma. */
-export function BusinessOnboardingShell({ step, showLogin = false, children, footer }: Props) {
+export function BusinessOnboardingShell({ step, steps, showLogin = false, children, footer }: Props) {
   const t = useTranslations("businessOnboarding");
   const brand = useTranslations("brand");
 
@@ -33,7 +36,7 @@ export function BusinessOnboardingShell({ step, showLogin = false, children, foo
           <p className="mt-3.5 mb-0 text-16 leading-[1.5] text-fog-0">{t("webLead")}</p>
         </div>
         <ol className="m-0 flex list-none flex-col gap-2 p-0">
-          {STEPS.map((n) => {
+          {(steps === "submitted" ? SUBMITTED_STEPS : STEPS).map((n) => {
             const done = n < step;
             const current = n === step;
             return (
@@ -47,8 +50,8 @@ export function BusinessOnboardingShell({ step, showLogin = false, children, foo
                   {done ? "✓" : n}
                 </span>
                 <span className="flex flex-col">
-                  <b className="text-15">{t(`steps.${n}.title`)}</b>
-                  <span className="text-13 text-fog-3">{t(`steps.${n}.hint`)}</span>
+                  <b className="text-15">{(steps === "submitted" ? t(`submittedSteps.${n as 1 | 2}.title`) : t(`steps.${n}.title`))}</b>
+                  <span className="text-13 text-fog-3">{(steps === "submitted" ? t(`submittedSteps.${n as 1 | 2}.hint`) : t(`steps.${n}.hint`))}</span>
                 </span>
               </li>
             );
@@ -67,7 +70,7 @@ export function BusinessOnboardingShell({ step, showLogin = false, children, foo
       <main className="box-border min-w-0 flex-[2_1_560px] px-[clamp(16px,4cqw,56px)] py-[clamp(24px,4cqw,56px)]">
         <div className="flex max-w-[760px] flex-col gap-[22px]">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="font-mono text-13 text-muted">{t("stepWeb", { n: step })}</span>
+            <span className="font-mono text-13 text-muted">{steps === "submitted" ? null : t("stepWeb", { n: step })}</span>
             {showLogin ? (
               <Link href="/kirish?rol=biznes" className="tp-link text-14 font-bold text-ink underline">
                 {t("haveAccount")}

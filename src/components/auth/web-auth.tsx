@@ -335,7 +335,7 @@ export function WebAuth({ start, role: initialRole, universities, social }: WebA
     <div className="flex flex-col items-stretch gap-2.5">
       <GoogleButton clientId={social.googleClientId} onToken={(token) => onSocial("GOOGLE", token)} onFail={() => setError(c.errors.googleFailed)} />
       {social.googleClientId ? null : (
-        <button type="button" onClick={() => setError(c.errors.googleFailed)} className={buttonClass({ variant: "outline", size: "md", block: true })}>
+        <button type="button" onClick={() => setError(c.errors.googleFailed)} className="tap flex h-10 w-full items-center justify-center rounded-4 border-hair border-solid border-line bg-white p-0 font-sans text-14 font-bold text-ink">
           {c.methods.google}
         </button>
       )}
@@ -343,7 +343,7 @@ export function WebAuth({ start, role: initialRole, universities, social }: WebA
         type="button"
         onClick={() => void apple()}
         disabled={pending}
-        className="tap flex h-10 w-full items-center justify-center gap-2 rounded-12 border-0 bg-ink p-0 font-sans text-14 font-bold text-white"
+        className="tap flex h-10 w-full items-center justify-center gap-2 rounded-4 border-0 bg-ink p-0 font-sans text-14 font-bold text-white"
       >
         <Image src="/brands/apple-logo-button.png" alt="" width={28} height={28} unoptimized />
         {c.methods.apple}
@@ -664,20 +664,20 @@ export function WebAuth({ start, role: initialRole, universities, social }: WebA
   const showRole = view === "signin" || view === "methods";
 
   return (
-    <div className="@container flex min-h-screen flex-wrap bg-paper text-ink">
-      <div className={cn("relative box-border flex min-w-0 flex-[1_1_460px] flex-col gap-7 overflow-hidden p-[clamp(20px,4cqw,48px)]", business ? "bg-ink text-paper" : "bg-blue text-white")}>
+    <div className="@container flex h-dvh flex-col overflow-hidden bg-paper @[920px]:flex-row text-ink">
+      <div className={cn("relative box-border flex min-w-0 flex-none flex-col gap-[clamp(12px,3dvh,28px)] overflow-hidden p-[clamp(16px,3dvh,48px)] @[920px]:flex-[1_1_460px]", business ? "bg-ink text-paper" : "bg-blue text-white")}>
         <div aria-hidden="true" className={cn("pointer-events-none absolute -top-[120px] -right-[120px] size-[460px] rounded-[180px] border-[50px] border-solid", business ? "border-ink-2" : "border-blue-2")} />
         <Link href="/" className="relative self-start text-inherit no-underline">
           <Logo size={20} variant="white" tag={business ? "BIZNES" : undefined} />
         </Link>
-        <div className="relative mt-auto max-w-[520px]">
+        <div className="relative mt-auto hidden max-w-[520px] @[920px]:block">
           <h1 className="m-0 text-[clamp(36px,4.6cqw,64px)] leading-[0.95] font-black tracking-[-0.04em] font-stretch-112%">{c.headline[role]}</h1>
           <p className="mt-4 mb-0 text-17 leading-[1.5] opacity-85">{c.lead[role]}</p>
         </div>
       </div>
 
-      <main className="box-border flex min-w-0 flex-[1_1_460px] items-center justify-center px-[clamp(16px,4cqw,48px)] py-[clamp(24px,5cqw,64px)]">
-        <div className="flex w-full max-w-[440px] flex-col gap-5">
+      <main className="box-border flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto @[920px]:flex-[1_1_460px] px-[clamp(16px,4cqw,48px)] py-[clamp(12px,3dvh,48px)]">
+        <div className="m-auto flex w-full max-w-[400px] flex-col gap-[clamp(10px,2dvh,20px)]">
           <div className="-mb-3 flex items-center justify-between">
             <BackButton variant="text" label={c.back} onClick={goBack} />
             <div role="group" aria-label={c.language} className="flex gap-1">

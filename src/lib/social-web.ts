@@ -58,7 +58,7 @@ export async function mountGoogleButton(parent: HTMLElement, clientId: string, w
     },
   });
   parent.replaceChildren();
-  id.renderButton(parent, { type: "standard", theme: "outline", size: "large", width: Math.min(400, Math.max(200, Math.round(width))) });
+  id.renderButton(parent, { type: "standard", theme: "outline", size: "large", text: "continue_with", shape: "rectangular", logo_alignment: "left", width: Math.min(400, Math.max(200, Math.round(width))) });
 }
 
 export type AppleResult = { idToken: string; firstName?: string; lastName?: string };

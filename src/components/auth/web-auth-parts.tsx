@@ -92,12 +92,22 @@ export function GoogleButton({ clientId, onToken, onFail }: { clientId: string |
     const node = host.current;
     if (!clientId || !node) return;
     let alive = true;
-    mountGoogleButton(node, clientId, node.getBoundingClientRect().width, (token) => alive && callbacks.current.onToken(token)).catch(() => alive && callbacks.current.onFail());
+    let lastWidth = 0;
+    const mount = () => {
+      const width = Math.round(node.getBoundingClientRect().width);
+      if (width === lastWidth) return;
+      lastWidth = width;
+      mountGoogleButton(node, clientId, width, (token) => alive && callbacks.current.onToken(token)).catch(() => alive && callbacks.current.onFail());
+    };
+    mount();
+    const observer = new ResizeObserver(mount);
+    observer.observe(node);
     return () => {
       alive = false;
+      observer.disconnect();
     };
   }, [clientId]);
-  return <div ref={host} data-testid="google-button" className="flex min-h-10 w-full justify-center" />;
+  return <div ref={host} data-testid="google-button" className="flex h-10 w-full justify-center overflow-hidden" />;
 }
 
 /** Universitet: qidiruv + ro'yxat; oxirgi qator — "Ro'yxatda yo'q" (nom matn bilan). */

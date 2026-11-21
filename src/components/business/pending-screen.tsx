@@ -5,7 +5,6 @@ import { PhoneOrWeb } from "@/components/student/responsive";
 import { cn } from "@/lib/cn";
 import { BusinessHeading, BusinessOnboardingShell } from "./onboarding-shell";
 
-const NEW_DISCOUNT = "/biznes/chegirma/yangi";
 const CABINET = "/biznes/profil";
 
 /** "TEKSHIRUVDA" muhri (WB1 3-qadam) */
@@ -25,23 +24,6 @@ function Stamp({ small = false, className }: { small?: boolean; className?: stri
   );
 }
 
-/** "Birinchi chegirmani tayyorlang" kartasi */
-function DiscountCta({ compact = false }: { compact?: boolean }) {
-  const t = useTranslations("businessOnboarding.pending");
-  return (
-    <div className={cn("flex flex-wrap items-center gap-3.5 rounded-18 bg-white", compact ? "p-4" : "p-[18px]")}>
-      <span className="-rotate-5 rounded-8 bg-orange px-2.5 pt-1.5 pb-1 text-30 font-black font-stretch-65%">{t("badge")}</span>
-      <span className="flex flex-[1_1_240px] flex-col gap-0.5">
-        <b className="text-17">{t("ctaTitle")}</b>
-        <span className="text-14 text-muted">{t("ctaLead")}</span>
-      </span>
-      <ButtonLink href={NEW_DISCOUNT} variant="orange" size="card" block={compact}>
-        {t("cta")}
-      </ButtonLink>
-    </div>
-  );
-}
-
 /**
  * WB1 (3-qadam) — ariza tekshiruvda. Dizayndagi muhr sarlavha ustiga mutlaq joylashgan va tor kengliklarda
  * tavsif matnini yopardi (WT1 dagi kabi) — shuning uchun u sarlavha qatoriga, o'ng tomonga qo'yilgan.
@@ -50,7 +32,8 @@ function PendingWeb() {
   const t = useTranslations("businessOnboarding");
   return (
     <BusinessOnboardingShell
-      step={3}
+      step={2}
+      steps="submitted"
       footer={
         <>
           <Button variant="outline-idle" size="tall-quiet" aria-disabled>
@@ -68,7 +51,6 @@ function PendingWeb() {
           <Stamp className="mt-1" />
         </div>
         <p className="m-0 max-w-[560px] text-16 leading-[1.5] text-muted">{t("pending.lead")}</p>
-        <DiscountCta />
       </div>
     </BusinessOnboardingShell>
   );
@@ -89,7 +71,6 @@ function PendingPhone() {
           <Stamp small className="mt-1" />
         </div>
         <p className="m-0 text-15 leading-[1.5] text-muted">{t("pending.lead")}</p>
-        <DiscountCta compact />
       </div>
       <div className="border-t border-solid border-line-soft px-5 pt-3 pb-8">
         <ButtonLink href={CABINET} variant="ink" block>
