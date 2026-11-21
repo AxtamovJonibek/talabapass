@@ -53,7 +53,8 @@ export async function clearOtp(phone: string): Promise<void> {
   await withDb(async (db) => {
     await db.query(`DELETE FROM "OtpCode" WHERE phone = $1`, [phone]);
     // Testlar bitta IP'dan keladi — soatiga 10 ta so'rov chegarasi ham tozalanadi.
-    await db.query(`DELETE FROM "RateLimitHit" WHERE key LIKE 'otp-ip:%'`);
+    // Sayt oqimi ilova bilan bir xil API chegaralarini ishlatadi (`api:verify|login|password|register`, bitta IP'dan)
+    await db.query(`DELETE FROM "RateLimitHit" WHERE key LIKE 'otp-ip:%' OR key LIKE 'api:%'`);
   });
 }
 
@@ -66,13 +67,29 @@ export const local = (phone: string) => phone.replace(/^\+998/, "");
  */
 export const codeBox = (page: Page) => page.getByLabel("1-raqam").locator("visible=true");
 
+/**
+ * Telefon qadamini ochadi ("Parolni unutdim" yoki "Telefon raqam bilan"). Sahifa hali ulanmagan paytdagi bosish hisobga
+ * olinmaydi (dev serverda tez-tez) — maydon chiqquncha qayta bosiladi.
+ */
+export async function toPhoneStep(page: Page, button: "Parolni unutdim" | "Telefon raqam bilan") {
+  const trigger = page.getByRole("button", { name: button });
+  await expect(async () => {
+    if (await trigger.isVisible()) await trigger.click({ timeout: 3_000 });
+    await expect(page.locator("#login-phone")).toBeVisible({ timeout: 8_000 });
+  }).toPass({ timeout: 40_000 });
+}
+
+/**
+ * SMS kod so'rash: kirish sahifasi → "Parolni unutdim" → raqam → kod qadami. Seed hisoblarida parol yo'q, shuning uchun
+ * testlar parolni shu yo'l bilan o'rnatadi (`signIn`); yangi raqam uchun — `webRegister`.
+ */
 export async function requestCode(page: Page, phone: string, role: "Talaba" | "Biznes" = "Talaba") {
   await clearOtp(phone);
   // Tugma React ulanmasdan bosilsa forma oddiy GET bilan yuboriladi — avval sahifa tinchishini kutamiz.
-  await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-  if (role === "Biznes") await page.getByRole("tab", { name: "Biznes" }).click();
+  await page.goto(role === "Biznes" ? "/uz/kirish?rol=biznes" : "/uz/kirish", { waitUntil: "networkidle" });
+  await toPhoneStep(page, "Parolni unutdim");
   await page.locator("#login-phone").fill(local(phone));
-  await page.getByRole("button", { name: "SMS kod olish" }).click();
+  await page.getByRole("button", { name: "Kod yuborish" }).click();
   await expect(codeBox(page)).toBeEnabled();
 }
 
@@ -89,12 +106,51 @@ export async function enterAdminPassword(page: Page, password: string = ADMIN_PA
   await page.getByRole("button", { name: "Kirish", exact: true }).click();
 }
 
-/** Kirish. Admin uchun SMS koddan keyin parol ham kiritiladi (`adminPassword: false` — kiritilmaydi). */
+/** Testlarning umumiy paroli (seed hisoblarida parol yo'q: `signIn` uni tiklash yo'li bilan o'rnatadi). */
+export const TEST_PASSWORD = "Sinov2026";
+
+/** Parol qadamidagi ikkala maydon + "Davom etish" (o'rnatish va tiklash). */
+export async function fillNewPassword(page: Page, password: string = TEST_PASSWORD) {
+  await page.locator("#auth-password").fill(password);
+  await page.locator("#auth-repeat").fill(password);
+  await page.getByRole("button", { name: "Davom etish" }).click();
+}
+
+/**
+ * Kirish. Admin uchun SMS koddan keyin parol ham kiritiladi (`adminPassword: false` — kiritilmaydi). Boshqa rollar —
+ * kod → yangi parol (tiklash oqimi, boshqa sessiyalar yopiladi; testlar ketma-ket yuradi).
+ */
 export async function signIn(page: Page, phone: string, { adminPassword = true } = {}) {
   await requestCode(page, phone);
   await enterCode(page, FIXED_CODE);
+  await Promise.race([page.locator("#auth-password").waitFor(), page.waitForURL((url) => url.pathname === "/uz/kirish/admin")]);
+  if (await page.locator("#auth-password").isVisible()) await fillNewPassword(page);
   await page.waitForURL((url) => url.pathname !== "/uz/kirish");
   if (adminPassword && new URL(page.url()).pathname === "/uz/kirish/admin") await enterAdminPassword(page);
+}
+
+/** Yangi raqam: ro'yxat usuli → telefon → kod → parol; ma'lumotlar qadami ochiladi (`path`: talaba yoki biznes ro'yxati). */
+export async function reachRegistrationDetails(page: Page, phone: string, path: "/uz/talaba/royxat" | "/uz/biznes/royxat" = "/uz/talaba/royxat") {
+  await clearOtp(phone);
+  await page.goto(path, { waitUntil: "networkidle" });
+  await toPhoneStep(page, "Telefon raqam bilan");
+  await page.locator("#login-phone").fill(local(phone));
+  await page.getByRole("button", { name: "Kod yuborish" }).click();
+  await expect(codeBox(page)).toBeEnabled();
+  await enterCode(page, FIXED_CODE);
+  await page.locator("#auth-password").waitFor();
+  await fillNewPassword(page);
+}
+
+/** Yangi talaba: ma'lumotlar (universitet qidiruvi "tatu", 3-kurs). Oxirida guvohnoma sahifasi. */
+export async function webRegisterStudent(page: Page, phone: string, { firstName = "Sinov", lastName = "Talabayev" } = {}) {
+  await reachRegistrationDetails(page, phone);
+  await page.locator("#reg-first").fill(firstName);
+  await page.locator("#reg-last").fill(lastName);
+  await page.locator("#reg-uni").fill("tatu");
+  await page.getByRole("option", { name: /^Toshkent axborot texnologiyalari universiteti/ }).first().click();
+  await page.getByRole("button", { name: "3", exact: true }).click();
+  await page.getByRole("button", { name: "Davom etish" }).click();
 }
 
 /** Haqiqiy (o'qiladigan) kichik JPEG — yuklash testlari uchun. Tozalash soxta baytlarni rad etadi. */

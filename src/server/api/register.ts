@@ -7,9 +7,9 @@ import { acceptPhoneInvite } from "../business/cashiers";
 import { createQuickBusiness } from "../business/quick-application";
 import { db } from "../db";
 import { createStudent, studentFormSchema } from "../student/registration";
-import { openRegisterTicket, type NewRole, type SignedIn } from "./auth-flow";
+import { apiOpener, openRegisterTicket, type NewRole, type Opener, type SignedIn } from "./auth-flow";
 import { ApiError } from "./http";
-import { loadApiUser, meView, openApiSession, type Device } from "./session";
+import type { Device } from "./session";
 
 /*
  * Ro'yxat API orqali: `registrationTicket` (SMS bilan tasdiqlangan yangi raqam + o'rnatilgan parol xeshi yoki
@@ -45,14 +45,15 @@ async function freshTicket(ticket: string, role: NewRole) {
   return { account, passwordHash: opened.passwordHash };
 }
 
-async function finish(userId: string, passwordHash: string, device: Device): Promise<SignedIn> {
+async function finish<T>(userId: string, passwordHash: string, open: Opener<T>): Promise<T> {
   await db.user.update({ where: { id: userId }, data: { passwordHash, passwordFails: 0, passwordLockedUntil: null } });
-  const tokens = await openApiSession(userId, device);
-  return { tokens, user: meView(await loadApiUser(userId)) };
+  return open(userId);
 }
 
 /** Talaba (T1 / RoyxatTalaba): ism, familiya, OTM (yoki "Ro'yxatda yo'q" + nomi), kurs. Holat — DRAFT (guvohnoma keyin). */
-export async function registerStudent(input: z.infer<typeof studentRegisterSchema>, device: Device): Promise<SignedIn> {
+export const registerStudent = (input: z.infer<typeof studentRegisterSchema>, device: Device) => registerStudentWith(input, apiOpener(device));
+
+export async function registerStudentWith<T>(input: z.infer<typeof studentRegisterSchema>, open: Opener<T>): Promise<T> {
   const form = studentFormSchema.safeParse(input);
   const fields: string[] = form.success ? [] : [...new Set(form.error.issues.map((issue) => String(issue.path[0])))];
   // "Ro'yxatda yo'q": nom matni kerak (admin keyin ro'yxatga qo'shadi); aks holda faol OTM bo'lishi shart
@@ -66,7 +67,7 @@ export async function registerStudent(input: z.infer<typeof studentRegisterSchem
 
   const { account, passwordHash } = await freshTicket(input.registrationTicket, "student");
   const user = await createStudent(account, form.data, otherName);
-  return finish(user.id, passwordHash, device);
+  return finish(user.id, passwordHash, open);
 }
 
 export const quickApplicationSchema = z.object({
@@ -84,12 +85,14 @@ export function cleanQuickOrThrow(input: z.infer<typeof quickApplicationSchema>)
 }
 
 /** Biznes egasi hisobi va ariza (hali yuborilmagan: rasm keyin yuklanadi, so'ng `submit`). */
-export async function registerBusiness(ticket: string, input: z.infer<typeof quickApplicationSchema>, device: Device): Promise<SignedIn> {
+export const registerBusiness = (ticket: string, input: z.infer<typeof quickApplicationSchema>, device: Device) => registerBusinessWith(ticket, input, apiOpener(device));
+
+export async function registerBusinessWith<T>(ticket: string, input: z.infer<typeof quickApplicationSchema>, open: Opener<T>): Promise<T> {
   const clean = cleanQuickOrThrow(input);
   const { account, passwordHash } = await freshTicket(ticket, "business");
   const created = await createQuickBusiness(account, clean);
   if (!created.ok) throw new ApiError("tin_taken");
-  return finish(created.userId, passwordHash, device);
+  return finish(created.userId, passwordHash, open);
 }
 
 export const cashierRegisterSchema = z.object({
@@ -113,5 +116,5 @@ export async function registerCashier(input: z.infer<typeof cashierRegisterSchem
   if (typeof account !== "string") throw new ApiError("step_expired");
   const accepted = await acceptPhoneInvite(account, { firstName, lastName });
   if (!accepted.ok) throw new ApiError("no_business");
-  return finish(accepted.userId, passwordHash, device);
+  return finish(accepted.userId, passwordHash, apiOpener(device));
 }

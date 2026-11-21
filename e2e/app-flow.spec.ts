@@ -54,7 +54,7 @@ test.describe("ilova: birinchi ochilish", () => {
     await expect(page.getByLabel("Google Play — tez orada")).toBeVisible();
     await expect(page.getByRole("button", { name: "Davom etish" })).toHaveCount(0);
     await page.goto("/uz/kirish");
-    await expect(page.getByRole("button", { name: "SMS kod olish" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Kirish", exact: true })).toBeVisible();
   });
 });
 

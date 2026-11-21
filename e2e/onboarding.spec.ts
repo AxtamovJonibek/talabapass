@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { codeBox, clearOtp, enterCode, FIXED_CODE, local, requestCode, seedPhones, signIn, withDb, sampleJpeg } from "./helpers";
+import { clearOtp, enterCode, fillNewPassword, FIXED_CODE, reachRegistrationDetails, requestCode, seedPhones, signIn, webRegisterStudent, withDb, sampleJpeg, toPhoneStep } from "./helpers";
 
 // Faqat shu testlar ishlatadigan raqamlar
 const NEW_STUDENT = "+998905550801";
@@ -17,16 +17,6 @@ async function removeTestStudents() {
   });
 }
 
-async function fillRegistration(page: Page, phone: string | null) {
-  if (phone) await page.locator("#reg-phone").fill(local(phone));
-  await page.locator("#reg-first").fill("Sinov");
-  await page.locator("#reg-last").fill("Talabayev");
-  await page.locator("#reg-uni").fill("tatu");
-  await page.getByRole("option", { name: /^Toshkent axborot texnologiyalari universiteti/ }).first().click();
-  await page.getByRole("button", { name: "3", exact: true }).click();
-  await page.getByRole("button", { name: "Davom etish" }).click();
-}
-
 const studentStatus = (phone: string) =>
   withDb(async (db) => (await db.query(`SELECT s.status FROM "StudentProfile" s JOIN "User" u ON u.id = s."userId" WHERE u.phone = $1`, [phone])).rows[0]?.status);
 
@@ -38,13 +28,12 @@ test.afterAll(removeTestStudents);
 
 test.describe("talaba ro'yxati", () => {
   test("universitet qidiruvli tanlov; 'Ro'yxatda yo'q' — matn kiritiladi, admin uchun so'rov yoziladi", async ({ page }) => {
-    await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
+    await reachRegistrationDetails(page, NEW_STUDENT);
     // Viloyat bo'yicha qidiruv
     await page.locator("#reg-uni").fill("andijon tibbiyot");
     await expect(page.getByRole("option", { name: /Andijon davlat tibbiyot instituti/ })).toBeVisible();
     await expect(page.getByRole("option", { name: /Samarqand/ })).toHaveCount(0);
 
-    await page.locator("#reg-phone").fill(local(NEW_STUDENT));
     await page.locator("#reg-first").fill("Sinov");
     await page.locator("#reg-last").fill("Talabayev");
     await page.locator("#reg-uni").fill("bunday oliygoh yo'q");
@@ -54,11 +43,9 @@ test.describe("talaba ro'yxati", () => {
     await expect(page.locator("#reg-uni")).toHaveValue("bunday oliygoh yo'q");
     await page.locator("#reg-uni").fill("");
     await page.getByRole("button", { name: "Davom etish" }).click();
-    await expect(page.getByText("Universitet nomini yozing (3–120 belgi).").first()).toBeVisible();
+    await expect(page.getByText("Maydonni to'g'ri to'ldiring.").first()).toBeVisible();
     await page.locator("#reg-uni").fill("Xayoliy Texnologiyalar Instituti");
     await page.getByRole("button", { name: "Davom etish" }).click();
-    await expect(codeBox(page)).toBeEnabled();
-    await enterCode(page, FIXED_CODE);
     await expect(page).toHaveURL("/uz/talaba/guvohnoma");
 
     const rows = await withDb(async (db) =>
@@ -67,14 +54,16 @@ test.describe("talaba ro'yxati", () => {
     expect(rows).toEqual([{ name: "Xayoliy Texnologiyalar Instituti", status: "PENDING", kind: "OTHER" }]);
   });
 
-  test("to'liq oqim: forma → SMS kod → guvohnoma yuklash → tekshiruvda", async ({ page }) => {
-    await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
-    await fillRegistration(page, NEW_STUDENT);
-
-    // Raqam egaligi SMS kod bilan tasdiqlanadi
-    await expect(codeBox(page)).toBeEnabled();
-    expect(await studentStatus(NEW_STUDENT), "koddan oldin hisob ochilmaydi").toBeUndefined();
-    await enterCode(page, FIXED_CODE);
+  test("to'liq oqim: telefon → SMS kod → parol → ma'lumotlar → guvohnoma yuklash → tekshiruvda", async ({ page }) => {
+    await reachRegistrationDetails(page, NEW_STUDENT);
+    // Raqam egaligi SMS kod bilan tasdiqlandi, hisob esa ma'lumotlardan keyin ochiladi
+    expect(await studentStatus(NEW_STUDENT), "ma'lumotlardan oldin hisob ochilmaydi").toBeUndefined();
+    await page.locator("#reg-first").fill("Sinov");
+    await page.locator("#reg-last").fill("Talabayev");
+    await page.locator("#reg-uni").fill("tatu");
+    await page.getByRole("option", { name: /^Toshkent axborot texnologiyalari universiteti/ }).first().click();
+    await page.getByRole("button", { name: "3", exact: true }).click();
+    await page.getByRole("button", { name: "Davom etish" }).click();
 
     await expect(page).toHaveURL("/uz/talaba/guvohnoma");
     expect(await studentStatus(NEW_STUDENT)).toBe("DRAFT");
@@ -93,38 +82,22 @@ test.describe("talaba ro'yxati", () => {
     await expect(page).toHaveURL("/uz/talaba/tekshiruv");
   });
 
-  test("kirish sahifasida tasdiqlangan raqam bilan kelganda kod qayta so'ralmaydi", async ({ page }) => {
-    await signIn(page, FROM_LOGIN);
-    await expect(page).toHaveURL("/uz/talaba/royxat");
-    await expect(page.locator("#reg-phone")).toHaveValue(/90 555 08 02/);
-    await expect(page.locator("#reg-phone")).toHaveAttribute("readonly", "");
-
-    await fillRegistration(page, null);
-    await expect(page).toHaveURL("/uz/talaba/guvohnoma");
-    expect(await studentStatus(FROM_LOGIN)).toBe("DRAFT");
-    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [FROM_LOGIN]));
-    expect(codes.rows[0].n, "faqat kirishdagi bitta kod").toBe(1);
-  });
-
-  test("to'ldirilmagan forma: xatolar ko'rsatiladi, SMS yuborilmaydi", async ({ page }) => {
-    await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
-    await page.locator("#reg-phone").fill(local(NEW_STUDENT));
+  test("to'ldirilmagan forma: xatolar ko'rsatiladi, hisob ochilmaydi", async ({ page }) => {
+    await reachRegistrationDetails(page, NEW_STUDENT);
     await page.getByRole("button", { name: "Davom etish" }).click();
-    await expect(page.getByText("Ismingizni kiriting.").locator("visible=true")).toBeVisible();
-    await expect(page.getByText("Familiyangizni kiriting.").locator("visible=true")).toBeVisible();
-    await expect(page.getByText("Kursni tanlang.").locator("visible=true")).toBeVisible();
-    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [NEW_STUDENT]));
-    expect(codes.rows[0].n).toBe(0);
+    await expect(page.getByText("Maydonni to'g'ri to'ldiring.").first()).toBeVisible();
+    expect(await studentStatus(NEW_STUDENT)).toBeUndefined();
   });
 
-  test("ro'yxatdan o'tgan raqam bilan qayta ro'yxat: kod tasdiqlangach mavjud hisobga kiriladi", async ({ page }) => {
+  test("ro'yxatdan o'tgan raqam bilan qayta ro'yxat: kod tasdiqlangach hisob topiladi, parol so'raladi", async ({ page }) => {
     const { student } = await seedPhones();
     await clearOtp(student);
     await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
-    await fillRegistration(page, student);
-    await expect(codeBox(page)).toBeEnabled();
+    await toPhoneStep(page, "Telefon raqam bilan");
+    await page.locator("#login-phone").fill(student.replace(/^\+998/, ""));
+    await page.getByRole("button", { name: "Kod yuborish" }).click();
     await enterCode(page, FIXED_CODE);
-    await expect(page).toHaveURL("/uz/chegirmalar");
+    await expect(page.getByText("Hisobingiz topildi.")).toBeVisible();
     // mavjud hisob ma'lumotlari o'zgarmagan
     const name = await withDb((db) => db.query(`SELECT "firstName" FROM "User" WHERE phone = $1`, [student]));
     expect(name.rows[0].firstName).toBe("Dilnoza");
@@ -133,10 +106,7 @@ test.describe("talaba ro'yxati", () => {
 
 test.describe("guvohnoma yuklash", () => {
   async function registered(page: Page) {
-    await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
-    await fillRegistration(page, NEW_STUDENT);
-    await expect(codeBox(page)).toBeEnabled();
-    await enterCode(page, FIXED_CODE);
+    await webRegisterStudent(page, NEW_STUDENT);
     await expect(page).toHaveURL("/uz/talaba/guvohnoma");
   }
 
@@ -179,10 +149,8 @@ test.describe("guvohnoma yuklash", () => {
 test.describe("holatga qarab yo'naltirish", () => {
   test("rad etilgan talaba sababni ko'radi va qayta yuklay oladi", async ({ page, context }) => {
     // scripts/compare-fixtures.mjs dagi tayyor foydalanuvchi o'rniga shu yerda yaratamiz
-    await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
-    await fillRegistration(page, NEW_STUDENT);
-    await expect(codeBox(page)).toBeEnabled();
-    await enterCode(page, FIXED_CODE);
+    await webRegisterStudent(page, NEW_STUDENT);
+    await expect(page).toHaveURL("/uz/talaba/guvohnoma");
     await page.waitForLoadState("networkidle");
     await page.getByTestId("card-file").setInputFiles({ name: "xira.jpg", mimeType: "image/jpeg", buffer: JPEG });
     await expect(page).toHaveURL("/uz/talaba/tekshiruv");
@@ -218,6 +186,7 @@ test.describe("holatga qarab yo'naltirish", () => {
 
     await requestCode(page, EXPIRING);
     await enterCode(page, FIXED_CODE);
+    await fillNewPassword(page);
     // Bazada hali APPROVED, lekin tekshiruv so'rov vaqtida bajariladi — cron kutilmaydi
     await expect(page).toHaveURL("/uz/talaba/guvohnoma");
     await expect(page.getByText("Guvohnomangiz muddati tugadi")).toBeVisible();
@@ -244,6 +213,7 @@ test.describe("holatga qarab yo'naltirish", () => {
     });
     await requestCode(page, EXPIRING);
     await enterCode(page, FIXED_CODE);
+    await fillNewPassword(page);
     await expect(page).toHaveURL("/uz/chegirmalar");
     expect(await studentStatus(EXPIRING)).toBe("APPROVED");
   });

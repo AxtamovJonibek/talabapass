@@ -35,6 +35,14 @@ export type Intent = "student" | "business";
 /** Ro'yxat turi: kassir — telefon raqamiga taklif bo'lsa (biznes egasi ilovada qo'shgan) */
 export type NewRole = Intent | "cashier";
 export type SignedIn = { tokens: TokenPair; user: MeView };
+/**
+ * Sessiya ochuvchi: ilova — token jufti (`apiOpener`), sayt — cookie (`actions/web-auth.ts`). Qoidalar (tekshiruvlar,
+ * chegaralar, parol qadamlari) ikkala yo'lda ham shu fayldagi bitta funksiyalarda.
+ */
+export type Opener<T> = (userId: string) => Promise<T>;
+export const apiOpener =
+  (device: Device): Opener<SignedIn> =>
+  async (userId) => ({ tokens: await openApiSession(userId, device), user: meView(await loadApiUser(userId)) });
 
 const SEND_ERRORS = { too_soon: "too_soon", daily_limit: "daily_limit", ip_limit: "ip_limit", locked: "code_locked" } as const;
 const VERIFY_ERRORS: Record<"no_code" | "expired" | "locked" | "wrong", ApiErrorCode> = {
@@ -154,11 +162,6 @@ async function stepUser(step: { phone: string; fp: string }) {
   return user;
 }
 
-async function signedIn(userId: string, device: Device): Promise<SignedIn> {
-  const tokens = await openApiSession(userId, device);
-  return { tokens, user: meView(await loadApiUser(userId)) };
-}
-
 /** Google/Apple bilan kirgan, parolli hisobning qadam tokeni (`loginTicket`). */
 function openLoginTicket(token: string): { uid: string; fp: string } | null {
   const data = unseal("step", token, authSecret());
@@ -166,7 +169,9 @@ function openLoginTicket(token: string): { uid: string; fp: string } | null {
   return { uid: data.uid, fp: data.fp };
 }
 
-export async function loginWithPassword(ticket: string, password: string, device: Device): Promise<SignedIn> {
+export const loginWithPassword = (ticket: string, password: string, device: Device) => loginWith(ticket, password, apiOpener(device));
+
+export async function loginWith<T>(ticket: string, password: string, open: Opener<T>): Promise<T> {
   const social = openLoginTicket(ticket);
   let user;
   if (social) {
@@ -185,7 +190,7 @@ export async function loginWithPassword(ticket: string, password: string, device
     await audit({ actorId: user.id, action: "user.password.locked", entity: "User", entityId: user.id, meta: { via: "api" } });
     throw new ApiError("password_locked", { retryInSeconds: check.retryInSeconds });
   }
-  return signedIn(user.id, device);
+  return open(user.id);
 }
 
 /** Qadam tokeni telefonsiz hisob uchun (Google/Apple): foydalanuvchi identifikatori va parol xeshining izi. */
@@ -194,7 +199,9 @@ function loginTicket(userId: string, passwordHash: string): string {
 }
 
 /** Telefon (+998…) yoki email bilan, SMSsiz. Hisob yo'q / parol yo'q — baribir `wrong_password` (hisob bor-yo'qligi oshkor bo'lmaydi). */
-export async function signInWithPassword(identifier: string, password: string, device: Device): Promise<SignedIn> {
+export const signInWithPassword = (identifier: string, password: string, device: Device) => signInWith(identifier, password, apiOpener(device));
+
+export async function signInWith<T>(identifier: string, password: string, open: Opener<T>): Promise<T> {
   const id = identifier.trim();
   const where = id.includes("@") ? { email: id.toLowerCase() } : { phone: phoneOrThrow(id) };
   const user = await db.user.findUnique({ where, select: { id: true, role: true, status: true, passwordHash: true, passwordLockedUntil: true } });
@@ -206,18 +213,24 @@ export async function signInWithPassword(identifier: string, password: string, d
     if (check.reason === "wrong") throw new ApiError("wrong_password", { left: check.left });
     throw new ApiError("password_locked", { retryInSeconds: check.retryInSeconds });
   }
-  return signedIn(user.id, device);
+  return open(user.id);
 }
 
 // ───────── 3b. parol o'rnatish / tiklash ─────────
 
 export type SetPasswordResult = ({ next: "signedIn" } & SignedIn) | { next: "register"; registrationTicket: string; role: NewRole };
+export type SetPasswordOutcome<T> = { next: "signedIn"; opened: T } | { next: "register"; registrationTicket: string; role: NewRole };
 
 /**
  * Yangi raqam — ro'yxat tokeni (hisob ro'yxat endpoint'ida ochiladi); parolsiz eski hisob — parol o'rnatiladi;
  * `login` qadami ("Parolni unutdim", SMS tasdig'i hali amal qilsa) — yangi parol, boshqa barcha sessiyalar yopiladi.
  */
 export async function setPassword(ticket: string, password: string, confirm: string, device: Device): Promise<SetPasswordResult> {
+  const result = await setPasswordWith(ticket, password, confirm, apiOpener(device));
+  return result.next === "signedIn" ? { next: "signedIn", ...result.opened } : result;
+}
+
+export async function setPasswordWith<T>(ticket: string, password: string, confirm: string, open: Opener<T>): Promise<SetPasswordOutcome<T>> {
   const pending = unseal("register", ticket, authSecret());
   if (pending && pending.exp > Date.now() && pending.social && typeof pending.role === "string") {
     // Google/Apple: parol ro'yxat ma'lumotlaridan OLDIN o'rnatiladi — xesh shu ro'yxat tokeniga yoziladi
@@ -249,7 +262,7 @@ export async function setPassword(ticket: string, password: string, confirm: str
   // "Parolni unutdim": barcha qurilmalar (sayt va ilova) chiqariladi — `revokeUserSessions` bilan bir xil
   if (reset) await db.session.deleteMany({ where: { userId: user.id } });
   await audit({ actorId: user.id, action: reset ? "user.password.reset" : "user.password.set", entity: "User", entityId: user.id, meta: { via: "api" } });
-  return { next: "signedIn", ...(await signedIn(user.id, device)) };
+  return { next: "signedIn", opened: await open(user.id) };
 }
 
 // ───────── Google / Apple (faqat ilova) ─────────
@@ -296,6 +309,19 @@ export async function socialSignIn(
   names: { firstName?: string; lastName?: string },
   device: Device,
 ): Promise<SocialResult> {
+  const result = await socialSignInWith(provider, idToken, intent, names, apiOpener(device));
+  return result.next === "signedIn" ? { next: "signedIn", ...result.opened } : result;
+}
+
+export type SocialOutcome<T> = Exclude<SocialResult, { next: "signedIn" }> | { next: "signedIn"; opened: T };
+
+export async function socialSignInWith<T>(
+  provider: SocialProvider,
+  idToken: string,
+  intent: Intent,
+  names: { firstName?: string; lastName?: string },
+  open: Opener<T>,
+): Promise<SocialOutcome<T>> {
   const profile = await verifySocial(provider, idToken);
   const identity = await db.authIdentity.findUnique({
     where: { provider_subject: { provider, subject: profile.subject } },
@@ -331,7 +357,7 @@ export async function socialSignIn(
         initial: user.firstName?.trim().charAt(0).toUpperCase() || null,
       };
     }
-    return { next: "signedIn", ...(await signedIn(user.id, device)) };
+    return { next: "signedIn", opened: await open(user.id) };
   }
 
   const account: SocialAccount = { provider, subject: profile.subject, email: profile.emailVerified ? profile.email : null };

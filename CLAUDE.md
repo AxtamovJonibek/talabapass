@@ -231,6 +231,19 @@ Manzillar: `/` landing · `/huquqiy/{maxfiylik|shartlar|biznes}` · `/kirish` ·
 - E2E (`npm run test:e2e`): lokal baza + seed + `.env` da `OTP_FIXED_CODE=000000` kerak. Yangi himoyalangan sahifa
   qo'shilsa `e2e/auth.spec.ts` dagi rol matritsasiga kiritiladi. Admin kirishi SMS + parol (pastda "Admin paroli").
 
+## Sayt kirishi va ro'yxati (talaba, biznes) — ilova bilan bir xil oqim
+- Brauzerda `/kirish`, `/talaba/royxat`, `/biznes/royxat` — bitta `WebAuth` (`components/auth/web-auth.tsx`). Ro'yxat: usul (Telefon / Google / Apple) → telefon: SMS kod → parol → ma'lumotlar;
+  Google/Apple: akkaunt → darrov parol → ma'lumotlar (ism oldindan). Talaba: ism, familya, universitet, kurs. Biznes: nom, manzil, STIR, telefon, Telegram, rasm (ixtiyoriy) → "Arizangiz qabul
+  qilindi" (rasm `POST /api/biznes/hujjat?tur=logo`, so'ng `webSubmitBusinessAction`). Kirish: telefon yoki email + parol (SMSsiz) yoki Google/Apple + parol. "Parolni unutdim": telefon → kod → yangi parol.
+- Server mantig'i bitta: `server/api/auth-flow.ts` va `register.ts` (`/api/v1` ham shundan). Sessiya ochuvchi almashtiriladi (`Opener`: ilova — tokenlar `apiOpener`, sayt — cookie `openSite`,
+  `server/actions/web-auth.ts`); qadam holati cookie emas, muhrlangan `ticket`. Qoida o'zgarsa `*With` funksiyalarida — ilova va sayt birga o'zgaradi. Test: `api/web-flow.itest.ts`, `e2e/web-auth.spec.ts`.
+- Parol qoidalari (`lib/password.ts`): kulrang → bajarilsa yashil; qizil faqat "Davom etish" dan keyin. Apple tugmasi doim ko'rinadi; sozlanmagan (`APPLE_CLIENT_ID` da Services ID yo'q) —
+  "Apple orqali kirib bo'lmadi. Google yoki telefon raqam bilan kiring." Google — rasmiy GIS tugmasi (`GOOGLE_CLIENT_ID_WEB`), Apple — Apple JS popup (redirect `APPLE_CALLBACK_URL` Services ID'da
+  ro'yxatdan o'tgan bo'lishi kerak).
+- Til: sayt marshrutlari faqat `uz`, shuning uchun bu oqim matnlari `lib/web-auth-copy.ts` da (uz/ru/en, `tp:til`), `messages/uz.json` da emas.
+- Admin: SMS kod to'g'ri bo'lsa sessiya ochiladi va `/kirish/admin` (parol) ga o'tadi — avvalgidek; admin uchun usul "Parolni unutdim" yoki "Telefon raqam bilan" → kod. Kassir taklifi telefon bilan (`role: cashier`) saytda yo'q (havola bilan).
+- E2E: seed hisoblarida parol yo'q — `signIn` (e2e/helpers) tiklash yo'li bilan o'rnatadi (`TEST_PASSWORD`).
+
 ## Fayllar (guvohnoma, hujjatlar)
 - Faqat `storage()` (`src/server/storage`) orqali; lokal disk (`.data/private`, serverda `STORAGE_LOCAL_DIR`) yoki S3-mos bucket
   (`STORAGE_DRIVER=s3`) — ikkalasi shu interfeysda.

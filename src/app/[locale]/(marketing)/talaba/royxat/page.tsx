@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import { getLocale } from "next-intl/server";
 import { AppStudentRegister } from "@/components/app/student-register";
-import { RegisterScreen } from "@/components/student/register-screen";
+import { WebAuth } from "@/components/auth/web-auth";
 import { redirect } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/locale";
 import { getCurrentUser, getVerifiedPhone, homePathFor } from "@/server/auth/session";
 import { effectiveStudentStatus, studentPathFor } from "@/server/auth/student-status";
 import { isAppRequest } from "@/server/app-mode";
+import { webSocialConfig } from "@/server/auth/social-config";
 import { db } from "@/server/db";
 
 async function Register() {
@@ -27,7 +28,7 @@ async function Register() {
     if (!verifiedPhone) redirect({ href: "/kirish", locale: await getLocale() });
     return <AppStudentRegister universities={universities} verifiedPhone={verifiedPhone} />;
   }
-  return <RegisterScreen universities={universities} verifiedPhone={verifiedPhone} />;
+  return <WebAuth start="register" role="student" universities={universities} social={webSocialConfig()} />;
 }
 
 // T1 / WT1 — talaba ro'yxati, 1-qadam

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { clearOtp, codeBox, enterCode, FIXED_CODE, local, seedPhones, signIn, withDb } from "./helpers";
+import { clearOtp, codeBox, enterCode, FIXED_CODE, local, requestCode, seedPhones, signIn, withDb } from "./helpers";
 
 // Kassir taklifi: bir martalik havola → kassir hisobi → faqat o'z biznesi; egasi o'chirsa sessiya yopiladi
 const CASHIER = "+998935550931";
@@ -73,11 +73,8 @@ test("o'chirilgan kassir qayta kira olmaydi", async ({ page }) => {
       [rows[0].id],
     );
   });
-  await page.goto("/uz/kirish", { waitUntil: "networkidle" });
-  await page.locator("#login-phone").fill(local(CASHIER));
-  await page.getByRole("button", { name: "SMS kod olish" }).click();
-  await expect(codeBox(page)).toBeEnabled();
+  await requestCode(page, CASHIER);
   await enterCode(page, FIXED_CODE);
-  await expect(page.getByText("hech qaysi biznesga kassir sifatida biriktirilmagansiz")).toBeVisible();
+  await expect(page.getByText("Hisob biznesga biriktirilmagan")).toBeVisible();
   expect(page.url()).toContain("/uz/kirish");
 });

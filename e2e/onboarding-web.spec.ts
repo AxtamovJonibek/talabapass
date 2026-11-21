@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createUploadToken } from "../src/server/student/upload-token";
-import { codeBox, enterCode, FIXED_CODE, local, seedPhones, withDb, sampleJpeg } from "./helpers";
+import { reachRegistrationDetails, seedPhones, withDb, sampleJpeg } from "./helpers";
 
 // Veb ko'rinish (WT1) va kompyuter → telefon o'tkazmasi
 test.use({ viewport: { width: 1440, height: 1000 } });
@@ -26,16 +26,13 @@ const student = () =>
   withDb(async (db) => (await db.query(`SELECT u.id, s.status FROM "User" u JOIN "StudentProfile" s ON s."userId" = u.id WHERE u.phone = $1`, [STUDENT])).rows[0] as { id: string; status: string });
 
 async function registerOnWeb(page: Page) {
-  await page.goto("/uz/talaba/royxat", { waitUntil: "networkidle" });
-  await page.locator("#web-phone").fill(local(STUDENT));
-  await page.locator("#web-first").fill("Veb");
-  await page.locator("#web-last").fill("Sinovchi");
-  await page.locator("#web-uni").fill("milliy universiteti");
+  await reachRegistrationDetails(page, STUDENT);
+  await page.locator("#reg-first").fill("Veb");
+  await page.locator("#reg-last").fill("Sinovchi");
+  await page.locator("#reg-uni").fill("milliy universiteti");
   await page.getByRole("option", { name: /^O'zbekiston Milliy universiteti/ }).first().click();
-  await page.getByRole("button", { name: "Magistratura" }).click();
+  await page.getByRole("button", { name: "Mag." }).click();
   await page.getByRole("button", { name: "Davom etish" }).click();
-  await expect(codeBox(page)).toBeEnabled();
-  await enterCode(page, FIXED_CODE);
   await expect(page).toHaveURL("/uz/talaba/guvohnoma");
 }
 

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { codeBox, clearOtp, enterCode, FIXED_CODE, requestCode, seedPhones, signIn, withDb, type SeedPhones } from "./helpers";
+import { codeBox, clearOtp, enterCode, fillNewPassword, FIXED_CODE, local, requestCode, seedPhones, signIn, TEST_PASSWORD, webRegisterStudent, withDb, type SeedPhones, toPhoneStep } from "./helpers";
 
 let phones: SeedPhones;
 
@@ -66,6 +66,7 @@ test.describe("kirish", () => {
     await expect(page.getByText("Kod noto'g'ri")).toBeVisible();
     await expect(page).toHaveURL("/uz/kirish");
     await enterCode(page, FIXED_CODE);
+    await fillNewPassword(page);
     await expect(page).toHaveURL(HOME.student);
   });
 
@@ -86,7 +87,7 @@ test.describe("kirish", () => {
 
     // yangi kod so'rash ham blok tugaguncha rad etiladi
     await page.getByRole("button", { name: "Raqamni o'zgartirish" }).click();
-    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await page.getByRole("button", { name: "Kod yuborish" }).click();
     await expect(page.getByText("Juda ko'p xato urinish")).toBeVisible();
     const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
     expect(codes.rows[0].n).toBe(1);
@@ -104,8 +105,8 @@ test.describe("kirish", () => {
   test("60 soniya ichida ikkinchi kod yuborilmaydi", async ({ page }) => {
     await requestCode(page, phones.student);
     await page.getByRole("button", { name: "Raqamni o'zgartirish" }).click();
-    await page.getByRole("button", { name: "SMS kod olish" }).click();
-    await expect(page.getByText("Kod hozirgina yuborildi")).toBeVisible();
+    await page.getByRole("button", { name: "Kod yuborish" }).click();
+    await expect(page.getByText("Kod yaqinda yuborilgan")).toBeVisible();
     const count = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
     expect(count.rows[0].n).toBe(1);
   });
@@ -113,19 +114,23 @@ test.describe("kirish", () => {
   test("bitta IP'dan soatiga 10 ta so'rovdan keyin kod yuborilmaydi", async ({ page }) => {
     await requestCode(page, phones.student);
     // Shu brauzer IP'si nomidan yana 9 ta so'rov yozib qo'yamiz (jami 10)
-    await withDb((db) => db.query(`INSERT INTO "RateLimitHit" (id, key) SELECT 'e2e_hit_' || n, (SELECT key FROM "RateLimitHit" LIMIT 1) FROM generate_series(1, 9) n`));
+    await withDb((db) => db.query(`DELETE FROM "OtpCode" WHERE phone = '+998905550996'`));
+    await withDb((db) => db.query(`DELETE FROM "RateLimitHit" WHERE id LIKE 'e2e_hit_%'`));
+    await withDb((db) => db.query(`INSERT INTO "RateLimitHit" (id, key) SELECT 'e2e_hit_' || n, (SELECT key FROM "RateLimitHit" WHERE key LIKE 'otp-ip:%' LIMIT 1) FROM generate_series(1, 9) n`));
     await page.goto("/uz/kirish", { waitUntil: "networkidle" });
+    await toPhoneStep(page, "Parolni unutdim");
     await page.locator("#login-phone").fill("90 555 09 96");
-    await page.getByRole("button", { name: "SMS kod olish" }).click();
-    await expect(page.getByText("Juda ko'p so'rov yuborildi")).toBeVisible();
+    await page.getByRole("button", { name: "Kod yuborish" }).click();
+    await expect(page.getByText("Juda ko'p so'rov.")).toBeVisible();
     const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = '+998905550996'`));
     expect(codes.rows[0].n).toBe(0);
   });
 
   test("faqat +998: boshqa davlat raqamiga kod yuborilmaydi", async ({ page }) => {
     await page.goto("/uz/kirish", { waitUntil: "networkidle" });
+    await toPhoneStep(page, "Parolni unutdim");
     await page.locator("#login-phone").fill("+7 904 123 78 56");
-    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await page.getByRole("button", { name: "Kod yuborish" }).click();
     await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
     const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone LIKE '+7%' OR phone LIKE '%9041237856'`));
     expect(codes.rows[0].n).toBe(0);
@@ -146,15 +151,16 @@ test.describe("kirish", () => {
   test("/kirish?rol=biznes Biznes tabini ochadi", async ({ page }) => {
     await page.goto("/uz/kirish?rol=biznes", { waitUntil: "networkidle" });
     await expect(page.getByRole("tab", { name: "Biznes" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("heading", { name: "Biznes kabinetiga kirish" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Talabalarni biznesingizga olib keling." })).toBeVisible();
     await page.goto("/uz/kirish", { waitUntil: "networkidle" });
     await expect(page.getByRole("tab", { name: "Talaba" })).toHaveAttribute("aria-selected", "true");
   });
 
   test("noto'g'ri raqam uchun kod yuborilmaydi", async ({ page }) => {
     await page.goto("/uz/kirish", { waitUntil: "networkidle" });
+    await toPhoneStep(page, "Parolni unutdim");
     await page.locator("#login-phone").fill("90 412");
-    await page.getByRole("button", { name: "SMS kod olish" }).click();
+    await page.getByRole("button", { name: "Kod yuborish" }).click();
     await expect(page.getByText("Telefon raqamni to'liq kiriting")).toBeVisible();
   });
 
@@ -170,7 +176,7 @@ test.describe("kirish", () => {
     try {
       await requestCode(page, blocked);
       await enterCode(page, FIXED_CODE);
-      await expect(page.getByText("Bu hisob bloklangan")).toBeVisible();
+      await expect(page.getByText("Hisob bloklangan")).toBeVisible();
       await expect(page).toHaveURL("/uz/kirish");
     } finally {
       await clearOtp(blocked);
@@ -178,31 +184,44 @@ test.describe("kirish", () => {
     }
   });
 
-  test("ro'yxatda yo'q raqam: kod tasdiqlangach ro'yxat formasiga o'tadi", async ({ page }) => {
+  test("ro'yxatda yo'q raqam: parolni tiklashda hisob ochilmaydi, ro'yxat usuli alohida", async ({ page }) => {
     const fresh = "+998905550998";
-    await signIn(page, fresh);
-    await expect(page).toHaveURL("/uz/talaba/royxat");
-    // Tasdiqlangan raqam formada tayyor turadi va o'zgartirib bo'lmaydi
-    await expect(page.locator("#reg-phone")).toHaveValue("90 555 09 98");
-    await expect(page.locator("#reg-phone")).toHaveAttribute("readonly", "");
+    await requestCode(page, fresh);
+    await enterCode(page, FIXED_CODE);
+    await expect(page.getByText("Bu raqam ro'yxatda yo'q")).toBeVisible();
+    await expect(page.locator("#auth-password")).toHaveCount(0);
     await clearOtp(fresh);
   });
 
-  test("biznes tabidan ro'yxatda yo'q raqam biznes ro'yxatiga o'tadi", async ({ page }) => {
+  test("parol bilan kirish: telefon + parol, SMSsiz; noto'g'ri parol rad etiladi", async ({ page }) => {
+    await signIn(page, phones.student); // parolni o'rnatadi
+    await page.context().clearCookies();
+    await page.goto("/uz/kirish", { waitUntil: "networkidle" });
+    await page.locator("#signin-identifier").fill(local(phones.student));
+    await page.locator("#signin-password").fill("Noto'g'ri1");
+    await page.getByRole("button", { name: "Kirish", exact: true }).click();
+    await expect(page.getByText("Parol noto'g'ri. Yana 4 ta urinish qoldi")).toBeVisible();
+    await page.locator("#signin-password").fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: "Kirish", exact: true }).click();
+    await expect(page).toHaveURL(HOME.student);
+    // SMS so'ralmagan: kirishdan keyin yangi kod yozilmagan
+    const codes = await withDb((db) => db.query(`SELECT count(*)::int AS n FROM "OtpCode" WHERE phone = $1`, [phones.student]));
+    expect(codes.rows[0].n).toBe(1);
+  });
+
+  test("talaba ro'yxati: telefon → kod → parol → ma'lumotlar → guvohnoma", async ({ page }) => {
     const fresh = "+998905550997";
-    await requestCode(page, fresh, "Biznes");
-    await enterCode(page, FIXED_CODE);
-    await expect(page).toHaveURL("/uz/biznes/royxat");
-    // Tasdiqlangan raqam ariza formasiga o'zgartirib bo'lmaydigan qilib qo'yiladi (2-qadam)
-    await page.locator("#b1-name").fill("Test");
-    await page.getByRole("button", { name: "Kafe / restoran" }).locator("visible=true").click();
-    await page.locator("#b1-address").fill("Test ko'chasi 1");
-    await page.locator("#b1-hours").fill("09:00 – 18:00");
-    await page.locator("#b1-tin").fill("309000997");
-    await page.getByRole("button", { name: "Keyingi: hujjatlar" }).click();
-    await expect(page.locator("#b1-phone")).toHaveValue("90 555 09 97");
-    await expect(page.locator("#b1-phone")).toHaveAttribute("readonly", "");
-    await clearOtp(fresh);
+    const cleanup = () => withDb((db) => db.query(`DELETE FROM "User" WHERE phone = $1`, [fresh]));
+    await cleanup();
+    try {
+      await webRegisterStudent(page, fresh);
+      await expect(page).toHaveURL("/uz/talaba/guvohnoma");
+      const profile = await withDb((db) => db.query(`SELECT s.status, u."passwordHash" IS NOT NULL AS pw FROM "StudentProfile" s JOIN "User" u ON u.id = s."userId" WHERE u.phone = $1`, [fresh]));
+      expect(profile.rows[0]).toMatchObject({ status: "DRAFT", pw: true });
+    } finally {
+      await cleanup();
+      await clearOtp(fresh);
+    }
   });
 
   test("chiqish sessiyani yopadi", async ({ page }) => {
