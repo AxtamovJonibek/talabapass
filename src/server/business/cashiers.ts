@@ -133,20 +133,31 @@ export async function invitePhone(ownerId: string, phone: string, now = new Date
   const business = await ownerLiveBusiness(ownerId);
   if (!business) return { ok: false, error: "notApproved" };
   if (!(await permissionsOf(business.id)).canAddCashiers) return { ok: false, error: "noPermission" };
-  const member = await db.businessMember.count({ where: { businessId: business.id, role: "CASHIER", active: true, user: { phone } } });
+  return createPhoneInvite(business.id, ownerId, phone, now);
+}
+
+/** Admin biznes nomidan kassir taklif qiladi (ega ruxsati `canAddCashiers` admin uchun to'sqinlik emas); biznes tasdiqlangan bo'lishi shart. */
+export async function invitePhoneByAdmin(adminId: string, businessId: string, phone: string, now = new Date()): Promise<PhoneInviteResult> {
+  const business = await db.business.findFirst({ where: { id: businessId, ...LIVE_BUSINESS }, select: { id: true } });
+  if (!business) return { ok: false, error: "notApproved" };
+  return createPhoneInvite(business.id, adminId, phone, now, "admin");
+}
+
+async function createPhoneInvite(businessId: string, actorId: string, phone: string, now: Date, via: "phone" | "admin" = "phone"): Promise<PhoneInviteResult> {
+  const member = await db.businessMember.count({ where: { businessId, role: "CASHIER", active: true, user: { phone } } });
   if (member > 0) return { ok: false, error: "alreadyCashier" };
 
   const expiresAt = new Date(now.getTime() + INVITE_TTL_MS);
-  const open = await db.cashierInvite.findFirst({ where: { businessId: business.id, phone, acceptedAt: null, expiresAt: { gt: now } }, select: { id: true } });
+  const open = await db.cashierInvite.findFirst({ where: { businessId, phone, acceptedAt: null, expiresAt: { gt: now } }, select: { id: true } });
   if (open) {
     await db.cashierInvite.update({ where: { id: open.id }, data: { expiresAt } });
     return { ok: true, inviteId: open.id, expiresAt };
   }
-  const count = await db.cashierInvite.count({ where: { businessId: business.id, acceptedAt: null, expiresAt: { gt: now } } });
+  const count = await db.cashierInvite.count({ where: { businessId, acceptedAt: null, expiresAt: { gt: now } } });
   if (count >= OPEN_INVITES_MAX) return { ok: false, error: "tooMany" };
   // Havola yo'q: token hech kimga berilmaydi (ustun majburiy va yagona bo'lgani uchun tasodifiy)
-  const invite = await db.cashierInvite.create({ data: { businessId: business.id, tokenHash: hashToken(randomBytes(24).toString("base64url")), phone, expiresAt }, select: { id: true } });
-  await audit({ actorId: ownerId, action: "cashier.invite", entity: "CashierInvite", entityId: invite.id, meta: { via: "phone" } });
+  const invite = await db.cashierInvite.create({ data: { businessId, tokenHash: hashToken(randomBytes(24).toString("base64url")), phone, expiresAt }, select: { id: true } });
+  await audit({ actorId, action: "cashier.invite", entity: "CashierInvite", entityId: invite.id, meta: { via, businessId } });
   return { ok: true, inviteId: invite.id, expiresAt };
 }
 
@@ -173,15 +184,23 @@ class InviteTakenError extends Error {}
  * (skaner ochiq turgan telefonda ham keyingi so'rovdayoq chiqib ketadi).
  */
 export async function removeCashier(ownerId: string, memberId: string): Promise<boolean> {
-  const member = await db.businessMember.findFirst({
-    where: { id: memberId, role: "CASHIER", active: true, business: { ownerId } },
-    select: { id: true, userId: true, businessId: true },
-  });
+  const member = await db.businessMember.findFirst({ where: { id: memberId, role: "CASHIER", active: true, business: { ownerId } }, select: { id: true } });
+  return member ? deactivateCashier(ownerId, memberId) : false;
+}
+
+/** Admin kassirni biznes a'zoligidan chiqaradi (egasi o'chirgandek: a'zolik nofaol, sessiyalar yopiladi). */
+export async function removeCashierByAdmin(adminId: string, businessId: string, memberId: string): Promise<boolean> {
+  const member = await db.businessMember.findFirst({ where: { id: memberId, businessId, role: "CASHIER", active: true }, select: { id: true } });
+  return member ? deactivateCashier(adminId, memberId) : false;
+}
+
+async function deactivateCashier(actorId: string, memberId: string): Promise<boolean> {
+  const member = await db.businessMember.findFirst({ where: { id: memberId, role: "CASHIER", active: true }, select: { id: true, userId: true, businessId: true } });
   if (!member) return false;
   await db.$transaction(async (tx) => {
     await tx.businessMember.update({ where: { id: member.id }, data: { active: false } });
     await tx.session.deleteMany({ where: { userId: member.userId } });
-    await audit({ actorId: ownerId, action: "cashier.remove", entity: "Business", entityId: member.businessId, meta: { cashier: member.userId } }, tx);
+    await audit({ actorId, action: "cashier.remove", entity: "Business", entityId: member.businessId, meta: { cashier: member.userId } }, tx);
   });
   // Tranzaksiyadan tashqarida ham — boshqa jarayonda shu payt yaratilgan sessiya qolmasin
   await db.session.deleteMany({ where: { userId: member.userId } });
@@ -208,7 +227,7 @@ export async function ownerCashiers(ownerId: string, now = new Date()) {
   // Skan = muvaffaqiyatli sotuv (Redemption) yoki rad etilgan urinish (ScanAttempt, OK dan boshqa)
   const ids = members.map((m) => m.user.id);
   const [sold, failed] = await Promise.all([
-    db.redemption.groupBy({ by: ["cashierId"], where: { businessId: business.id, createdAt: { gte: today }, cashierId: { in: ids } }, _count: { _all: true }, _max: { createdAt: true } }),
+    db.redemption.groupBy({ by: ["cashierId"], where: { businessId: business.id, voidedAt: null, createdAt: { gte: today }, cashierId: { in: ids } }, _count: { _all: true }, _max: { createdAt: true } }),
     db.scanAttempt.groupBy({
       by: ["cashierId"],
       where: { businessId: business.id, createdAt: { gte: today }, cashierId: { in: ids }, result: { not: "OK" } },

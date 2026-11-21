@@ -14,7 +14,7 @@ export async function landingStats(now: Date): Promise<LandingStats> {
     db.studentProfile.count({ where: { status: "APPROVED", user: { status: "ACTIVE" } } }),
     db.business.count({ where: PARTNER_WHERE }),
     db.discount.count({ where: visibleDiscountWhere(now) }),
-    db.redemption.aggregate({ _sum: { discountAmount: true } }),
+    db.redemption.aggregate({ where: { voidedAt: null }, _sum: { discountAmount: true } }),
   ]);
   return { students, businesses, discounts, savedTotal: saved._sum.discountAmount ?? 0 };
 }

@@ -5,6 +5,9 @@ export type ChangeRow = { id: string; role: "ADMIN" | "OWNER"; actor: string | n
 /** O'zgarishlar jurnali: kim (admin yoki ega), qaysi maydon, oldin → keyin, vaqt. */
 export async function ChangesLog({ rows }: { rows: ChangeRow[] }) {
   const t = await getTranslations("adminBusiness.changes");
+  const status = await getTranslations("adminSuper.discountStatus");
+  // Chegirma holati qiymati «nom»: ACTIVE — kod o'zbekcha nomga almashtiriladi
+  const value = (f: string, v: string | null) => (f === "discount_status" && v ? v.replace(/(ACTIVE|PAUSED|PENDING_REVIEW|DRAFT|REJECTED|ENDED)$/, (code) => status(code as "ACTIVE")) : v);
   const field = (f: string) => (t.has(`fields.${f}` as "fields.name") ? t(`fields.${f}` as "fields.name") : f);
   return (
     <section className="mt-3 flex min-w-0 flex-col gap-3 rounded-16 bg-white p-5" aria-label={t("title")}>
@@ -21,7 +24,7 @@ export async function ChangesLog({ rows }: { rows: ChangeRow[] }) {
                 {r.actor ? <span className="font-normal text-muted"> · {r.actor}</span> : null}
               </span>
               <span className="font-semibold">{field(r.field)}:</span>
-              <span className="min-w-0 break-words">{t("arrow", { old: r.oldValue ?? t("none"), new: r.newValue ?? t("none") })}</span>
+              <span className="min-w-0 break-words">{t("arrow", { old: value(r.field, r.oldValue) ?? t("none"), new: value(r.field, r.newValue) ?? t("none") })}</span>
             </li>
           ))}
         </ul>

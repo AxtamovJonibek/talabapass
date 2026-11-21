@@ -5,6 +5,9 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { BusinessReview } from "@/components/admin/business-review";
 import { ChangesLog } from "@/components/admin/business/changes-log";
 import { ContactNotes } from "@/components/admin/business/contact-notes";
+import { CashiersPanel } from "@/components/admin/business/ops/cashiers-panel";
+import { DiscountsPanel } from "@/components/admin/business/ops/discounts-panel";
+import { SalesSection, StatsSection } from "@/components/admin/business/ops/stats-sales";
 import { BusinessAdminForm } from "@/components/admin/manage/forms";
 import { UploadButton } from "@/components/admin/super/controls";
 import { QueuePanel, ReviewHeader, type CheckRow, type QueueItem } from "@/components/admin/review-parts";
@@ -13,10 +16,15 @@ import { BUSINESS_KINDS } from "@/lib/business";
 import { cn } from "@/lib/cn";
 import { formatContact, formatPhone } from "@/lib/format";
 import { businessLogoUrl } from "@/lib/profile-image";
+import { adminCashiers, adminDiscountList } from "@/server/admin/business-ops";
 import { businessChanges, businessList, contactNotes, isListStatus, LIST_STATUSES, type ListStatus } from "@/server/admin/business-card";
 import { businessDetail, businessQueue, reviewStats } from "@/server/admin/review";
 import { ageLabel, averageWait } from "@/server/admin/review-rules";
 import { requireRole } from "@/server/auth/session";
+import { businessSales } from "@/server/business/sales";
+import { businessStats } from "@/server/business/stats";
+import { todayInTashkent } from "@/server/business/discounts";
+import { parsePeriod, type Period } from "@/lib/stats";
 
 const initialsOf = (name: string) =>
   name
@@ -142,7 +150,7 @@ async function BusinessListContent({ searchParams }: { searchParams: PageProps<"
 }
 
 // A2 (biznes) — karta: tekshiruv, ma'lumotlar, aloqa qaydlari, o'zgarishlar jurnali
-async function BusinessCardContent({ id }: { id: string }) {
+async function BusinessCardContent({ id, query }: { id: string; query: Record<string, string | string[] | undefined> }) {
   const admin = await requireRole("ADMIN");
   const [t, kinds, ts, tb] = await Promise.all([getTranslations("admin.review"), getTranslations("businessKind"), getTranslations("adminSuper"), getTranslations("adminBusiness")]);
   const now = new Date();
@@ -151,6 +159,17 @@ async function BusinessCardContent({ id }: { id: string }) {
   const selectedId = id;
   const [detail, notes, changes] = await Promise.all([businessDetail(selectedId), contactNotes(selectedId), businessChanges(selectedId)]);
   const todayIso = tashkentIso(now).slice(0, 10);
+  const period = parsePeriod(one(query.davr));
+  const salesPage = Math.max(1, Number(one(query.sahifa)) || 1);
+  const cardHref = (p: { davr?: Period; sahifa?: number }) => {
+    const params = new URLSearchParams({ id: selectedId });
+    if (p.davr) params.set("davr", String(p.davr));
+    if (p.sahifa && p.sahifa > 1) params.set("sahifa", String(p.sahifa));
+    return `/admin/bizneslar?${params}`;
+  };
+  const [discounts, cashierData, periodStats, sales] = detail
+    ? await Promise.all([adminDiscountList(detail.id), adminCashiers(detail.id, now), businessStats(detail.id, period, now), businessSales(detail.id, period, salesPage, now, undefined, true)])
+    : [[], { cashiers: [], invites: [] }, null, null];
 
   const agoText = (date: Date) => {
     const a = ageLabel(date, now);
@@ -274,6 +293,21 @@ async function BusinessCardContent({ id }: { id: string }) {
       ) : null}
       {detail ? (
         <>
+          <DiscountsPanel
+            key={`d-${detail.id}`}
+            businessId={detail.id}
+            workingHours={detail.workingHours}
+            today={todayInTashkent(now)}
+            discounts={discounts.map((d) => ({ ...d, weekdays: d.weekdays, terms: d.terms ?? "" }))}
+          />
+          <CashiersPanel
+            businessId={detail.id}
+            canInvite={detail.status === "APPROVED" || detail.status === "WARNED"}
+            cashiers={cashierData.cashiers}
+            invites={cashierData.invites.map((i) => ({ id: i.id, phone: i.phone, until: dotDate(i.expiresAt) }))}
+          />
+          {periodStats ? <StatsSection stats={periodStats} period={period} href={(p) => cardHref({ davr: p })} /> : null}
+          {sales ? <SalesSection sales={sales} period={period} href={cardHref} /> : null}
           <ContactNotes
             businessId={detail.id}
             today={todayIso}
@@ -290,7 +324,7 @@ async function BusinessCardContent({ id }: { id: string }) {
 // umumiy layout'dagi chegara ishlamaydi.
 async function BusinessesPageContent({ searchParams }: PageProps<"/[locale]/admin/bizneslar">) {
   const { id } = await searchParams;
-  return typeof id === "string" && id ? <BusinessCardContent id={id} /> : <BusinessListContent searchParams={searchParams} />;
+  return typeof id === "string" && id ? <BusinessCardContent id={id} query={await searchParams} /> : <BusinessListContent searchParams={searchParams} />;
 }
 
 export default function BusinessReviewPage(props: PageProps<"/[locale]/admin/bizneslar">) {

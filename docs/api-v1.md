@@ -264,6 +264,7 @@ o'z sotuvlari va cheklari; boshqa biznes endpoint'lari 403 `forbidden`. Biznes h
 | Endpoint | Kirish | Chiqish |
 |---|---|---|
 | `GET /business/stats` | `period=1\|7\|30` (standart 7) | `{ business, period, kpi { sold, delta, revenue, average, discount, fresh, returningPercent }, chart { hourly, bars: [{ key, count, current }] }, funnel { views, qr, sold }, heat { hours, cells: [[kun 0–6, soat, soni]], busiest, quietest }, universities, offers, offerTotals, sales, cashiers, reportUrl }` — `reportUrl` Excel hisobot (imzoli) |
+| `GET /business/changes` | — | `{ changes: [{ id, by: "admin"\|"owner", field, oldValue, newValue, at }] }` — biznesdagi o'zgarishlar jurnali (oxirgi 50): admin chegirma/kassir/sotuvga qilgan amallar ham (`discount_*`, `sale_voided`, `cashier_*`); chegirma qiymatlari «nom»: qiymat ko'rinishida |
 | `GET /business/discounts` | — | `{ discounts: [{ id, title, type, originalPrice, percent, newPrice, weekdays, fromMinute, toMinute, dailyLimit, endsOn, status, rejectReason, soldToday, image }] }` |
 | `POST /business/discounts` | `{ draft, intent: "draft"\|"publish" }` | 201 `{ id, status }` (`publish` → `PENDING_REVIEW`) |
 | `GET /business/discounts/<id>` | — | `{ id, status, rejectReason, category, draft, images: [{ id, url }] }` |

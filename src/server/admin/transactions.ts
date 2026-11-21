@@ -51,6 +51,7 @@ function redemptionWhere(filter: TxFilter, now: Date): Prisma.RedemptionWhereInp
   const since = periodStart(filter.period, now);
   const { receipt } = classifyQuery(filter.q);
   return {
+    voidedAt: null,
     ...(since ? { createdAt: { gte: since } } : {}),
     ...(filter.q
       ? { OR: [...(receipt != null ? [{ receiptNo: receipt }] : []), { student: studentMatch(filter.q) }, { business: businessMatch(filter.q) }] }

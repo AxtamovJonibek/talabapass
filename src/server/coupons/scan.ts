@@ -43,9 +43,9 @@ export const shortName = (first?: string | null, last?: string | null) => [first
 export async function scannerSummary(scanner: Scanner, now = new Date()) {
   const today = fromTashkent(toTashkent(now).date);
   const [todaySales, last] = await Promise.all([
-    db.redemption.count({ where: { businessId: scanner.businessId, createdAt: { gte: today } } }),
+    db.redemption.count({ where: { businessId: scanner.businessId, voidedAt: null, createdAt: { gte: today } } }),
     db.redemption.findFirst({
-      where: { businessId: scanner.businessId },
+      where: { businessId: scanner.businessId, voidedAt: null },
       orderBy: { createdAt: "desc" },
       select: { createdAt: true, student: { select: { firstName: true, lastName: true } }, coupon: { select: { termsTitle: true } } },
     }),

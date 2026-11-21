@@ -17,6 +17,8 @@ const SELECT = {
   discountAmount: true,
   paidAmount: true,
   paymentType: true,
+  voidedAt: true,
+  voidReason: true,
   student: { select: { firstName: true, lastName: true, student: { select: { university: { select: { shortName: true } } } } } },
   cashier: { select: { firstName: true, lastName: true } },
   coupon: { select: { termsTitle: true } },
@@ -34,12 +36,16 @@ export type SaleRow = {
   discountAmount: number;
   paid: number;
   payment: PaymentType;
+  /** Admin bekor qilgan sotuv (faqat `includeVoided` bilan keladi) */
+  voided: { at: Date; reason: string } | null;
+  /** To'liq ism-familiya (admin ro'yxati uchun) */
+  studentFull: string;
 };
 
 type Raw = Awaited<ReturnType<typeof fetchRows>>[number];
-const fetchRows = (businessId: string, from: Date, to: Date, skip: number, take: number, cashierId?: string) =>
+const fetchRows = (businessId: string, from: Date, to: Date, skip: number, take: number, cashierId?: string, includeVoided = false) =>
   db.redemption.findMany({
-    where: { businessId, createdAt: { gte: from, lt: to }, ...(cashierId ? { cashierId } : {}) },
+    where: { businessId, createdAt: { gte: from, lt: to }, ...(cashierId ? { cashierId } : {}), ...(includeVoided ? {} : { voidedAt: null }) },
     orderBy: [{ createdAt: "desc" }, { receiptNo: "desc" }],
     skip,
     take,
@@ -58,20 +64,20 @@ const toRow = (r: Raw): SaleRow => ({
   discountAmount: r.discountAmount,
   paid: r.paidAmount,
   payment: r.paymentType,
+  voided: r.voidedAt ? { at: r.voidedAt, reason: r.voidReason ?? "" } : null,
+  studentFull: [r.student.firstName, r.student.lastName].filter(Boolean).join(" "),
 });
 
 /** "Sotuvlar va cheklar": davr bo'yicha sahifalangan ro'yxat va jami. `cashierId` — faqat shu xodim tasdiqlaganlari (kassirga o'zinikilar). */
-export async function businessSales(businessId: string, period: Period, page: number, now = new Date(), cashierId?: string) {
+export async function businessSales(businessId: string, period: Period, page: number, now = new Date(), cashierId?: string, includeVoided = false) {
   const { from, to } = periodRange(period, now);
-  const total = await db.redemption.aggregate({
-    where: { businessId, createdAt: { gte: from, lt: to }, ...(cashierId ? { cashierId } : {}) },
-    _count: { _all: true },
-    _sum: { paidAmount: true },
-  });
-  const count = total._count._all;
+  // Jami summa va son bekor qilinganlarsiz; `includeVoided` (admin) bo'lsa ro'yxatda ular ham ko'rinadi
+  const where = { businessId, createdAt: { gte: from, lt: to }, ...(cashierId ? { cashierId } : {}) };
+  const total = await db.redemption.aggregate({ where: { ...where, voidedAt: null }, _count: { _all: true }, _sum: { paidAmount: true } });
+  const count = includeVoided ? await db.redemption.count({ where }) : total._count._all;
   const pages = Math.max(1, Math.ceil(count / SALES_PAGE_SIZE));
   const current = Math.min(Math.max(1, page), pages);
-  const rows = (await fetchRows(businessId, from, to, (current - 1) * SALES_PAGE_SIZE, SALES_PAGE_SIZE, cashierId)).map(toRow);
+  const rows = (await fetchRows(businessId, from, to, (current - 1) * SALES_PAGE_SIZE, SALES_PAGE_SIZE, cashierId, includeVoided)).map(toRow);
   return { rows, count, sum: total._sum.paidAmount ?? 0, page: current, pages };
 }
 

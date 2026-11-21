@@ -237,7 +237,7 @@ export async function visitHint(ownerId: string) {
            FLOOR((EXTRACT(HOUR FROM r."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent') - 8) / 2)::int AS slot,
            COUNT(*)::int AS sales
     FROM "Redemption" r JOIN "Business" b ON b.id = r."businessId"
-    WHERE b."ownerId" = ${ownerId} AND r."createdAt" > now() - make_interval(days => ${HINT_DAYS})
+    WHERE r."voidedAt" IS NULL AND b."ownerId" = ${ownerId} AND r."createdAt" > now() - make_interval(days => ${HINT_DAYS})
       AND EXTRACT(HOUR FROM r."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent') >= 8
     GROUP BY 1, 2`;
   return hintFromCounts(rows);

@@ -34,7 +34,9 @@ const BUSINESSES = "/admin/hamkorlar";
 const LANDING = "/admin/landing";
 
 function refresh(...paths: string[]) {
-  for (const path of [...paths, "/admin/jurnal"]) revalidatePath(localizedPath(path));
+  // Biznes kartasi (`/admin/bizneslar?id=`) ham shu amallardan foydalanadi
+  const all = paths.includes(BUSINESSES) ? [...paths, "/admin/bizneslar"] : paths;
+  for (const path of [...all, "/admin/jurnal"]) revalidatePath(localizedPath(path));
 }
 
 const fromResult = (r: { ok: boolean; error?: string; fields?: string[]; id?: string; errors?: Record<string, string> }): SuperActionResult =>

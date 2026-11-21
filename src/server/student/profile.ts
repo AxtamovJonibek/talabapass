@@ -27,8 +27,8 @@ export async function setNotifyDeals(userId: string, on: boolean): Promise<void>
 /** Profil sahifasi uchun jami: tejalgan summa, xaridlar soni, nechta joyda. */
 export async function studentTotals(studentId: string): Promise<{ totalSaved: number; totalCount: number; places: number }> {
   const [total, places] = await Promise.all([
-    db.redemption.aggregate({ where: { studentId }, _sum: { discountAmount: true }, _count: true }),
-    db.redemption.groupBy({ by: ["businessId"], where: { studentId } }),
+    db.redemption.aggregate({ where: { studentId, voidedAt: null }, _sum: { discountAmount: true }, _count: true }),
+    db.redemption.groupBy({ by: ["businessId"], where: { studentId, voidedAt: null } }),
   ]);
   return { totalSaved: total._sum.discountAmount ?? 0, totalCount: total._count, places: places.length };
 }

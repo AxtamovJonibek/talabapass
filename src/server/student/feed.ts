@@ -226,7 +226,7 @@ export async function savedThisMonth(studentId: string, now: Date): Promise<numb
   const today = toTashkent(now).date;
   const monthStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
   const sum = await db.redemption.aggregate({
-    where: { studentId, createdAt: { gte: fromTashkent(monthStart) } },
+    where: { studentId, voidedAt: null, createdAt: { gte: fromTashkent(monthStart) } },
     _sum: { discountAmount: true },
   });
   return sum._sum.discountAmount ?? 0;

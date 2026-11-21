@@ -54,15 +54,15 @@ export async function businessStats(businessId: string, period: Period, now = ne
 
   const [kpi, previous, fresh, students, series, heat, universities, views, qr, offerRows, recent, cashiers, rejected, discounts] = await Promise.all([
     db.redemption.aggregate({
-      where: { businessId, createdAt: { gte: from, lt: to } },
+      where: { businessId, voidedAt: null, createdAt: { gte: from, lt: to } },
       _count: { _all: true },
       _sum: { paidAmount: true, discountAmount: true },
     }),
-    db.redemption.count({ where: { businessId, createdAt: { gte: prevFrom, lt: prevTo } } }),
+    db.redemption.count({ where: { businessId, voidedAt: null, createdAt: { gte: prevFrom, lt: prevTo } } }),
     // Yangi mijoz: shu biznesdagi birinchi xaridi davr ichida
     db.$queryRaw<{ n: number }[]>`
       SELECT COUNT(*)::int AS n FROM (
-        SELECT "studentId", MIN("createdAt") AS first FROM "Redemption" WHERE "businessId" = ${businessId} GROUP BY "studentId"
+        SELECT "studentId", MIN("createdAt") AS first FROM "Redemption" WHERE "voidedAt" IS NULL AND "businessId" = ${businessId} GROUP BY "studentId"
       ) s WHERE s.first >= ${from} AND s.first < ${to}`,
     // Davrdagi talabalar va ulardan qayta kelganlari (shu biznesda davr oxirigacha 2 va undan ko'p xarid)
     db.$queryRaw<{ total: number; returning: number }[]>`
@@ -70,24 +70,24 @@ export async function businessStats(businessId: string, period: Period, now = ne
         SELECT "studentId",
                COUNT(*) AS visits,
                COUNT(*) FILTER (WHERE "createdAt" >= ${from}) AS inside
-        FROM "Redemption" WHERE "businessId" = ${businessId} AND "createdAt" < ${to} GROUP BY "studentId"
+        FROM "Redemption" WHERE "voidedAt" IS NULL AND "businessId" = ${businessId} AND "createdAt" < ${to} GROUP BY "studentId"
       ) s WHERE s.inside > 0`,
     hourly
       ? db.$queryRaw<{ key: string; n: number }[]>`
           SELECT EXTRACT(HOUR FROM ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent'))::int::text AS key, COUNT(*)::int AS n
-          FROM "Redemption" WHERE "businessId" = ${businessId} AND "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY 1`
+          FROM "Redemption" WHERE "voidedAt" IS NULL AND "businessId" = ${businessId} AND "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY 1`
       : db.$queryRaw<{ key: string; n: number }[]>`
           SELECT to_char(("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent'), 'YYYY-MM-DD') AS key, COUNT(*)::int AS n
-          FROM "Redemption" WHERE "businessId" = ${businessId} AND "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY 1`,
+          FROM "Redemption" WHERE "voidedAt" IS NULL AND "businessId" = ${businessId} AND "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY 1`,
     db.$queryRaw<{ weekday: number; hour: number; n: number }[]>`
       SELECT (EXTRACT(ISODOW FROM ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent'))::int - 1) AS weekday,
              EXTRACT(HOUR FROM ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent'))::int AS hour,
              COUNT(*)::int AS n
-      FROM "Redemption" WHERE "businessId" = ${businessId} AND "createdAt" >= ${heatFrom} AND "createdAt" < ${to} GROUP BY 1, 2`,
+      FROM "Redemption" WHERE "voidedAt" IS NULL AND "businessId" = ${businessId} AND "createdAt" >= ${heatFrom} AND "createdAt" < ${to} GROUP BY 1, 2`,
     db.$queryRaw<{ name: string; n: number }[]>`
       SELECT u."shortName" AS name, COUNT(*)::int AS n
       FROM "Redemption" r JOIN "StudentProfile" p ON p."userId" = r."studentId" JOIN "University" u ON u.id = p."universityId"
-      WHERE r."businessId" = ${businessId} AND r."createdAt" >= ${from} AND r."createdAt" < ${to}
+      WHERE r."voidedAt" IS NULL AND r."businessId" = ${businessId} AND r."createdAt" >= ${from} AND r."createdAt" < ${to}
       GROUP BY u.id, u."shortName" ORDER BY n DESC, u."shortName"`,
     db.discountView.aggregate({ where: { discount: { businessId }, date: { gte: fromDay, lte: toDay } }, _sum: { count: true } }),
     db.coupon.count({ where: { discount: { businessId }, createdAt: { gte: from, lt: to } } }),
@@ -95,12 +95,12 @@ export async function businessStats(businessId: string, period: Period, now = ne
       SELECT d.id AS "discountId",
              COALESCE((SELECT SUM(v.count) FROM "DiscountView" v WHERE v."discountId" = d.id AND v.date >= ${fromDay} AND v.date <= ${toDay}), 0)::int AS views,
              (SELECT COUNT(*) FROM "Coupon" c WHERE c."discountId" = d.id AND c."createdAt" >= ${from} AND c."createdAt" < ${to})::int AS qr,
-             (SELECT COUNT(*) FROM "Redemption" r WHERE r."discountId" = d.id AND r."createdAt" >= ${from} AND r."createdAt" < ${to})::int AS sold,
-             COALESCE((SELECT SUM(r."paidAmount") FROM "Redemption" r WHERE r."discountId" = d.id AND r."createdAt" >= ${from} AND r."createdAt" < ${to}), 0)::int AS revenue,
-             COALESCE((SELECT SUM(r."discountAmount") FROM "Redemption" r WHERE r."discountId" = d.id AND r."createdAt" >= ${from} AND r."createdAt" < ${to}), 0)::int AS discount
+             (SELECT COUNT(*) FROM "Redemption" r WHERE r."voidedAt" IS NULL AND r."discountId" = d.id AND r."createdAt" >= ${from} AND r."createdAt" < ${to})::int AS sold,
+             COALESCE((SELECT SUM(r."paidAmount") FROM "Redemption" r WHERE r."voidedAt" IS NULL AND r."discountId" = d.id AND r."createdAt" >= ${from} AND r."createdAt" < ${to}), 0)::int AS revenue,
+             COALESCE((SELECT SUM(r."discountAmount") FROM "Redemption" r WHERE r."voidedAt" IS NULL AND r."discountId" = d.id AND r."createdAt" >= ${from} AND r."createdAt" < ${to}), 0)::int AS discount
       FROM "Discount" d WHERE d."businessId" = ${businessId}`,
     db.redemption.findMany({
-      where: { businessId },
+      where: { businessId, voidedAt: null },
       orderBy: [{ createdAt: "desc" }, { receiptNo: "desc" }],
       take: RECENT_SALES,
       select: {
@@ -113,7 +113,7 @@ export async function businessStats(businessId: string, period: Period, now = ne
         coupon: { select: { termsTitle: true } },
       },
     }),
-    db.redemption.groupBy({ by: ["cashierId"], where: { businessId, createdAt: { gte: cashierFrom, lt: to } }, _count: { _all: true } }),
+    db.redemption.groupBy({ by: ["cashierId"], where: { businessId, voidedAt: null, createdAt: { gte: cashierFrom, lt: to } }, _count: { _all: true } }),
     db.scanAttempt.count({ where: { businessId, result: { not: "OK" }, createdAt: { gte: cashierFrom, lt: to } } }),
     db.discount.findMany({
       where: { businessId, status: { not: "DRAFT" } },

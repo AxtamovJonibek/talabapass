@@ -8,6 +8,7 @@ import { isValidPassword, PASSWORD_MAX } from "@/lib/password";
 import { permissionsFrom, permissionsInput, type BusinessPermissionSet } from "@/lib/permissions";
 import { deleteOwnAccount } from "../account";
 import { audit } from "../audit";
+import { logAdminEvent, logDiscountChanges } from "./change-log";
 import { changeBusiness, logBusinessChange } from "../business/change";
 import { discountDraftSchema, discountForAdmin } from "../business/discounts";
 import { db } from "../db";
@@ -44,6 +45,7 @@ function changes(before: Record<string, unknown>, after: Record<string, unknown>
 }
 
 const asJson = (v: unknown) => v as Prisma.InputJsonValue;
+const withTitle = (title: string, text: string) => `«${title}»: ${text}`;
 
 async function editableUser(userId: string): Promise<{ error: "notFound" | "protected" } | { user: { id: string; role: Role } }> {
   const user = await db.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
@@ -329,6 +331,7 @@ export async function saveDiscountByAdmin(actorId: string, discountId: string, r
   if (Object.keys(errors).length > 0) return { ok: false, error: "errors", errors };
   const changed = changes(existing.draft, draft);
   if (Object.keys(changed).length === 0) return { ok: true };
+  const owner = await db.discount.findUniqueOrThrow({ where: { id: discountId }, select: { businessId: true } });
   await db.$transaction(async (tx) => {
     await tx.discount.update({
       where: { id: discountId },
@@ -348,7 +351,8 @@ export async function saveDiscountByAdmin(actorId: string, discountId: string, r
         terms: draft.terms || null,
       },
     });
-    await audit({ actorId, action: "discount.edit.admin", entity: "Discount", entityId: discountId, meta: { changed: asJson(changed) } }, tx);
+    await audit({ actorId, action: "discount.edit.admin", entity: "Discount", entityId: discountId, meta: { changed: asJson(changed), businessId: owner.businessId } }, tx);
+    await logDiscountChanges(tx, actorId, owner.businessId, draft.title, changed);
   });
   return { ok: true };
 }
@@ -357,7 +361,11 @@ export async function saveDiscountByAdmin(actorId: string, discountId: string, r
 export async function setDiscountStatusByAdmin(actorId: string, discountId: string, active: boolean): Promise<SuperResult> {
   const updated = await db.$transaction(async (tx) => {
     const r = await tx.discount.updateMany({ where: { id: discountId, status: active ? "PAUSED" : "ACTIVE" }, data: { status: active ? "ACTIVE" : "PAUSED" } });
-    if (r.count === 1) await audit({ actorId, action: active ? "discount.resume.admin" : "discount.pause.admin", entity: "Discount", entityId: discountId }, tx);
+    if (r.count === 1) {
+      const d = await tx.discount.findUniqueOrThrow({ where: { id: discountId }, select: { title: true, businessId: true } });
+      await audit({ actorId, action: active ? "discount.resume.admin" : "discount.pause.admin", entity: "Discount", entityId: discountId, meta: { businessId: d.businessId, from: active ? "PAUSED" : "ACTIVE", to: active ? "ACTIVE" : "PAUSED" } }, tx);
+      await logAdminEvent(tx, actorId, d.businessId, "discount_status", withTitle(d.title, active ? "PAUSED" : "ACTIVE"), withTitle(d.title, active ? "ACTIVE" : "PAUSED"));
+    }
     return r.count;
   });
   return updated === 1 ? { ok: true } : { ok: false, error: "invalid" };
@@ -376,7 +384,8 @@ export async function deleteDiscountByAdmin(actorId: string, discountId: string)
   if (discount._count.coupons > 0 || discount._count.orders > 0 || discount._count.redemptions > 0) {
     await db.$transaction(async (tx) => {
       await tx.discount.update({ where: { id: discountId }, data: { status: "ENDED" } });
-      await audit({ actorId, action: "discount.end.admin", entity: "Discount", entityId: discountId, meta: { from: discount.status, title: discount.title } }, tx);
+      await audit({ actorId, action: "discount.end.admin", entity: "Discount", entityId: discountId, meta: { from: discount.status, title: discount.title, businessId: discount.businessId } }, tx);
+      await logAdminEvent(tx, actorId, discount.businessId, "discount_status", withTitle(discount.title, discount.status), withTitle(discount.title, "ENDED"));
     });
     return { ok: false, error: "hasHistory" };
   }
@@ -388,6 +397,7 @@ export async function deleteDiscountByAdmin(actorId: string, discountId: string)
     await tx.bookingSeat.deleteMany({ where: { discountId } });
     await tx.discount.delete({ where: { id: discountId } });
     await audit({ actorId, action: "discount.delete.admin", entity: "Discount", entityId: discountId, meta: { title: discount.title, businessId: discount.businessId, status: discount.status } }, tx);
+    await logAdminEvent(tx, actorId, discount.businessId, "discount_deleted", withTitle(discount.title, discount.status), null);
   });
   await Promise.all(discount.images.map((i) => storage().delete(i.fileKey).catch(() => undefined)));
   return { ok: true };

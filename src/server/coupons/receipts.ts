@@ -127,15 +127,15 @@ export async function studentHistory(studentId: string, requested: string | null
   const current = monthKey(now);
   const monthRows = await db.$queryRaw<{ month: string }[]>`
     SELECT DISTINCT to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Tashkent', 'YYYY-MM') AS month
-    FROM "Redemption" WHERE "studentId" = ${studentId} ORDER BY 1 DESC`;
+    FROM "Redemption" WHERE "studentId" = ${studentId} AND "voidedAt" IS NULL ORDER BY 1 DESC`;
   const months = [...new Set([current, ...monthRows.map((r) => r.month)])].sort().reverse();
   const month = requested && months.includes(requested) ? requested : current;
   const { from, to } = monthRange(month);
 
   const [rows, total, places] = await Promise.all([
-    db.redemption.findMany({ where: { studentId, createdAt: { gte: from, lt: to } }, orderBy: { createdAt: "desc" }, select: RECEIPT_SELECT }),
-    db.redemption.aggregate({ where: { studentId }, _sum: { discountAmount: true }, _count: true }),
-    db.redemption.groupBy({ by: ["businessId"], where: { studentId } }),
+    db.redemption.findMany({ where: { studentId, voidedAt: null, createdAt: { gte: from, lt: to } }, orderBy: { createdAt: "desc" }, select: RECEIPT_SELECT }),
+    db.redemption.aggregate({ where: { studentId, voidedAt: null }, _sum: { discountAmount: true }, _count: true }),
+    db.redemption.groupBy({ by: ["businessId"], where: { studentId, voidedAt: null } }),
   ]);
   const receipts = rows.map(toReceipt);
   return {

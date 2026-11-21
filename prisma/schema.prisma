@@ -698,6 +698,10 @@ model Redemption {
   paidAmount     Int
   paymentType    PaymentType
   createdAt      DateTime    @default(now())
+  /// Admin xato sotuvni bekor qilgan: hisobotlar va jamilarga kirmaydi (qator o'chirilmaydi — tarix qoladi)
+  voidedAt       DateTime?
+  voidReason     String?
+  voidedById     String?
 
   coupon   Coupon   @relation(fields: [couponId], references: [id])
   business Business @relation(fields: [businessId], references: [id])

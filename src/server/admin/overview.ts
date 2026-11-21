@@ -27,19 +27,19 @@ export async function platformOverview(now = new Date()) {
     db.verification.groupBy({ by: ["studentId"], where: { status: "APPROVED", reviewedAt: { gte: today.from, lt: today.to } } }).then((rows) => rows.length),
     db.business.count({ where: { status: { in: ["APPROVED", "WARNED"] }, owner: { status: "ACTIVE" } } }),
     db.discount.count({ where: visibleDiscountWhere(now) }),
-    db.redemption.count({ where: { createdAt: { gte: today.from, lt: today.to } } }),
-    db.redemption.count({ where: { createdAt: { gte: lastWeek.from, lt: lastWeek.to } } }),
-    db.redemption.aggregate({ where: { createdAt: { gte: today.from, lt: today.to } }, _sum: { discountAmount: true, paidAmount: true } }),
+    db.redemption.count({ where: { voidedAt: null, createdAt: { gte: today.from, lt: today.to } } }),
+    db.redemption.count({ where: { voidedAt: null, createdAt: { gte: lastWeek.from, lt: lastWeek.to } } }),
+    db.redemption.aggregate({ where: { voidedAt: null, createdAt: { gte: today.from, lt: today.to } }, _sum: { discountAmount: true, paidAmount: true } }),
     db.$queryRaw<{ key: string; n: number }[]>`
       SELECT to_char(("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent'), 'YYYY-MM-DD') AS key, COUNT(*)::int AS n
-      FROM "Redemption" WHERE "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY 1`,
+      FROM "Redemption" WHERE "voidedAt" IS NULL AND "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY 1`,
     db.$queryRaw<{ key: string; n: number }[]>`
       SELECT to_char(("reviewedAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tashkent'), 'YYYY-MM-DD') AS key, COUNT(DISTINCT "studentId")::int AS n
       FROM "Verification" WHERE status = 'APPROVED' AND "reviewedAt" >= ${from} AND "reviewedAt" < ${to} GROUP BY 1`,
     db.$queryRaw<{ slug: string; name: string; n: number }[]>`
       SELECT c.slug, c.name, COUNT(*)::int AS n
       FROM "Redemption" r JOIN "Discount" d ON d.id = r."discountId" JOIN "Category" c ON c.id = d."categoryId"
-      WHERE r."createdAt" >= ${from} AND r."createdAt" < ${to} GROUP BY c.id, c.slug, c.name`,
+      WHERE r."voidedAt" IS NULL AND r."createdAt" >= ${from} AND r."createdAt" < ${to} GROUP BY c.id, c.slug, c.name`,
     db.$queryRaw<{ shortName: string; n: number }[]>`
       SELECT u."shortName", COUNT(*)::int AS n
       FROM "StudentProfile" p JOIN "University" u ON u.id = p."universityId" JOIN "User" x ON x.id = p."userId"
@@ -93,7 +93,7 @@ export async function businessRating(now = new Date(), limit = RATING_SHOWN) {
     ) c ON TRUE
     LEFT JOIN (
       SELECT "businessId", COUNT(*) AS sold, SUM("discountAmount") AS saved FROM "Redemption"
-      WHERE "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY "businessId"
+      WHERE "voidedAt" IS NULL AND "createdAt" >= ${from} AND "createdAt" < ${to} GROUP BY "businessId"
     ) s ON s."businessId" = b.id
     WHERE b.status IN ('APPROVED', 'WARNED')
     ORDER BY sold DESC, b.name
